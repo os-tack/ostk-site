@@ -1,0 +1,58 @@
+#!/bin/sh
+# ostk installer — downloads the latest haystack binary
+# Usage: curl -fsSL https://ostk.ai/install | sh
+set -e
+
+REPO="aetherwing-io/haystack"
+BINARY="haystack"
+
+# Detect platform
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+case "$OS" in
+  darwin) PLATFORM="apple-darwin" ;;
+  linux)  PLATFORM="unknown-linux-musl" ;;
+  *)      echo "Unsupported OS: $OS"; exit 1 ;;
+esac
+
+case "$ARCH" in
+  x86_64|amd64)  TARGET="x86_64-$PLATFORM" ;;
+  aarch64|arm64) TARGET="aarch64-$PLATFORM" ;;
+  *)             echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+# Get latest release
+LATEST=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"v//' | sed 's/".*//')
+
+if [ -z "$LATEST" ]; then
+  echo "No release found. Install from source:"
+  echo "  git clone https://github.com/$REPO.git && cd haystack && cargo install --path ."
+  exit 1
+fi
+
+ASSET="haystack-$TARGET"
+URL="https://github.com/$REPO/releases/download/v$LATEST/$ASSET"
+
+echo "Installing haystack v$LATEST ($TARGET)..."
+
+# Download to temp
+TMP=$(mktemp -d)
+curl -fsSL "$URL" -o "$TMP/$BINARY"
+chmod +x "$TMP/$BINARY"
+
+# Install
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
+mkdir -p "$INSTALL_DIR"
+mv "$TMP/$BINARY" "$INSTALL_DIR/$BINARY"
+rm -rf "$TMP"
+
+echo "Installed: $INSTALL_DIR/$BINARY"
+echo ""
+echo "Add to PATH if needed:"
+echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
+echo ""
+echo "Get started:"
+echo "  cd your-repo"
+echo "  haystack install"
+echo "  haystack boot"
