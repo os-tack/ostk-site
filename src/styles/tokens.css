@@ -1,0 +1,150 @@
+/* ==========================================================
+   ostk Design Tokens
+   os.tack — the OS stack
+   ==========================================================
+   @import url('./tokens.css');
+   All values: var(--ostk-*)
+   ========================================================== */
+
+:root {
+  /* --- Background layers (darkest to lightest) --- */
+  --ostk-bg-deep:        #0a0a0b;
+  --ostk-bg-base:        #111113;
+  --ostk-bg-raised:      #1a1a1e;
+  --ostk-bg-elevated:    #242429;
+
+  /* --- Borders --- */
+  --ostk-border-subtle:  #2a2a30;
+  --ostk-border-default: #3a3a42;
+  --ostk-border-strong:  #4a4a54;
+
+  /* --- Text --- */
+  --ostk-text-primary:   #e8e8ec;
+  --ostk-text-secondary: #a0a0aa;
+  --ostk-text-muted:     #606068;
+  --ostk-text-ghost:     #3a3a42;
+
+  /* --- Needle (the one accent — warm amber) --- */
+  --ostk-needle:         #d4a054;
+  --ostk-needle-dim:     #9a7640;
+  --ostk-needle-bright:  #e8b868;
+  --ostk-needle-glow:    rgba(212, 160, 84, 0.12);
+
+  /* --- Semantic --- */
+  --ostk-ok:             #5a9a6a;
+  --ostk-ok-dim:         #3a6a4a;
+  --ostk-warn:           #c4944a;
+  --ostk-warn-dim:       #8a6a3a;
+  --ostk-err:            #b85450;
+  --ostk-err-dim:        #7a3a38;
+  --ostk-info:           #5a8ab4;
+  --ostk-info-dim:       #3a6080;
+
+  /* --- Syntax highlighting (muted — code is content) --- */
+  --ostk-syn-keyword:    #8a8aaa;
+  --ostk-syn-string:     #8aaa7a;
+  --ostk-syn-number:     #aa8a6a;
+  --ostk-syn-comment:    #505058;
+  --ostk-syn-function:   #aaaacc;
+  --ostk-syn-type:       #7a9aaa;
+  --ostk-syn-operator:   #8a8a92;
+  --ostk-syn-constant:   #aa9a7a;
+  --ostk-syn-punctuation:#606068;
+
+  /* --- Typography --- */
+  --ostk-font-mono:
+    'Berkeley Mono',
+    'JetBrains Mono',
+    'Fira Code',
+    'SF Mono',
+    'Cascadia Code',
+    ui-monospace,
+    monospace;
+
+  --ostk-font-sans:
+    'Inter',
+    'SF Pro Text',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
+
+  /* Scale — minor third (1.2) */
+  --ostk-text-xs:    0.694rem;
+  --ostk-text-sm:    0.833rem;
+  --ostk-text-base:  1rem;
+  --ostk-text-md:    1.2rem;
+  --ostk-text-lg:    1.44rem;
+  --ostk-text-xl:    1.728rem;
+  --ostk-text-2xl:   2.074rem;
+  --ostk-text-3xl:   2.488rem;
+
+  --ostk-weight-normal:  400;
+  --ostk-weight-medium:  500;
+  --ostk-weight-bold:    600;
+
+  --ostk-leading-tight:  1.25;
+  --ostk-leading-normal: 1.5;
+  --ostk-leading-relaxed:1.65;
+
+  --ostk-tracking-tight: -0.02em;
+  --ostk-tracking-normal: 0;
+  --ostk-tracking-wide:   0.06em;
+
+  /* --- Spacing (4px grid) --- */
+  --ostk-space-1:   0.25rem;
+  --ostk-space-2:   0.5rem;
+  --ostk-space-3:   0.75rem;
+  --ostk-space-4:   1rem;
+  --ostk-space-6:   1.5rem;
+  --ostk-space-8:   2rem;
+  --ostk-space-12:  3rem;
+  --ostk-space-16:  4rem;
+  --ostk-space-24:  6rem;
+
+  /* --- Radii --- */
+  --ostk-radius-sm:  3px;
+  --ostk-radius-md:  6px;
+  --ostk-radius-lg:  10px;
+
+  /* --- Shadows --- */
+  --ostk-shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
+  --ostk-shadow-md:  0 2px 8px rgba(0, 0, 0, 0.4);
+  --ostk-shadow-lg:  0 4px 24px rgba(0, 0, 0, 0.5);
+
+  /* --- Motion --- */
+  --ostk-duration-fast:   100ms;
+  --ostk-duration-normal: 200ms;
+  --ostk-duration-slow:   400ms;
+  --ostk-easing:          cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* --- Z-index --- */
+  --ostk-z-base:      0;
+  --ostk-z-raised:    10;
+  --ostk-z-dropdown:  100;
+  --ostk-z-sticky:    200;
+  --ostk-z-modal:     300;
+  --ostk-z-toast:     400;
+}
+
+/* Light mode (marketing only — product is dark-first) */
+[data-theme="light"] {
+  --ostk-bg-deep:        #f8f8fa;
+  --ostk-bg-base:        #ffffff;
+  --ostk-bg-raised:      #f2f2f5;
+  --ostk-bg-elevated:    #eaeaee;
+  --ostk-border-subtle:  #e2e2e8;
+  --ostk-border-default: #d0d0d8;
+  --ostk-border-strong:  #b0b0ba;
+  --ostk-text-primary:   #1a1a1e;
+  --ostk-text-secondary: #5a5a64;
+  --ostk-text-muted:     #8a8a94;
+  --ostk-text-ghost:     #c0c0c8;
+  --ostk-needle:         #b08030;
+  --ostk-needle-dim:     #c8a060;
+  --ostk-needle-bright:  #946820;
+  --ostk-needle-glow:    rgba(176, 128, 48, 0.08);
+  --ostk-syn-comment:    #a0a0a8;
+  --ostk-syn-keyword:    #5a5a7a;
+}

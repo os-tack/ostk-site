@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Insights — ostk" description="Research, findings, and observations from building an OS for AI agents.">
+  <div class="container">
+    <h1>Insights</h1>
+
+    <p>Observations from building an operating system for AI agents. Evidence-first. No speculation.</p>
+
+    <div class="card">
+      <h3>str_replace as compare-and-swap</h3>
+      <p>Every <code>str_replace</code> call is an atomic compare-and-swap. The match string is the expected value. If the file changed since the agent last read it, the match fails and the agent retries. No locks needed. Optimistic concurrency built into the tool agents already use.</p>
+    </div>
+
+    <div class="card">
+      <h3>Agents don't need coordination APIs</h3>
+      <p>When the OS handles conflicts at write time, agents don't need to know about each other. They write files. The kernel resolves. This is how Unix processes work — they don't coordinate directly, the OS mediates access to shared resources.</p>
+    </div>
+
+    <div class="card">
+      <h3>The bootstrap evidence</h3>
+      <p>ostk was built by agents running on ostk. 104 commits, 698 tests, 539 needles. The OS managed the agents that built the OS. The dataset is the proof — not a benchmark, but the actual development history.</p>
+    </div>
+
+    <div class="card">
+      <h3>Output compression saves 40-60% tokens</h3>
+      <p>VTE escape stripping plus duplicate line deduplication. Shell output that an agent reads is often full of ANSI codes and repeated lines. Compressing it before the LLM sees it reduces token consumption without losing information.</p>
+    </div>
+
+    <div class="card">
+      <h3>Context is registers. Files are disk. Recovery is swap.</h3>
+      <p>The LLM conversation window maps to CPU registers. Offloaded context (boot.md, digests) is RAM. The filesystem is disk. When an agent crashes and restarts, it swaps context back in from the filesystem. The OS provides the ambient context that makes recovery possible without human intervention.</p>
+    </div>
+
+    <p class="cta">More insights published as evidence accumulates. <a href="https://github.com/aetherwing-io/haystack">Follow the source</a>.</p>
+  </div>
+</Base>
+
+<style>
+  .card {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    padding: var(--ostk-space-6);
+    margin-bottom: var(--ostk-space-4);
+  }
+
+  .card h3 {
+    margin-top: 0;
+    font-size: var(--ostk-text-md);
+    margin-bottom: var(--ostk-space-3);
+  }
+
+  .card p {
+    margin-bottom: 0;
+  }
+
+  .card:hover {
+    border-color: var(--ostk-border-default);
+  }
+
+  .cta {
+    margin-top: var(--ostk-space-8);
+    color: var(--ostk-text-muted);
+  }
+</style>

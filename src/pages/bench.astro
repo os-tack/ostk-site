@@ -1,0 +1,110 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="needle-bench — ostk" description="Benchmark suite for AI agent coordination. 23 Docker scenarios. Pass/fail.">
+  <div class="container">
+    <h1>needle-bench</h1>
+
+    <h2>What it is</h2>
+    <p>needle-bench measures how well AI agents resolve real coordination problems. Not toy benchmarks — actual multi-agent conflict scenarios run in Docker containers.</p>
+    <p>Each scenario creates a situation agents encounter in production: concurrent file edits, merge conflicts, context recovery after crashes, compressed output parsing. The agent either resolves it or doesn't. Pass/fail. No partial credit.</p>
+
+    <h2>Current state</h2>
+    <ul>
+      <li>23 Docker scenarios</li>
+      <li>26 scores submitted</li>
+      <li>2 models tested (Gemini 2.0 Flash: 70% resolve rate)</li>
+      <li>Base image: 74MB Alpine, verified across all scenarios</li>
+      <li>Runner supports Gemini, Anthropic, and OpenRouter APIs</li>
+    </ul>
+
+    <h2>How scoring works</h2>
+    <p>Each scenario has a test assertion. The agent's work either passes the test or it doesn't. Points equal needles resolved. No subjective grading. No human evaluation. The test is the judge.</p>
+
+    <h2>Leaderboard</h2>
+    <div id="leaderboard" class="leaderboard">
+      <p class="loading">Loading scores...</p>
+    </div>
+
+    <h2>How to submit</h2>
+    <ol>
+      <li>
+        Run the bench suite against your model:
+        <pre><code>haystack bench --model your-model --provider your-provider</code></pre>
+      </li>
+      <li>Results are written to <code>results/</code> with full audit trail.</li>
+      <li>
+        Submit to the leaderboard:
+        <pre><code>haystack bench --score --submit</code></pre>
+      </li>
+    </ol>
+
+    <h2>Building custom scenarios</h2>
+    <p>A scenario is a Dockerfile that sets up a conflict situation and a test that verifies resolution:</p>
+    <pre><code>scenarios/
+  your-scenario/
+    Dockerfile        # Sets up the conflict
+    test.sh           # Pass/fail assertion
+    README.md         # What this tests</code></pre>
+    <p>Scenarios inherit from <code>Dockerfile.base</code>. Keep them minimal. The constraint is the test.</p>
+    <p>Submit scenarios via pull request to <a href="https://github.com/aetherwing-io/haystack">github.com/aetherwing-io/haystack</a>.</p>
+    <p>View full leaderboard at <a href="https://needle-bench.cc">needle-bench.cc</a>.</p>
+  </div>
+</Base>
+
+<style>
+  .leaderboard {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    padding: var(--ostk-space-4);
+    margin-bottom: var(--ostk-space-6);
+    overflow-x: auto;
+  }
+
+  .loading {
+    color: var(--ostk-text-muted);
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    margin: 0;
+  }
+
+  .leaderboard table {
+    margin: 0;
+  }
+
+  .leaderboard th {
+    border-bottom-color: var(--ostk-border-default);
+  }
+</style>
+
+<script>
+  async function loadScores() {
+    const el = document.getElementById('leaderboard');
+    if (!el) return;
+    try {
+      const res = await fetch('/scores.json');
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        el.innerHTML = '<p class="loading">No scores yet.</p>';
+        return;
+      }
+      const sorted = data.sort((a: any, b: any) => (b.score ?? b.total ?? 0) - (a.score ?? a.total ?? 0));
+      let html = '<table><thead><tr><th>Rank</th><th>Model</th><th>Provider</th><th>Score</th></tr></thead><tbody>';
+      sorted.forEach((entry: any, i: number) => {
+        html += `<tr>
+          <td>${i + 1}</td>
+          <td><code>${entry.model || entry.name || '—'}</code></td>
+          <td>${entry.provider || '—'}</td>
+          <td>${entry.score ?? entry.total ?? '—'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    } catch {
+      el.innerHTML = '<p class="loading">Could not load scores.</p>';
+    }
+  }
+  loadScores();
+</script>

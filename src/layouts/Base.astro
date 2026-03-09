@@ -1,0 +1,191 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'ostk — the OS stack for AI agents' } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/docs', label: 'Docs' },
+  { href: '/bench', label: 'Bench' },
+  { href: '/insights', label: 'Insights' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={description} />
+  <title>{title}</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <span class="logo-os">os</span><span class="logo-diamond">&#9670;</span><span class="logo-tk">tk</span>
+      </a>
+      <div class="nav-links">
+        {navLinks.map(link => (
+          <a
+            href={link.href}
+            class:list={['nav-link', { active: currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href)) }]}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <slot />
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span class="logo-os">os</span><span class="logo-diamond">&#9670;</span><span class="logo-tk">tk</span>
+          <span class="footer-tagline">the OS stack</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/aetherwing-io/haystack">GitHub</a>
+          <a href="/legal/terms">Terms</a>
+          <a href="/legal/privacy">Privacy</a>
+          <a href="/legal/license">License</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>
+
+<style>
+  .nav {
+    background: var(--ostk-bg-base);
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    position: sticky;
+    top: 0;
+    z-index: var(--ostk-z-sticky);
+  }
+
+  .nav-inner {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 0 var(--ostk-space-6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.5rem;
+  }
+
+  .nav-logo {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-md);
+    font-weight: var(--ostk-weight-bold);
+    text-decoration: none;
+    color: var(--ostk-text-primary);
+  }
+
+  .logo-os, .logo-tk {
+    color: var(--ostk-text-primary);
+  }
+
+  .logo-diamond {
+    color: var(--ostk-needle);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: var(--ostk-space-6);
+  }
+
+  .nav-link {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    font-weight: var(--ostk-weight-medium);
+    color: var(--ostk-text-secondary);
+    text-decoration: none;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav-link:hover {
+    color: var(--ostk-text-primary);
+  }
+
+  .nav-link.active {
+    color: var(--ostk-text-primary);
+    border-bottom-color: var(--ostk-needle);
+  }
+
+  .footer {
+    border-top: 1px solid var(--ostk-border-subtle);
+    padding: var(--ostk-space-8) 0;
+    margin-top: auto;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-left {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    font-weight: var(--ostk-weight-bold);
+  }
+
+  .footer-tagline {
+    color: var(--ostk-text-muted);
+    font-weight: var(--ostk-weight-normal);
+    margin-left: var(--ostk-space-3);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: var(--ostk-space-4);
+  }
+
+  .footer-links a {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    color: var(--ostk-text-muted);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    color: var(--ostk-text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .nav-links {
+      gap: var(--ostk-space-3);
+    }
+
+    .nav-link {
+      font-size: var(--ostk-text-xs);
+    }
+
+    .footer-inner {
+      flex-direction: column;
+      gap: var(--ostk-space-4);
+      text-align: center;
+    }
+  }
+</style>

@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="About — ostk" description="The story behind ostk, the OS stack for AI agents.">
+  <div class="container">
+    <h1>About ostk</h1>
+
+    <h2>The story</h2>
+    <p>ostk wasn't designed in a planning meeting. It was extracted from the problem it solves.</p>
+    <p>The kernel — haystack — started as a coordination layer for AI agents working on the same codebase. The first version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, and benchmarking.</p>
+    <p>At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS had absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.</p>
+    <p>The session that named ostk built 22 needles, shipped a release, and managed the entire workflow through the OS itself. The bootstrap was complete: the machine built the machine.</p>
+
+    <h2>The five laws</h2>
+    <p>These are not guidelines. They are load-bearing constraints that shape every decision.</p>
+    <ol>
+      <li><strong>The write path is invisible.</strong> Agents edit files normally. Conflict resolution happens inside the response. No coordination APIs. No new tools to learn.</li>
+      <li><strong>Agents are ephemeral.</strong> They crash, compact, lose context. That's the lifecycle, not an error. State lives in the filesystem. The OS doesn't recover agents — agents recover themselves from the ambient context the OS provides.</li>
+      <li><strong>Coordinate through the filesystem.</strong> No messaging buses. No inboxes. No claim systems. Agents write files. The kernel resolves conflicts at write time.</li>
+      <li><strong>Optimistic concurrency.</strong> No locks. Agents write freely. <code>str_replace</code> is the compare-and-swap. Conflicts resolved, not prevented.</li>
+      <li><strong>Invisible infrastructure.</strong> If you have to think about the OS, the OS failed. It runs underneath. Always.</li>
+    </ol>
+
+    <h2>The team</h2>
+    <p>Built by agents running on ostk. Maintained by humans who speak tack.</p>
+    <p><a href="mailto:contact@ostk.ai">contact@ostk.ai</a></p>
+  </div>
+</Base>
+
+<style>
+  h2 { margin-top: var(--ostk-space-12); }
+  h2:first-of-type { margin-top: var(--ostk-space-8); }
+</style>

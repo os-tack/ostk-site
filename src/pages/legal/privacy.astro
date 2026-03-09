@@ -1,0 +1,64 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Privacy Policy — ostk" description="Privacy policy for ostk software and the ostk.ai website.">
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="meta"><em>Effective: 2026-03-09</em> &middot; <a href="mailto:contact@ostk.ai">contact@ostk.ai</a></p>
+
+    <h2>Summary</h2>
+    <p>ostk collects nothing. The software runs locally on your machine. No telemetry. No analytics. No phone-home.</p>
+
+    <h2>The software</h2>
+    <p>ostk runs entirely on your local machine. It does not:</p>
+    <ul>
+      <li>Send data to any server</li>
+      <li>Collect usage statistics</li>
+      <li>Phone home for license checks</li>
+      <li>Upload files, logs, or audit trails</li>
+      <li>Require network access for any core functionality</li>
+    </ul>
+    <p>All state lives in your filesystem under <code>.haystack/</code> in your repository. You own it. You can read it. You can delete it.</p>
+
+    <h2>The website (ostk.ai)</h2>
+    <p>The ostk.ai website:</p>
+    <ul>
+      <li>Does not use cookies</li>
+      <li>Does not use analytics services (no Google Analytics, no Plausible, nothing)</li>
+      <li>Does not track visitors</li>
+      <li>Does not collect personal information</li>
+      <li>Serves static content only</li>
+    </ul>
+
+    <h2>needle-bench leaderboard</h2>
+    <p>If you submit benchmark scores to the public leaderboard, the following is published:</p>
+    <ul>
+      <li>Model name</li>
+      <li>Provider name</li>
+      <li>Scenario scores</li>
+      <li>Submission timestamp</li>
+    </ul>
+    <p>No personal information is required or stored with submissions.</p>
+
+    <h2>Third parties</h2>
+    <p>We do not share data with third parties because we do not collect data.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this policy: <a href="mailto:contact@ostk.ai">contact@ostk.ai</a></p>
+  </div>
+</Base>
+
+<style>
+  .meta {
+    color: var(--ostk-text-muted);
+    font-size: var(--ostk-text-sm);
+    margin-bottom: var(--ostk-space-8);
+  }
+  .meta a {
+    color: var(--ostk-text-muted);
+  }
+  .meta a:hover {
+    color: var(--ostk-text-secondary);
+  }
+</style>

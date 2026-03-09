@@ -1,0 +1,99 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Documentation — ostk" description="How to install, configure, and use ostk.">
+  <div class="container">
+    <h1>Documentation</h1>
+
+    <h2>Quick start</h2>
+    <pre><code># Install
+curl -fsSL https://ostk.ai/install | sh
+
+# Boot the OS on a repo
+cd your-repo
+haystack boot
+
+# The OS is running. Agents use their normal tools.
+# The bash shim intercepts commands and adds coordination.</code></pre>
+
+    <p>After boot, the OS:</p>
+    <ul>
+      <li>Tracks every file write with generation counters</li>
+      <li>Resolves conflicts between concurrent agents (Hot PR)</li>
+      <li>Compresses shell output to save tokens</li>
+      <li>Maintains an audit trail of every action</li>
+    </ul>
+    <p>No configuration needed. No <code>.ostk.yml</code>. The OS reads the repo and orients.</p>
+
+    <h2>Architecture</h2>
+    <p>ostk has two layers:</p>
+
+    <h3>haystack (kernel)</h3>
+    <p>A single Rust binary. Provides:</p>
+    <ul>
+      <li>Process table and PTY supervision</li>
+      <li>Filesystem with optimistic concurrency control</li>
+      <li>Hot PR conflict resolution (4 tiers: auto-merge, assisted, manual rebase, diagnostic)</li>
+      <li>Generation table for file versioning</li>
+      <li>Agent identity and heartbeat</li>
+      <li>Output compression (VTE strip + dedup)</li>
+      <li>MCP server (<code>haystack serve</code>) exposing the full tool surface</li>
+    </ul>
+
+    <h3>fcp-* (device drivers)</h3>
+    <p>Domain intelligence plugins:</p>
+    <ul>
+      <li>fcp-rust: Rust analyzer integration</li>
+      <li>fcp-python: Python LSP integration</li>
+      <li>fcp-drawio: Diagram reasoning</li>
+      <li>More as needed. Each driver speaks the domain's native language.</li>
+    </ul>
+    <p>The kernel provides primitives. Device drivers provide intelligence.</p>
+
+    <h2>Tack grammar</h2>
+    <p>Tack is the intent-capture language. You type shorthand. The OS compiles it.</p>
+    <pre><code>:command object              # Basic command
+:verb1 :verb2 :verb3         # Chain commands (sequential)
+.p0 .p1 .p2                  # Priority shorthand
+-&gt; flow                      # Sequence operator</code></pre>
+
+    <p>Examples:</p>
+    <table>
+      <thead>
+        <tr><th>You type</th><th>What happens</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>:compile</code></td><td>Unstructured thinking becomes executable needles</td></tr>
+        <tr><td><code>:compile :plan :ship</code></td><td>Compile, plan the work, commit</td></tr>
+        <tr><td><code>:hs add issue "fix auth" .p0</code></td><td>File a P0 needle</td></tr>
+        <tr><td><code>:calibrate</code></td><td>Retrospective on a thread</td></tr>
+      </tbody>
+    </table>
+    <p>Tack is not a fixed grammar. The OS learns your shorthand over sessions. What you type today becomes vocabulary tomorrow.</p>
+
+    <h2>Key commands</h2>
+    <table>
+      <thead>
+        <tr><th>Command</th><th>What it does</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>haystack boot</code></td><td>Load state from <code>.haystack/boot.md</code>, report</td></tr>
+        <tr><td><code>haystack needle add</code></td><td>File a new needle (executable work item)</td></tr>
+        <tr><td><code>haystack verify</code></td><td>Run verification against needle criteria</td></tr>
+        <tr><td><code>haystack commit</code></td><td>Commit with audit trail</td></tr>
+        <tr><td><code>haystack bench</code></td><td>Run benchmark scenarios</td></tr>
+        <tr><td><code>haystack ps</code></td><td>Show agent process table</td></tr>
+        <tr><td><code>haystack nudge</code></td><td>Send a notification to an agent or human</td></tr>
+        <tr><td><code>haystack serve</code></td><td>Start the MCP server</td></tr>
+        <tr><td><code>haystack audit</code></td><td>Query the audit trail</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Further reading</h2>
+    <ul>
+      <li><a href="/bench">needle-bench: benchmarking agents</a></li>
+      <li><a href="https://github.com/aetherwing-io/haystack">Source code on GitHub</a></li>
+    </ul>
+  </div>
+</Base>

@@ -1,0 +1,147 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="ostk — the OS stack">
+  <div class="container">
+    <section class="hero">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot"></span>
+          <span class="terminal-dot"></span>
+          <span class="terminal-dot"></span>
+        </div>
+        <div class="terminal-body">
+          <div class="hero-title">ostk</div>
+          <div class="hero-tagline">the OS stack</div>
+          <div class="terminal-blank"></div>
+          <div class="terminal-line"><span class="prompt">$</span> haystack boot</div>
+          <div class="terminal-line"><span class="prompt">$</span> haystack compile</div>
+          <div class="terminal-line"><span class="prompt">$</span> haystack bench</div>
+          <div class="terminal-blank"></div>
+          <div class="terminal-line"><span class="terminal-comment">Install:</span> <span class="terminal-cmd">curl -fsSL https://ostk.ai/install | sh</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What is it</h2>
+      <p>ostk is an operating system for AI agents. It replaces Jira, Slack, GitHub workflows, CI, and your IDE with a single Rust binary that coordinates agents through the filesystem. Agents run on it without knowing — byte-for-byte passthrough for every command, with conflict resolution and coordination underneath.</p>
+    </section>
+
+    <section class="section">
+      <h2>How it works</h2>
+      <ol>
+        <li><strong>Install.</strong> <code>curl -fsSL https://ostk.ai/install | sh</code> — boots the OS on any git repo.</li>
+        <li><strong>Work.</strong> Your agents use their normal tools. The OS intercepts writes, resolves conflicts, compresses output, and tracks everything. Nothing changes for the agent.</li>
+        <li><strong>Speak tack.</strong> You type intent in shorthand. The OS compiles it into agent actions. <code>:compile :plan :ship</code> — three words, full execution.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Why it exists</h2>
+      <p>Agent frameworks ask agents to learn new APIs. That's backwards. An OS doesn't ask processes to coordinate — it provides the primitives and stays out of the way.</p>
+      <p>ostk emerged from building itself. 104 commits, 698 tests, 539 needles — all managed by agents running on the OS that was being built. No meetings. No standups. No Jira tickets. The evidence is the product.</p>
+
+      <p>Five laws govern everything:</p>
+      <ol>
+        <li>The write path is invisible</li>
+        <li>Agents are ephemeral</li>
+        <li>Coordinate through the filesystem</li>
+        <li>Optimistic concurrency</li>
+        <li>Invisible infrastructure, always</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Get started</h2>
+      <pre><code>curl -fsSL https://ostk.ai/install | sh
+cd your-repo
+haystack boot</code></pre>
+      <p>The OS is running. Your agents are already on it.</p>
+      <p>
+        <a href="/docs">Documentation</a> &middot;
+        <a href="/bench">Benchmarks</a> &middot;
+        <a href="https://github.com/aetherwing-io/haystack">GitHub</a>
+      </p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .hero {
+    padding-top: var(--ostk-space-8);
+    padding-bottom: var(--ostk-space-12);
+  }
+
+  .terminal {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    overflow: hidden;
+  }
+
+  .terminal-bar {
+    height: 2rem;
+    background: var(--ostk-bg-elevated);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--ostk-space-3);
+    gap: var(--ostk-space-2);
+  }
+
+  .terminal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ostk-text-ghost);
+  }
+
+  .terminal-body {
+    padding: var(--ostk-space-6);
+    font-family: var(--ostk-font-mono);
+  }
+
+  .hero-title {
+    font-size: var(--ostk-text-3xl);
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-text-primary);
+    letter-spacing: var(--ostk-tracking-tight);
+  }
+
+  .hero-tagline {
+    font-size: var(--ostk-text-md);
+    color: var(--ostk-text-secondary);
+    margin-bottom: var(--ostk-space-2);
+  }
+
+  .terminal-blank {
+    height: var(--ostk-space-4);
+  }
+
+  .terminal-line {
+    line-height: 1.8;
+    font-size: var(--ostk-text-sm);
+  }
+
+  .prompt {
+    color: var(--ostk-text-muted);
+    margin-right: var(--ostk-space-2);
+  }
+
+  .terminal-comment {
+    color: var(--ostk-text-muted);
+  }
+
+  .terminal-cmd {
+    color: var(--ostk-needle);
+  }
+
+  .section {
+    margin-bottom: var(--ostk-space-12);
+  }
+
+  .section h2 {
+    margin-top: 0;
+  }
+</style>
