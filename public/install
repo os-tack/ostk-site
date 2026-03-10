@@ -3,7 +3,7 @@
 # Usage: curl -fsSL https://ostk.ai/install | sh
 set -e
 
-REPO="aetherwing-io/haystack"
+REPO="os-tack/haystack"
 BINARY="haystack"
 
 # Detect platform
