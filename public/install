@@ -38,8 +38,16 @@ echo "Installing haystack v$LATEST ($TARGET)..."
 
 # Download to temp
 TMP=$(mktemp -d)
-curl -fsSL "$URL" -o "$TMP/$BINARY"
+curl -fsSL "$URL" -o "$TMP/$BINARY.tar.gz"
+
+# Extract
+tar -xzf "$TMP/$BINARY.tar.gz" -C "$TMP"
 chmod +x "$TMP/$BINARY"
+
+# macOS: clear Gatekeeper quarantine flag (cross-compiled binary, not notarized)
+if [ "$OS" = "darwin" ]; then
+  xattr -rc "$TMP/$BINARY" 2>/dev/null || true
+fi
 
 # Install
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
