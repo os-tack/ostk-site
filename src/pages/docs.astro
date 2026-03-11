@@ -12,7 +12,7 @@ curl -fsSL https://ostk.ai/install | sh
 
 # Boot the OS on a repo
 cd your-repo
-haystack boot
+ostk boot
 
 # The OS is running. Agents use their normal tools.
 # The bash shim intercepts commands and adds coordination.</code></pre>
@@ -38,7 +38,7 @@ haystack boot
       <li>Generation table for file versioning</li>
       <li>Agent identity and heartbeat</li>
       <li>Output compression (VTE strip + dedup)</li>
-      <li>MCP server (<code>haystack serve</code>) exposing the full tool surface</li>
+      <li>MCP server (<code>ostk serve</code>) exposing the full tool surface</li>
     </ul>
 
     <h3>fcp-* (device drivers)</h3>
@@ -78,22 +78,22 @@ haystack boot
         <tr><th>Command</th><th>What it does</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>haystack boot</code></td><td>Load state from <code>.haystack/boot.md</code>, report</td></tr>
-        <tr><td><code>haystack needle add</code></td><td>File a new needle (executable work item)</td></tr>
-        <tr><td><code>haystack verify</code></td><td>Run verification against needle criteria</td></tr>
-        <tr><td><code>haystack commit</code></td><td>Commit with audit trail</td></tr>
-        <tr><td><code>haystack bench</code></td><td>Run benchmark scenarios</td></tr>
-        <tr><td><code>haystack ps</code></td><td>Show agent process table</td></tr>
-        <tr><td><code>haystack nudge</code></td><td>Send a notification to an agent or human</td></tr>
-        <tr><td><code>haystack serve</code></td><td>Start the MCP server</td></tr>
-        <tr><td><code>haystack audit</code></td><td>Query the audit trail</td></tr>
+        <tr><td><code>ostk boot</code></td><td>Load state from <code>.haystack/boot.md</code>, report</td></tr>
+        <tr><td><code>ostk needle add</code></td><td>File a new needle (executable work item)</td></tr>
+        <tr><td><code>ostk verify</code></td><td>Run verification against needle criteria</td></tr>
+        <tr><td><code>ostk commit</code></td><td>Commit with audit trail</td></tr>
+        <tr><td><code>ostk bench</code></td><td>Run benchmark scenarios</td></tr>
+        <tr><td><code>ostk ps</code></td><td>Show agent process table</td></tr>
+        <tr><td><code>ostk nudge</code></td><td>Send a notification to an agent or human</td></tr>
+        <tr><td><code>ostk serve</code></td><td>Start the MCP server</td></tr>
+        <tr><td><code>ostk audit</code></td><td>Query the audit trail</td></tr>
       </tbody>
     </table>
 
     <h2>Downloads</h2>
     <p>Latest release: <strong>v1.0.2</strong> — first signed binary release.</p>
     <ul>
-      <li><a href="https://github.com/aetherwing-io/haystack/releases/tag/v1.0.2" onclick="plausible('Download', {props: {target: 'release-page'}})">haystack v1.0.2 release page</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+      <li><a href="https://github.com/aetherwing-io/haystack/releases/tag/v1.0.2" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v1.1.2 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
     <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install" onclick="plausible('Install', {props: {method: 'curl'}})">view install script</a></p>
     <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
