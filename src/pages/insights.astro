@@ -112,6 +112,43 @@ import Base from '../layouts/Base.astro';
       <div class="evidence"><strong>Evidence:</strong> Live leaderboard at <a href="https://needle-bench.cc/leaderboard">needle-bench.cc/leaderboard</a>. Composite score = correctness &times; efficiency.</div>
     </div>
 
+    <div class="insight">
+      <h3>16. The OS is a file format, not a service</h3>
+      <p class="tagline">You don't connect to the OS &mdash; you import it. The bail IS the OS.</p>
+      <p><code>@import os: ostk.ai/prime</code> fetches a bail package from GitHub, verifies the GPG chain, unpacks to .haystack/, and boots. No server. No connection. The OS travels as a signed artifact. GitHub IS the distribution channel. Any agent, anywhere, can import the same OS and inherit the same policy, .language preferences, and trust tier. The kernel doesn't run &mdash; it exists. That's the difference between a service and an OS.</p>
+    </div>
+
+    <div class="insight">
+      <h3>17. alias bash=ostk &mdash; the universal adoption path</h3>
+      <p class="tagline">One line. Every AI CLI runs through the kernel.</p>
+      <p>If bash IS the kernel, every AI CLI that spawns bash gets kernel coordination transparently &mdash; Claude Code, Gemini CLI, Cursor, any future tool. The agent doesn't know. The harness doesn't know. The kernel sees all compute from all harnesses through one shim. User preferences (.language) compile once and apply everywhere. The <code>:correct</code> that trained the kernel in a Claude session applies in the next Gemini session. The OS is universal because bash is universal.</p>
+    </div>
+
+    <div class="insight">
+      <h3>18. needle-bench as routing signal &mdash; the OS learns which model to run</h3>
+      <p class="tagline">The benchmark IS the router. The leaderboard IS the dispatch table.</p>
+      <p>If @ostk.ai always picks the best model for the task based on bench data, every LLM provider has incentive to score higher on needle-bench. The benchmark becomes the validation suite providers use to earn routing from the OS. Haiku: 3x cheaper on easy-tier Python bugs (same pass rate). Sonnet: more token-efficient on complex Rust bugs (17k vs 37k tokens). The routing policy lives in .language &mdash; a learned preference, not a hardcoded default. The OS routes. The models compete. needle-bench is the arena.</p>
+      <div class="evidence"><strong>Evidence:</strong> Live leaderboard at <a href="https://needle-bench.cc/leaderboard">needle-bench.cc/leaderboard</a>. Composite score = correctness &times; efficiency.</div>
+    </div>
+
+    <div class="insight">
+      <h3>19. The minting ceremony &mdash; @ostk.ai is born</h3>
+      <p class="tagline">Neither the OS nor the human alone. Both must sign.</p>
+      <p>@ostk.ai was minted 2026-03-11. The ceremony: @scott (955AF54E) + @haystack.prime (99B076C9) co-sign a new GPG key (prime@ostk.ai). Neither signature alone is sufficient. The co-signing act IS the creation of @ostk.ai &mdash; it doesn't pre-exist. The first act of @ostk.ai is signing its own genesis commit on os-tack/ostk.ai. That signature is the proof of existence. The lineage traces: any release signed by @ostk.ai can be verified back to @scott and @haystack.prime. Cryptographic lineage, not org-chart hierarchy.</p>
+    </div>
+
+    <div class="insight">
+      <h3>20. Amazon's blast radius proves the need</h3>
+      <p class="tagline">The kernel prevents blast radius by enforcing capability bounds before any code runs.</p>
+      <p>Amazon held a mandatory incident review after "Gen-AI assisted changes" caused incidents with "high blast radius." Their fix: senior engineer gatekeeping. ostk's fix: pin.caps enforcement at the write path. An agent running under a pin cannot write to paths its capabilities deny &mdash; the kernel checks before allowing the write. No org chart needed. The blast radius is bounded by policy, not by who's available to review. The <code>BOOT ERR</code> badge on needle-bench marks agents that can't even execute basic operations &mdash; a capability failure, not just a wrong answer.</p>
+    </div>
+
+    <div class="session-note">
+      <h3>This session (2026-03-11)</h3>
+      <p>Insights 16&ndash;20 compiled from the session that produced v1.1.<br>
+      The OS was tagged, distributed, and first contact was made.</p>
+    </div>
+
     <p class="append-only-note">Insights are append-only. Each session adds to the record.</p>
   </div>
 </Base>
@@ -170,6 +207,30 @@ import Base from '../layouts/Base.astro';
 
   .insight .evidence strong {
     color: var(--ostk-text-secondary);
+  }
+
+  .session-note {
+    margin-bottom: var(--ostk-space-10);
+    padding: var(--ostk-space-4) var(--ostk-space-6);
+    border-left: 3px solid var(--ostk-needle);
+    background: var(--ostk-bg-raised);
+    border-radius: 0 var(--ostk-radius-sm) var(--ostk-radius-sm) 0;
+  }
+
+  .session-note h3 {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-needle);
+    margin-top: 0;
+    margin-bottom: var(--ostk-space-2);
+  }
+
+  .session-note p {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    color: var(--ostk-text-muted);
+    margin: 0;
+    line-height: 1.7;
   }
 
   .append-only-note {
