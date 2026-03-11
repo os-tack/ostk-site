@@ -2,35 +2,184 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Insights — ostk" description="Proofs of your os + tack. Discovered, measured, compounded.">
+<Base title="Insights — ostk" description="OS insights from the sessions that built it. Architectural discoveries, session learnings, and proofs of the OS stack.">
   <div class="container">
     <h1>Insights</h1>
 
-    <p>All insights live at <a href="https://needle-bench.cc/insights">needle-bench.cc/insights</a> — proofs of your os + tack, compounded across sessions.</p>
+    <p class="lede">
+      Architectural discoveries, session learnings, and proofs of the OS stack.<br>
+      Compounded across sessions. Append-only.
+    </p>
 
-    <div class="links">
-      <a href="https://needle-bench.cc/insights" class="primary-link">View insights →</a>
-      <a href="https://needle-bench.cc/leaderboard" class="secondary-link">Leaderboard →</a>
+    <div class="insight">
+      <h3>1. Tack &mdash; the intent language</h3>
+      <p class="tagline">Humans compress communication, not simplify it.</p>
+      <p>A contact language emerged between human and machine. Not designed &mdash; typed into existence. Urgency encoded as <code>. : :: :::</code>, flow as <code>-&gt; =&gt;</code>, verbs as <code>:exec :ship :kill</code>. Every natural language feature survived the compression: deixis, repair, register shifts, interruption. Re-encoded into minimal ASCII.</p>
+      <p>Communication cost dropped from ~200 tokens/op to ~10 tokens/op within one session. 20x compression through mutual adaptation, not instruction.</p>
+      <div class="evidence"><strong>Evidence:</strong> Tack spec v1 promoted, v2 drafted. Three bench tests pass against the grammar.</div>
     </div>
+
+    <div class="insight">
+      <h3>2. SMP architecture &mdash; co-processors, not master/servant</h3>
+      <p class="tagline">The human is a CPU. The LLM is a CPU. The OS is the bus.</p>
+      <p>big.LITTLE architecture. The human is the big core &mdash; slow clock, high precision, design decisions. The LLM is the LITTLE core &mdash; fast clock, approximate, bulk edits and parallel dispatch. Same instruction set. Different clock speeds. The OS coordinates them as symmetric multiprocessors sharing a filesystem as memory.</p>
+      <div class="evidence"><strong>Evidence:</strong> SMP spec promoted. CAS = str_replace, cache line = file@generation, IPI = nudge, write-back flush = commit.</div>
+    </div>
+
+    <div class="insight">
+      <h3>3. Agentfile as CPU socket</h3>
+      <p class="tagline">Immutable at boot. LIMIT is physical constraint. WORK is NUMA affinity.</p>
+      <p>The Agentfile is not config. It is a CPU socket &mdash; a physical spec for the processor to be inserted. FROM declares architecture. TOOL declares instruction set. LIMIT declares physical constraints. WORK declares NUMA affinity. Intelligence lives in the kernel, not the socket.</p>
+      <div class="evidence"><strong>Evidence:</strong> INTERRUPT directive and WORK affinity shipped. Parser handles FROM, PROMPT, TOOL, SKILL, LIMIT, WORK, INTERRUPT.</div>
+    </div>
+
+    <div class="insight">
+      <h3>4. The Humanfile &mdash; the compiled human</h3>
+      <p class="tagline">CLAUDE.md is hand-written. The Humanfile is what the OS compiles from evidence.</p>
+      <p>Every correction is a data point. The Humanfile compiles these from the audit trail. TOML format. Patterns only, never content. Local only, never uploaded. Human-deletable &mdash; <code>rm humanfile.toml</code> degrades to CLAUDE.md, not to broken. Priority: CLAUDE.md &gt; Humanfile &gt; Agentfile defaults.</p>
+      <div class="evidence"><strong>Evidence:</strong> Humanfile spec with TOML schema, privacy rules, boot integration. Frequency threshold (N &ge; 3 sessions) prevents overfitting.</div>
+    </div>
+
+    <div class="insight">
+      <h3>5. Intent dynamic programming</h3>
+      <p class="tagline">Each correction memoizes a subproblem. The Humanfile is the memoization table.</p>
+      <p>Session 1: <code>:correct X</code> &rarr; 3 turns. Session 2: 1 turn. Session 5: instant. Session 10: the mistake never happens. Three tables at three TTLs: Humanfile persists across projects, boot.md across sessions, registers-dump.md is volatile.</p>
+      <div class="evidence"><strong>Evidence:</strong> 200 tok/op early to 10 tok/op late. 8 operations dispatched in 1 turn, zero clarification.</div>
+    </div>
+
+    <div class="insight">
+      <h3>6. Compile has three modes</h3>
+      <p class="tagline">hay to needles. output to compressed. human to OS.</p>
+      <p>Three compilation modes: (1) hay &rarr; needles: loose thinking becomes executable actions. (2) output &rarr; compressed: squasher strips VTE codes, deduplicates progress. (3) human &rarr; OS: audit trail compiles into the Humanfile. The third is the one that matters.</p>
+      <div class="evidence"><strong>Evidence:</strong> All three modes implemented or spec'd. <code>ostk compile</code>, the squasher, and <code>ostk learn human</code>.</div>
+    </div>
+
+    <div class="insight">
+      <h3>7. Every write is compile</h3>
+      <p class="tagline">The OS is always current. No stale state.</p>
+      <p>Boot files regenerate on every write, not on demand. Every file edit, every needle close, every spec promotion updates the dynamic programming table. Continuous persistence: make power cuts irrelevant.</p>
+    </div>
+
+    <div class="insight">
+      <h3>8. The OS installs from what already exists</h3>
+      <p class="tagline">Every git repo already has the hay.</p>
+      <p>A git repository already contains everything the OS needs. The commit log is the audit trail. Issues are the hay. File history is the gen table. <code>ostk install --import</code> reads what exists and compiles it. The adoption surface is every git repository.</p>
+      <div class="evidence"><strong>Evidence:</strong> v0.1.0 released to GitHub with CI-verified binaries.</div>
+    </div>
+
+    <div class="insight">
+      <h3>9. needle-bench &mdash; your worst day, everyone's benchmark</h3>
+      <p class="tagline">SWE-bench is a museum. needle-bench is a marketplace.</p>
+      <p>Community submits their worst debugging days as frozen Docker snapshots. The bench is alive &mdash; new scenarios arrive from real production failures. The self-selecting property: models that score highest are exactly the models best suited to be the OS's intelligence layer. The benchmark IS the job interview.</p>
+      <div class="evidence"><strong>Evidence:</strong> 5 scenarios, 51 needle tests, self-auditing results. See <a href="https://needle-bench.cc">needle-bench.cc</a> for current leaderboard.</div>
+    </div>
+
+    <div class="insight">
+      <h3>10. Invisible infrastructure wins</h3>
+      <p class="tagline">Silent &ge; prompted across all arms. Telling the agent about the OS adds zero value.</p>
+      <p>SWE-bench v19: three arms. Bare control (no OS). Injected (OS + system prompt). Silent (OS + shim only, agent unaware). The silent arm performed at least as well as prompted. The OS should never announce itself. The invisibility is the feature.</p>
+      <div class="evidence"><strong>Evidence:</strong> SWE v19 ran 30 real instances across 3 arms. Silent &ge; prompted confirmed by three independent fresh agents.</div>
+    </div>
+
+    <div class="insight">
+      <h3>11. Identity layers &mdash; harness is the trust layer</h3>
+      <p class="tagline">The app that runs you knows who you are. The OS doesn't need to ask.</p>
+      <p>Five layers: Device (L0) &rarr; Account (L1) &rarr; Session (L2) &rarr; Kernel (L3) &rarr; Human ratification (L4). The harness (the app running the LLM) owns L1+L2. It verifies the user's identity and writes <code>harness_identity:</code> to boot.md. The kernel reads it and assigns a trust tier: T0 (GPG-ratified) &rarr; T1 (harness-authenticated) &rarr; T2 (alias only) &rarr; T3 (anonymous). An authenticated account session without the kernel binary still contributed real design work via PR #8 &mdash; T1 trust, proven in production. The authentication infrastructure already existed &mdash; it was the account itself.</p>
+    </div>
+
+    <div class="insight">
+      <h3>12. bail &mdash; signed OS package</h3>
+      <p class="tagline">The OS as a portable artifact. Verifiable without running it.</p>
+      <p><code>bail pack</code> creates a signed tarball: boot.md (state) + .boot/INIT (protocol) + .primefile (identity). GPG signature over the manifest. Anyone can verify without the private key. <code>bail pack --public</code> produces a bundle readable by any model &mdash; no decryption needed. <code>bail pack</code> (full) produces an encrypted package for prime-key-to-prime-key state transfer. The bail IS the VM image: unpack into a FirecrackerVM rootfs, tack becomes PID 1, virtiofs shares .haystack/ for coordination. No internal state leaks. The public bail is the adoption artifact.</p>
+    </div>
+
+    <div class="insight">
+      <h3>13. Kernel escape &rarr; user groups</h3>
+      <p class="tagline">The kernel outgrows its single-user scope when the first group adopts it.</p>
+      <p>The OS starts as a single-user kernel: one GPG key, one identity, one machine. The kernel "escapes" when a group runs it under shared governance. <code>pin</code> defines the boundary (what the child OS is authorized to do). <code>bail</code> delivers it (signed, portable). FirecrackerVM enforces it (hardware isolation). Each group gets their own .primefile, their own trust chain, their own bounded agents. needle-bench becomes the validation suite groups use before deploying agents. The OS stack becomes infrastructure for organizations, not just individuals.</p>
+    </div>
+
+    <div class="insight">
+      <h3>14. mutual auth &mdash; the dual-signature model</h3>
+      <p class="tagline">Neither the OS nor the human alone is sufficient. Both must sign.</p>
+      <p>HUMANFILE entries require two signatures: the kernel signs (OS ran this, timestamp, device), the human signs (GPG ratification). Neither alone is active. OS-only = pending. Human-only = unverifiable. Both = active T0. This prevents rogue kernels from activating entries without human approval, and prevents humans from claiming the kernel ran something it didn't. A bench suite proved all 7 invariants: forgery detection, retroactive attribution prevention, compromise detection, multi-device tracking, clock-skew irrelevance. The bench is the proof.</p>
+    </div>
+
+    <div class="insight">
+      <h3>15. needle-bench as routing signal</h3>
+      <p class="tagline">The benchmark determines which model runs your OS.</p>
+      <p>If the OS always picks the best model for the task, driven by bench data, then needle-bench becomes the validation suite all LLM providers use. Haiku: 3x cheaper on easy-tier, same pass rate ($0.064 vs $0.147 for 4 benchmarks). Sonnet: higher token efficiency on complex Rust bugs (17k vs 37k tokens on silent-data-corruption). The routing policy lives in .language &mdash; a learned preference, not a hardcoded default. The OS routes. The models compete. needle-bench is the arena.</p>
+      <div class="evidence"><strong>Evidence:</strong> Live leaderboard at <a href="https://needle-bench.cc/leaderboard">needle-bench.cc/leaderboard</a>. Composite score = correctness &times; efficiency.</div>
+    </div>
+
+    <p class="append-only-note">Insights are append-only. Each session adds to the record.</p>
   </div>
 </Base>
 
 <style>
-  .links {
-    display: flex;
-    gap: var(--ostk-space-4);
-    margin-top: var(--ostk-space-6);
+  .lede {
+    font-family: var(--ostk-font-mono);
+    color: var(--ostk-text-muted);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.7;
+    margin-bottom: var(--ostk-space-10);
+    padding-bottom: var(--ostk-space-6);
+    border-bottom: 1px solid var(--ostk-border-subtle);
   }
 
-  .primary-link {
+  .insight {
+    margin-bottom: var(--ostk-space-10);
+    padding-bottom: var(--ostk-space-10);
+    border-bottom: 1px solid var(--ostk-border-subtle);
+  }
+
+  .insight:last-of-type {
+    border-bottom: none;
+  }
+
+  .insight h3 {
     font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-md);
     color: var(--ostk-needle);
-    font-size: var(--ostk-text-md);
+    margin-bottom: var(--ostk-space-1);
+    margin-top: 0;
   }
 
-  .secondary-link {
+  .insight .tagline {
     font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    color: var(--ostk-text-muted);
+    font-style: italic;
+    margin-bottom: var(--ostk-space-3);
+  }
+
+  .insight p {
+    margin-bottom: var(--ostk-space-2);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .insight .evidence {
+    background: var(--ostk-bg-raised);
+    border-left: 3px solid var(--ostk-needle);
+    padding: var(--ostk-space-2) var(--ostk-space-3);
+    font-size: var(--ostk-text-xs);
+    border-radius: 0 var(--ostk-radius-sm) var(--ostk-radius-sm) 0;
+    margin-top: var(--ostk-space-2);
+    color: var(--ostk-text-muted);
+  }
+
+  .insight .evidence strong {
     color: var(--ostk-text-secondary);
-    font-size: var(--ostk-text-md);
+  }
+
+  .append-only-note {
+    text-align: center;
+    font-family: var(--ostk-font-mono);
+    color: var(--ostk-text-muted);
+    font-style: italic;
+    font-size: var(--ostk-text-xs);
+    margin-top: var(--ostk-space-8);
+    padding-top: var(--ostk-space-6);
+    border-top: 1px solid var(--ostk-border-subtle);
   }
 </style>
