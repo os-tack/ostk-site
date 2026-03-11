@@ -3,7 +3,8 @@
 # Usage: curl -fsSL https://ostk.ai/install | sh
 set -e
 
-REPO="os-tack/ostk.ai"
+# Binaries are hosted on aetherwing-io/haystack; os-tack/ostk.ai mirrors via →588
+REPO="aetherwing-io/haystack"
 BINARY="haystack"
 
 # Detect platform
@@ -31,7 +32,7 @@ if [ -z "$LATEST" ]; then
   exit 1
 fi
 
-ASSET="haystack-$TARGET"
+ASSET="haystack-v${LATEST}-${TARGET}.tar.gz"
 URL="https://github.com/$REPO/releases/download/v$LATEST/$ASSET"
 
 echo "Installing haystack v$LATEST ($TARGET)..."
