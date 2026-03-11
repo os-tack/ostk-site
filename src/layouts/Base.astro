@@ -24,9 +24,42 @@ const navLinks = [
   <meta name="description" content={description} />
   <title>{title}</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href={`https://ostk.ai${currentPath}`} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={`https://ostk.ai${currentPath}`} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content="https://ostk.ai/og-image.png" />
+  <meta property="og:site_name" content="ostk" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="https://ostk.ai/og-image.png" />
+
+  <!-- JSON-LD: Software Application -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "haystack",
+    "applicationCategory": "DeveloperApplication",
+    "description": "A transparent coordination layer for AI agents. Not a framework — infrastructure.",
+    "url": "https://ostk.ai",
+    "operatingSystem": "macOS, Linux",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "downloadUrl": "https://github.com/aetherwing-io/haystack/releases",
+    "codeRepository": "https://github.com/aetherwing-io/haystack"
+  })} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Plausible Analytics — privacy-first, no cookies -->
+  <script defer data-domain="ostk.ai" src="https://plausible.io/js/script.outbound-links.js"></script>
 </head>
 <body>
   <nav class="nav">
