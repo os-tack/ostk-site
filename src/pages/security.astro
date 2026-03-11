@@ -1,0 +1,158 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="ostk security — signed, verified, audited"
+     description="ostk security model: GPG-signed binaries, dual-signature trust, audit trail for every edit. Proof-backed.">
+  <div class="container">
+    <h1>Security</h1>
+
+    <p class="lead">Every write is signed. Every identity is verified. Every conflict is resolved — never silently.</p>
+
+    <h2>Trust tiers</h2>
+    <p>Identity in ostk is tiered. You start at T1 automatically when you authenticate. T0 is what you ratify with your key.</p>
+
+    <table class="trust-table">
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>What it means</th>
+          <th>How you get it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tier tier-0">T0</span></td>
+          <td>GPG-ratified + kernel-attested</td>
+          <td>Human signs the HUMANFILE entry after the OS signs it</td>
+        </tr>
+        <tr>
+          <td><span class="tier tier-1">T1</span></td>
+          <td>Harness-authenticated</td>
+          <td>App login — authenticated session, device-bound</td>
+        </tr>
+        <tr>
+          <td><span class="tier tier-2">T2</span></td>
+          <td>Kernel alias only</td>
+          <td>Agent with no identity claim — alias assigned at boot</td>
+        </tr>
+        <tr>
+          <td><span class="tier tier-3">T3</span></td>
+          <td>Anonymous</td>
+          <td>No verifiable identity</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="note">T1 is what an authenticated session on any device gets automatically. T0 is what you ratify with your key.</p>
+
+    <h2>The write path</h2>
+    <p>Every file edit routes through the kernel. Four checks, in order:</p>
+
+    <ol>
+      <li><strong>CAS check</strong> — does the content match what you think it does? If not, the write fails before it starts.</li>
+      <li><strong>Exclusive flock</strong> — one writer at a time per file. No concurrent writes overwrite each other silently.</li>
+      <li><strong>gen_table attribution</strong> — every write records who wrote it, when, and from which agent alias.</li>
+      <li><strong>Hot PR resolution</strong> — overlapping edits get assisted merge. Never a silent overwrite.</li>
+    </ol>
+
+    <p>Each write produces a gen_table entry:</p>
+    <pre><code>{`{"gen":42,"path":"src/main.rs","writer":"claude-code","alias":"@rho","ts":"2026-03-11T09:14:32Z","hash":"sha256:a3f..."}`}</code></pre>
+
+    <p>The gen counter is monotonically increasing per file. Gaps in the sequence are visible — there is no way to edit a file without leaving a record.</p>
+
+    <h2>Signed binaries</h2>
+    <p>Every release binary is signed by the CI key before it is published. Verify before you run:</p>
+
+    <pre><code>$ gpg --verify ostk-v1.0.2-aarch64-apple-darwin.tar.gz.asc
+gpg: Good signature from "ostk CI [ed25519]"
+gpg: Signature made 2026-03-11
+gpg: using EDDSA key ...
+gpg: Good signature</code></pre>
+
+    <p>The CI signing key is ed25519, cross-signed by the root key, and expires 2028. The CI key can be revoked without touching the root. Revoked keys are published immediately.</p>
+
+    <h2>Bail verification</h2>
+    <p>A bail is a portable snapshot of OS state — used to hand off a session to another instance. Every bail is verifiable:</p>
+
+    <pre><code>$ ostk bail verify team.bail
+✓ manifest signed
+✓ signer: &lt;fingerprint&gt;
+✓ contents: boot.md + .boot/INIT + .primefile
+✓ no internal state exposed</code></pre>
+
+    <p>A public bail contains no secrets, no audit logs, no session data. Only what another instance needs to boot. The manifest signature proves the bail was not tampered with in transit.</p>
+
+    <h2>Proof</h2>
+    <p>Claims here are backed by tests in the bench suite and source in the kernel repo:</p>
+
+    <ul>
+      <li><a href="https://github.com/aetherwing-io/haystack/blob/main/tests/bench_auth_chain.rs">tests/bench_auth_chain.rs</a> — 15 tests covering dual-signature trust model and T0/T1 attestation</li>
+      <li><a href="https://github.com/aetherwing-io/haystack/blob/main/tests/bench_write_path_unprotected.rs">tests/bench_write_path_unprotected.rs</a> — concurrent-write stress test validating flock + CAS</li>
+      <li><a href="https://github.com/aetherwing-io/haystack/blob/main/tests/bench_kernel_active.rs">tests/bench_kernel_active.rs</a> — kernel presence tests, active write path verification</li>
+    </ul>
+
+    <p>The bench suite runs in Docker on every release. Pass/fail. No partial credit. <a href="/bench">Read the proofs.</a></p>
+
+    <h2>Threat model</h2>
+    <p>We publish our threat model. 10 findings were filed after the first security review. 5 were fixed the same session. The remainder are tracked as open needles with assigned priority.</p>
+
+    <p><a href="https://github.com/aetherwing-io/haystack/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a> — full threat model, findings, and mitigations.</p>
+  </div>
+</Base>
+
+<style>
+  .lead {
+    font-size: var(--ostk-text-md);
+    color: var(--ostk-text-primary);
+    line-height: var(--ostk-leading-relaxed);
+    margin-bottom: var(--ostk-space-8);
+  }
+
+  .trust-table {
+    margin-top: var(--ostk-space-4);
+  }
+
+  .tier {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    font-weight: var(--ostk-weight-bold);
+    padding: 0.2em 0.5em;
+    border-radius: var(--ostk-radius-sm);
+    letter-spacing: var(--ostk-tracking-wide);
+  }
+
+  .tier-0 {
+    background: rgba(212, 160, 84, 0.15);
+    color: var(--ostk-needle-bright);
+    border: 1px solid rgba(212, 160, 84, 0.3);
+  }
+
+  .tier-1 {
+    background: rgba(90, 154, 106, 0.12);
+    color: var(--ostk-ok);
+    border: 1px solid rgba(90, 154, 106, 0.25);
+  }
+
+  .tier-2 {
+    background: rgba(90, 138, 180, 0.12);
+    color: var(--ostk-info);
+    border: 1px solid rgba(90, 138, 180, 0.25);
+  }
+
+  .tier-3 {
+    background: var(--ostk-bg-raised);
+    color: var(--ostk-text-muted);
+    border: 1px solid var(--ostk-border-subtle);
+  }
+
+  .note {
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-text-muted);
+    font-style: italic;
+    margin-top: calc(-1 * var(--ostk-space-2));
+  }
+
+  h2 { margin-top: var(--ostk-space-12); }
+  h2:first-of-type { margin-top: var(--ostk-space-8); }
+</style>

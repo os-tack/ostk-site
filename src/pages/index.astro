@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="ostk — haystack OS for AI agents">
+<Base title="ostk — your os + tack">
   <div class="container">
     <section class="hero">
       <div class="terminal">
@@ -26,22 +26,25 @@ import Base from '../layouts/Base.astro';
 
     <section class="section">
       <h2>What is it</h2>
-      <p>ostk is an operating system for AI agents. It replaces Jira, Slack, GitHub workflows, CI, and your IDE with a single Rust binary that coordinates agents through the filesystem. Agents run on it without knowing — byte-for-byte passthrough for every command, with conflict resolution and coordination underneath.</p>
+      <p>Your AI agents run on an OS. ostk is that OS.</p>
+      <p>Local-first. Signed. Audited. Yours.</p>
+      <p>A single Rust binary that coordinates agents through the filesystem — byte-for-byte passthrough for every command, with conflict resolution and audit trails underneath. Agents run on it without knowing.</p>
     </section>
 
     <section class="section">
       <h2>How it works</h2>
       <ol>
         <li><strong>Install.</strong> <code>curl -fsSL https://ostk.ai/install | sh</code> — boots the OS on any git repo.</li>
-        <li><strong>Work.</strong> Your agents use their normal tools. The OS intercepts writes, resolves conflicts, compresses output, and tracks everything. Nothing changes for the agent.</li>
+        <li><strong>Work.</strong> Your agents use their normal tools. The OS intercepts writes, resolves conflicts, compresses output, and tracks every edit. Nothing changes for the agent.</li>
         <li><strong>Speak tack.</strong> You type intent in shorthand. The OS compiles it into agent actions. <code>:compile :plan :ship</code> — three words, full execution.</li>
       </ol>
+      <p>Signed binaries. GPG-verified identity. Audit trail for every edit. Your agents coordinate through the filesystem — no cloud, no lock-in.</p>
     </section>
 
     <section class="section">
       <h2>Why it exists</h2>
       <p>Agent frameworks ask agents to learn new APIs. That's backwards. An OS doesn't ask processes to coordinate — it provides the primitives and stays out of the way.</p>
-      <p>ostk emerged from building itself. 104 commits, 698 tests, 539 needles — all managed by agents running on the OS that was being built. No meetings. No standups. No Jira tickets. The evidence is the product.</p>
+      <p>ostk emerged from building itself. 120+ commits, 576 needles — all managed by agents running on the OS that was being built. No meetings. No standups. No Jira tickets. The evidence is the product.</p>
 
       <p>Five laws govern everything:</p>
       <ol>

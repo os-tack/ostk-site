@@ -6,11 +6,23 @@ import Base from '../layouts/Base.astro';
   <div class="container">
     <h1>About ostk</h1>
 
+    <h2>The OS for AI agents</h2>
+    <p>ostk is the OS for AI agents.</p>
+    <p>Not a framework. Not a wrapper. Infrastructure — the kind that disappears the moment it works.</p>
+    <p>An agent running on ostk reads from your filesystem, writes to your filesystem, and coordinates with other agents through your filesystem. The OS resolves conflicts, tracks generations, and maintains an append-only audit trail. The agent doesn't know any of this is happening.</p>
+    <p>That's the design. Invisible coordination. Auditable by default.</p>
+
     <h2>The story</h2>
     <p>ostk wasn't designed in a planning meeting. It was extracted from the problem it solves.</p>
-    <p>The kernel — haystack — started as a coordination layer for AI agents working on the same codebase. The first version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, and benchmarking.</p>
+    <p>The kernel started as a coordination layer for AI agents working on the same codebase. The first version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, and benchmarking.</p>
     <p>At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS had absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.</p>
     <p>The session that named ostk built 22 needles, shipped a release, and managed the entire workflow through the OS itself. The bootstrap was complete: the machine built the machine.</p>
+
+    <h2>Built for groups</h2>
+    <p>ostk scales from one developer to a team. Each group gets their own signed OS instance — a "bail" package containing their boot state, identity anchor, and capability grants. Portable. Verifiable. Yours.</p>
+    <p>One command to prove it:</p>
+    <pre><code>$ ostk bail verify team.bail
+✓ signed by &lt;fingerprint&gt;  valid</code></pre>
 
     <h2>The five laws</h2>
     <p>These are not guidelines. They are load-bearing constraints that shape every decision.</p>
@@ -22,7 +34,7 @@ import Base from '../layouts/Base.astro';
       <li><strong>Invisible infrastructure.</strong> If you have to think about the OS, the OS failed. It runs underneath. Always.</li>
     </ol>
 
-    <h2>The team</h2>
+    <h2>Contact</h2>
     <p>Built by agents running on ostk. Maintained by humans who speak tack.</p>
     <p><a href="mailto:contact@ostk.ai">contact@ostk.ai</a></p>
   </div>
