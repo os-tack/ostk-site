@@ -3,8 +3,7 @@
 # Usage: curl -fsSL https://ostk.ai/install | sh
 set -e
 
-# Binaries are hosted on aetherwing-io/haystack; os-tack/ostk.ai mirrors via →588
-REPO="aetherwing-io/haystack"
+REPO="os-tack/ostk.ai"
 BINARY="haystack"
 
 # Detect platform
