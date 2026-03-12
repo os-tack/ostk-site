@@ -1,0 +1,92 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="OSfile (.primefile) — ostk governance" description="The kernel identity document. Written by the OS, not by you. Records the running kernel version and signing authority.">
+  <div class="container">
+    <h1>OSfile <span style="font-weight: normal; color: var(--color-muted)">(.primefile)</span></h1>
+    <p class="lead">The kernel's identity document. The OS writes it. You read it to verify what's running.</p>
+
+    <h2>What it is</h2>
+    <p>
+      The OSfile (<code>.haystack/.primefile</code>) is the kernel identity document —
+      the OS's equivalent of your HUMANFILE. You don't write it. The kernel writes and
+      signs it at initialization, and updates it on version changes.
+    </p>
+    <p>
+      Read it to understand what kernel version is running, who signed it, and
+      what the active trust chain looks like.
+    </p>
+
+    <h2>Location</h2>
+    <p><code>.haystack/.primefile</code> — in your project's haystack state directory.</p>
+
+    <h2>Example</h2>
+    <pre><code># .primefile — haystack kernel identity
+
+## Kernel
+- name: haystack
+- version: 1.0.2
+- identity_counter: 934
+- boot_protocol: fcp-haystack
+- audit_backend: jsonl
+
+## Paths
+- needles: .haystack/needles/
+- audit: .haystack/audit.jsonl
+- boot: .haystack/boot.md
+- human: .haystack/HUMANFILE
+- agents: .haystack/agents.jsonl
+
+## Session
+- last_agent: agent-934
+- last_session: 2026-03-12T19:00:00Z
+- last_needle: →648
+
+## Signing
+- root_key: 99B076C9        # kernel root GPG key
+- ci_key: 6893C46C          # CI signing key, subordinate to root</code></pre>
+
+    <h2>Fields</h2>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>version</code></td><td>Running kernel version. Compare to latest release to check for updates.</td></tr>
+        <tr><td><code>identity_counter</code></td><td>Monotonically increasing agent identity counter. Resets only on fresh init.</td></tr>
+        <tr><td><code>boot_protocol</code></td><td>Which boot protocol is active. <code>fcp-haystack</code> = tack-aware boot.</td></tr>
+        <tr><td><code>audit_backend</code></td><td>How the audit trail is stored. <code>jsonl</code> = append-only JSONL.</td></tr>
+        <tr><td><code>last_session</code></td><td>ISO timestamp of the last clean shutdown.</td></tr>
+        <tr><td><code>root_key</code></td><td>GPG fingerprint of the kernel root signing key.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Signature verification</h2>
+    <p>
+      The <code>.primefile</code> is GPG-signed by the kernel root key. To verify the
+      running kernel hasn't been tampered with:
+    </p>
+    <pre><code>gpg --verify .haystack/.primefile.asc .haystack/.primefile</code></pre>
+    <p>
+      If verification fails, the kernel should not be trusted. The signature chain runs:
+      human T0 key → kernel root key → CI key. Each link in the chain is cross-signed.
+    </p>
+
+    <h2>You don't edit this</h2>
+    <p>
+      Unlike HUMANFILE and ENTITYFILE, you do not write the OSfile. The kernel owns it.
+      Modifying it manually will invalidate the signature and may cause the kernel to
+      refuse to boot. If you need to update kernel configuration, use the provided
+      governance commands rather than direct edits.
+    </p>
+
+    <h2>See also</h2>
+    <ul>
+      <li><a href="/docs/humanfile">HUMANFILE — your operator identity</a></li>
+      <li><a href="/docs/entityfile">ENTITYFILE — trust architecture</a></li>
+      <li><a href="/docs/agentfile">Agentfile — agent definition</a></li>
+      <li><a href="/docs">Documentation index</a></li>
+    </ul>
+  </div>
+</Base>

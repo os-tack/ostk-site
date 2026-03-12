@@ -1,0 +1,128 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="ENTITYFILE — ostk governance" description="The trust constitution of your OS instance. Establishes identity chains and access tiers.">
+  <div class="container">
+    <h1>ENTITYFILE</h1>
+    <p class="lead">The trust constitution of your OS instance. Written once. Governs who can do what.</p>
+
+    <h2>What it is</h2>
+    <p>
+      ENTITYFILE establishes the trust relationships between all actors in your OS:
+      you (human), the kernel, agents, and CI. It defines identity chains, signing authorities,
+      and capability tiers. Most developers don't need it initially — solo use defaults to T2 trust.
+      Teams, CI pipelines, and multi-agent setups need it.
+    </p>
+    <p>Location: <code>.haystack/ENTITYFILE</code></p>
+
+    <h2>Trust tiers</h2>
+    <table>
+      <thead>
+        <tr><th>Tier</th><th>Who</th><th>Capabilities</th><th>Identity proof</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>T0</strong></td>
+          <td>Human operator</td>
+          <td>Full — including modifying ENTITYFILE itself</td>
+          <td>GPG key, locally held</td>
+        </tr>
+        <tr>
+          <td><strong>T1</strong></td>
+          <td>Verified agent or CI</td>
+          <td>Write to source, run agents, delegate needles</td>
+          <td>SSH or GPG key, cross-signed by T0</td>
+        </tr>
+        <tr>
+          <td><strong>T2</strong></td>
+          <td>Named agent (alias only)</td>
+          <td>Read + limited write, no governance changes</td>
+          <td>Alias in ENTITYFILE, no key required</td>
+        </tr>
+        <tr>
+          <td><strong>T3</strong></td>
+          <td>Anonymous</td>
+          <td>Read only</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Example</h2>
+    <pre><code># ENTITYFILE
+
+## Kernel
+- name: haystack
+- version: 1.0
+- authority: T0 human → kernel → agents
+
+## Identities
+
+- handle: @scott
+  type: human
+  key: 955AF54E        # GPG fingerprint
+  tier: T0
+
+- handle: @haystack.prime
+  type: kernel
+  key: 99B076C9        # kernel root key
+  tier: T1
+
+- handle: @ci
+  type: agent
+  key: 6893C46C        # subordinate CI key, cross-signed by kernel
+  tier: T1
+
+- handle: @guest-agent
+  type: agent
+  tier: T2             # named but no key required</code></pre>
+
+    <h2>When you need it</h2>
+    <table>
+      <thead>
+        <tr><th>Setup</th><th>Need ENTITYFILE?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Solo developer, one machine</td><td>No — defaults work</td></tr>
+        <tr><td>Solo developer, GPG identity needed</td><td>Optional — sign HUMANFILE instead</td></tr>
+        <tr><td>Team with shared repo</td><td>Yes — establish T0 owner and T1 team members</td></tr>
+        <tr><td>CI pipeline dispatching agents</td><td>Yes — CI key needs T1 registration</td></tr>
+        <tr><td>Multiple humans with different trust levels</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+
+    <h2>The negotiate protocol</h2>
+    <p>
+      Changes to ENTITYFILE require ceremony. You cannot unilaterally modify it —
+      even as T0. The protocol:
+    </p>
+    <ol>
+      <li>File an offer describing the change (<code>.haystack/offers/</code>)</li>
+      <li>Counter-party reviews and responds</li>
+      <li>Both parties sign with their keys</li>
+      <li>Merge with <code>--no-ff</code> to preserve the ceremony in git history</li>
+    </ol>
+    <p>
+      This prevents silent governance changes. Every trust change is auditable.
+    </p>
+
+    <h2>Authority chain</h2>
+    <p>
+      Trust flows downward: <strong>T0 (human) → kernel → agents</strong>.
+      The human is the root of trust. The kernel is the trust broker.
+      Agents operate within the bounds the human defines via HUMANFILE and ENTITYFILE.
+    </p>
+    <p>
+      No agent can elevate its own trust tier. No agent can modify ENTITYFILE.
+      The human is always the final authority.
+    </p>
+
+    <h2>See also</h2>
+    <ul>
+      <li><a href="/docs/humanfile">HUMANFILE — your operator identity</a></li>
+      <li><a href="/docs/agentfile">Agentfile — agent capability definition</a></li>
+      <li><a href="/docs">Documentation index</a></li>
+    </ul>
+  </div>
+</Base>

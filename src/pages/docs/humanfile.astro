@@ -1,0 +1,104 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="HUMANFILE — ostk governance" description="The operator identity document. Tells the OS who you are and how you work.">
+  <div class="container">
+    <h1>HUMANFILE</h1>
+    <p class="lead">Your compiled identity. The OS reads this at boot and calibrates to you.</p>
+
+    <h2>What it is</h2>
+    <p>
+      HUMANFILE is the document that tells the OS who you are, how you like to work,
+      and what you authorize agents to do on your behalf. Not a config file — a governance document.
+      You write it once. Every agent that runs under your OS reads it.
+    </p>
+    <p>Location: <code>.haystack/HUMANFILE</code> in your project root.</p>
+
+    <h2>Example</h2>
+    <pre><code># HUMANFILE — your-name
+
+## Identity
+- Name: Your Name
+- Handle: @you
+- Timezone: US/Eastern
+
+## Working style
+- Compact output preferred
+- Show work in files, not chat
+- Status updates in tack format
+
+## Autonomy grants
+- File writes: approved without confirmation
+- Test runs: approved without confirmation
+- Git commits: ask first
+- External API calls: ask first
+
+## Tack preferences
+typo_correction: suggest     # suggest | silent | off
+
+## Vault
+secrets:
+  ANTHROPIC_API_KEY: authorized
+  OPENROUTER_API_KEY: authorized</code></pre>
+
+    <h2>Fields</h2>
+    <table>
+      <thead>
+        <tr><th>Section</th><th>Field</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Identity</td><td>Name</td><td>string</td><td>Your name. Used in audit attribution.</td></tr>
+        <tr><td>Identity</td><td>Handle</td><td>@string</td><td>Your operator handle. Must be unique on this OS.</td></tr>
+        <tr><td>Identity</td><td>Timezone</td><td>TZ string</td><td>Used for log timestamps in your local time.</td></tr>
+        <tr><td>Working style</td><td>(free text)</td><td>lines</td><td>Prose preferences. Agents read and adapt.</td></tr>
+        <tr><td>Autonomy grants</td><td>action: approved/ask first</td><td>map</td><td>What agents can do without asking. See below.</td></tr>
+        <tr><td>Tack preferences</td><td>typo_correction</td><td>suggest/silent/off</td><td>How the OS handles typos in tack input.</td></tr>
+        <tr><td>Vault</td><td>KEY: authorized/denied</td><td>map</td><td>Which API keys agents are allowed to use.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Autonomy grants</h2>
+    <p>
+      Autonomy grants are the trust boundary. They define what agents can do without
+      interrupting you for confirmation. Start conservative and loosen as you observe behavior.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Action</th><th>Approved</th><th>Ask first</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>File writes</td><td>Agent edits freely</td><td>Agent shows diff, waits</td></tr>
+        <tr><td>Test runs</td><td>Agent runs tests anytime</td><td>Agent asks before running</td></tr>
+        <tr><td>Git commits</td><td>Agent commits with spec attribution</td><td>Agent shows commit message, waits</td></tr>
+        <tr><td>External API calls</td><td>Agent calls APIs freely</td><td>Agent shows request, waits</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Vault</h2>
+    <p>
+      The vault section is the only place where API keys are authorized for agent use.
+      If a key isn't listed as <code>authorized</code>, agents cannot access it — even if
+      it exists in your system keychain.
+    </p>
+    <p>
+      Keys are stored in your platform keychain via <code>haystack secret set KEY_NAME</code>.
+      The vault section grants or denies agent access to those stored values.
+    </p>
+
+    <h2>GPG signing</h2>
+    <p>
+      Signing your HUMANFILE establishes T0 operator identity — the highest trust tier.
+      Without a signature, the OS operates at T2 (named, unverified).
+    </p>
+    <pre><code>gpg --armor --detach-sign .haystack/HUMANFILE</code></pre>
+    <p>The signature file (<code>HUMANFILE.asc</code>) is read at boot alongside HUMANFILE.</p>
+
+    <h2>See also</h2>
+    <ul>
+      <li><a href="/docs/entityfile">ENTITYFILE — trust architecture for teams and CI</a></li>
+      <li><a href="/docs/agentfile">Agentfile — define what an agent can do</a></li>
+      <li><a href="/docs">Documentation index</a></li>
+    </ul>
+  </div>
+</Base>
