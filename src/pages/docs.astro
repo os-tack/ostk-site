@@ -91,17 +91,26 @@ ostk boot
     </table>
 
     <h2>Downloads</h2>
-    <p>Latest release: <strong>v1.0.2</strong> — first signed binary release.</p>
+    <p>Latest release: <strong>v1.3.0</strong> — harness detection, boot orientation, 960 tests.</p>
     <ul>
-      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.0.2" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v1.1.2 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.3.0" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v1.3.0 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
     <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install" onclick="plausible('Install', {props: {method: 'curl'}})">view install script</a></p>
     <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
 
+    <h2>Governance</h2>
+    <p>ostk uses a layered governance model. Each layer is a signed file that defines authority, preferences, and behavior.</p>
+    <ul>
+      <li><a href="/docs/humanfile">HUMANFILE</a> — operator identity, tack dialect, preferences. GPG-signed by the human.</li>
+      <li><a href="/docs/entityfile">ENTITYFILE</a> — instance governance. Defines trust tiers, authority chain, kernel attestation.</li>
+      <li><a href="/docs/agentfile">Agentfile</a> — agent process descriptor. FROM, BOOT, TOOL, LIMIT, WORK directives.</li>
+      <li><a href="/docs/osfile">OSfile</a> — OS identity carrier. The signed binary + primefile = OS identity.</li>
+    </ul>
+
     <h2>Further reading</h2>
     <ul>
       <li><a href="/bench">needle-bench: benchmarking agents</a></li>
-      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.0.2">v1.0.2 release notes</a></li>
+      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.3.0">v1.3.0 release notes</a></li>
       <li><a href="https://github.com/os-tack">Source code on GitHub</a></li>
     </ul>
   </div>
