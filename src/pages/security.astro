@@ -84,20 +84,55 @@ gpg: Good signature</code></pre>
     <p>A public bail contains no secrets, no audit logs, no session data. Only what another instance needs to boot. The manifest signature proves the bail was not tampered with in transit.</p>
 
     <h2>Proof</h2>
-    <p>Claims here are backed by tests in the bench suite and source in the kernel repo:</p>
+    <p>Every claim on this page is backed by a passing test. The bench suite runs in Docker on every release. Pass/fail. No partial credit.</p>
 
-    <ul>
-      <li><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_auth_chain.rs">tests/bench_auth_chain.rs</a> — 15 tests covering dual-signature trust model and T0/T1 attestation</li>
-      <li><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_write_path_unprotected.rs">tests/bench_write_path_unprotected.rs</a> — concurrent-write stress test validating flock + CAS</li>
-      <li><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_kernel_active.rs">tests/bench_kernel_active.rs</a> — kernel presence tests, active write path verification</li>
-    </ul>
+    <table class="proof-table">
+      <thead>
+        <tr><th>Test file</th><th>What it proves</th><th>Tests</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_auth_chain.rs"><code>bench_auth_chain.rs</code></a></td>
+          <td>Trust tier assignment (T2 default, T1 requires verified identity), HUMANFILE secrets gate, harness_identity parsing, authority chain invariants</td>
+          <td>16</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_write_path_unprotected.rs"><code>bench_write_path_unprotected.rs</code></a></td>
+          <td>Concurrent-write stress: flock exclusion, CAS correctness under contention, no silent overwrites</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_kernel_active.rs"><code>bench_kernel_active.rs</code></a></td>
+          <td>Kernel presence: active write path, audit trail completeness, gen counter monotonicity</td>
+          <td>5</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <p>The bench suite runs in Docker on every release. Pass/fail. No partial credit. <a href="/bench">Read the proofs.</a></p>
+    <p><a href="/bench">View full bench results →</a></p>
 
     <h2>Threat model</h2>
-    <p>We publish our threat model. 10 findings were filed after the first security review. 5 were fixed the same session. The remainder are tracked as open needles with assigned priority.</p>
+    <p>Security review conducted 2026-03-11. Scope: identity, secrets, file CAS, run pipeline. 10 findings filed. All tracked as open needles with assigned priority.</p>
 
-    <p><a href="https://github.com/os-tack/haystack/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a> — full threat model, findings, and mitigations.</p>
+    <table class="findings-table">
+      <thead>
+        <tr><th>ID</th><th>Severity</th><th>Surface</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>FIND-001</td><td><span class="sev p0">P0</span></td><td>identity.rs — unsigned harness_identity allows T1 spoofing</td><td>open</td></tr>
+        <tr><td>FIND-002</td><td><span class="sev p0">P0</span></td><td>secret.rs — HAYSTACK_SECRET_CMD exec without validation</td><td>open</td></tr>
+        <tr><td>FIND-003</td><td><span class="sev p1">P1</span></td><td>secret.rs — run_env() prints secrets to stdout</td><td>open</td></tr>
+        <tr><td>FIND-004</td><td><span class="sev p1">P1</span></td><td>run.rs — env-passthrough key name injection</td><td>open</td></tr>
+        <tr><td>FIND-005</td><td><span class="sev p1">P1</span></td><td>run.rs — HUMANFILE absent not fail-closed</td><td>open</td></tr>
+        <tr><td>FIND-006</td><td><span class="sev p1">P1</span></td><td>file.rs — str_replace_all() missing flock</td><td>open</td></tr>
+        <tr><td>FIND-007</td><td><span class="sev p2">P2</span></td><td>identity.rs — alias reclaim race</td><td>open</td></tr>
+        <tr><td>FIND-008</td><td><span class="sev p2">P2</span></td><td>identity.rs — stale harness_identity reuse</td><td>open</td></tr>
+        <tr><td>FIND-009</td><td><span class="sev p2">P2</span></td><td>run.rs — PROMPT file:// path traversal</td><td>open</td></tr>
+        <tr><td>FIND-010</td><td><span class="sev p3">P3</span></td><td>audit.jsonl — no append-only enforcement at OS level</td><td>open</td></tr>
+      </tbody>
+    </table>
+
+    <p>Full mitigations: <a href="https://github.com/os-tack/haystack/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a></p>
   </div>
 </Base>
 
@@ -155,4 +190,28 @@ gpg: Good signature</code></pre>
 
   h2 { margin-top: var(--ostk-space-12); }
   h2:first-of-type { margin-top: var(--ostk-space-8); }
+
+  .proof-table, .findings-table {
+    width: 100%;
+    margin-top: var(--ostk-space-4);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .findings-table td:first-child {
+    font-family: var(--ostk-font-mono);
+    white-space: nowrap;
+  }
+
+  .sev {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    font-weight: var(--ostk-weight-bold);
+    padding: 0.15em 0.4em;
+    border-radius: var(--ostk-radius-sm);
+  }
+
+  .sev.p0 { background: rgba(220,80,80,0.15); color: #e05050; border: 1px solid rgba(220,80,80,0.3); }
+  .sev.p1 { background: rgba(212,160,84,0.15); color: var(--ostk-needle-bright); border: 1px solid rgba(212,160,84,0.3); }
+  .sev.p2 { background: rgba(90,138,180,0.12); color: var(--ostk-info); border: 1px solid rgba(90,138,180,0.25); }
+  .sev.p3 { background: var(--ostk-bg-raised); color: var(--ostk-text-muted); border: 1px solid var(--ostk-border-subtle); }
 </style>
