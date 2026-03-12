@@ -87,9 +87,9 @@ gpg: Good signature</code></pre>
     <p>Claims here are backed by tests in the bench suite and source in the kernel repo:</p>
 
     <ul>
-      <li><a href="https://github.com/aetherwing-io/haystack/blob/main/tests/bench_auth_chain.rs">tests/bench_auth_chain.rs</a> — 15 tests covering dual-signature trust model and T0/T1 attestation</li>
-      <li><a href="https://github.com/aetherwing-io/haystack/blob/main/tests/bench_write_path_unprotected.rs">tests/bench_write_path_unprotected.rs</a> — concurrent-write stress test validating flock + CAS</li>
-      <li><a href="https://github.com/aetherwing-io/haystack/blob/main/tests/bench_kernel_active.rs">tests/bench_kernel_active.rs</a> — kernel presence tests, active write path verification</li>
+      <li><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_auth_chain.rs">tests/bench_auth_chain.rs</a> — 15 tests covering dual-signature trust model and T0/T1 attestation</li>
+      <li><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_write_path_unprotected.rs">tests/bench_write_path_unprotected.rs</a> — concurrent-write stress test validating flock + CAS</li>
+      <li><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_kernel_active.rs">tests/bench_kernel_active.rs</a> — kernel presence tests, active write path verification</li>
     </ul>
 
     <p>The bench suite runs in Docker on every release. Pass/fail. No partial credit. <a href="/bench">Read the proofs.</a></p>
@@ -97,7 +97,7 @@ gpg: Good signature</code></pre>
     <h2>Threat model</h2>
     <p>We publish our threat model. 10 findings were filed after the first security review. 5 were fixed the same session. The remainder are tracked as open needles with assigned priority.</p>
 
-    <p><a href="https://github.com/aetherwing-io/haystack/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a> — full threat model, findings, and mitigations.</p>
+    <p><a href="https://github.com/os-tack/haystack/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a> — full threat model, findings, and mitigations.</p>
   </div>
 </Base>
 
