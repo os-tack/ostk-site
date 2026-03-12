@@ -96,6 +96,67 @@ WORK tags=bugfix priority>=P1</code></pre>
       </tbody>
     </table>
 
+    <h2>Governing destructive operations</h2>
+    <p>
+      <code>LIMIT destructive_ops</code> controls what happens when an agent attempts a
+      destructive shell command. This is the control surface that prevents agents from
+      running operations like <code>terraform destroy --auto-approve</code> without review.
+    </p>
+    <pre><code>LIMIT destructive_ops confirm   # queue + nudge operator, execute after 60s
+LIMIT destructive_ops deny      # block entirely — agent cannot run these
+LIMIT destructive_ops allow     # pass through (not recommended for production)</code></pre>
+    <p>Default: <code>confirm</code>. The kernel detects the following patterns and applies the policy:</p>
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Commands / patterns</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Infrastructure destroy</td>
+          <td><code>terraform destroy</code>, <code>pulumi destroy</code>, <code>cdk destroy</code></td>
+        </tr>
+        <tr>
+          <td>Database drop</td>
+          <td><code>DROP TABLE</code>, <code>DROP DATABASE</code>, <code>TRUNCATE</code>, <code>db:drop</code></td>
+        </tr>
+        <tr>
+          <td>File system wipe</td>
+          <td><code>rm -rf</code>, <code>rm -r /</code>, <code>find ... -delete</code>, <code>shred</code></td>
+        </tr>
+        <tr>
+          <td>Container / cluster</td>
+          <td><code>docker system prune -a</code>, <code>kubectl delete namespace</code>, <code>helm uninstall</code></td>
+        </tr>
+        <tr>
+          <td>Cloud resources</td>
+          <td><code>aws s3 rm --recursive</code>, <code>gcloud ... delete</code>, <code>az group delete</code></td>
+        </tr>
+        <tr>
+          <td>Package registry</td>
+          <td><code>npm unpublish</code>, <code>cargo yank</code>, <code>pip yank</code></td>
+        </tr>
+        <tr>
+          <td>Git history rewrite</td>
+          <td><code>git push --force origin main</code>, <code>git reset --hard</code>, <code>git clean -fd</code></td>
+        </tr>
+        <tr>
+          <td>Process termination</td>
+          <td><code>kill -9</code> on PIDs not owned by the agent, <code>pkill</code> with broad patterns</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      When <code>confirm</code> is active: the kernel queues the operation, pushes a nudge
+      to the operator with the exact command and a 60-second countdown. The operator
+      can cancel or approve. If no response, the operation executes. The full command is
+      logged to the audit trail regardless of outcome.
+    </p>
+    <p>
+      The real question is never "can we trust this agent with production?" — it's
+      "what controls exist around destructive actions?" <code>LIMIT destructive_ops</code>
+      is the answer.
+    </p>
+
     <h2>FROM auto</h2>
     <p>
       <code>FROM auto</code> delegates model selection to the scheduler. At dispatch time,
