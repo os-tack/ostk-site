@@ -14,11 +14,11 @@ import Base from '../../layouts/Base.astro';
       Think of it as a Dockerfile for intelligence: it builds the execution context an agent
       runs in, not a filesystem layer.
     </p>
-    <p>Run an agent: <code>haystack run path/to/Agentfile</code></p>
+    <p>Run an agent: <code>ostk run path/to/Agentfile</code></p>
 
     <h2>Minimal example</h2>
     <pre><code>FROM claude-sonnet-4-6
-BOOT haystack boot --bail
+BOOT ostk boot --bail
 PROMPT "Fix the failing tests in src/. Run cargo test after each fix."
 TOOL sh_run
 TOOL ss
@@ -44,7 +44,7 @@ WORK tags=bugfix priority>=P1</code></pre>
           <td><code>BOOT</code></td>
           <td>No</td>
           <td>
-            Command to run before PROMPT loads. Default: <code>haystack boot --bail</code>.
+            Command to run before PROMPT loads. Default: <code>ostk boot --bail</code>.
             The <code>--bail</code> flag stops the agent if the kernel reports unhealthy.
           </td>
         </tr>
@@ -171,7 +171,7 @@ LIMIT destructive_ops allow     # pass through (not recommended for production)<
 
     <h2>BOOT --bail</h2>
     <p>
-      <code>haystack boot --bail</code> runs the power-on self test before loading the
+      <code>ostk boot --bail</code> runs the power-on self test before loading the
       agent's context. If the kernel is unhealthy — stale boot.md, corrupt audit trail,
       identity conflicts — the agent stops cleanly rather than running on bad state.
     </p>

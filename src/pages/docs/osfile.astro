@@ -19,16 +19,16 @@ import Base from '../../layouts/Base.astro';
     </p>
 
     <h2>Location</h2>
-    <p><code>.haystack/.primefile</code> — in your project's haystack state directory.</p>
+    <p><code>.haystack/.primefile</code> — in your project's ostk state directory.</p>
 
     <h2>Example</h2>
-    <pre><code># .primefile — haystack kernel identity
+    <pre><code># .primefile — ostk kernel identity
 
 ## Kernel
-- name: haystack
+- name: ostk
 - version: 1.0.2
 - identity_counter: 934
-- boot_protocol: fcp-haystack
+- boot_protocol: fcp-ostk
 - audit_backend: jsonl
 
 ## Paths
@@ -55,7 +55,7 @@ import Base from '../../layouts/Base.astro';
       <tbody>
         <tr><td><code>version</code></td><td>Running kernel version. Compare to latest release to check for updates.</td></tr>
         <tr><td><code>identity_counter</code></td><td>Monotonically increasing agent identity counter. Resets only on fresh init.</td></tr>
-        <tr><td><code>boot_protocol</code></td><td>Which boot protocol is active. <code>fcp-haystack</code> = tack-aware boot.</td></tr>
+        <tr><td><code>boot_protocol</code></td><td>Which boot protocol is active. <code>fcp-ostk</code> = tack-aware boot.</td></tr>
         <tr><td><code>audit_backend</code></td><td>How the audit trail is stored. <code>jsonl</code> = append-only JSONL.</td></tr>
         <tr><td><code>last_session</code></td><td>ISO timestamp of the last clean shutdown.</td></tr>
         <tr><td><code>root_key</code></td><td>GPG fingerprint of the kernel root signing key.</td></tr>
