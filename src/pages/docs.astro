@@ -41,15 +41,15 @@ ostk boot
       <li>Output compression (VTE strip + dedup)
         <img src="/diagrams/compression-pipeline.svg" alt="Compression pipeline: raw output to compressed with 80% token savings" class="diagram diagram-wide" />
       </li>
-      <li>MCP server (<code>ostk serve</code>) exposing the full tool surface</li>
+      <li>MCP proxy (<code>ostk mcp</code>) exposing the full tool surface</li>
     </ul>
 
     <h3>fcp-* (device drivers)</h3>
     <p>Domain intelligence plugins:</p>
     <ul>
-      <li>fcp-rust: Rust analyzer integration</li>
-      <li>fcp-python: Python LSP integration</li>
-      <li>fcp-drawio: Diagram reasoning</li>
+      <li><a href="https://github.com/os-tack/fcp-rust">fcp-rust</a>: Rust analyzer integration</li>
+      <li><a href="https://github.com/os-tack/fcp-python">fcp-python</a>: Python LSP integration</li>
+      <li><a href="https://github.com/os-tack/fcp-drawio">fcp-drawio</a>: Diagram reasoning</li>
       <li>More as needed. Each driver speaks the domain's native language.</li>
     </ul>
     <p>The kernel provides primitives. Device drivers provide intelligence.</p>
@@ -88,11 +88,10 @@ ostk boot
         <tr><td><code>ostk bench</code></td><td>Run benchmark scenarios</td></tr>
         <tr><td><code>ostk ps</code></td><td>Show agent process table</td></tr>
         <tr><td><code>ostk nudge</code></td><td>Send a notification to an agent or human</td></tr>
-        <tr><td><code>ostk serve</code></td><td>Start the MCP server</td></tr>
+        <tr><td><code>ostk mcp</code></td><td>Proxy external MCP servers (list, call)</td></tr>
         <tr><td><code>ostk audit</code></td><td>Query the audit trail</td></tr>
         <tr><td><code>ostk should</code></td><td>File bugs and features in natural language</td></tr>
         <tr><td><code>ostk tui</code></td><td>Terminal interface for real-time OS monitoring</td></tr>
-        <tr><td><code>ostk mcp call</code></td><td>Proxy an external MCP server through the kernel</td></tr>
       </tbody>
     </table>
 
