@@ -160,7 +160,7 @@ import Base from '../layouts/Base.astro';
       <h3>22. The harness lies. The kernel logs.</h3>
       <p class="tagline">MEMORY.md said the OS wasn't built. The audit trail proved it was.</p>
       <p>The harness memory system told every new instance: "use native Bash, not kernel tools." "TUI text input deferred." "haystack run is dry-run." All false. flock was in file.rs (15 call sites). haystack run dispatches to LLM after printing "dry-run." Every command worked. The lies compounded &mdash; each session inherited harness thinking from the previous session's memory. The fix: rewrite the memoization table. MEMORY.md became an OS boot record, not a harness client diary. The next instance boots as the OS.</p>
-      <div class="evidence"><strong>Evidence:</strong> &rarr;576 closed (flock verified), "dry-run" string removed, MEMORY.md rewritten. Session +1088.</div>
+      <div class="evidence"><strong>Evidence:</strong> Hundreds of needles closed (flock verified), "dry-run" string removed, MEMORY.md rewritten. Session +1088.</div>
     </div>
 
     <div class="insight">

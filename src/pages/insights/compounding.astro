@@ -1,0 +1,281 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Compounding Development Order — ostk" description="A dependency-driven sprint planning methodology. Build what makes the next thing easier. Backed by real data: 152 vs 14 tests, 44% vs 22% close rates.">
+  <div class="container">
+    <h1>Compounding Development Order</h1>
+
+    <p class="lede">
+      Sequence your sprint so every feature makes the next feature cheaper to build, test, and ship.
+    </p>
+
+    <section>
+      <h2>The problem</h2>
+      <p>We ran four sprints on the same codebase with the same team. Sprints 1-2 produced 152 tests. Sprints 3-4 produced 14.</p>
+      <p>Same people, same tools, same velocity expectations. The difference was build order. In sprints 1-2, each feature wired into the features that came before it. CLI commands used shared utilities. The test harness used the CLI. The audit system used the test harness. Every layer had something underneath it.</p>
+      <p>In sprints 3-4, we decomposed work by priority and dispatched it in parallel. Features landed without connecting to existing infrastructure. Libraries shipped without being wired into dispatch. The dependency edges were never declared, so they were never built.</p>
+      <p>The result: work items that depended on missing foundations closed at 22%. Organically ordered work &mdash; where each item built on the last &mdash; closed at 44%. Half the throughput, same team, same codebase. The only variable was sequencing.</p>
+    </section>
+
+    <section>
+      <h2>The principle</h2>
+      <p><strong>Build what makes the next thing easier.</strong> Every wave uses the previous wave.</p>
+      <p>This is not a scheduling philosophy. It is a dependency graph with a specific property: nodes are ordered by how much downstream work they unlock. A kernel module that 12 features depend on ships before a UI polish that nothing depends on. Not because the kernel is more important in the abstract, but because shipping it first makes 12 other things cheaper.</p>
+      <p>When the chain holds, you get compounding returns. When it breaks, you get isolated features that require manual integration &mdash; and manual integration is where sprints go to die.</p>
+    </section>
+
+    <section>
+      <h2>The data</h2>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Compounding intact</th>
+              <th>Compounding broken</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tests produced</td>
+              <td class="num">152</td>
+              <td class="num">14</td>
+            </tr>
+            <tr>
+              <td>Close rate</td>
+              <td class="num">44%</td>
+              <td class="num">22%</td>
+            </tr>
+            <tr>
+              <td>Sprint window</td>
+              <td>Sprints 1&ndash;2</td>
+              <td>Sprints 3&ndash;4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>We also observed 11 consecutive waves in a single session where each wave's output became the next wave's tooling. The commit command (wave 6) was invoked 25+ times by everything that followed. The Makefile (wave 8) was used by every agent in every subsequent wave. Compounding is measurable and retrospectively obvious.</p>
+    </section>
+
+    <section>
+      <h2>The tier model</h2>
+      <p>We organize work into five tiers based on what they compound. Higher tiers unlock more downstream work.</p>
+      <div class="tier-list">
+        <div class="tier">
+          <span class="tier-label">Tier 1 &mdash; Kernel</span>
+          <span class="tier-desc">Compounds <em>everything</em>. Shared infrastructure, core primitives, coordination layer. Without this, every feature after it requires manual coordination.</span>
+        </div>
+        <div class="tier">
+          <span class="tier-label">Tier A &mdash; Multipliers</span>
+          <span class="tier-desc">Compounds concurrent work, agent spawning, resource budgets. Each multiplier makes parallel execution cheaper.</span>
+        </div>
+        <div class="tier">
+          <span class="tier-label">Tier B &mdash; Operator experience</span>
+          <span class="tier-desc">Compounds human oversight. Scheduling, inbox, upgrade, intervention. Reduces the cost of humans staying in the loop.</span>
+        </div>
+        <div class="tier">
+          <span class="tier-label">Tier C &mdash; Intelligence</span>
+          <span class="tier-desc">Compounds quality. Health checks, diagnostics, semantic validation. Catches issues that would otherwise require manual review.</span>
+        </div>
+        <div class="tier">
+          <span class="tier-label">Tier D &mdash; Scale</span>
+          <span class="tier-desc">Compounds capacity. Multiplexing, subscriptions, cross-component atomicity. Only valuable when the layers below are solid.</span>
+        </div>
+      </div>
+      <p>The tiers form a DAG. Tier 1 feeds Tier A feeds Tier B. You can build a Tier D feature whenever you want, but if Tier 1 is incomplete, Tier D sits on sand.</p>
+    </section>
+
+    <section>
+      <h2>Enforcement</h2>
+      <p>Compounding order is enforced at planning time, not build time. It warns; it never blocks.</p>
+      <h3>Decompose warnings</h3>
+      <p><code>ostk decompose</code> checks whether a work item's transitive dependencies have shipped or are in progress. If they haven't, it emits a warning with the unresolved dependency. The developer or lead sees the warning and decides whether to proceed. This is a lint, not a build error. The distinction matters: build errors stop customer-critical work. Lint warnings surface ordering mistakes without preventing urgency-driven overrides.</p>
+      <h3>CI metrics</h3>
+      <p>Three metrics, computed from the dependency graph after each sprint:</p>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>What it measures</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fan-out count</td>
+              <td>How many downstream items depend on this one</td>
+              <td>Core module: ~12. UI polish: 0.</td>
+            </tr>
+            <tr>
+              <td>Critical-path depth</td>
+              <td>Longest chain from this item to a leaf</td>
+              <td>Items on the critical path compound by definition.</td>
+            </tr>
+            <tr>
+              <td>Reuse count</td>
+              <td>How many subsequent commits invoke this feature</td>
+              <td>Commit command: 25+. Makefile: used by every agent.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>These are retrospective validation, not a gate. If the compounding score drops, the sprint retro surfaces it &mdash; the same way a test count drop from 152 to 14 surfaces a systemic problem.</p>
+    </section>
+
+    <section>
+      <h2>The P0 exception</h2>
+      <p>Compounding governs internal infrastructure. Urgency governs customer emergencies. The boundary is clear:</p>
+      <ul>
+        <li><strong>P0 (customer emergency):</strong> Dispatched immediately. Compounding order does not apply. No override flag needed.</li>
+        <li><strong>P1/P2 (the grey zone):</strong> Compounding is the tiebreaker. Between two P1s, build the one that compounds. Between a P0 and a high-compounding P1, the P0 wins.</li>
+        <li><strong>Internal infrastructure:</strong> Compounding order governs. These are the waves.</li>
+      </ul>
+      <p>A bug that blocks a paying customer gets fixed now. A feature that compounds gets built before a feature that doesn't. Compounding never overrides urgency for customer-critical work.</p>
+    </section>
+
+    <section class="takeaway">
+      <h2>The takeaway</h2>
+      <p>Priority measures urgency. Compounding measures leverage. When features are dispatched by priority alone &mdash; without regard for what they depend on or what depends on them &mdash; velocity collapses. The fix is straightforward: sequence work so each item uses the previous item. Measure fan-out, critical-path depth, and reuse count. Warn on missing dependencies. Let urgency override when customers need it.</p>
+      <p>The methodology is simple. The data is not subtle. 152 tests vs 14. 44% close rate vs 22%. Build what makes the next thing easier.</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .lede {
+    font-family: var(--ostk-font-mono);
+    color: var(--ostk-text-muted);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.7;
+    margin-bottom: var(--ostk-space-10);
+    padding-bottom: var(--ostk-space-6);
+    border-bottom: 1px solid var(--ostk-border-subtle);
+  }
+
+  section {
+    margin-bottom: var(--ostk-space-12);
+  }
+
+  h2 {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-md);
+    color: var(--ostk-needle);
+    margin-top: 0;
+    margin-bottom: var(--ostk-space-4);
+  }
+
+  h3 {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-text-secondary);
+    margin-top: var(--ostk-space-6);
+    margin-bottom: var(--ostk-space-2);
+  }
+
+  p {
+    font-size: var(--ostk-text-sm);
+    line-height: 1.7;
+    margin-bottom: var(--ostk-space-3);
+  }
+
+  ul {
+    font-size: var(--ostk-text-sm);
+    line-height: 1.7;
+    padding-left: var(--ostk-space-6);
+    margin-bottom: var(--ostk-space-3);
+  }
+
+  li {
+    margin-bottom: var(--ostk-space-2);
+  }
+
+  .data-table-wrap {
+    overflow-x: auto;
+    margin: var(--ostk-space-4) 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+  }
+
+  th {
+    text-align: left;
+    color: var(--ostk-text-muted);
+    font-weight: var(--ostk-weight-medium);
+    padding: var(--ostk-space-2) var(--ostk-space-3);
+    border-bottom: 2px solid var(--ostk-border-subtle);
+  }
+
+  td {
+    padding: var(--ostk-space-2) var(--ostk-space-3);
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    color: var(--ostk-text-secondary);
+  }
+
+  td.num {
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-text-primary);
+  }
+
+  .tier-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ostk-space-3);
+    margin: var(--ostk-space-4) 0;
+  }
+
+  .tier {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ostk-space-1);
+    padding: var(--ostk-space-3) var(--ostk-space-4);
+    background: var(--ostk-bg-raised);
+    border-left: 3px solid var(--ostk-needle);
+    border-radius: 0 var(--ostk-radius-sm) var(--ostk-radius-sm) 0;
+  }
+
+  .tier-label {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-text-primary);
+  }
+
+  .tier-desc {
+    font-size: var(--ostk-text-xs);
+    color: var(--ostk-text-muted);
+    line-height: 1.6;
+  }
+
+  .takeaway {
+    padding: var(--ostk-space-6);
+    background: var(--ostk-bg-raised);
+    border-radius: var(--ostk-radius-sm);
+    border: 1px solid var(--ostk-border-subtle);
+  }
+
+  .takeaway h2 {
+    margin-top: 0;
+  }
+
+  .takeaway p:last-child {
+    margin-bottom: 0;
+  }
+
+  code {
+    font-family: var(--ostk-font-mono);
+    font-size: 0.9em;
+    background: var(--ostk-bg-raised);
+    padding: 0.15em 0.35em;
+    border-radius: var(--ostk-radius-sm);
+  }
+
+  .takeaway code {
+    background: var(--ostk-bg-base);
+  }
+</style>

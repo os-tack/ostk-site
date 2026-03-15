@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'ostk — your os + tack' } = Astro.props;
+const { title, description = 'ostk — os + tack: the invisible os' } = Astro.props;
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
@@ -91,10 +91,10 @@ const navLinks = [
       <div class="footer-inner">
         <div class="footer-left">
           <span class="logo-os">os</span><span class="logo-diamond">&#9670;</span><span class="logo-tk">tk</span>
-          <span class="footer-tagline">your os + tack</span>
+          <span class="footer-tagline">os + tack: the invisible os</span>
         </div>
         <div class="footer-links">
-          <a href="https://github.com/os-tack">GitHub</a>
+          <a href="https://github.com/os-tack">Find us</a>
           <a href="/legal/terms">Terms</a>
           <a href="/legal/privacy">Privacy</a>
           <a href="/legal/license">License</a>

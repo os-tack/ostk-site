@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 200" fill="none">
+  <style>
+    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
+    .stage-label { fill: #e8e8ec; font-size: 13px; font-weight: 600; }
+    .stage-sub { fill: #a0a0aa; font-size: 11px; font-weight: 400; }
+    .token-count { fill: #d4a054; font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', 'SF Mono', monospace; }
+    .arrow { fill: #606068; }
+    .savings { fill: #5a9a6a; font-size: 14px; font-weight: 600; }
+    .box { rx: 6; ry: 6; }
+  </style>
+
+  <!-- Stage 1: Raw Output -->
+  <rect class="box" x="20" y="50" width="130" height="70" fill="#1a1a1e" stroke="#3a3a42" stroke-width="1"/>
+  <text class="stage-label" x="85" y="80" text-anchor="middle">Raw Output</text>
+  <text class="token-count" x="85" y="102" text-anchor="middle">10K tokens</text>
+
+  <!-- Arrow 1 -->
+  <polygon class="arrow" points="160,85 175,78 175,92"/>
+
+  <!-- Stage 2: VTE Strip -->
+  <rect class="box" x="185" y="50" width="120" height="70" fill="#1a1a1e" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
+  <text class="stage-label" x="245" y="80" text-anchor="middle">VTE Strip</text>
+  <text class="stage-sub" x="245" y="100" text-anchor="middle">escape codes</text>
+
+  <!-- Arrow 2 -->
+  <polygon class="arrow" points="315,85 330,78 330,92"/>
+
+  <!-- Stage 3: Dedup -->
+  <rect class="box" x="340" y="50" width="120" height="70" fill="#1a1a1e" stroke="#d4a054" stroke-width="1" stroke-opacity="0.6"/>
+  <text class="stage-label" x="400" y="80" text-anchor="middle">Dedup</text>
+  <text class="stage-sub" x="400" y="100" text-anchor="middle">repeated lines</text>
+
+  <!-- Arrow 3 -->
+  <polygon class="arrow" points="470,85 485,78 485,92"/>
+
+  <!-- Stage 4: Semantic Cluster -->
+  <rect class="box" x="495" y="50" width="140" height="70" fill="#1a1a1e" stroke="#d4a054" stroke-width="1" stroke-opacity="0.8"/>
+  <text class="stage-label" x="565" y="80" text-anchor="middle">Cluster</text>
+  <text class="stage-sub" x="565" y="100" text-anchor="middle">semantic grouping</text>
+
+  <!-- Arrow 4 -->
+  <polygon class="arrow" points="645,85 660,78 660,92"/>
+
+  <!-- Stage 5: Compressed -->
+  <rect class="box" x="670" y="50" width="130" height="70" fill="#1a1a1e" stroke="#5a9a6a" stroke-width="1.5"/>
+  <text class="stage-label" x="735" y="80" text-anchor="middle">Compressed</text>
+  <text class="token-count" x="735" y="102" text-anchor="middle">2K tokens</text>
+
+  <!-- Savings badge -->
+  <rect x="340" y="148" width="140" height="32" rx="16" ry="16" fill="#5a9a6a" fill-opacity="0.12" stroke="#5a9a6a" stroke-width="1" stroke-opacity="0.3"/>
+  <text class="savings" x="410" y="170" text-anchor="middle">80% savings</text>
+</svg>

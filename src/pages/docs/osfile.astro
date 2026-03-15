@@ -9,8 +9,8 @@ import Base from '../../layouts/Base.astro';
 
     <h2>What it is</h2>
     <p>
-      The OSfile (<code>.haystack/.primefile</code>) is the kernel identity document —
-      the OS's equivalent of your HUMANFILE. You don't write it. The kernel writes and
+      The OSfile is the signed <code>.primefile</code> — the kernel identity document.
+      The OS's equivalent of your HUMANFILE. You don't write it. The kernel writes and
       signs it at initialization, and updates it on version changes.
     </p>
     <p>
@@ -18,8 +18,17 @@ import Base from '../../layouts/Base.astro';
       what the active trust chain looks like.
     </p>
 
+    <h2>OSfile vs haystack.toml</h2>
+    <p>These are two different things:</p>
+    <ul>
+      <li><strong>OSfile (.primefile)</strong> — the kernel's signed identity document. Written and owned by the OS. Records version, signing keys, session state. You verify it; you don't edit it.</li>
+      <li><strong>haystack.toml</strong> — project collaboration config. Defines project-level settings for agent coordination: default Agentfiles, work queue filters, team preferences. You write and maintain this.</li>
+    </ul>
+    <p>The OSfile proves what kernel is running. <code>haystack.toml</code> configures how your team uses it.</p>
+
     <h2>Location</h2>
-    <p><code>.haystack/.primefile</code> — in your project's ostk state directory.</p>
+    <p><code>.haystack/.primefile</code> — the signed kernel identity, in your project's ostk state directory.</p>
+    <p><code>haystack.toml</code> — project collaboration config, at your repository root.</p>
 
     <h2>Example</h2>
     <pre><code># .primefile — ostk kernel identity

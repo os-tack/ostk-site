@@ -126,3 +126,19 @@ td {
   padding-top: var(--ostk-space-16);
   padding-bottom: var(--ostk-space-16);
 }
+
+/* Diagrams */
+.diagram {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: var(--ostk-space-6) 0;
+  border-radius: var(--ostk-radius-md);
+}
+
+.diagram-wide {
+  margin-left: calc(-1 * var(--ostk-space-6));
+  margin-right: calc(-1 * var(--ostk-space-6));
+  width: calc(100% + var(--ostk-space-6) * 2);
+  max-width: calc(100% + var(--ostk-space-6) * 2);
+}

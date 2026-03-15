@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="ostk — your os + tack">
+<Base title="ostk — os + tack: the invisible os">
   <div class="container">
     <section class="hero">
       <div class="terminal">
@@ -13,11 +13,16 @@ import Base from '../layouts/Base.astro';
         </div>
         <div class="terminal-body">
           <div class="hero-title">ostk</div>
-          <div class="hero-tagline">your os + tack</div>
+          <div class="hero-tagline">os + tack: the invisible os</div>
           <div class="terminal-blank"></div>
           <div class="terminal-line"><span class="prompt">$</span> ostk boot</div>
           <div class="terminal-line"><span class="prompt">$</span> ostk compile</div>
           <div class="terminal-line"><span class="prompt">$</span> ostk bench</div>
+          <div class="terminal-blank"></div>
+          <div class="terminal-line"><span class="terminal-comment"># "tack" = shorthand intent language</span></div>
+          <div class="terminal-line"><span class="prompt">$</span> :compile    <span class="terminal-comment"># → ostk compile</span></div>
+          <div class="terminal-line"><span class="prompt">$</span> :boot       <span class="terminal-comment"># → ostk boot</span></div>
+          <div class="terminal-line"><span class="prompt">$</span> .? status   <span class="terminal-comment"># → what's the current state?</span></div>
           <div class="terminal-blank"></div>
           <div class="terminal-line"><span class="terminal-comment">Install:</span> <span class="terminal-cmd">curl -fsSL https://ostk.ai/install | sh</span></div>
         </div>
@@ -28,7 +33,18 @@ import Base from '../layouts/Base.astro';
       <h2>What is it</h2>
       <p>Your AI agents run on an OS. ostk is that OS.</p>
       <p>Local-first. Signed. Audited. Yours.</p>
-      <p>A single Rust binary that coordinates agents through the filesystem — byte-for-byte passthrough for every command, with conflict resolution and audit trails underneath. Agents run on it without knowing.</p>
+      <p>A single Rust binary that coordinates agents through the filesystem — byte-for-byte passthrough for every command, with conflict resolution and audit trails underneath. Agents run on it without knowing. Like Docker for AI agents, with Firecracker support, that saves you tokens.</p>
+    </section>
+
+    <section class="section">
+      <h2>What is tack?</h2>
+      <p>Tack is the shorthand intent language built into ostk. You type compressed commands; the OS compiles them into actions.</p>
+      <pre><code>:compile  →  ostk compile
+:boot     →  ostk boot
+.? status →  what's the current state?
+:compile :plan :ship  →  compile, plan, commit</code></pre>
+      <p>Tack is not a fixed grammar. The OS learns your shorthand over sessions. What you type today becomes vocabulary tomorrow. Communication cost drops from ~200 tokens/op to ~10 tokens/op.</p>
+      <p>See the full <a href="/docs#tack-grammar">tack grammar reference</a> in the docs.</p>
     </section>
 
     <section class="section">
@@ -44,7 +60,7 @@ import Base from '../layouts/Base.astro';
     <section class="section">
       <h2>Why it exists</h2>
       <p>Agent frameworks ask agents to learn new APIs. That's backwards. An OS doesn't ask processes to coordinate — it provides the primitives and stays out of the way.</p>
-      <p>ostk emerged from building itself. 120+ commits, 576 needles — all managed by agents running on the OS that was being built. No meetings. No standups. No Jira tickets. The evidence is the product.</p>
+      <p>ostk emerged from building itself — hundreds of needles, all managed by agents running on the OS that was being built. No meetings. No standups. No Jira tickets. The evidence is the product.</p>
 
       <p>Five laws govern everything:</p>
       <ol>
@@ -65,7 +81,7 @@ ostk boot</code></pre>
       <p>
         <a href="/docs">Documentation</a> &middot;
         <a href="/bench">Benchmarks</a> &middot;
-        <a href="https://github.com/os-tack">GitHub</a>
+        <a href="https://github.com/os-tack">Find us</a>
       </p>
     </section>
   </div>

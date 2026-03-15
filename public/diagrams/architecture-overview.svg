@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" fill="none">
+  <style>
+    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
+    .label { fill: #e8e8ec; font-size: 15px; font-weight: 600; }
+    .sublabel { fill: #a0a0aa; font-size: 12px; font-weight: 400; }
+    .layer { rx: 6; ry: 6; }
+  </style>
+
+  <!-- Layer 4: Your Tools (top) -->
+  <rect class="layer" x="60" y="20" width="480" height="60" fill="#1a1a1e" stroke="#3a3a42" stroke-width="1"/>
+  <text class="label" x="300" y="48" text-anchor="middle">Your Tools</text>
+  <text class="sublabel" x="300" y="65" text-anchor="middle">gh, cargo, npm, git, python -- unchanged</text>
+
+  <!-- Connector -->
+  <line x1="300" y1="80" x2="300" y2="100" stroke="#2a2a30" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Layer 3: Squasher -->
+  <rect class="layer" x="60" y="100" width="480" height="60" fill="#1a1a1e" stroke="#d4a054" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text class="label" x="300" y="128" text-anchor="middle">Squasher</text>
+  <text class="sublabel" x="300" y="145" text-anchor="middle">output compression -- VTE strip, dedup, clustering</text>
+
+  <!-- Connector -->
+  <line x1="300" y1="160" x2="300" y2="180" stroke="#2a2a30" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Layer 2: Kernel -->
+  <rect class="layer" x="60" y="180" width="480" height="60" fill="#1a1a1e" stroke="#d4a054" stroke-width="1.5"/>
+  <text class="label" x="300" y="208" text-anchor="middle" fill="#d4a054">Kernel</text>
+  <text class="sublabel" x="300" y="225" text-anchor="middle">coordination, PTY, audit, identity, conflict resolution</text>
+
+  <!-- Connector -->
+  <line x1="300" y1="240" x2="300" y2="260" stroke="#2a2a30" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Layer 1: FCP Drivers (bottom) -->
+  <rect class="layer" x="60" y="260" width="480" height="60" fill="#1a1a1e" stroke="#3a3a42" stroke-width="1"/>
+  <text class="label" x="300" y="288" text-anchor="middle">FCP Drivers</text>
+  <text class="sublabel" x="300" y="305" text-anchor="middle">fcp-rust, fcp-python -- domain intelligence plugins</text>
+</svg>

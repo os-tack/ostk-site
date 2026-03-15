@@ -27,6 +27,7 @@ ostk boot
     <p>No configuration needed. No <code>.ostk.yml</code>. The OS reads the repo and orients.</p>
 
     <h2>Architecture</h2>
+    <img src="/diagrams/architecture-overview.svg" alt="ostk architecture: tools, squasher, kernel, and FCP drivers" class="diagram" />
     <p>ostk has two layers:</p>
 
     <h3>the kernel</h3>
@@ -37,7 +38,9 @@ ostk boot
       <li>Hot PR conflict resolution (4 tiers: auto-merge, assisted, manual rebase, diagnostic)</li>
       <li>Generation table for file versioning</li>
       <li>Agent identity and heartbeat</li>
-      <li>Output compression (VTE strip + dedup)</li>
+      <li>Output compression (VTE strip + dedup)
+        <img src="/diagrams/compression-pipeline.svg" alt="Compression pipeline: raw output to compressed with 80% token savings" class="diagram diagram-wide" />
+      </li>
       <li>MCP server (<code>ostk serve</code>) exposing the full tool surface</li>
     </ul>
 
@@ -51,7 +54,7 @@ ostk boot
     </ul>
     <p>The kernel provides primitives. Device drivers provide intelligence.</p>
 
-    <h2>Tack grammar</h2>
+    <h2 id="tack-grammar">Tack grammar</h2>
     <p>Tack is the intent-capture language. You type shorthand. The OS compiles it.</p>
     <pre><code>:command object              # Basic command
 :verb1 :verb2 :verb3         # Chain commands (sequential)
@@ -87,18 +90,41 @@ ostk boot
         <tr><td><code>ostk nudge</code></td><td>Send a notification to an agent or human</td></tr>
         <tr><td><code>ostk serve</code></td><td>Start the MCP server</td></tr>
         <tr><td><code>ostk audit</code></td><td>Query the audit trail</td></tr>
+        <tr><td><code>ostk should</code></td><td>File bugs and features in natural language</td></tr>
+        <tr><td><code>ostk tui</code></td><td>Terminal interface for real-time OS monitoring</td></tr>
+        <tr><td><code>ostk mcp call</code></td><td>Proxy an external MCP server through the kernel</td></tr>
       </tbody>
     </table>
 
+    <h2>MCP proxy</h2>
+    <p>Proxy external MCP servers through the kernel. Any MCP-compatible server becomes available to agents running under the OS.</p>
+    <pre><code>ostk mcp call &lt;server&gt; &lt;tool&gt;</code></pre>
+    <p>The kernel handles routing, authentication, and audit logging for all proxied MCP calls.</p>
+
+    <h2>TUI</h2>
+    <p>Terminal interface for real-time OS monitoring. See agent processes, file writes, and audit events as they happen.</p>
+    <pre><code>ostk tui</code></pre>
+
+    <h2>Semantic compression</h2>
+    <p>Embeddings-powered deduplication saves more tokens by detecting semantically similar output, not just identical lines.</p>
+    <pre><code># Enable with the embeddings feature flag
+cargo build --features embeddings</code></pre>
+
+    <h2>ostk should</h2>
+    <p>File bugs and features in natural language. The OS compiles your intent into structured needles.</p>
+    <pre><code>ostk should "fix the auth flow when tokens expire"
+ostk should "add retry logic to the API client"</code></pre>
+
     <h2>Downloads</h2>
-    <p>Latest release: <strong>v1.3.0</strong> — harness detection, boot orientation, 960 tests.</p>
+    <p>Latest release: <strong>v1.5.1</strong> — MCP proxy, TUI, semantic compression, 871+ tests.</p>
     <ul>
-      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.3.0" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v1.3.0 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.5.1" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v1.5.1 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
     <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install" onclick="plausible('Install', {props: {method: 'curl'}})">view install script</a></p>
     <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
 
     <h2>Governance</h2>
+    <img src="/diagrams/file-governance.svg" alt="File governance: OSfile, HUMANFILE, Agentfile, ENTITYFILE" class="diagram" />
     <p>ostk uses a layered governance model. Each layer is a signed file that defines authority, preferences, and behavior.</p>
     <ul>
       <li><a href="/docs/humanfile">HUMANFILE</a> — operator identity, tack dialect, preferences. GPG-signed by the human.</li>
@@ -110,8 +136,8 @@ ostk boot
     <h2>Further reading</h2>
     <ul>
       <li><a href="/bench">needle-bench: benchmarking agents</a></li>
-      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.3.0">v1.3.0 release notes</a></li>
-      <li><a href="https://github.com/os-tack">Source code on GitHub</a></li>
+      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.5.1">v1.5.1 release notes</a></li>
+      <li><a href="https://github.com/os-tack">Find us</a></li>
     </ul>
   </div>
 </Base>

@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="about ostk — your os + tack" description="The story behind ostk, your os + tack.">
+<Base title="about ostk — os + tack: the invisible os" description="The story behind ostk, os + tack: the invisible os.">
   <div class="container">
     <h1>About ostk</h1>
 
@@ -16,13 +16,17 @@ import Base from '../layouts/Base.astro';
     <p>ostk wasn't designed in a planning meeting. It was extracted from the problem it solves.</p>
     <p>The kernel started as a coordination layer for AI agents working on the same codebase. The first version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, and benchmarking.</p>
     <p>At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS had absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.</p>
-    <p>The session that named ostk built 22 needles, shipped a release, and managed the entire workflow through the OS itself. The bootstrap was complete: the machine built the machine.</p>
+    <p>The session that named ostk shipped a release and managed the entire workflow through the OS itself. The bootstrap was complete: the machine built the machine.</p>
 
     <h2>Built for groups</h2>
     <p>ostk scales from one developer to a team. Each group gets their own signed OS instance — a "bail" package containing their boot state, identity anchor, and capability grants. Portable. Verifiable. Yours.</p>
     <p>One command to prove it:</p>
     <pre><code>$ ostk bail verify team.bail
 ✓ signed by &lt;fingerprint&gt;  valid</code></pre>
+
+    <h2>Agent lifecycle</h2>
+    <img src="/diagrams/agent-lifecycle.svg" alt="Agent lifecycle: boot, POST, work, shutdown, and back to boot" class="diagram" />
+    <p>Every agent session follows the same cycle. State persists in the filesystem between sessions — the agent is ephemeral, the work is not.</p>
 
     <h2>The five laws</h2>
     <p>These are not guidelines. They are load-bearing constraints that shape every decision.</p>
