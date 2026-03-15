@@ -21,7 +21,8 @@ import Base from '../../layouts/Base.astro';
 BOOT ostk boot --bail
 PROMPT "Fix the failing tests in src/. Run cargo test after each fix."
 TOOL shell
-TOOL screenshot
+TOOL file:read
+TOOL file:edit
 LIMIT context_pct 80
 LIMIT budget_usd 5
 WORK tags=bugfix priority>=P1</code></pre>
