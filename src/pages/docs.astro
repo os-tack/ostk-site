@@ -134,8 +134,39 @@ ostk mcp call linear list-issues     # call a tool</code></pre>
     <p>Servers prefixed <code>fcp-*</code> run as persistent driver daemons — the subprocess stays alive between calls, preserving workspace state (LSP, analyzer caches). All other servers spawn per-call.</p>
 
     <h2>TUI</h2>
-    <p>Terminal interface for real-time OS monitoring. See agent processes, file writes, and audit events as they happen.</p>
+    <p>The TUI is the operator console. It shows the OS working — agents executing needles, file writes resolving, permissions gating dangerous operations. Everything the kernel does is visible here in real time.</p>
     <pre><code>ostk tui</code></pre>
+
+    <div class="tui-showcase">
+      <figure class="tui-figure">
+        <img src="/images/tui/tui-agent-workflow.jpg" alt="TUI showing an agent executing needles — file edits, read operations, and needle tracking with real-time status bar" class="tui-screenshot" />
+        <figcaption>Agent workflow — the scheduler executes →896 and →897 sequentially. Each file edit shows <code>[✓] Edit edit applied</code>. The status bar tracks: elapsed time, tool count, agent identity, model, context usage, and cost.</figcaption>
+      </figure>
+
+      <figure class="tui-figure">
+        <img src="/images/tui/tui-permission-modal.jpg" alt="TUI permission modal — scheduler requests Bash access with allow, deny, and always-allow options" class="tui-screenshot" />
+        <figcaption>Permission gate — the <code>:approval</code> system. Agents request tool access. The operator sees exactly what will run and chooses: <code>[y]</code> allow once, <code>[n]</code> deny, <code>[a]</code> always allow for this tool. No silent execution.</figcaption>
+      </figure>
+    </div>
+
+    <h3>What the status bar shows</h3>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>86s</code></td><td>Wall-clock time since session start</td></tr>
+        <tr><td><code>8 tools</code></td><td>Tool calls made this session</td></tr>
+        <tr><td><code>@prime+3056</code></td><td>Agent identity — monotonic session counter</td></tr>
+        <tr><td><code>scheduler</code></td><td>Active verb / mode</td></tr>
+        <tr><td><code>1.00▸</code></td><td>Momentum — how fast the agent is progressing</td></tr>
+        <tr><td><code>227→</code></td><td>Open needles</td></tr>
+        <tr><td><code>opus</code></td><td>Model in use</td></tr>
+        <tr><td><code>ctx:142k (71%)</code></td><td>Context window usage</td></tr>
+        <tr><td><code>↓1k c:11.5M ↑64k</code></td><td>Input tokens, cache hits, output tokens</td></tr>
+        <tr><td><code>$30.50</code></td><td>Session cost</td></tr>
+      </tbody>
+    </table>
 
     <h2>Semantic compression</h2>
     <p>Embeddings-powered deduplication saves more tokens by detecting semantically similar output, not just identical lines.</p>
@@ -173,3 +204,36 @@ ostk should "add retry logic to the API client"</code></pre>
     </ul>
   </div>
 </Base>
+
+<style>
+  .tui-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin: 1.5rem 0;
+  }
+  .tui-figure {
+    margin: 0;
+    border: 1px solid var(--ostk-border, #333);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0d1117;
+  }
+  .tui-screenshot {
+    width: 100%;
+    display: block;
+  }
+  .tui-figure figcaption {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--ostk-text-muted, #8b949e);
+    border-top: 1px solid var(--ostk-border, #333);
+    line-height: 1.5;
+  }
+  .tui-figure figcaption code {
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.06);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+  }
+</style>
