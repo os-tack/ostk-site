@@ -51,6 +51,8 @@ import Base from '../layouts/Base.astro';
 
     <p class="note">GitHub is used for identity discovery — where you find a key fingerprint. The authority is the cross-signature chain, not the platform.</p>
 
+    <img src="/diagrams/web-of-trust.svg" alt="GPG web of trust: T0 root and human keys cross-sign T1 kernel and CI keys, T2 escalates via cross-signing, T3 anonymous" class="diagram" />
+
     <h3>Escalation</h3>
     <p>Trust escalates through GPG cross-signing, not through platform permissions:</p>
     <ol>
@@ -62,6 +64,8 @@ import Base from '../layouts/Base.astro';
     <h2>The write path</h2>
     <p>Every file edit routes through the kernel. Five checks, in order:</p>
 
+    <img src="/diagrams/write-path.svg" alt="The write path: pin check, CAS check, exclusive flock, gen_table attribution, shadow + audit" class="diagram" />
+
     <ol>
       <li><strong>Pin check</strong> — does your trust tier allow this write? If the path is denied by your tier-default pin, the write is silently blocked. The agent never knows.</li>
       <li><strong>CAS check</strong> — does the content match what you think it does? If not, the write fails before it starts.</li>
@@ -71,7 +75,7 @@ import Base from '../layouts/Base.astro';
     </ol>
 
     <p>Each write produces a gen_table entry:</p>
-    <pre><code>{`{"gen":42,"path":"src/main.rs","writer":"claude-code","alias":"@rho","ts":"2026-03-11T09:14:32Z","hash":"sha256:a3f..."}`}</code></pre>
+    <pre><code>{`{"path":"src/main.rs","generation":42,"writer":"agent-934","timestamp":"2026-03-11T09:14:32Z","mtime":1741684472}`}</code></pre>
 
     <p>The gen counter is monotonically increasing per file. Gaps in the sequence are visible — there is no way to edit a file without leaving a record.</p>
 
@@ -161,23 +165,23 @@ gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
     <p><a href="/bench">View full bench results →</a></p>
 
     <h2>Threat model</h2>
-    <p>Security review conducted 2026-03-11. Scope: identity, secrets, file CAS, run pipeline. 10 findings filed. All tracked as open needles with assigned priority.</p>
+    <p>Security review conducted 2026-03-11. Scope: identity, secrets, file CAS, run pipeline. 10 findings filed. 6 fixed, 2 mitigated, 2 open.</p>
 
     <table class="findings-table">
       <thead>
         <tr><th>ID</th><th>Severity</th><th>Surface</th><th>Status</th></tr>
       </thead>
       <tbody>
-        <tr><td>FIND-001</td><td><span class="sev p0">P0</span></td><td>identity.rs — unsigned harness_identity allows T1 spoofing</td><td>open</td></tr>
-        <tr><td>FIND-002</td><td><span class="sev p0">P0</span></td><td>secret.rs — HAYSTACK_SECRET_CMD exec without validation</td><td>open</td></tr>
-        <tr><td>FIND-003</td><td><span class="sev p1">P1</span></td><td>secret.rs — run_env() prints secrets to stdout</td><td>open</td></tr>
-        <tr><td>FIND-004</td><td><span class="sev p1">P1</span></td><td>run.rs — env-passthrough key name injection</td><td>open</td></tr>
-        <tr><td>FIND-005</td><td><span class="sev p1">P1</span></td><td>run.rs — HUMANFILE absent not fail-closed</td><td>open</td></tr>
-        <tr><td>FIND-006</td><td><span class="sev p1">P1</span></td><td>file.rs — str_replace_all() missing flock</td><td>open</td></tr>
-        <tr><td>FIND-007</td><td><span class="sev p2">P2</span></td><td>identity.rs — alias reclaim race</td><td>open</td></tr>
-        <tr><td>FIND-008</td><td><span class="sev p2">P2</span></td><td>identity.rs — stale harness_identity reuse</td><td>open</td></tr>
-        <tr><td>FIND-009</td><td><span class="sev p2">P2</span></td><td>run.rs — PROMPT file:// path traversal</td><td>open</td></tr>
-        <tr><td>FIND-010</td><td><span class="sev p3">P3</span></td><td>audit.jsonl — no append-only enforcement at OS level</td><td>open</td></tr>
+        <tr><td>FIND-001</td><td><span class="sev p0">P0</span></td><td>identity.rs — unsigned harness_identity allows T1 spoofing</td><td><span class="status-fixed">fixed</span> — →619: boot.md ownership check, SUDO_UID handling, T2 fallback</td></tr>
+        <tr><td>FIND-002</td><td><span class="sev p0">P0</span></td><td>secret.rs — HAYSTACK_SECRET_CMD exec without validation</td><td><span class="status-fixed">fixed</span> — →620: reads from .ostk/config, not env var</td></tr>
+        <tr><td>FIND-003</td><td><span class="sev p1">P1</span></td><td>secret.rs — run_env() prints secrets to stdout</td><td><span class="status-mitigated">mitigated</span> — warns user, recommends --env-passthrough. Intentional for <code>secret env</code> subcommand</td></tr>
+        <tr><td>FIND-004</td><td><span class="sev p1">P1</span></td><td>run.rs — env-passthrough key name injection</td><td><span class="status-fixed">fixed</span> — HUMANFILE SECRET authorization required; absent key → denied</td></tr>
+        <tr><td>FIND-005</td><td><span class="sev p1">P1</span></td><td>run.rs — HUMANFILE absent not fail-closed</td><td><span class="status-fixed">fixed</span> — missing HUMANFILE returns empty map → no keys authorized</td></tr>
+        <tr><td>FIND-006</td><td><span class="sev p1">P1</span></td><td>file.rs — str_replace_all() missing flock</td><td><span class="status-fixed">fixed</span> — lock_exclusive() before read-modify-write cycle</td></tr>
+        <tr><td>FIND-007</td><td><span class="sev p2">P2</span></td><td>identity.rs — alias reclaim race</td><td><span class="status-mitigated">mitigated</span> — scoped to process death; low practical risk</td></tr>
+        <tr><td>FIND-008</td><td><span class="sev p2">P2</span></td><td>identity.rs — stale harness_identity reuse</td><td><span class="status-fixed">fixed</span> — →895: GPG web-of-trust replaced harness_identity as trust source</td></tr>
+        <tr><td>FIND-009</td><td><span class="sev p2">P2</span></td><td>parser.rs — PROMPT file:// path traversal</td><td><span class="status-open">open</span> — no path sanitization on file:// refs in Agentfile</td></tr>
+        <tr><td>FIND-010</td><td><span class="sev p3">P3</span></td><td>audit.jsonl — no append-only enforcement at OS level</td><td><span class="status-open">open</span> — O_APPEND + flock, but no OS-level immutability (chattr +a)</td></tr>
       </tbody>
     </table>
 
@@ -263,4 +267,37 @@ gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
   .sev.p1 { background: rgba(212,160,84,0.15); color: var(--ostk-needle-bright); border: 1px solid rgba(212,160,84,0.3); }
   .sev.p2 { background: rgba(90,138,180,0.12); color: var(--ostk-info); border: 1px solid rgba(90,138,180,0.25); }
   .sev.p3 { background: var(--ostk-bg-raised); color: var(--ostk-text-muted); border: 1px solid var(--ostk-border-subtle); }
+
+  .status-fixed {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-ok);
+    background: rgba(90, 154, 106, 0.12);
+    padding: 0.15em 0.4em;
+    border-radius: var(--ostk-radius-sm);
+    border: 1px solid rgba(90, 154, 106, 0.25);
+  }
+
+  .status-mitigated {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-needle-bright);
+    background: rgba(212, 160, 84, 0.12);
+    padding: 0.15em 0.4em;
+    border-radius: var(--ostk-radius-sm);
+    border: 1px solid rgba(212, 160, 84, 0.25);
+  }
+
+  .status-open {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    font-weight: var(--ostk-weight-bold);
+    color: #e05050;
+    background: rgba(220, 80, 80, 0.12);
+    padding: 0.15em 0.4em;
+    border-radius: var(--ostk-radius-sm);
+    border: 1px solid rgba(220, 80, 80, 0.25);
+  }
 </style>

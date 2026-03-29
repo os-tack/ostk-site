@@ -12,10 +12,11 @@ curl -fsSL https://ostk.ai/install | sh
 
 # Boot the OS on a repo
 cd your-repo
+ostk init
 ostk boot
 
 # The OS is running. Agents use their normal tools.
-# The bash shim intercepts commands and adds coordination.</code></pre>
+# The kernel coordinates writes invisibly at the filesystem layer.</code></pre>
 
     <p>After boot, the OS:</p>
     <ul>
@@ -34,14 +35,19 @@ ostk boot
     <p>A single Rust binary. Provides:</p>
     <ul>
       <li>Process table and PTY supervision</li>
-      <li>Filesystem with optimistic concurrency control</li>
+      <li>Filesystem with optimistic concurrency control (CAS writes, flock, gen_table)</li>
       <li>Hot PR conflict resolution (4 tiers: auto-merge, assisted, manual rebase, diagnostic)</li>
-      <li>Generation table for file versioning</li>
-      <li>Agent identity and heartbeat</li>
+      <li>Generation table for file versioning with shadow storage for rollback</li>
+      <li>Agent identity (monotonic counter) and heartbeat monitoring</li>
+      <li>GPG web-of-trust identity — trust tiers T0–T3 with capability pins</li>
+      <li>Privilege escalation (secrets, budget, tool access, model upgrades)</li>
+      <li>Nudge queue — interrupt primitive for inter-agent/human-to-agent messaging</li>
+      <li>Read elision (304 Not Modified) — redundant reads return ~5 tokens</li>
       <li>Output compression (VTE strip + dedup)
         <img src="/diagrams/compression-pipeline.svg" alt="Compression pipeline: raw output to compressed with 80% token savings" class="diagram diagram-wide" />
       </li>
-      <li>MCP proxy (<code>ostk mcp</code>) exposing the full tool surface</li>
+      <li>MCP proxy (<code>ostk mcp</code>) — connect external MCP servers, expose tools via CLI</li>
+      <li>Quota enforcement — per-agent token and cost budgets</li>
     </ul>
 
     <h3>fcp-* (device drivers)</h3>
@@ -68,7 +74,7 @@ ostk boot
       <tbody>
         <tr><td><code>:compile</code></td><td>Unstructured thinking becomes executable needles</td></tr>
         <tr><td><code>:compile :plan :ship</code></td><td>Compile, plan the work, commit</td></tr>
-        <tr><td><code>:hs add issue "fix auth" .p0</code></td><td>File a P0 needle</td></tr>
+        <tr><td><code>:needle add "fix auth" .p0</code></td><td>File a P0 needle</td></tr>
         <tr><td><code>:calibrate</code></td><td>Retrospective on a thread</td></tr>
       </tbody>
     </table>
@@ -80,33 +86,52 @@ ostk boot
         <tr><th>Command</th><th>What it does</th></tr>
       </thead>
       <tbody>
+        <tr><td colspan="2" style="font-weight:600; color:var(--ostk-text-muted); padding-top:0.8em;">Lifecycle</td></tr>
         <tr><td><code>ostk boot</code></td><td>Load state from <code>.ostk/</code>, detect trust tier, report</td></tr>
+        <tr><td><code>ostk init</code></td><td>Initialize <code>.ostk/</code> in a repo</td></tr>
+        <tr><td><code>ostk install</code></td><td>Bootstrap: init + boot.md + first POST</td></tr>
+        <tr><td><code>ostk shutdown</code></td><td>Compile .language, sign boot, commit</td></tr>
+        <tr><td><code>ostk commit</code></td><td>Commit with spec attribution and needle tracking</td></tr>
+
+        <tr><td colspan="2" style="font-weight:600; color:var(--ostk-text-muted); padding-top:0.8em;">Work</td></tr>
         <tr><td><code>ostk needle add</code></td><td>File a new needle (executable work item)</td></tr>
         <tr><td><code>ostk compile</code></td><td>Triage unstructured thinking into executable needles</td></tr>
+        <tr><td><code>ostk hay "thought"</code></td><td>Capture raw uncompiled intent</td></tr>
         <tr><td><code>ostk verify</code></td><td>Run verification against needle criteria</td></tr>
-        <tr><td><code>ostk commit</code></td><td>Commit with audit trail</td></tr>
-        <tr><td><code>ostk spawn</code></td><td>Launch an agent worker from an Agentfile</td></tr>
+        <tr><td><code>ostk should "desc"</code></td><td>File bugs and features in natural language</td></tr>
+        <tr><td><code>ostk thread</code></td><td>Group related needles into a thread</td></tr>
+        <tr><td><code>ostk compounds</code></td><td>Show highest-compounding work — what unblocks the most</td></tr>
+
+        <tr><td colspan="2" style="font-weight:600; color:var(--ostk-text-muted); padding-top:0.8em;">Fleet</td></tr>
+        <tr><td><code>ostk run &lt;Agentfile&gt;</code></td><td>Run an agent from an Agentfile</td></tr>
+        <tr><td><code>ostk spawn</code></td><td>Launch an agent worker</td></tr>
         <tr><td><code>ostk ps</code></td><td>Show fleet status — all running agents</td></tr>
-        <tr><td><code>ostk bench</code></td><td>Run needle-in-a-haystack benchmarks</td></tr>
-        <tr><td><code>ostk secret set KEY</code></td><td>Store an API key in platform keychain</td></tr>
+        <tr><td><code>ostk ask "question"</code></td><td>Single-turn LLM query through the kernel</td></tr>
+
+        <tr><td colspan="2" style="font-weight:600; color:var(--ostk-text-muted); padding-top:0.8em;">OS</td></tr>
+        <tr><td><code>ostk os status</code></td><td>Kernel status — needles, hay, threads, mutations</td></tr>
+        <tr><td><code>ostk os audit</code></td><td>Query the audit trail</td></tr>
+        <tr><td><code>ostk os metrics</code></td><td>Compression savings, token usage</td></tr>
+        <tr><td><code>ostk secret set KEY</code></td><td>Store an API key in platform keychain — never enters LLM context</td></tr>
         <tr><td><code>ostk bail</code></td><td>Package portable OS state for handoff</td></tr>
-        <tr><td><code>ostk shutdown</code></td><td>Compile .language, sign boot, commit</td></tr>
-      </tbody>
-    </table>
-        <tr><td><code>ostk bench</code></td><td>Run benchmark scenarios</td></tr>
-        <tr><td><code>ostk ps</code></td><td>Show agent process table</td></tr>
-        <tr><td><code>ostk nudge</code></td><td>Send a notification to an agent or human</td></tr>
-        <tr><td><code>ostk mcp</code></td><td>Proxy external MCP servers (list, call)</td></tr>
-        <tr><td><code>ostk audit</code></td><td>Query the audit trail</td></tr>
-        <tr><td><code>ostk should</code></td><td>File bugs and features in natural language</td></tr>
+        <tr><td><code>ostk sign</code></td><td>Sign or re-sign the HUMANFILE with your GPG key</td></tr>
         <tr><td><code>ostk tui</code></td><td>Terminal interface for real-time OS monitoring</td></tr>
+        <tr><td><code>ostk mcp</code></td><td>MCP proxy — connect external servers, call tools, audited</td></tr>
+        <tr><td><code>ostk bench</code></td><td>Run needle-in-a-haystack benchmarks</td></tr>
       </tbody>
     </table>
 
     <h2>MCP proxy</h2>
-    <p>Proxy external MCP servers through the kernel. Any MCP-compatible server becomes available to agents running under the OS.</p>
-    <pre><code>ostk mcp call &lt;server&gt; &lt;tool&gt;</code></pre>
-    <p>The kernel handles routing, authentication, and audit logging for all proxied MCP calls.</p>
+    <p>Proxy external MCP servers through the kernel. Configure servers in your HUMANFILE, and agents call them through <code>ostk mcp call</code> — compressed, audited, with secrets injected from the platform keychain.</p>
+    <pre><code># HUMANFILE
+mcp:
+  linear: npx -y @anthropic/linear-mcp-server
+  github: gh mcp-server
+
+# Agent calls
+ostk mcp list                        # show configured servers
+ostk mcp call linear list-issues     # call a tool</code></pre>
+    <p>Servers prefixed <code>fcp-*</code> run as persistent driver daemons — the subprocess stays alive between calls, preserving workspace state (LSP, analyzer caches). All other servers spawn per-call.</p>
 
     <h2>TUI</h2>
     <p>Terminal interface for real-time OS monitoring. See agent processes, file writes, and audit events as they happen.</p>
@@ -123,7 +148,7 @@ cargo build --features embeddings</code></pre>
 ostk should "add retry logic to the API client"</code></pre>
 
     <h2>Downloads</h2>
-    <p>Latest release: <strong>v2.2.0</strong> — MCP proxy, TUI, semantic compression, 871+ tests.</p>
+    <p>Latest release: <strong>v2.2.1</strong></p>
     <ul>
       <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.1" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v2.2.1 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
