@@ -7,13 +7,18 @@ interface Props {
 const { title, description = 'ostk — os + tack: the invisible os' } = Astro.props;
 const currentPath = Astro.url.pathname;
 
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/docs', label: 'Docs' },
-  { href: '/bench', label: 'Bench' },
-  { href: '/insights', label: 'Insights' },
-  { href: '/security', label: 'Security' },
+const navGroups = [
+  [{ href: '/', label: 'Home' }],
+  [
+    { href: '/docs', label: 'Docs' },
+    { href: '/governance', label: 'Governance' },
+    { href: '/security', label: 'Security' },
+  ],
+  [
+    { href: 'https://needle-bench.cc', label: 'Bench', external: true },
+    { href: '/insights', label: 'Insights' },
+  ],
+  [{ href: '/about', label: 'About' }],
 ];
 ---
 
@@ -53,8 +58,8 @@ const navLinks = [
     "url": "https://ostk.ai",
     "operatingSystem": "macOS, Linux",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-    "downloadUrl": "https://github.com/os-tack/haystack/releases",
-    "codeRepository": "https://github.com/os-tack/haystack"
+    "downloadUrl": "https://github.com/os-tack/ostk/releases",
+    "codeRepository": "https://github.com/os-tack/ostk"
   })} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -70,13 +75,24 @@ const navLinks = [
         <span class="logo-os">os</span><span class="logo-diamond">&#9670;</span><span class="logo-tk">tk</span>
       </a>
       <div class="nav-links">
-        {navLinks.map(link => (
-          <a
-            href={link.href}
-            class:list={['nav-link', { active: currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href)) }]}
-          >
-            {link.label}
-          </a>
+        {navGroups.map((group, gi) => (
+          <>
+            {gi > 0 && <span class="nav-divider">|</span>}
+            {group.map(link => (
+              link.external ? (
+                <a href={link.href} class="nav-link" target="_blank" rel="noopener noreferrer">
+                  {link.label}<span class="external-icon">↗</span>
+                </a>
+              ) : (
+                <a
+                  href={link.href}
+                  class:list={['nav-link', { active: currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href)) }]}
+                >
+                  {link.label}
+                </a>
+              )
+            ))}
+          </>
         ))}
       </div>
     </div>
@@ -166,6 +182,19 @@ const navLinks = [
   .nav-link.active {
     color: var(--ostk-text-primary);
     border-bottom-color: var(--ostk-needle);
+  }
+
+  .nav-divider {
+    color: var(--ostk-border-default);
+    font-size: var(--ostk-text-sm);
+    margin: 0 var(--ostk-space-1);
+    user-select: none;
+  }
+
+  .external-icon {
+    font-size: 0.7em;
+    margin-left: 0.2em;
+    opacity: 0.6;
   }
 
   .footer {

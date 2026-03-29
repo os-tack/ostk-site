@@ -32,8 +32,9 @@ import Base from '../layouts/Base.astro';
     <section class="section">
       <h2>What is it</h2>
       <p>Your AI agents run on an OS. ostk is that OS.</p>
-      <p>Local-first. Signed. Audited. Yours.</p>
-      <p>A single Rust binary that coordinates agents through the filesystem — byte-for-byte passthrough for every command, with conflict resolution and audit trails underneath. Agents run on it without knowing. Like Docker for AI agents, with Firecracker support, that saves you tokens.</p>
+      <p>Local-first. GPG-signed. Audited. Yours.</p>
+      <p>A single Rust binary that coordinates agents through the filesystem — byte-for-byte passthrough for every command, with conflict resolution and audit trails underneath. Agents run on it without knowing.</p>
+      <p>Trust is cryptographic: GPG web of trust determines what you can do. <a href="/governance">No admin panels. No OAuth. Just signatures.</a></p>
     </section>
 
     <section class="section">
@@ -54,7 +55,7 @@ import Base from '../layouts/Base.astro';
         <li><strong>Work.</strong> Your agents use their normal tools. The OS intercepts writes, resolves conflicts, compresses output, and tracks every edit. Nothing changes for the agent.</li>
         <li><strong>Speak tack.</strong> You type intent in shorthand. The OS compiles it into agent actions. <code>:compile :plan :ship</code> — three words, full execution.</li>
       </ol>
-      <p>Signed binaries. GPG-verified identity. Audit trail for every edit. Your agents coordinate through the filesystem — no cloud, no lock-in.</p>
+      <p>Signed binaries. GPG web of trust. Audit trail for every edit. Capability pins that enforce boundaries invisibly. Your agents coordinate through the filesystem — no cloud, no lock-in.</p>
     </section>
 
     <section class="section">

@@ -27,7 +27,7 @@ import Base from '../../layouts/Base.astro';
     <p>The OSfile proves what kernel is running. <code>haystack.toml</code> configures how your team uses it.</p>
 
     <h2>Location</h2>
-    <p><code>.haystack/.primefile</code> — the signed kernel identity, in your project's ostk state directory.</p>
+    <p><code>.ostk/.primefile</code> — the signed kernel identity, in your project's ostk state directory.</p>
     <p><code>haystack.toml</code> — project collaboration config, at your repository root.</p>
 
     <h2>Example</h2>
@@ -41,11 +41,11 @@ import Base from '../../layouts/Base.astro';
 - audit_backend: jsonl
 
 ## Paths
-- needles: .haystack/needles/
-- audit: .haystack/audit.jsonl
-- boot: .haystack/boot.md
-- human: .haystack/HUMANFILE
-- agents: .haystack/agents.jsonl
+- needles: .ostk/needles/
+- audit: .ostk/audit.jsonl
+- boot: .ostk/boot.md
+- human: .ostk/HUMANFILE
+- agents: .ostk/agents.jsonl
 
 ## Session
 - last_agent: agent-934
@@ -76,7 +76,7 @@ import Base from '../../layouts/Base.astro';
       The <code>.primefile</code> is GPG-signed by the kernel root key. To verify the
       running kernel hasn't been tampered with:
     </p>
-    <pre><code>gpg --verify .haystack/.primefile.asc .haystack/.primefile</code></pre>
+    <pre><code>gpg --verify .ostk/.primefile.asc .ostk/.primefile</code></pre>
     <p>
       If verification fails, the kernel should not be trusted. The signature chain runs:
       human T0 key → kernel root key → CI key. Each link in the chain is cross-signed.

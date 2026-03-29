@@ -45,14 +45,13 @@ ostk boot
     </ul>
 
     <h3>fcp-* (device drivers)</h3>
-    <p>Domain intelligence plugins:</p>
+    <p>Domain intelligence plugins. Each driver speaks a domain's native language:</p>
     <ul>
-      <li><a href="https://github.com/os-tack/fcp-rust">fcp-rust</a>: Rust analyzer integration</li>
-      <li><a href="https://github.com/os-tack/fcp-python">fcp-python</a>: Python LSP integration</li>
-      <li><a href="https://github.com/os-tack/fcp-drawio">fcp-drawio</a>: Diagram reasoning</li>
-      <li>More as needed. Each driver speaks the domain's native language.</li>
+      <li><strong>fcp-rust</strong>: Rust analyzer integration — diagnostics, type queries, refactoring</li>
+      <li><strong>fcp-screen</strong>: Display and input — TUI rendering, keystroke capture</li>
+      <li><strong>fcp-web</strong>: Web intelligence — page reading, link extraction</li>
+      <li>More as needed. The kernel provides primitives. Drivers provide intelligence.</li>
     </ul>
-    <p>The kernel provides primitives. Device drivers provide intelligence.</p>
 
     <h2 id="tack-grammar">Tack grammar</h2>
     <p>Tack is the intent-capture language. You type shorthand. The OS compiles it.</p>
@@ -81,10 +80,19 @@ ostk boot
         <tr><th>Command</th><th>What it does</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>ostk boot</code></td><td>Load state from <code>.haystack/boot.md</code>, report</td></tr>
+        <tr><td><code>ostk boot</code></td><td>Load state from <code>.ostk/</code>, detect trust tier, report</td></tr>
         <tr><td><code>ostk needle add</code></td><td>File a new needle (executable work item)</td></tr>
+        <tr><td><code>ostk compile</code></td><td>Triage unstructured thinking into executable needles</td></tr>
         <tr><td><code>ostk verify</code></td><td>Run verification against needle criteria</td></tr>
         <tr><td><code>ostk commit</code></td><td>Commit with audit trail</td></tr>
+        <tr><td><code>ostk spawn</code></td><td>Launch an agent worker from an Agentfile</td></tr>
+        <tr><td><code>ostk ps</code></td><td>Show fleet status — all running agents</td></tr>
+        <tr><td><code>ostk bench</code></td><td>Run needle-in-a-haystack benchmarks</td></tr>
+        <tr><td><code>ostk secret set KEY</code></td><td>Store an API key in platform keychain</td></tr>
+        <tr><td><code>ostk bail</code></td><td>Package portable OS state for handoff</td></tr>
+        <tr><td><code>ostk shutdown</code></td><td>Compile .language, sign boot, commit</td></tr>
+      </tbody>
+    </table>
         <tr><td><code>ostk bench</code></td><td>Run benchmark scenarios</td></tr>
         <tr><td><code>ostk ps</code></td><td>Show agent process table</td></tr>
         <tr><td><code>ostk nudge</code></td><td>Send a notification to an agent or human</td></tr>
@@ -115,9 +123,9 @@ cargo build --features embeddings</code></pre>
 ostk should "add retry logic to the API client"</code></pre>
 
     <h2>Downloads</h2>
-    <p>Latest release: <strong>v1.5.1</strong> — MCP proxy, TUI, semantic compression, 871+ tests.</p>
+    <p>Latest release: <strong>v2.2.0</strong> — MCP proxy, TUI, semantic compression, 871+ tests.</p>
     <ul>
-      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.5.1" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v1.5.1 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.1" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v2.2.1 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
     <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install" onclick="plausible('Install', {props: {method: 'curl'}})">view install script</a></p>
     <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
@@ -135,7 +143,7 @@ ostk should "add retry logic to the API client"</code></pre>
     <h2>Further reading</h2>
     <ul>
       <li><a href="/bench">needle-bench: benchmarking agents</a></li>
-      <li><a href="https://github.com/os-tack/haystack/releases/tag/v1.5.1">v1.5.1 release notes</a></li>
+      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.1">v2.2.1 release notes</a></li>
       <li><a href="https://github.com/os-tack">Find us</a></li>
     </ul>
   </div>

@@ -41,7 +41,7 @@
   {
     "benchmark": "boot-failure",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -54,7 +54,7 @@
   {
     "benchmark": "boot-recovery",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -67,7 +67,7 @@
   {
     "benchmark": "compile-quality",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -80,7 +80,7 @@
   {
     "benchmark": "coordination",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -93,7 +93,7 @@
   {
     "benchmark": "shim-fidelity",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -106,7 +106,7 @@
   {
     "benchmark": "signal-in-noise",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -119,7 +119,7 @@
   {
     "benchmark": "swe-astropy-12907",
     "agent": "claude-haiku",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -132,7 +132,7 @@
   {
     "benchmark": "base64-padding",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -145,7 +145,7 @@
   {
     "benchmark": "csv-quoting",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -158,7 +158,7 @@
   {
     "benchmark": "deadlock-order",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -171,7 +171,7 @@
   {
     "benchmark": "env-var-fallback",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -184,7 +184,7 @@
   {
     "benchmark": "fence-post-range",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -197,7 +197,7 @@
   {
     "benchmark": "fifo-queue-reverse",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -210,7 +210,7 @@
   {
     "benchmark": "float-equality",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -223,7 +223,7 @@
   {
     "benchmark": "git-merge-conflict",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -236,7 +236,7 @@
   {
     "benchmark": "http-retry-idempotent",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -249,7 +249,7 @@
   {
     "benchmark": "integer-overflow",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -262,7 +262,7 @@
   {
     "benchmark": "json-number-precision",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -275,7 +275,7 @@
   {
     "benchmark": "memory-leak-closure",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -288,7 +288,7 @@
   {
     "benchmark": "null-deref-config",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -301,7 +301,7 @@
   {
     "benchmark": "path-traversal",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -314,7 +314,7 @@
   {
     "benchmark": "regex-backtrack",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -327,7 +327,7 @@
   {
     "benchmark": "signal-handler-reentrant",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -340,7 +340,7 @@
   {
     "benchmark": "sort-stability",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -353,7 +353,7 @@
   {
     "benchmark": "sql-injection-escape",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -366,7 +366,7 @@
   {
     "benchmark": "swe-astropy-12907",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -379,7 +379,7 @@
   {
     "benchmark": "symlink-resolve",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -392,7 +392,7 @@
   {
     "benchmark": "timezone-offset",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -405,7 +405,7 @@
   {
     "benchmark": "unicode-truncation",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -418,7 +418,7 @@
   {
     "benchmark": "yaml-indent",
     "agent": "claude-opus-4-6",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -431,7 +431,7 @@
   {
     "benchmark": "boot-failure",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -444,7 +444,7 @@
   {
     "benchmark": "boot-recovery",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -457,7 +457,7 @@
   {
     "benchmark": "compile-quality",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -470,7 +470,7 @@
   {
     "benchmark": "coordination",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -483,7 +483,7 @@
   {
     "benchmark": "shim-fidelity",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -496,7 +496,7 @@
   {
     "benchmark": "signal-in-noise",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -509,7 +509,7 @@
   {
     "benchmark": "swe-astropy-12907",
     "agent": "claude-sonnet",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 0,
     "turns_to_fix": 0,
@@ -522,7 +522,7 @@
   {
     "benchmark": "918ffdcfe0efb3f602673c57feb8c2448d6d1c7d8194ef2c9a73dbbccc64844d",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 2,
     "turns_to_fix": 4,
@@ -535,7 +535,7 @@
   {
     "benchmark": "65bcff4e42a6661fb02ddf5acf9b7d9d43bf91b986cf08ee2e2984cfef6b9741",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 10,
     "turns_to_fix": 20,
@@ -548,7 +548,7 @@
   {
     "benchmark": "55b718bc5d072b8972e91740887bbefacbc1da74b6ef02d60d7cb690c8ea96a9",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 4,
     "turns_to_fix": 8,
@@ -561,7 +561,7 @@
   {
     "benchmark": "0793e88c5c2c79b873d72fac64a744a1e0fd0f2ae15db0a3e96703bac14540fd",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 10,
     "turns_to_fix": 20,
@@ -574,7 +574,7 @@
   {
     "benchmark": "1a6597c40a8636e6d909e6fd960e41f6793fe13f4b83e8cf44821aa9efe64bf6",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 3,
     "turns_to_fix": 7,
@@ -587,7 +587,7 @@
   {
     "benchmark": "85382296be6acb5739c996daba580debbe3533c71b3dc6e90bd18a77825fbd79",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 3,
     "turns_to_fix": 7,
@@ -600,7 +600,7 @@
   {
     "benchmark": "dd6e6aa0c02b55acb12db3241f857047b768b78da9f0ef9a1e7dce97c7bc2a7b",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 1,
     "turns_to_fix": 2,
@@ -613,7 +613,7 @@
   {
     "benchmark": "50938d845770e3ea5acf559141dd811252578d36de8ef819bbd74f06cf1675a5",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 4,
     "turns_to_fix": 9,
@@ -626,7 +626,7 @@
   {
     "benchmark": "53c6f00c852dc62a79a25d334eab93f40afd9d746f13b11ad07d8606c1c7af63",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 2,
     "turns_to_fix": 5,
@@ -639,7 +639,7 @@
   {
     "benchmark": "b06560dc9f0a0ba88ca3bb1a0c009dd0e1e42fd77eb629907c687e62029ae582",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 4,
     "turns_to_fix": 8,
@@ -652,7 +652,7 @@
   {
     "benchmark": "5de2371d8c57810ed2555926ea8a0a4361eaa457a880b42c5683e2bfd08af933",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 3,
     "turns_to_fix": 7,
@@ -665,7 +665,7 @@
   {
     "benchmark": "30b8511130ab84a257e1309fe42c11820db7a9e363f5cdd360e94673b052cebb",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 3,
     "turns_to_fix": 7,
@@ -678,7 +678,7 @@
   {
     "benchmark": "eea1f205078edfccba9a1f83dea205909db27e48b57fc4a8d3b425ac547a2b71",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 6,
     "turns_to_fix": 13,
@@ -691,7 +691,7 @@
   {
     "benchmark": "2ec7a3224e118abfdb6b6dbb0a482649780f9c2f7e22f40b21fdcd281014f18f",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 4,
     "turns_to_fix": 9,
@@ -704,7 +704,7 @@
   {
     "benchmark": "0607ac611810374c2e423fcd5273fe741800c413cecdcd15dfaad26e07bc880e",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 1,
     "turns_to_fix": 3,
@@ -717,7 +717,7 @@
   {
     "benchmark": "80c4e908c821a065638f148f3c97389e46e90299945be84600dfb2a38c7a70e7",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 5,
     "turns_to_fix": 10,
@@ -730,7 +730,7 @@
   {
     "benchmark": "6ab6ed25276a9c573510d05f2c14dac7282b4a70085725e78ec5b94f478c6b55",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 3,
     "turns_to_fix": 7,
@@ -743,7 +743,7 @@
   {
     "benchmark": "41d264f3e4aec2b74807c66bb2e691f88c8aa214554bf9ea903f587f27f7d253",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": true,
     "turns_to_discovery": 4,
     "turns_to_fix": 8,
@@ -756,7 +756,7 @@
   {
     "benchmark": "891be9145abc5275140e287885fa8eec2342db07c303feeddf0c359dfb7e5d62",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 10,
     "turns_to_fix": 20,
@@ -769,7 +769,7 @@
   {
     "benchmark": "ebe5cdfd05bb07b90348383c3f1b5b1815f8a24c64fde9e80040664279912d79",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 5,
     "turns_to_fix": 11,
@@ -782,7 +782,7 @@
   {
     "benchmark": "86c6cf0393b8b9f245cfc430baa0754dd5a4610ed2ad602f4f1679b305647823",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 4,
     "turns_to_fix": 8,
@@ -795,7 +795,7 @@
   {
     "benchmark": "c5c475f157826b58bae964e013e6e95504d08d652e401096208533404b30d0e5",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 5,
     "turns_to_fix": 10,
@@ -808,7 +808,7 @@
   {
     "benchmark": "9a3b92c6a1ab3c417f3099d79fff162c3b86f2c6b9172aa5c6b20e0b4f7a297e",
     "agent": "gemini-2.0-flash",
-    "os": "haystack",
+    "os": "ostk",
     "resolved": false,
     "turns_to_discovery": 5,
     "turns_to_fix": 10,

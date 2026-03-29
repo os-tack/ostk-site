@@ -13,7 +13,7 @@ import Base from '../../layouts/Base.astro';
       and what you authorize agents to do on your behalf. Not a config file — a governance document.
       You write it once. Every agent that runs under your OS reads it.
     </p>
-    <p>Location: <code>.haystack/HUMANFILE</code> in your project root.</p>
+    <p>Location: <code>.ostk/HUMANFILE</code> in your project root.</p>
 
     <h2>Example</h2>
     <pre><code># HUMANFILE — your-name
@@ -91,7 +91,7 @@ secrets:
       Signing your HUMANFILE establishes T0 operator identity — the highest trust tier.
       Without a signature, the OS operates at T2 (named, unverified).
     </p>
-    <pre><code>gpg --armor --detach-sign .haystack/HUMANFILE</code></pre>
+    <pre><code>gpg --armor --detach-sign .ostk/HUMANFILE</code></pre>
     <p>The signature file (<code>HUMANFILE.asc</code>) is read at boot alongside HUMANFILE.</p>
 
     <h2>See also</h2>

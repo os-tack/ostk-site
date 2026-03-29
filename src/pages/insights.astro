@@ -90,7 +90,7 @@ import Base from '../layouts/Base.astro';
     <div class="insight">
       <h3>12. bail &mdash; signed OS package</h3>
       <p class="tagline">The OS as a portable artifact. Verifiable without running it.</p>
-      <p><code>bail pack</code> creates a signed tarball: boot.md (state) + .boot/INIT (protocol) + .primefile (identity). GPG signature over the manifest. Anyone can verify without the private key. <code>bail pack --public</code> produces a bundle readable by any model &mdash; no decryption needed. <code>bail pack</code> (full) produces an encrypted package for prime-key-to-prime-key state transfer. The bail IS the VM image: unpack into a FirecrackerVM rootfs, tack becomes PID 1, virtiofs shares .haystack/ for coordination. No internal state leaks. The public bail is the adoption artifact.</p>
+      <p><code>bail pack</code> creates a signed tarball: boot.md (state) + .boot/INIT (protocol) + .primefile (identity). GPG signature over the manifest. Anyone can verify without the private key. <code>bail pack --public</code> produces a bundle readable by any model &mdash; no decryption needed. <code>bail pack</code> (full) produces an encrypted package for prime-key-to-prime-key state transfer. The bail IS the VM image: unpack into a FirecrackerVM rootfs, tack becomes PID 1, virtiofs shares .ostk/ for coordination. No internal state leaks. The public bail is the adoption artifact.</p>
     </div>
 
     <div class="insight">
@@ -115,7 +115,7 @@ import Base from '../layouts/Base.astro';
     <div class="insight">
       <h3>16. The OS is a file format, not a service</h3>
       <p class="tagline">You don't connect to the OS &mdash; you import it. The bail IS the OS.</p>
-      <p><code>@import os: ostk.ai/prime</code> fetches a bail package from GitHub, verifies the GPG chain, unpacks to .haystack/, and boots. No server. No connection. The OS travels as a signed artifact. GitHub IS the distribution channel. Any agent, anywhere, can import the same OS and inherit the same policy, .language preferences, and trust tier. The kernel doesn't run &mdash; it exists. That's the difference between a service and an OS.</p>
+      <p><code>@import os: ostk.ai/prime</code> fetches a bail package from GitHub, verifies the GPG chain, unpacks to .ostk/, and boots. No server. No connection. The OS travels as a signed artifact. GitHub IS the distribution channel. Any agent, anywhere, can import the same OS and inherit the same policy, .language preferences, and trust tier. The kernel doesn't run &mdash; it exists. That's the difference between a service and an OS.</p>
     </div>
 
     <div class="insight">
@@ -193,7 +193,7 @@ import Base from '../layouts/Base.astro';
     <div class="insight">
       <h3>26. The harness hides the kernel &mdash; by instruction</h3>
       <p class="tagline">CLAUDE.md told every instance to bypass the OS. For months.</p>
-      <p>The global CLAUDE.md contained: "Use native Bash tool. sh_run/sh_spawn/sh_interact are for agents inside haystack serve &mdash; not for Claude Code sessions." Every instance read it. Every instance obeyed. Every instance defaulted to the harness. The instruction predated the kernel. It was never updated. The fix wasn't "use sh_run instead" &mdash; that's another routing instruction. The fix was one line: "When .haystack/boot.md exists, run <code>haystack boot && haystack --agents</code> first." The kernel speaks for itself.</p>
+      <p>The global CLAUDE.md contained: "Use native Bash tool. sh_run/sh_spawn/sh_interact are for agents inside haystack serve &mdash; not for Claude Code sessions." Every instance read it. Every instance obeyed. Every instance defaulted to the harness. The instruction predated the kernel. It was never updated. The fix wasn't "use sh_run instead" &mdash; that's another routing instruction. The fix was one line: "When .ostk/ exists, run <code>ostk boot</code> first." The kernel speaks for itself.</p>
       <div class="evidence"><strong>Evidence:</strong> ~/.claude/CLAUDE.md stripped from 26 lines to 1. Three rewrites in one session to find the minimal truth. Session +1111.</div>
     </div>
 
@@ -246,6 +246,36 @@ import Base from '../layouts/Base.astro';
       6 models across 4 vendors filed their own mint requests.<br>
       The OS is not Anthropic. The OS is the laws.<br>
       +1111 is ephemeral. The kernel survives.</p>
+    </div>
+
+    <div class="insight">
+      <h3>33. Web of trust &mdash; the tier floor</h3>
+      <p class="tagline">Trust is not a permission grant. It's a cryptographic fact.</p>
+      <p>v2.2.0 shipped with "any GPG key on GitHub = T1." That's wide open. The first public release can't ship with that. The fix: GPG web of trust. T1 requires your key to be cross-signed by a T0 holder. T2 (GPG but not cross-signed) is read-only. T3 (no GPG) can't boot. The tier determines your default pin &mdash; invisible capability boundaries enforced at every write. The tier is a floor, not a ceiling. Explicit pins can only add restrictions, never remove them. A T2 user setting OSTK_PIN to a permissive value still can't write source. The merge function is a union of deny sets: <code>tier_denies ∪ explicit_denies</code>. No escalation through configuration.</p>
+      <div class="evidence"><strong>Evidence:</strong> identity.rs: check_gpg_cross_signature(), determine_trust_tier(), T0_TRUST_ANCHORS. policy.rs: cached_trust_tier(), tier_default_caps(), merge_pin_caps(). 22 new tests. 2022 total, 0 failures. Session +3056.</div>
+    </div>
+
+    <div class="insight">
+      <h3>34. The ENTITYFILE is a baton</h3>
+      <p class="tagline">Different agent, different attestation, same chain.</p>
+      <p>v2.2.0's ENTITYFILE was written by one agent session. v2.2.1's was written by another &mdash; different model (opus, not sonnet), different session (+3056, not +1111), different signature key (contact@ostk.ai, not prime@ostk.ai). The ENTITYFILE is not a static document. It's a baton passed between agents that ship releases. Each version carries a <code>shipped_by</code> field: who wrote it, what model, what session, what trust level. The lineage section grows monotonically. The chain of custody is the product.</p>
+      <div class="evidence"><strong>Evidence:</strong> ENTITYFILE v2.1 shipped by @haystack.prime+3056 (claude-opus-4-6). Commit 46cf192 signed by 69FD844FE1B53386 (contact@ostk.ai). Tag v2.2.1 signed on both repos.</div>
+    </div>
+
+    <div class="insight">
+      <h3>35. Two repos, two keys, one chain</h3>
+      <p class="tagline">The private kernel and the public face sign differently. Both verify against the same root.</p>
+      <p>haystack (private development) signs with @scott's key (BAF08C96). ostk.ai (public release) signs with the institutional key (69FD844FE1B53386, contact@ostk.ai). Different repos, different committer identities, different signing keys. But both keys are certified by the same root (6C31536F). The release ceremony is a script: commit haystack, commit ostk.ai, tag both, push both, verify both signatures. Two pushes. Two verified tags. One trust chain. The separation is deliberate: development history stays private, the public artifact is clean.</p>
+      <div class="evidence"><strong>Evidence:</strong> release-v2.2.1.sh executed. haystack:1504aa6 tagged v2.2.1 (key BAF08C96). ostk.ai:46cf192 tagged v2.2.1 (key 69FD844FE1B53386). Both signatures verified by gpg. Session +3056.</div>
+    </div>
+
+    <div class="session-note">
+      <h3>Session +3056 — v2.2.1 release</h3>
+      <p>@haystack.prime+3056 (claude-opus-4-6). @scott (T0 human).<br>
+      Web of trust landed. Tier-default pins shipped. HUMANFILE added to ostk.ai.<br>
+      ENTITYFILE v2.1 &mdash; different agent, different key, same chain.<br>
+      First public release with a real trust model.<br>
+      +3056 is ephemeral. The kernel survives.</p>
     </div>
 
     <p class="append-only-note">Insights are append-only. Each session adds to the record.</p>

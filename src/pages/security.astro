@@ -10,7 +10,7 @@ import Base from '../layouts/Base.astro';
     <p class="lead">Every write is signed. Every identity is verified. Every conflict is resolved — never silently.</p>
 
     <h2>Trust tiers</h2>
-    <p>Identity in ostk is tiered. You start at T1 automatically when you authenticate. T0 is what you ratify with your key.</p>
+    <p>Identity in ostk is determined by the <strong>GPG web of trust</strong> — not by platform accounts. Your trust tier is resolved at boot from cross-signatures in your keyring.</p>
 
     <table class="trust-table">
       <thead>
@@ -18,38 +18,52 @@ import Base from '../layouts/Base.astro';
           <th>Tier</th>
           <th>What it means</th>
           <th>How you get it</th>
+          <th>Default restrictions</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><span class="tier tier-0">T0</span></td>
-          <td>GPG-ratified + kernel-attested</td>
-          <td>Human signs the HUMANFILE entry after the OS signs it</td>
+          <td>Dual-signed (human + kernel)</td>
+          <td>Ratified by an existing T0 holder</td>
+          <td>None — full governance</td>
         </tr>
         <tr>
           <td><span class="tier tier-1">T1</span></td>
-          <td>Harness-authenticated</td>
-          <td>App login — authenticated session, device-bound</td>
+          <td>Cross-signed by T0 holder</td>
+          <td>Your GPG key signed by a T0 key</td>
+          <td>Cannot modify OS or governance files</td>
         </tr>
         <tr>
           <td><span class="tier tier-2">T2</span></td>
-          <td>Kernel alias only</td>
-          <td>Agent with no identity claim — alias assigned at boot</td>
+          <td>GPG on GitHub, not cross-signed</td>
+          <td>GitHub account with verified GPG key</td>
+          <td>Read-only — cannot modify OS, governance, or source</td>
         </tr>
         <tr>
           <td><span class="tier tier-3">T3</span></td>
           <td>Anonymous</td>
-          <td>No verifiable identity</td>
+          <td>No GPG key</td>
+          <td>Cannot boot — public artifacts only</td>
         </tr>
       </tbody>
     </table>
 
-    <p class="note">T1 is what an authenticated session on any device gets automatically. T0 is what you ratify with your key.</p>
+    <p class="note">GitHub is used for identity discovery — where you find a key fingerprint. The authority is the cross-signature chain, not the platform.</p>
+
+    <h3>Escalation</h3>
+    <p>Trust escalates through GPG cross-signing, not through platform permissions:</p>
+    <ol>
+      <li><strong>T3 → T2:</strong> Generate a GPG key and add it to your GitHub account.</li>
+      <li><strong>T2 → T1:</strong> Get your key cross-signed by a T0 holder. Share your fingerprint; they sign your key with <code>gpg --sign-key</code>.</li>
+      <li><strong>T1 → T0:</strong> Dual-signed ratification — requires both a human and the kernel to attest.</li>
+    </ol>
 
     <h2>The write path</h2>
-    <p>Every file edit routes through the kernel. Four checks, in order:</p>
+    <p>Every file edit routes through the kernel. Five checks, in order:</p>
 
     <ol>
+      <li><strong>Pin check</strong> — does your trust tier allow this write? If the path is denied by your tier-default pin, the write is silently blocked. The agent never knows.</li>
       <li><strong>CAS check</strong> — does the content match what you think it does? If not, the write fails before it starts.</li>
       <li><strong>Exclusive flock</strong> — one writer at a time per file. No concurrent writes overwrite each other silently.</li>
       <li><strong>gen_table attribution</strong> — every write records who wrote it, when, and from which agent alias.</li>
@@ -61,14 +75,49 @@ import Base from '../layouts/Base.astro';
 
     <p>The gen counter is monotonically increasing per file. Gaps in the sequence are visible — there is no way to edit a file without leaving a record.</p>
 
-    <h2>Signed binaries</h2>
+    <h2>Capability pins</h2>
+    <p>Pins are invisible capability boundaries enforced at the write path. Your trust tier determines your default restrictions at boot — no configuration needed.</p>
+
+    <table class="trust-table">
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Default pin</th>
+          <th>Effect</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tier tier-0">T0</span></td>
+          <td>None</td>
+          <td>Full access — governance, OS, source</td>
+        </tr>
+        <tr>
+          <td><span class="tier tier-1">T1</span></td>
+          <td><code>deny: write-kernel modify-governance</code></td>
+          <td>Can write source. Cannot touch OS state or governance files.</td>
+        </tr>
+        <tr>
+          <td><span class="tier tier-2">T2</span></td>
+          <td><code>deny: write-kernel modify-governance write-src</code></td>
+          <td>Read-only in practice. Can boot, explore, run benchmarks.</td>
+        </tr>
+        <tr>
+          <td><span class="tier tier-3">T3</span></td>
+          <td>Cannot boot</td>
+          <td>Public artifacts only — releases, documentation.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Explicit pins (via <code>ostk run --pin</code>) can only <strong>add</strong> restrictions on top of your tier default. The tier is a floor, not an override. A T2 user cannot escape <code>write-src</code> denial through a custom pin.</p>
+
+    <p>When an agent writes to a denied path, the write is silently blocked. The agent never knows. The audit trail records it. This is by design — the OS is invisible to the agents running on it.</p>
     <p>Every release binary is signed by the CI key before it is published. Verify before you run:</p>
 
-    <pre><code>$ gpg --verify ostk-v1.0.2-aarch64-apple-darwin.tar.gz.asc
-gpg: Good signature from "ostk CI [ed25519]"
-gpg: Signature made 2026-03-11
-gpg: using EDDSA key ...
-gpg: Good signature</code></pre>
+    <pre><code>$ gpg --verify ostk-v2.2.1-aarch64-apple-darwin.tar.gz.asc
+gpg: Good signature from "ostk.ai (the kernel survives) &lt;contact@ostk.ai&gt;"
+gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
 
     <p>The CI signing key is ed25519, cross-signed by the root key, and expires 2028. The CI key can be revoked without touching the root. Revoked keys are published immediately.</p>
 
@@ -92,17 +141,17 @@ gpg: Good signature</code></pre>
       </thead>
       <tbody>
         <tr>
-          <td><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_auth_chain.rs"><code>bench_auth_chain.rs</code></a></td>
+          <td><a href="https://github.com/os-tack/ostk/blob/main/tests/bench_auth_chain.rs"><code>bench_auth_chain.rs</code></a></td>
           <td>Trust tier assignment (T2 default, T1 requires verified identity), HUMANFILE secrets gate, harness_identity parsing, authority chain invariants</td>
           <td>16</td>
         </tr>
         <tr>
-          <td><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_write_path_unprotected.rs"><code>bench_write_path_unprotected.rs</code></a></td>
+          <td><a href="https://github.com/os-tack/ostk/blob/main/tests/bench_write_path_unprotected.rs"><code>bench_write_path_unprotected.rs</code></a></td>
           <td>Concurrent-write stress: flock exclusion, CAS correctness under contention, no silent overwrites</td>
           <td>5</td>
         </tr>
         <tr>
-          <td><a href="https://github.com/os-tack/haystack/blob/main/tests/bench_kernel_active.rs"><code>bench_kernel_active.rs</code></a></td>
+          <td><a href="https://github.com/os-tack/ostk/blob/main/tests/bench_kernel_active.rs"><code>bench_kernel_active.rs</code></a></td>
           <td>Kernel presence: active write path, audit trail completeness, gen counter monotonicity</td>
           <td>5</td>
         </tr>
@@ -132,7 +181,7 @@ gpg: Good signature</code></pre>
       </tbody>
     </table>
 
-    <p>Full mitigations: <a href="https://github.com/os-tack/haystack/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a></p>
+    <p>Full mitigations: <a href="https://github.com/os-tack/ostk/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a></p>
   </div>
 </Base>
 
