@@ -1,0 +1,168 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Run AI Agents Locally: Why Local-First Beats Cloud-Only — ostk" description="Run AI coding agents on your machine with local models. Devstral 24B + context injection hits 75% on real bugs. No API costs, no data leaving your laptop.">
+  <div class="container">
+    <h1>Run AI Agents Locally: Why Local-First Beats Cloud-Only</h1>
+
+    <p class="lede">
+      You don&rsquo;t need an API key to run an effective AI coding agent. A 24B open model running on your laptop, with the right context, outperforms frontier API models running blind. Here&rsquo;s the data.
+    </p>
+
+    <section>
+      <h2>The cost of cloud-only</h2>
+      <p>Cloud AI coding tools charge per token. A typical debugging session with a frontier model costs $0.10&ndash;$2.00 per run. Run 20 debugging sessions a day and you&rsquo;re spending $40+/day on API calls.</p>
+      <p>But there&rsquo;s a bigger cost: <strong>your code leaves your machine</strong>. Every file the agent reads, every error message it sees, every git diff it inspects &mdash; sent to a third-party server. For proprietary codebases, security-sensitive projects, or air-gapped environments, this is a non-starter.</p>
+      <p>Local-first means your code stays on your hardware. Models run on your GPU. The OS runs on your filesystem. Nothing leaves your machine unless you explicitly configure it to.</p>
+    </section>
+
+    <section>
+      <h2>The benchmark evidence</h2>
+      <p><a href="https://needle-bench.cc">needle-bench</a> tested 26 models on 32 real debugging tasks. Several open-weight models that can run on consumer hardware were included:</p>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Model</th><th>Params</th><th>VRAM</th><th>Bare</th><th>+ Context</th><th>Δ</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Devstral Medium</td><td class="num">24B</td><td class="num">~16 GB</td><td class="num">3.1%</td><td class="num">75.0%</td><td class="num accent">+71.9pp</td></tr>
+            <tr><td>Codestral 2508</td><td class="num">22B</td><td class="num">~14 GB</td><td class="num">3.1%</td><td class="num">9.4%</td><td class="num accent">+6.2pp</td></tr>
+            <tr><td>Llama 4 Maverick</td><td class="num">400B MoE</td><td class="num">~48 GB</td><td class="num">15.6%</td><td class="num">43.8%</td><td class="num accent">+28.1pp</td></tr>
+            <tr><td>Llama 3.3 70B</td><td class="num">70B</td><td class="num">~40 GB</td><td class="num">3.1%</td><td class="num">3.1%</td><td class="num">+0.0pp</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Devstral Medium is the standout: 24 billion parameters, fits on a single consumer GPU (16 GB VRAM), and jumps from 3.1% to <strong>75.0%</strong> resolve rate with context injection. That&rsquo;s a +71.9 percentage point improvement &mdash; the largest context sensitivity measured in the entire benchmark.</p>
+    </section>
+
+    <section>
+      <h2>How 75% on a laptop compares</h2>
+      <p>For reference, here&rsquo;s what cloud frontier models achieve <em>without</em> context injection:</p>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Model</th><th>Type</th><th>Bare rate</th><th>Cost</th></tr>
+          </thead>
+          <tbody>
+            <tr class="highlight"><td>Devstral 24B + context</td><td>Local, open</td><td class="num accent">75.0%</td><td class="num">$0</td></tr>
+            <tr><td>Qwen 3.5 Plus</td><td>API, open</td><td class="num">65.6%</td><td class="num muted">per-token</td></tr>
+            <tr><td>GPT-4.1</td><td>API, closed</td><td class="num">50.0%</td><td class="num muted">$2/MTok in</td></tr>
+            <tr><td>Grok 4 Fast</td><td>API, closed</td><td class="num">46.9%</td><td class="num muted">$5/MTok in</td></tr>
+            <tr><td>Claude Haiku 4.5</td><td>API, closed</td><td class="num">40.6%</td><td class="num muted">$0.80/MTok</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>A free, local 24B model with context outperforms GPT-4.1, Grok 4 Fast, and Claude Haiku 4.5 running bare through their APIs. The context injection is the difference.</p>
+    </section>
+
+    <section>
+      <h2>Setting it up</h2>
+      <p>ostk works with any model that supports tool use. For local models, pair it with <a href="https://ollama.com" target="_blank" rel="noopener noreferrer">Ollama</a> or any OpenAI-compatible local server.</p>
+      <div class="code-block">
+        <pre><code># Install ostk
+curl -fsSL https://ostk.ai/install | sh
+
+# Initialize on your project
+cd your-project
+ostk init
+
+# Run with a local model (Ollama example)
+OPENAI_BASE_URL=http://localhost:11434/v1 \
+OPENAI_API_KEY=ollama \
+ostk do --model devstral</code></pre>
+      </div>
+      <p>ostk reads your project state (file tree, test output, recent changes, error messages) and injects it into the model&rsquo;s system prompt. The model doesn&rsquo;t know it&rsquo;s been given context &mdash; it just starts with better information.</p>
+      <p>No fine-tuning required. No special model configuration. The same context injection that produced +34.3pp mean improvement across 26 models in <a href="https://needle-bench.cc">needle-bench</a> works with your local model.</p>
+    </section>
+
+    <section>
+      <h2>When to use local vs API</h2>
+      <ul>
+        <li><strong>Use local</strong> when: proprietary code, air-gapped network, cost-sensitive, privacy requirements, or you want zero latency on tool calls.</li>
+        <li><strong>Use API</strong> when: you need ceiling performance (DeepSeek R1 at 96.9% bare, Opus 4 at 100% with context), or the task is complex enough that 24B parameters aren&rsquo;t sufficient.</li>
+        <li><strong>Use both</strong>: ostk supports switching models per task. Use a local model for routine debugging, escalate to an API model for hard cases.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>The architecture</h2>
+      <p>ostk is a Rust binary that runs entirely on your machine:</p>
+      <ul>
+        <li><strong>No cloud dependency</strong> &mdash; the OS itself never makes network calls. Only the model provider does (and with local models, not even that).</li>
+        <li><strong>GPG-signed audit trail</strong> &mdash; every file read, tool call, and decision is logged locally in <code>.ostk/audit.jsonl</code>. Signed. Tamper-evident.</li>
+        <li><strong>No telemetry</strong> &mdash; ostk collects nothing. No analytics, no crash reports, no usage tracking. <a href="/legal/privacy/">Privacy policy</a>.</li>
+        <li><strong>Filesystem as memory</strong> &mdash; your project directory is the shared memory space. The agent reads and writes files. The OS coordinates access. Everything is a file.</li>
+      </ul>
+      <p>If your threat model requires that code never leaves your machine, ostk + a local model is the only AI coding agent architecture that satisfies that constraint.</p>
+    </section>
+
+    <section class="takeaway">
+      <h2>Start local</h2>
+      <p><a href="/docs/">Install ostk</a>, point it at a local model, and run <code>ostk do</code>. The context injection works the same whether the model is running on your GPU or in a data center. The only difference is where your code goes.</p>
+      <p><a href="https://needle-bench.cc/insights/open-vs-closed/">Open vs closed model comparison</a> &middot; <a href="/insights/context-injection/">Context injection deep dive</a> &middot; <a href="https://needle-bench.cc">Benchmark results</a></p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .data-table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    text-align: left;
+  }
+
+  .data-table th {
+    color: var(--ostk-text-muted);
+    font-weight: 500;
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .data-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-table .accent {
+    color: var(--ostk-accent);
+  }
+
+  .data-table .muted {
+    color: var(--ostk-text-muted);
+  }
+
+  .data-table .highlight td {
+    background: rgba(var(--ostk-accent-rgb, 88, 166, 255), 0.08);
+  }
+
+  .code-block {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.6;
+  }
+</style>
