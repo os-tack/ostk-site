@@ -51,7 +51,7 @@ import Base from '../layouts/Base.astro';
     <section class="section">
       <h2>How it works</h2>
       <ol>
-        <li><strong>Install.</strong> <code>curl -fsSL https://ostk.ai/install | sh</code> — boots the OS on any git repo.</li>
+        <li><strong>Install.</strong> <code>curl -fsSL https://ostk.ai/install | sh</code> — installs the binary. Then <code>ostk init</code> in any git repo to boot the OS.</li>
         <li><strong>Work.</strong> Your agents use their normal tools. The OS intercepts writes, resolves conflicts, compresses output, and tracks every edit. Nothing changes for the agent.</li>
         <li><strong>Speak tack.</strong> You type intent in shorthand. The OS compiles it into agent actions. <code>:compile :plan :ship</code> — three words, full execution.</li>
       </ol>
@@ -77,6 +77,7 @@ import Base from '../layouts/Base.astro';
       <h2>Get started</h2>
       <pre><code>curl -fsSL https://ostk.ai/install | sh
 cd your-repo
+ostk init
 ostk boot</code></pre>
       <p>The OS is running. Your agents are already on it.</p>
       <p>

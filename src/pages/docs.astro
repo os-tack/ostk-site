@@ -7,16 +7,23 @@ import Base from '../layouts/Base.astro';
     <h1>Documentation</h1>
 
     <h2>Quick start</h2>
-    <pre><code># Install
+    <pre><code># Install the binary
 curl -fsSL https://ostk.ai/install | sh
 
-# Boot the OS on a repo
+# Initialize the OS on a repo
 cd your-repo
 ostk init
+
+# Or use the interactive wizard
+ostk init --guided
+
+# Boot
 ostk boot
 
 # The OS is running. Agents use their normal tools.
 # The kernel coordinates writes invisibly at the filesystem layer.</code></pre>
+
+    <p><code>ostk init</code> downloads the governance bail from <a href="https://github.com/os-tack/ostk.ai">os-tack/ostk.ai</a>, verifies its GPG signature, and creates your project's <code>.ostk/</code> directory with HUMANFILE, Agentfile, pin.caps, and ostk.toml — personalized to your git identity.</p>
 
     <p>After boot, the OS:</p>
     <ul>
@@ -87,9 +94,9 @@ ostk boot
       </thead>
       <tbody>
         <tr><td colspan="2" style="font-weight:600; color:var(--ostk-text-muted); padding-top:0.8em;">Lifecycle</td></tr>
+        <tr><td><code>ostk init</code></td><td>Initialize <code>.ostk/</code> — downloads governance bail, creates HUMANFILE, Agentfile, pins</td></tr>
+        <tr><td><code>ostk init --guided</code></td><td>Interactive 7-step setup: repo, isolation, GPG, provider, autonomy, API key</td></tr>
         <tr><td><code>ostk boot</code></td><td>Load state from <code>.ostk/</code>, detect trust tier, report</td></tr>
-        <tr><td><code>ostk init</code></td><td>Initialize <code>.ostk/</code> in a repo</td></tr>
-        <tr><td><code>ostk install</code></td><td>Bootstrap: init + boot.md + first POST</td></tr>
         <tr><td><code>ostk shutdown</code></td><td>Compile .language, sign boot, commit</td></tr>
         <tr><td><code>ostk commit</code></td><td>Commit with spec attribution and needle tracking</td></tr>
 
@@ -114,6 +121,7 @@ ostk boot
         <tr><td><code>ostk os metrics</code></td><td>Compression savings, token usage</td></tr>
         <tr><td><code>ostk secret set KEY</code></td><td>Store an API key in platform keychain — never enters LLM context</td></tr>
         <tr><td><code>ostk bail</code></td><td>Package portable OS state for handoff</td></tr>
+        <tr><td><code>ostk do &lt;verb&gt;</code></td><td>Execute intent — resolve a :verb through .language and dispatch</td></tr>
         <tr><td><code>ostk sign</code></td><td>Sign or re-sign the HUMANFILE with your GPG key</td></tr>
         <tr><td><code>ostk tui</code></td><td>Terminal interface for real-time OS monitoring</td></tr>
         <tr><td><code>ostk mcp</code></td><td>MCP proxy — connect external servers, call tools, audited</td></tr>
@@ -179,9 +187,9 @@ cargo build --features embeddings</code></pre>
 ostk should "add retry logic to the API client"</code></pre>
 
     <h2>Downloads</h2>
-    <p>Latest release: <strong>v2.2.1</strong></p>
+    <p>Latest release: <strong>v2.2.2</strong></p>
     <ul>
-      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.1" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v2.2.1 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.2" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v2.2.2 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
     <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install" onclick="plausible('Install', {props: {method: 'curl'}})">view install script</a></p>
     <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
@@ -199,7 +207,7 @@ ostk should "add retry logic to the API client"</code></pre>
     <h2>Further reading</h2>
     <ul>
       <li><a href="/bench">needle-bench: benchmarking agents</a></li>
-      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.1">v2.2.1 release notes</a></li>
+      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.2">v2.2.2 release notes</a></li>
       <li><a href="https://github.com/os-tack">Find us</a></li>
     </ul>
   </div>

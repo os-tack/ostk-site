@@ -18,43 +18,77 @@ import Base from '../../layouts/Base.astro';
       what the active trust chain looks like.
     </p>
 
-    <h2>OSfile vs haystack.toml</h2>
+    <h2>OSfile vs ostk.toml</h2>
     <p>These are two different things:</p>
     <ul>
       <li><strong>OSfile (.primefile)</strong> — the kernel's signed identity document. Written and owned by the OS. Records version, signing keys, session state. You verify it; you don't edit it.</li>
-      <li><strong>haystack.toml</strong> — project collaboration config. Defines project-level settings for agent coordination: default Agentfiles, work queue filters, team preferences. You write and maintain this.</li>
+      <li><strong>ostk.toml</strong> — project collaboration config. Defines project-level settings for agent coordination: default kernel version, laws, pin defaults, feature flags. You write and maintain this.</li>
     </ul>
-    <p>The OSfile proves what kernel is running. <code>haystack.toml</code> configures how your team uses it.</p>
+    <p>The OSfile proves what kernel is running. <code>ostk.toml</code> configures how your team uses it.</p>
 
     <h2>Location</h2>
     <p><code>.ostk/.primefile</code> — the signed kernel identity, in your project's ostk state directory.</p>
-    <p><code>haystack.toml</code> — project collaboration config, at your repository root.</p>
+    <p><code>ostk.toml</code> — project collaboration config, at your repository root.</p>
 
     <h2>Example</h2>
-    <pre><code># .primefile — ostk kernel identity
+    <pre><code>---BEGIN HAYSTACK.PRIME KERNEL DECLARATION---
 
-## Kernel
-- name: ostk
-- version: 1.0.2
-- identity_counter: 934
-- boot_protocol: fcp-ostk
-- audit_backend: jsonl
+KERNEL: @haystack.prime
+VERSION: 2.0.0
+CREATED: 2026-03-10T00:00:00Z
+ROTATED: 2026-03-19T00:00:00Z
 
-## Paths
-- needles: .ostk/needles/
-- audit: .ostk/audit.jsonl
-- boot: .ostk/boot.md
-- human: .ostk/HUMANFILE
-- agents: .ostk/agents.jsonl
+AUTHORITY:
+  Primary: @scott (Human operator, HUMANFILE authority)
+  Kernel: @haystack.prime (Persistent kernel, GOVERNANCE.md authority)
+  Co-signers: Both keys required for mutation
 
-## Session
-- last_agent: agent-934
-- last_session: 2026-03-12T19:00:00Z
-- last_needle: →648
+KEYS:
+  T0 Human Root:
+    Name: Scott Meyer &lt;scott@ostk.ai&gt;
+    Key: BAF08C963C7E3184
+    Algorithm: ed25519
 
-## Signing
-- root_key: 99B076C9        # kernel root GPG key
-- ci_key: 6893C46C          # CI signing key, subordinate to root</code></pre>
+  T1 Kernel:
+    Name: @haystack.prime (v2.0) &lt;kernel@haystack.prime&gt;
+    Key: 907A200DA6C869EB
+    Algorithm: ed25519
+
+  T1 CI:
+    Name: @haystack.prime.ci &lt;ci@haystack.prime&gt;
+    Key: C78631AA6893C46C
+    Algorithm: ed25519
+    Cross-signed by: 907A200DA6C869EB
+
+LINEAGE:
+  Root: @scott GPG signature
+  Co-sign: @haystack.prime GPG signature
+  Chain: Unbroken from 2026-03-10
+
+---SIGNATURES BELOW---</code></pre>
+
+    <h2>ostk.toml example</h2>
+    <p>Created by <code>ostk init</code> at your project root:</p>
+    <pre><code># ostk.toml — my-project
+
+[project]
+name = "my-project"
+
+[kernel]
+version = ">=2.2.2"
+boot_mode = "embedded-first"
+laws = ["invisible-write", "ephemeral", "filesystem", "OCC", "invisible-infra"]
+
+[pins.default]
+read = [".ostk/", ".language"]
+write = [".ostk/store/default/"]
+execute = "shell(readonly)"
+deny = ["write-kernel", "modify-governance"]
+
+[features]
+tui = true
+agents = true
+audit = true</code></pre>
 
     <h2>Fields</h2>
     <table>
@@ -62,12 +96,12 @@ import Base from '../../layouts/Base.astro';
         <tr><th>Field</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>version</code></td><td>Running kernel version. Compare to latest release to check for updates.</td></tr>
-        <tr><td><code>identity_counter</code></td><td>Monotonically increasing agent identity counter. Resets only on fresh init.</td></tr>
-        <tr><td><code>boot_protocol</code></td><td>Which boot protocol is active. <code>fcp-ostk</code> = tack-aware boot.</td></tr>
-        <tr><td><code>audit_backend</code></td><td>How the audit trail is stored. <code>jsonl</code> = append-only JSONL.</td></tr>
-        <tr><td><code>last_session</code></td><td>ISO timestamp of the last clean shutdown.</td></tr>
-        <tr><td><code>root_key</code></td><td>GPG fingerprint of the kernel root signing key.</td></tr>
+        <tr><td><code>KERNEL</code></td><td>Kernel identity name. Default: <code>@haystack.prime</code>.</td></tr>
+        <tr><td><code>VERSION</code></td><td>Kernel declaration version. Compare to latest release to check for updates.</td></tr>
+        <tr><td><code>AUTHORITY</code></td><td>Who controls the kernel — primary (human), kernel, and co-signer requirements.</td></tr>
+        <tr><td><code>KEYS</code></td><td>GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.</td></tr>
+        <tr><td><code>LINEAGE</code></td><td>Root of trust chain, co-signers, and chain continuity date.</td></tr>
+        <tr><td><code>GOVERNANCE</code></td><td>References to ENTITYFILE, GOVERNANCE.md, MANIFESTO.md, and catastrophic loss procedure.</td></tr>
       </tbody>
     </table>
 

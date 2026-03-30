@@ -2,7 +2,7 @@
 # ostk installer — downloads the latest binary
 # Usage: curl -fsSL https://ostk.ai/install | sh
 #
-# After install, run: ostk install (in a git repo)
+# After install, run: ostk init (in a git repo)
 #
 # Env overrides:
 #   OSTK_VERSION=2.2.0    pin a version
@@ -121,5 +121,5 @@ esac
 printf "\n"
 printf "  ${dim}get started:${reset}\n"
 printf "    cd your-repo\n"
-printf "    ostk install\n"
+printf "    ostk init\n"
 printf "\n"

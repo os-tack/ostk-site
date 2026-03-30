@@ -17,15 +17,14 @@ import Base from '../../layouts/Base.astro';
     <p>Run an agent: <code>ostk run path/to/Agentfile</code></p>
 
     <h2>Minimal example</h2>
-    <pre><code>FROM claude-sonnet-4-6
-BOOT ostk boot --bail
-PROMPT "Fix the failing tests in src/. Run cargo test after each fix."
+    <pre><code>FROM auto
+PROMPT "You are the scheduling intelligence for this project."
 TOOL shell
 TOOL file:read
 TOOL file:edit
-LIMIT context_pct 80
-LIMIT budget_usd 5
-WORK tags=bugfix priority>=P1</code></pre>
+LIMIT tokens 200000
+BOOT ostk boot
+PIN default</code></pre>
 
     <h2>Directive reference</h2>
     <table>
@@ -93,6 +92,22 @@ WORK tags=bugfix priority>=P1</code></pre>
           <td><code>INTERRUPT</code></td>
           <td>No</td>
           <td>Event that wakes a waiting agent. For reactive agents that wait for triggers.</td>
+        </tr>
+        <tr>
+          <td><code>PIN</code></td>
+          <td>No</td>
+          <td>
+            Capability pin name. <code>PIN default</code> uses the tier-default pin.
+            Can only add restrictions on top of your trust tier — the tier is a floor.
+          </td>
+        </tr>
+        <tr>
+          <td><code>BETA</code></td>
+          <td>No</td>
+          <td>
+            Enable a beta feature. <code>BETA context-management</code>, <code>BETA extended-cache-ttl</code>,
+            <code>BETA fast-mode</code>. Multiple BETA directives allowed.
+          </td>
         </tr>
       </tbody>
     </table>
