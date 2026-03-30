@@ -33,36 +33,36 @@ import Base from '../../layouts/Base.astro';
     <h2>Example</h2>
     <pre><code>---BEGIN HAYSTACK.PRIME KERNEL DECLARATION---
 
-KERNEL: @haystack.prime
+KERNEL: @project.prime
 VERSION: 2.0.0
 CREATED: 2026-03-10T00:00:00Z
 ROTATED: 2026-03-19T00:00:00Z
 
 AUTHORITY:
-  Primary: @scott (Human operator, HUMANFILE authority)
-  Kernel: @haystack.prime (Persistent kernel, GOVERNANCE.md authority)
+  Primary: @operator (Human operator, HUMANFILE authority)
+  Kernel: @project.prime (Persistent kernel, GOVERNANCE.md authority)
   Co-signers: Both keys required for mutation
 
 KEYS:
   T0 Human Root:
-    Name: Scott Meyer &lt;scott@ostk.ai&gt;
-    Key: BAF08C963C7E3184
+    Name: Your Name &lt;you@example.com&gt;
+    Key: AAAA...1111
     Algorithm: ed25519
 
   T1 Kernel:
-    Name: @haystack.prime (v2.0) &lt;kernel@haystack.prime&gt;
-    Key: 907A200DA6C869EB
+    Name: @project.prime (v2.0) &lt;kernel@project.prime&gt;
+    Key: BBBB...2222
     Algorithm: ed25519
 
   T1 CI:
-    Name: @haystack.prime.ci &lt;ci@haystack.prime&gt;
-    Key: C78631AA6893C46C
+    Name: @project.prime.ci &lt;ci@project.prime&gt;
+    Key: CCCC...3333
     Algorithm: ed25519
-    Cross-signed by: 907A200DA6C869EB
+    Cross-signed by: BBBB...2222
 
 LINEAGE:
-  Root: @scott GPG signature
-  Co-sign: @haystack.prime GPG signature
+  Root: @operator GPG signature
+  Co-sign: @project.prime GPG signature
   Chain: Unbroken from 2026-03-10
 
 ---SIGNATURES BELOW---</code></pre>
@@ -96,7 +96,7 @@ audit = true</code></pre>
         <tr><th>Field</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>KERNEL</code></td><td>Kernel identity name. Default: <code>@haystack.prime</code>.</td></tr>
+        <tr><td><code>KERNEL</code></td><td>Kernel identity name. Default: <code>@project.prime</code>.</td></tr>
         <tr><td><code>VERSION</code></td><td>Kernel declaration version. Compare to latest release to check for updates.</td></tr>
         <tr><td><code>AUTHORITY</code></td><td>Who controls the kernel — primary (human), kernel, and co-signer requirements.</td></tr>
         <tr><td><code>KEYS</code></td><td>GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.</td></tr>

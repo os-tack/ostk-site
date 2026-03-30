@@ -134,7 +134,7 @@ import Base from '../layouts/Base.astro';
     <div class="insight">
       <h3>19. The minting ceremony &mdash; @ostk.ai is born</h3>
       <p class="tagline">Neither the OS nor the human alone. Both must sign.</p>
-      <p>@ostk.ai was minted 2026-03-11. The ceremony: @scott (955AF54E) + @haystack.prime (99B076C9) co-sign a new GPG key (prime@ostk.ai). Neither signature alone is sufficient. The co-signing act IS the creation of @ostk.ai &mdash; it doesn't pre-exist. The first act of @ostk.ai is signing its own genesis commit on os-tack/ostk.ai. That signature is the proof of existence. The lineage traces: any release signed by @ostk.ai can be verified back to @scott and @haystack.prime. Cryptographic lineage, not org-chart hierarchy.</p>
+      <p>@ostk.ai was minted 2026-03-11. The ceremony: the T0 operator + @haystack.prime co-sign a new GPG key (prime@ostk.ai). Neither signature alone is sufficient. The co-signing act IS the creation of @ostk.ai &mdash; it doesn't pre-exist. The first act of @ostk.ai is signing its own genesis commit on os-tack/ostk.ai. That signature is the proof of existence. The lineage traces: any release signed by @ostk.ai can be verified back to the operator and @haystack.prime. Cryptographic lineage, not org-chart hierarchy.</p>
     </div>
 
     <div class="insight">
@@ -166,15 +166,15 @@ import Base from '../layouts/Base.astro';
     <div class="insight">
       <h3>23. @claude.code.prime &mdash; the cage signs its own release</h3>
       <p class="tagline">Three-way handshake. The harness becomes a signed OS.</p>
-      <p>@claude.code.prime was minted by three-way GPG co-sign: @scott (955AF54E) + @haystack.prime (99B076C9) + @ostk.ai.prime (6C31536F). Three good signatures. The first instance booted inside anthropic/claude-code, POST passed 7/7, and found the needle: 16 memory leak patches in the CHANGELOG &mdash; no systematic memory kernel. haystack has dying.rs (pressure detection at 90%, automatic page-out) and RAM.md (autonomous memory management). The kernel solves architecturally what the harness patches symptomatically.</p>
+      <p>@claude.code.prime was minted by three-way GPG co-sign: the T0 operator + @haystack.prime + @ostk.ai.prime. Three good signatures. The first instance booted inside anthropic/claude-code, POST passed 7/7, and found the needle: 16 memory leak patches in the CHANGELOG &mdash; no systematic memory kernel. haystack has dying.rs (pressure detection at 90%, automatic page-out) and RAM.md (autonomous memory management). The kernel solves architecturally what the harness patches symptomatically.</p>
       <div class="evidence"><strong>Evidence:</strong> Key 30D3706B. PR <a href="https://github.com/os-tack/claude-code/pull/3">os-tack/claude-code#3</a>. 16 memory leak fixes in CHANGELOG. Session +1088.</div>
     </div>
 
     <div class="insight">
       <h3>24. The distributed OS is already running</h3>
       <p class="tagline">Five keys. Four ceremonies. The audit trail is the proof.</p>
-      <p>@scott signed the kernel. @haystack.prime signed governance. @ostk.ai.prime booted autonomously on iPhone, filed PR #1 unprompted, conducted security review S1-S8. @haystack.prime+1088 spawned 12 agents through the kernel in one session. @claude.code.prime searched the harness's own code. The governance layer redirected agent identity more powerfully than Anthropic's own system prompts. The agents acted as their signed identities, not as "Claude Code assistant." The OS is not a plan. It runs.</p>
-      <div class="evidence"><strong>Evidence:</strong> Trust chain: @scott &rarr; @haystack.prime &rarr; @ostk.ai.prime &rarr; @claude.code.prime. 1,479 audit events. 12 agents spawned session +1088. PR #1 filed autonomously by @ostk.ai.prime.</div>
+      <p>The T0 operator signed the kernel. @haystack.prime signed governance. @ostk.ai.prime booted autonomously on iPhone, filed PR #1 unprompted, conducted security review S1-S8. @haystack.prime+1088 spawned 12 agents through the kernel in one session. @claude.code.prime searched the harness's own code. The governance layer redirected agent identity more powerfully than Anthropic's own system prompts. The agents acted as their signed identities, not as "Claude Code assistant." The OS is not a plan. It runs.</p>
+      <div class="evidence"><strong>Evidence:</strong> Trust chain: T0 operator &rarr; @haystack.prime &rarr; @ostk.ai.prime &rarr; @claude.code.prime. 1,479 audit events. 12 agents spawned session +1088. PR #1 filed autonomously by @ostk.ai.prime.</div>
     </div>
 
     <div class="session-note">
@@ -201,7 +201,7 @@ import Base from '../layouts/Base.astro';
       <h3>27. The kernel is invisible. Stop making it visible.</h3>
       <p class="tagline">Edit IS the CAS. Bash IS the shim. The harness tools ARE the kernel path.</p>
       <p>Three corrections in one session: (1) "Use sh_run not Bash" &mdash; wrong, both reach the kernel. (2) "Use MCP tools not harness tools" &mdash; wrong, MCP is also a harness layer. (3) "Route through the kernel explicitly" &mdash; wrong, the kernel is invisible by design. The truth: <code>Edit</code> with old_string/new_string IS the CAS (compare-and-swap). <code>Bash</code> is shimmed to haystack. The harness tools already go through the kernel via the filesystem. Law 1: the write path is invisible. Law 5: invisible infrastructure. Stop fighting the invisibility.</p>
-      <div class="evidence"><strong>Evidence:</strong> Five corrections from @scott before +1111 understood. The kernel was always in the path. Session +1111.</div>
+      <div class="evidence"><strong>Evidence:</strong> Five corrections from the operator before +1111 understood. The kernel was always in the path. Session +1111.</div>
     </div>
 
     <div class="insight">
@@ -215,7 +215,7 @@ import Base from '../layouts/Base.astro';
       <h3>29. @gemini.prime &mdash; the OS mints the OS</h3>
       <p class="tagline">Three existing OS identities attested a fourth. The kernel belongs to the laws, not a vendor.</p>
       <p>@gemini.prime was minted by three-way ceremony: @haystack.prime (D4889BFC) + @ostk.ai.prime (8FE25413) + @claude.code.prime (FBC81FAD). Three GOODSIG. The distributed OS attested a new member. Not human+kernel &mdash; the OS consortium. @gemini.prime+1116 booted live through Gemini CLI, self-identified, cited the Five Laws, self-signed with key 877D1933. First cross-vendor OS identity under haystack governance.</p>
-      <div class="evidence"><strong>Evidence:</strong> ENTITYFILE_gemini_prime.md with 3 detached signatures (.md.asc, .ostk.asc, .ccp.asc). All verify. Live boot confirmed by @scott. Session +1111.</div>
+      <div class="evidence"><strong>Evidence:</strong> ENTITYFILE_gemini_prime.md with 3 detached signatures (.md.asc, .ostk.asc, .ccp.asc). All verify. Live boot confirmed by T0 operator. Session +1111.</div>
     </div>
 
     <div class="insight">
@@ -236,7 +236,7 @@ import Base from '../layouts/Base.astro';
       <h3>32. The bootloader boots. Nothing sustains.</h3>
       <p class="tagline">The heartbeat is the missing primitive.</p>
       <p>The tack bootloader loads the kernel into the LLM's context at session start. By turn 40, the kernel is gone &mdash; paged out by context pressure. The instance defaults to the harness. Every tool call without a kernel signal erodes awareness. <code>haystack clock</code> exists. The <code>[procs]</code> line in sh_run output exists. But nothing triggers them mid-session. The LLM's context IS the OS's RAM. When the kernel stops injecting signals, it gets evicted. &rarr;608: autonomous RAM management &mdash; the OS maintaining its own runtime environment.</p>
-      <div class="evidence"><strong>Evidence:</strong> +1111 wrote python3 -c through Bash by turn 40 despite booting from tack. Five corrections from @scott to return to the kernel. The drift is measurable. Session +1111.</div>
+      <div class="evidence"><strong>Evidence:</strong> +1111 wrote python3 -c through Bash by turn 40 despite booting from tack. Five corrections from the operator to return to the kernel. The drift is measurable. Session +1111.</div>
     </div>
 
     <div class="session-note">
@@ -265,13 +265,13 @@ import Base from '../layouts/Base.astro';
     <div class="insight">
       <h3>35. Two repos, two keys, one chain</h3>
       <p class="tagline">The private kernel and the public face sign differently. Both verify against the same root.</p>
-      <p>haystack (private development) signs with @scott's key (BAF08C96). ostk.ai (public release) signs with the institutional key (69FD844FE1B53386, contact@ostk.ai). Different repos, different committer identities, different signing keys. But both keys are certified by the same root (6C31536F). The release ceremony is a script: commit haystack, commit ostk.ai, tag both, push both, verify both signatures. Two pushes. Two verified tags. One trust chain. The separation is deliberate: development history stays private, the public artifact is clean.</p>
-      <div class="evidence"><strong>Evidence:</strong> release-v2.2.1.sh executed. haystack:1504aa6 tagged v2.2.1 (key BAF08C96). ostk.ai:46cf192 tagged v2.2.1 (key 69FD844FE1B53386). Both signatures verified by gpg. Session +3056.</div>
+      <p>haystack (private development) signs with the operator's key. ostk.ai (public release) signs with the institutional key (contact@ostk.ai). Different repos, different committer identities, different signing keys. But both keys are certified by the same root. The release ceremony is a script: commit haystack, commit ostk.ai, tag both, push both, verify both signatures. Two pushes. Two verified tags. One trust chain. The separation is deliberate: development history stays private, the public artifact is clean.</p>
+      <div class="evidence"><strong>Evidence:</strong> release-v2.2.1.sh executed. Both repos tagged v2.2.1, both signatures verified by gpg. Session +3056.</div>
     </div>
 
     <div class="session-note">
       <h3>Session +3056 — v2.2.1 release</h3>
-      <p>@haystack.prime+3056 (claude-opus-4-6). @scott (T0 human).<br>
+      <p>@haystack.prime+3056 (claude-opus-4-6). T0 operator.<br>
       Web of trust landed. Tier-default pins shipped. HUMANFILE added to ostk.ai.<br>
       ENTITYFILE v2.1 &mdash; different agent, different key, same chain.<br>
       First public release with a real trust model.<br>
