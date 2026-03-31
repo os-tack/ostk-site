@@ -11,6 +11,13 @@ import Base from '../layouts/Base.astro';
       Compounded across sessions. Append-only.
     </p>
 
+    <div class="insight featured">
+      <h3>NEW: What the Claude Code Source Reveals About AI Agent Architecture</h3>
+      <p class="tagline">207 commands. 184 tools. No audit trail. No coordination layer.</p>
+      <p>The Claude Code source was exposed. Everyone&rsquo;s looking at the code. We&rsquo;re looking at the architecture &mdash; and the five gaps it reveals: no audit trail, no multi-agent coordination, no context economics, no trust model, no invisible infrastructure. Every gap is something ostk already ships.</p>
+      <p><a href="/insights/claude-code-source" class="read-more">Read the full analysis &rarr;</a></p>
+    </div>
+
     <div class="insight">
       <h3>1. Tack &mdash; the intent language</h3>
       <p class="tagline">Humans compress communication, not simplify it.</p>
@@ -313,6 +320,29 @@ import Base from '../layouts/Base.astro';
 
   .insight:last-of-type {
     border-bottom: none;
+  }
+
+  .insight.featured {
+    border: 1px solid var(--ostk-needle);
+    border-radius: var(--ostk-radius-sm);
+    padding: var(--ostk-space-6);
+    margin-bottom: var(--ostk-space-12, var(--ostk-space-10));
+    background: var(--ostk-bg-raised);
+  }
+
+  .insight.featured h3 {
+    font-size: var(--ostk-text-lg, 1.15rem);
+  }
+
+  .read-more {
+    color: var(--ostk-needle);
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    text-decoration: none;
+  }
+
+  .read-more:hover {
+    text-decoration: underline;
   }
 
   .insight h3 {

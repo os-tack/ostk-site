@@ -29,6 +29,11 @@ import Base from '../layouts/Base.astro';
       </div>
     </section>
 
+    <section class="section banner">
+      <h2>The Claude Code source leaked. <a href="/insights/claude-code-source">Here&rsquo;s what it&rsquo;s missing.</a></h2>
+      <p>207 commands. 184 tools. No audit trail. No multi-agent coordination. No context economics. Every problem people complain about &mdash; token waste, cold starts, no session memory &mdash; is an architecture problem. <a href="/insights/claude-code-source">We wrote the analysis.</a></p>
+    </section>
+
     <section class="section">
       <h2>What is it</h2>
       <p>Your AI agents run on an OS. ostk is that OS.</p>
@@ -90,6 +95,38 @@ ostk boot</code></pre>
 </Base>
 
 <style>
+  .banner {
+    border: 1px solid var(--ostk-needle, #0ff);
+    border-radius: var(--ostk-radius-sm, 6px);
+    padding: var(--ostk-space-4, 1rem) var(--ostk-space-6, 1.5rem);
+    background: var(--ostk-bg-raised, #111);
+    margin-bottom: var(--ostk-space-8, 2rem);
+  }
+
+  .banner h2 {
+    font-size: var(--ostk-text-md, 1rem);
+    margin-bottom: 0.5rem;
+  }
+
+  .banner h2 a {
+    color: var(--ostk-needle, #0ff);
+    text-decoration: none;
+  }
+
+  .banner h2 a:hover {
+    text-decoration: underline;
+  }
+
+  .banner p {
+    font-size: var(--ostk-text-sm, 0.9rem);
+    color: var(--ostk-text-muted, #999);
+    margin: 0;
+  }
+
+  .banner p a {
+    color: var(--ostk-needle, #0ff);
+  }
+
   .hero {
     padding-top: var(--ostk-space-8);
     padding-bottom: var(--ostk-space-12);

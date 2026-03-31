@@ -1,0 +1,233 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="What the Claude Code Source Reveals About AI Agent Architecture — ostk" description="The Claude Code source leaked. 207 commands, 184 tools, no audit trail, no coordination layer. Here's what it tells us about the state of AI coding agents — and what's missing.">
+  <div class="container">
+    <h1>What the Claude Code Source Reveals About AI Agent Architecture</h1>
+
+    <p class="lede">
+      On March 31, 2026, the Claude Code source was exposed. 207 commands. 184 tools. A full agent harness laid bare. Everyone&rsquo;s looking at the code. We&rsquo;re looking at the architecture &mdash; and everything it&rsquo;s missing.
+    </p>
+
+    <section>
+      <h2>What Claude Code actually is</h2>
+      <p>Claude Code is an <strong>agent harness</strong> &mdash; a loop that connects a language model to your terminal. It reads files, runs bash, edits code, and streams results back. That&rsquo;s the core. Everything else is scaffolding around that loop.</p>
+      <p>The source reveals the exact scaffolding:</p>
+      <ul>
+        <li><strong>207 commands</strong> &mdash; from <code>/compact</code> to <code>/heapdump</code> to <code>/ultraplan</code>. User-facing operations wired into the REPL.</li>
+        <li><strong>184 tool registrations</strong> &mdash; <code>BashTool</code>, <code>FileEditTool</code>, <code>FileReadTool</code>, agent subsystems, MCP connectors. Everything the model can invoke.</li>
+        <li><strong>A permission system</strong> &mdash; tool-level allow/deny with trust escalation.</li>
+        <li><strong>Session management</strong> &mdash; conversation history, compaction, transcript persistence.</li>
+        <li><strong>Cost tracking</strong> &mdash; token counting, budget hooks, usage displays.</li>
+      </ul>
+      <p>It&rsquo;s a lot of code. Well-engineered TypeScript. The loop works. But here&rsquo;s what&rsquo;s not in there.</p>
+    </section>
+
+    <section>
+      <h2>What&rsquo;s missing: the five gaps</h2>
+
+      <h3>1. No audit trail</h3>
+      <p>Every file edit, every bash command, every tool invocation &mdash; none of it is cryptographically signed. There is no append-only log. There is no way to answer: <em>who changed this file, when, and why?</em></p>
+      <p>Session transcripts exist, but they&rsquo;re mutable. There&rsquo;s no hash chain. No GPG signatures. If the model hallucinates a destructive command and executes it, the evidence trail is whatever the model chose to log about itself.</p>
+      <p class="contrast"><strong>ostk:</strong> Every write goes through a GPG-signed audit trail. Append-only. Hash-chained. 25,000+ audit entries in our own dogfood repo. The model doesn&rsquo;t log itself &mdash; the OS logs the model.</p>
+
+      <h3>2. No multi-agent coordination</h3>
+      <p>Claude Code runs one model in one loop. The <code>/agents</code> command exists, but it&rsquo;s subagent forking within a single session &mdash; not coordination between independent agents. There&rsquo;s no filesystem-level conflict resolution. No optimistic concurrency control. No way for two agents to work on the same codebase without stomping each other.</p>
+      <p class="contrast"><strong>ostk:</strong> Agents are CPUs on a shared bus. The filesystem is memory. OCC (optimistic concurrency control) resolves conflicts at the file level. Multiple agents work the same codebase simultaneously &mdash; the OS handles contention, not the agents.</p>
+
+      <h3>3. No context economics</h3>
+      <p>Claude Code has <code>/compact</code> &mdash; a command that summarizes and truncates the conversation when it gets too long. That&rsquo;s it. There&rsquo;s no system that learns what context matters. No memoization across sessions. No way to carry what you learned in session 47 into session 48 without manually copying it.</p>
+      <p>Every new session starts cold. The model re-explores the same codebase, re-reads the same files, re-discovers the same patterns. You pay for that re-exploration in tokens every time.</p>
+      <p class="contrast"><strong>ostk:</strong> The Humanfile compiles your corrections into persistent context. Session 1: 200 tokens/operation. Session 5: 10 tokens/operation. The OS memoizes the subproblems your agent keeps re-solving. Context injection is invisible and automatic &mdash; <a href="/insights/context-injection">+34pp mean improvement across 26 models</a>.</p>
+
+      <h3>4. No trust model</h3>
+      <p>Claude Code&rsquo;s permission system is binary: allow or deny, per tool. There are trust escalation flows for bash commands. But there&rsquo;s no cryptographic identity. No web of trust. No way to say &ldquo;this agent can edit tests but not production code&rdquo; with enforcement that doesn&rsquo;t depend on the agent cooperating.</p>
+      <p class="contrast"><strong>ostk:</strong> GPG web of trust. Capability pins per agent. The Agentfile declares what an agent <em>can</em> do &mdash; TOOL, LIMIT, WORK constraints &mdash; and the OS enforces it. Trust is cryptographic, not cooperative.</p>
+
+      <h3>5. No invisible infrastructure</h3>
+      <p>Claude Code is visible. The agent knows it&rsquo;s Claude Code. The 207 commands are Claude Code commands. The tools are Claude Code tools. Switch to a different harness and you start over &mdash; different commands, different tools, different conventions.</p>
+      <p>This is the deepest architectural difference. Claude Code is a <strong>harness</strong>. It wraps the model. The model runs inside it.</p>
+      <p class="contrast"><strong>ostk:</strong> The OS is invisible. Agents use standard tools &mdash; bash, file read, file write. The OS intercepts at the filesystem level. Agents don&rsquo;t know they&rsquo;re running on ostk. Switch models, switch providers, switch agents &mdash; the OS doesn&rsquo;t care. It coordinates through the filesystem, not through the agent&rsquo;s tool interface.</p>
+    </section>
+
+    <section>
+      <h2>The token problem everyone&rsquo;s complaining about</h2>
+      <p>The most common complaint about Claude Code: <strong>it eats tokens</strong>. People report burning through usage caps in hours. Sessions balloon. Costs spike. The model re-reads files it already read. Context windows fill up with exploration that could have been front-loaded.</p>
+      <p>The source reveals why. There is no context layer between the model and the filesystem. Every session starts from scratch. The model has to re-orient every time. <code>/compact</code> is damage control, not prevention.</p>
+      <p>Our benchmark data quantifies the cost of this architecture:</p>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Condition</th><th>Mean resolve</th><th>Median resolve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Agent with no context (bare)</td><td class="num">34.9%</td><td class="num">15.6%</td></tr>
+            <tr><td>Agent with OS context injection</td><td class="num">69.2%</td><td class="num">72.9%</td></tr>
+            <tr><td><strong>Delta</strong></td><td class="num accent"><strong>+34.3pp</strong></td><td class="num accent"><strong>+37.5pp</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>That&rsquo;s 1,664 runs across 26 models. The improvement isn&rsquo;t from a better model. It&rsquo;s from giving the same model the context it needs before it starts burning tokens to discover it.</p>
+      <p>Claude Code without context injection is the bare arm. Every user running Claude Code today is in the bare arm.</p>
+    </section>
+
+    <section>
+      <h2>The outage problem</h2>
+      <p>When Anthropic&rsquo;s API goes down, Claude Code stops. Completely. There is no fallback. The harness is hardwired to one provider.</p>
+      <p>The source confirms this &mdash; the API client talks to <code>api.anthropic.com</code> with environment variable overrides, but no multi-provider routing. No local fallback. No graceful degradation.</p>
+      <p class="contrast"><strong>ostk:</strong> The OS is model-agnostic. The Agentfile declares <code>FROM</code> &mdash; any provider, any model. Switch models mid-session. Run local models through Ollama. Run frontier models through any API. The OS doesn&rsquo;t care what&rsquo;s in the CPU socket &mdash; it coordinates the bus.</p>
+    </section>
+
+    <section>
+      <h2>The real architectural lesson</h2>
+      <p>Claude Code is a good harness. It&rsquo;s well-built. But a harness is not an OS.</p>
+      <p>A harness wraps one model in one loop with one set of tools. An OS coordinates multiple processors through shared infrastructure. The difference isn&rsquo;t scale &mdash; it&rsquo;s <em>layer</em>.</p>
+      <ul>
+        <li><strong>Harness:</strong> model &rarr; tools &rarr; filesystem. The model drives.</li>
+        <li><strong>OS:</strong> filesystem &rarr; audit &rarr; coordination &rarr; models. The filesystem drives. Models are CPUs plugged into sockets.</li>
+      </ul>
+      <p>When you build at the harness layer, every problem is a model problem: smarter models, bigger context windows, better prompts. When you build at the OS layer, the model is a replaceable component. The intelligence is in the coordination.</p>
+      <p>The leaked source is 207 commands and 184 tools trying to solve coordination problems at the wrong layer. Context management, multi-agent work, trust enforcement, audit trails &mdash; these are OS problems. They don&rsquo;t belong in the harness.</p>
+    </section>
+
+    <section>
+      <h2>What to do about it</h2>
+      <p>If you&rsquo;re using Claude Code today, you don&rsquo;t have to stop. ostk runs underneath it. Your agent doesn&rsquo;t know the OS is there &mdash; that&rsquo;s the point.</p>
+      <pre><code>curl -fsSL https://ostk.ai/install | sh
+cd your-project
+ostk init</code></pre>
+      <p>That&rsquo;s it. Your next Claude Code session gets automatic context injection, audit trails, and the Humanfile. Your token usage drops. Your sessions carry state. Your edits are signed.</p>
+      <p>The harness stays. The OS appears underneath.</p>
+    </section>
+
+    <section class="cta">
+      <h2>Further reading</h2>
+      <ul>
+        <li><a href="/insights/context-injection">Context Injection: +34pp Mean Improvement Across 26 Models</a> &mdash; the benchmark data</li>
+        <li><a href="/insights/compounding">Compounding Development Order</a> &mdash; why build sequence matters more than build speed</li>
+        <li><a href="/insights/local-first">Run AI Agents Locally</a> &mdash; Devstral 24B hits 75% with context, $0 API cost</li>
+        <li><a href="/docs">Documentation</a> &mdash; Humanfile, Agentfile, OSfile specs</li>
+        <li><a href="https://needle-bench.cc">needle-bench.cc</a> &mdash; the benchmark suite</li>
+        <li><a href="https://github.com/os-tack/haystack">Source</a> &mdash; Rust, GPG-signed, open</li>
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .container {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .lede {
+    font-size: 1.15rem;
+    color: var(--text-secondary, #999);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+  }
+
+  section {
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border, #333);
+    padding-bottom: 0.5rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent, #0ff);
+  }
+
+  p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  ul, ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  code {
+    background: var(--bg-code, #1a1a2e);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background: var(--bg-code, #1a1a2e);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .contrast {
+    border-left: 3px solid var(--accent, #0ff);
+    padding-left: 1rem;
+    margin: 1rem 0 1.5rem 0;
+    color: var(--text-primary, #eee);
+  }
+
+  .data-table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border, #333);
+  }
+
+  .data-table th {
+    font-weight: 600;
+    color: var(--text-secondary, #999);
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .accent {
+    color: var(--accent, #0ff);
+    font-weight: 600;
+  }
+
+  .cta {
+    border-top: 2px solid var(--accent, #0ff);
+    padding-top: 2rem;
+  }
+</style>
