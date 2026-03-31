@@ -165,7 +165,7 @@ gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
     <p><a href="/bench">View full bench results →</a></p>
 
     <h2>Threat model</h2>
-    <p>Security review conducted 2026-03-11. Scope: identity, secrets, file CAS, run pipeline. 10 findings filed. 6 fixed, 2 mitigated, 2 open.</p>
+    <p>Security review conducted 2026-03-11. Scope: identity, secrets, file CAS, run pipeline. 10 findings filed. 8 fixed, 2 mitigated, 0 open.</p>
 
     <table class="findings-table">
       <thead>
@@ -180,8 +180,8 @@ gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
         <tr><td>FIND-006</td><td><span class="sev p1">P1</span></td><td>file.rs — str_replace_all() missing flock</td><td><span class="status-fixed">fixed</span> — lock_exclusive() before read-modify-write cycle</td></tr>
         <tr><td>FIND-007</td><td><span class="sev p2">P2</span></td><td>identity.rs — alias reclaim race</td><td><span class="status-mitigated">mitigated</span> — scoped to process death; low practical risk</td></tr>
         <tr><td>FIND-008</td><td><span class="sev p2">P2</span></td><td>identity.rs — stale harness_identity reuse</td><td><span class="status-fixed">fixed</span> — →895: GPG web-of-trust replaced harness_identity as trust source</td></tr>
-        <tr><td>FIND-009</td><td><span class="sev p2">P2</span></td><td>parser.rs — PROMPT file:// path traversal</td><td><span class="status-open">open</span> — no path sanitization on file:// refs in Agentfile</td></tr>
-        <tr><td>FIND-010</td><td><span class="sev p3">P3</span></td><td>audit.jsonl — no append-only enforcement at OS level</td><td><span class="status-open">open</span> — O_APPEND + flock, but no OS-level immutability (chattr +a)</td></tr>
+        <tr><td>FIND-009</td><td><span class="sev p2">P2</span></td><td>parser.rs — PROMPT file:// path traversal</td><td><span class="status-fixed">fixed</span> — canonicalize + starts_with check; traversal returns denial string, not file content</td></tr>
+        <tr><td>FIND-010</td><td><span class="sev p3">P3</span></td><td>audit.jsonl — no append-only enforcement at OS level</td><td><span class="status-fixed">fixed</span> — truncation detection via size checkpoint under flock; external truncation refuses write</td></tr>
       </tbody>
     </table>
 
