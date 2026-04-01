@@ -1,0 +1,125 @@
+#!/bin/sh
+# ostk installer — downloads the latest binary
+# Usage: curl -fsSL https://ostk.ai/install | sh
+#
+# After install, run: ostk init (in a git repo)
+#
+# Env overrides:
+#   OSTK_VERSION=2.2.0    pin a version
+#   OSTK_INSTALL_DIR=...  install somewhere else
+set -e
+
+REPO="os-tack/ostk.ai"
+VERSION="${OSTK_VERSION:-latest}"
+
+# ── Output ────────────────────────────────────────────────────────────────────
+
+green="\033[32m"
+yellow="\033[33m"
+red="\033[31m"
+dim="\033[2m"
+bold="\033[1m"
+reset="\033[0m"
+
+ok()   { printf "  ${green}✓${reset} %b\n" "$*"; }
+warn() { printf "  ${yellow}!${reset} %b\n" "$*"; }
+fail() { printf "  ${red}✗${reset} %b\n" "$*"; exit 1; }
+
+# ── Detect platform ──────────────────────────────────────────────────────────
+
+OS_NAME="$(uname -s)"
+ARCH="$(uname -m)"
+
+case "$OS_NAME" in
+  Darwin) PLATFORM="apple-darwin" ;;
+  Linux)  PLATFORM="unknown-linux-musl" ;;
+  *)      fail "unsupported OS: $OS_NAME" ;;
+esac
+
+case "$ARCH" in
+  x86_64|amd64)  TARGET="x86_64-$PLATFORM" ;;
+  aarch64|arm64) TARGET="aarch64-$PLATFORM" ;;
+  *)             fail "unsupported architecture: $ARCH" ;;
+esac
+
+# ── Resolve version ──────────────────────────────────────────────────────────
+
+if [ "$VERSION" = "latest" ]; then
+  VERSION=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
+    | grep '"tag_name"' | head -1 | sed 's/.*"v//' | sed 's/".*//') \
+    || fail "cannot reach GitHub API — check your network"
+fi
+
+[ -z "$VERSION" ] && fail "no release found at github.com/$REPO/releases"
+
+# ── Download ──────────────────────────────────────────────────────────────────
+
+TARBALL="ostk-v${VERSION}-${TARGET}.tar.gz"
+ASC="${TARBALL}.asc"
+BASE_URL="https://github.com/$REPO/releases/download/v$VERSION"
+
+printf "\n  ${bold}ostk${reset} v${VERSION} ${dim}(${TARGET})${reset}\n\n"
+
+tmpdir=$(mktemp -d)
+# shellcheck disable=SC2064
+trap "command rm -rf '$tmpdir'" EXIT
+
+curl -fsSL "$BASE_URL/$TARBALL" -o "$tmpdir/$TARBALL" 2>/dev/null \
+  || fail "download failed — check https://github.com/$REPO/releases"
+
+# ── GPG verification (optional) ──────────────────────────────────────────────
+
+curl -fsSL "$BASE_URL/$ASC" -o "$tmpdir/$ASC" 2>/dev/null || true
+
+if [ -f "$tmpdir/$ASC" ]; then
+  if command -v gpg >/dev/null 2>&1; then
+    curl -fsSL "https://raw.githubusercontent.com/$REPO/main/prime.asc" \
+      | gpg --import 2>/dev/null || true
+    if gpg --verify "$tmpdir/$ASC" "$tmpdir/$TARBALL" 2>/dev/null; then
+      ok "signature verified"
+    else
+      fail "GPG signature verification FAILED — aborting"
+    fi
+  else
+    warn "gpg not installed — signature not verified"
+  fi
+fi
+
+# ── Install ───────────────────────────────────────────────────────────────────
+
+tar -xzf "$tmpdir/$TARBALL" -C "$tmpdir"
+
+BINARY=""
+for name in ostk haystack; do
+  [ -f "$tmpdir/$name" ] && BINARY="$tmpdir/$name" && break
+done
+[ -n "$BINARY" ] || fail "binary not found in release archive"
+
+# macOS: clear Gatekeeper quarantine
+if [ "$OS_NAME" = "Darwin" ]; then
+  xattr -rc "$BINARY" 2>/dev/null || true
+fi
+
+INSTALL_DIR="${OSTK_INSTALL_DIR:-$HOME/.local/bin}"
+mkdir -p "$INSTALL_DIR"
+install -m 755 "$BINARY" "$INSTALL_DIR/ostk"
+ln -sf "$INSTALL_DIR/ostk" "$INSTALL_DIR/hs" 2>/dev/null || true
+
+ok "ostk v${VERSION} → ${INSTALL_DIR}/ostk"
+
+# PATH check
+case ":$PATH:" in
+  *":$INSTALL_DIR:"*) ;;
+  *)
+    warn "$INSTALL_DIR is not on your PATH"
+    printf "  ${dim}  export PATH=\"$INSTALL_DIR:\$PATH\"${reset}\n"
+    ;;
+esac
+
+# ── Done ──────────────────────────────────────────────────────────────────────
+
+printf "\n"
+printf "  ${dim}get started:${reset}\n"
+printf "    cd your-repo\n"
+printf "    ostk init\n"
+printf "\n"
