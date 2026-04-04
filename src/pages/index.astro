@@ -15,16 +15,11 @@ import Base from '../layouts/Base.astro';
           <div class="hero-title">ostk</div>
           <div class="hero-tagline">os + tack: the invisible os</div>
           <div class="terminal-blank"></div>
-          <div class="terminal-line"><span class="prompt">$</span> ostk boot</div>
-          <div class="terminal-line"><span class="prompt">$</span> ostk compile</div>
-          <div class="terminal-line"><span class="prompt">$</span> ostk bench</div>
+          <div class="terminal-line"><span class="prompt">$</span> curl -fsSL https://ostk.ai/install | sh</div>
+          <div class="terminal-line"><span class="prompt">$</span> cd ~/projects/my-os</div>
+          <div class="terminal-line"><span class="prompt">$</span> ostk init --guided</div>
           <div class="terminal-blank"></div>
-          <div class="terminal-line"><span class="terminal-comment"># "tack" = shorthand intent language</span></div>
-          <div class="terminal-line"><span class="prompt">$</span> :compile    <span class="terminal-comment"># → ostk compile</span></div>
-          <div class="terminal-line"><span class="prompt">$</span> :boot       <span class="terminal-comment"># → ostk boot</span></div>
-          <div class="terminal-line"><span class="prompt">$</span> .? status   <span class="terminal-comment"># → what's the current state?</span></div>
-          <div class="terminal-blank"></div>
-          <div class="terminal-line"><span class="terminal-comment">Install:</span> <span class="terminal-cmd">curl -fsSL https://ostk.ai/install | sh</span></div>
+          <div class="terminal-line"><span class="prompt">$</span> ostk</div>
         </div>
       </div>
     </section>
