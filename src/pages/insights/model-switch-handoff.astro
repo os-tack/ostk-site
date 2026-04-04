@@ -1,0 +1,184 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Page Tables for LLMs: How ostk Handles Model Switching — ostk" description="When you switch models mid-session, ostk builds a ~200 token lookup table — pointers, not data. The new model demand-pages what it needs. No existing system does this.">
+  <div class="container">
+    <h1>Page Tables for LLMs: How ostk Handles Model Switching</h1>
+
+    <p class="lede">
+      When you type <code>:model gemini</code> in the middle of a Claude session, what happens to context? Every other system drops it. ostk builds a ~200 token lookup table and hands it to the new model. The new model boots with pointers, not data. Tools are the page fault handler.
+    </p>
+
+    <section>
+      <h2>The problem</h2>
+      <p>You are 40 turns into a debugging session with Claude. You have read 12 files, made 3 decisions, and narrowed the bug to a race condition in <code>shutdown.rs</code>. Now you want to switch to Gemini &mdash; maybe it sees something Claude missed, maybe you want a second opinion, maybe you are hitting context limits.</p>
+      <p>In every existing system, the switch is destructive. The new model starts cold. It has no memory of the 12 files you read, the 3 decisions you made, or the race condition you found. You either:</p>
+      <ul>
+        <li>Re-explain everything manually (~500 tokens of context-setting)</li>
+        <li>Copy-paste the conversation history (which the new model may not parse)</li>
+        <li>Start over</li>
+      </ul>
+      <p>All three waste the work you already did. The fundamental issue: context lives inside the model instance. When the instance dies, the context dies with it.</p>
+    </section>
+
+    <section>
+      <h2>The insight: context belongs in the kernel, not the model</h2>
+      <p>ostk already tracks everything the model touches. The audit trail records every file read, every tool call, every decision. The kernel knows which files are hot (recently read or edited), which decisions were made (committed to the filesystem), and what the active intent is (the current needle thread).</p>
+      <p>This state does not live in the model. It lives in the kernel. When the model dies, the state survives.</p>
+      <p>The question is not "how do we transfer context between models" but "how do we give the new model efficient access to the kernel's state?"</p>
+    </section>
+
+    <section>
+      <h2>The page table</h2>
+      <p>When <code>:model</code> crosses a provider boundary, the kernel builds a lookup table. Not a dump of everything &mdash; a structured index of pointers:</p>
+
+      <div class="code-block">
+        <pre><code># Page table (~200 tokens)
+
+## Hot files
+- src/shutdown.rs — race condition in flush_audit(), lines 142-168
+- src/kernel/resolve.rs — VerbCtx dispatch table, recently modified
+- .ostk/boot.md — current boot state
+
+## Recent decisions
+- [14:23] Ruled out deadlock — flock is advisory, not mandatory
+- [14:31] Identified: flush_audit() reads gen_table without lock
+
+## Intent thread
+- Active: →1247 "fix audit flush race condition"
+- Blocked on: reproducer in test harness
+
+## Demand-page pointers
+- File contents: ostk shell cat &lt;path&gt;
+- Audit trail: ostk os audit --last 20
+- Needle state: ostk needle show →1247
+- Gen table: ostk os status</code></pre>
+      </div>
+
+      <p>~200 tokens. The new model knows <em>what</em> matters without seeing <em>all of it</em>. When it needs the actual contents of <code>shutdown.rs</code>, it calls <code>ostk shell cat src/shutdown.rs</code>. The tool call is the page fault. The kernel is the page fault handler.</p>
+    </section>
+
+    <section>
+      <h2>The architecture</h2>
+      <p>Three components make this work. All three are required. No existing system has all three.</p>
+
+      <h3>1. ISA-neutral state layer</h3>
+      <p>The kernel's state is not encoded in any model's native format. It is not a Claude conversation history or a Gemini chat log. It is files on disk: audit.jsonl, gen_table, .language, boot.md, needle state. Any model that can read files can access it. The state layer is ISA-neutral &mdash; it does not assume the instruction set of the processor that will read it.</p>
+
+      <h3>2. Demand-paging tools</h3>
+      <p>The page table contains pointers, not data. Each pointer is a tool call the new model can make to retrieve the actual content. This is demand paging: the model only loads what it actually needs. A model that picks up the debugging session and immediately sees the fix in the page table summary never needs to re-read <code>shutdown.rs</code>. A model that needs more context pages it in with a tool call.</p>
+      <p>The tools are the memory bus between the kernel's state and the model's context window.</p>
+
+      <h3>3. Per-entity boot protocol</h3>
+      <p>The new model does not receive a raw dump. It receives the page table as its initial context, followed by the standard tack boot sequence. The boot protocol orients the model: here is who you are (agent identity), here is what the OS knows (page table), here is what you can do (.language verbs). The model boots as an OS instance with pre-loaded state, not as a fresh assistant with a paste-buffered conversation.</p>
+    </section>
+
+    <section>
+      <h2>Why no one else does this</h2>
+      <p>The page table architecture requires:</p>
+      <ol>
+        <li><strong>Persistent kernel state</strong> that survives model instance death. Most agent frameworks store state in the conversation history &mdash; when the model dies, the state dies. ostk stores state in the filesystem.</li>
+        <li><strong>Demand-paging tools</strong> that the new model can call to retrieve specific state. Most systems give the model either everything or nothing. ostk gives it pointers and lets it page in what it needs.</li>
+        <li><strong>A boot protocol</strong> that works across vendors. The tack bootloader is not Claude-specific or Gemini-specific. It is a protocol specification that any model with tool use can follow.</li>
+        <li><strong>A chokepoint</strong> for building the table. The kernel sees all tool calls and all file accesses through the audit trail. It knows what is hot. Most systems do not have this visibility.</li>
+      </ol>
+      <p>Without all four, you cannot build a page table. You can only dump or re-explain.</p>
+    </section>
+
+    <section>
+      <h2>The analogy is literal</h2>
+      <p>This is not a metaphor. The architecture maps directly to virtual memory:</p>
+
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Virtual memory</th><th>ostk model switch</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Page table</td><td>~200 token lookup table</td></tr>
+            <tr><td>Physical memory</td><td>Kernel state (filesystem)</td></tr>
+            <tr><td>Virtual address</td><td>Pointer in the lookup table</td></tr>
+            <tr><td>Page fault</td><td>Tool call to retrieve content</td></tr>
+            <tr><td>Page fault handler</td><td>Kernel tool dispatch</td></tr>
+            <tr><td>TLB (translation lookaside buffer)</td><td>Model's context window (cached pages)</td></tr>
+            <tr><td>Process context switch</td><td><code>:model</code> command</td></tr>
+            <tr><td>ISA-neutral binary format</td><td>Filesystem state (not model-specific)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The parallel is not decorative. It is structural. The same engineering tradeoffs apply: eager loading wastes bandwidth (tokens), lazy loading adds latency (tool calls), and the optimal strategy is a warm page table with demand paging for the rest.</p>
+    </section>
+
+    <section>
+      <h2>What it costs</h2>
+      <p>The page table is ~200 tokens. A full context dump of the same information would be 5,000&ndash;20,000 tokens. The compression ratio is 25&ndash;100x.</p>
+      <p>The tradeoff: the new model may need 2&ndash;5 tool calls to page in content that a full dump would have provided upfront. In practice, most switches need 0&ndash;2 page faults &mdash; the summary in the page table is sufficient for the model to continue working.</p>
+      <p>The page table is generated from the audit trail in &lt;50ms. No LLM call required. The kernel already has the data.</p>
+    </section>
+
+    <section>
+      <h2>Tested transitions</h2>
+      <p>Three cross-provider switches tested during v2.3.0 development:</p>
+      <ul>
+        <li><strong>Claude &rarr; Gemini</strong> &mdash; Gemini resumed the debugging session without re-reading files already summarized in the page table. Two page faults for files not in the hot set.</li>
+        <li><strong>Gemini &rarr; DeepSeek</strong> &mdash; DeepSeek picked up the intent thread and continued the fix. One page fault for the test file.</li>
+        <li><strong>DeepSeek &rarr; Claude</strong> &mdash; Claude recognized the page table format (it had seen it before from the other direction) and resumed with zero page faults.</li>
+      </ul>
+      <p>The boot protocol is the same in all cases. The page table format is the same. Only the model changes.</p>
+    </section>
+
+    <section class="takeaway">
+      <h2>The kernel is the memory</h2>
+      <p>Models are CPUs. They execute instructions (tool calls) against memory (kernel state). When you swap a CPU, the memory persists. The page table tells the new CPU where to find it.</p>
+      <p>This is what an OS does. It manages memory so that processes do not have to manage each other.</p>
+      <p><a href="/docs/">Install ostk</a> &middot; <a href="/insights/">All insights</a> &middot; <a href="https://needle-bench.cc">Benchmark results</a></p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .data-table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    text-align: left;
+  }
+
+  .data-table th {
+    color: var(--ostk-text-muted);
+    font-weight: 500;
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .code-block {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.6;
+  }
+</style>

@@ -17,6 +17,9 @@ ostk init
 # Or use the interactive wizard
 ostk init --guided
 
+# (Optional) Download embeddings for semantic compression
+ostk embeddings download
+
 # Boot
 ostk boot
 
@@ -55,6 +58,12 @@ ostk boot
       </li>
       <li>MCP proxy (<code>ostk mcp</code>) — connect external MCP servers, expose tools via CLI</li>
       <li>Quota enforcement — per-agent token and cost budgets</li>
+      <li>VerbCtx calling convention — ~45 verbs resolve as direct Rust function calls via <code>kernel::resolve::try_internal()</code>, shell fallback only when needed</li>
+      <li>.language as unified tool surface — MCP tool schemas generated from .language entries, not hardcoded. One place, one format</li>
+      <li>INIT execution engine — <code>.boot/INIT</code> is the authoritative boot sequence. Post-language verbs validated at boot</li>
+      <li>Secret masking — structure-preserving masks at the <code>build_tool_result</code> chokepoint. Prefix + length visible, value hidden. Catches all leak vectors</li>
+      <li>Model switch handoff — cross-provider <code>:model</code> builds a ~200 token lookup table (page table) with hot files, recent decisions, intent thread. <a href="/insights/model-switch-handoff">The new model boots with pointers, not data</a></li>
+      <li>Session checkpoints — written at shutdown, read at boot. Retention keeps last 5. Session continuity across boundaries</li>
     </ul>
 
     <h3>fcp-* (device drivers)</h3>
@@ -126,6 +135,7 @@ ostk boot
         <tr><td><code>ostk tui</code></td><td>Terminal interface for real-time OS monitoring</td></tr>
         <tr><td><code>ostk mcp</code></td><td>MCP proxy — connect external servers, call tools, audited</td></tr>
         <tr><td><code>ostk bench</code></td><td>Run needle-in-a-haystack benchmarks</td></tr>
+        <tr><td><code>ostk embeddings download</code></td><td>Fetch potion-base-8M embeddings model from HuggingFace for semantic compression</td></tr>
       </tbody>
     </table>
 
@@ -178,8 +188,11 @@ ostk mcp call linear list-issues     # call a tool</code></pre>
 
     <h2>Semantic compression</h2>
     <p>Embeddings-powered deduplication saves more tokens by detecting semantically similar output, not just identical lines.</p>
-    <pre><code># Enable with the embeddings feature flag
-cargo build --features embeddings</code></pre>
+    <pre><code># Download the embeddings model (potion-base-8M from HuggingFace)
+ostk embeddings download
+
+# The kernel uses it automatically once available.
+# Boot prints guidance if the model is missing.</code></pre>
 
     <h2>ostk should</h2>
     <p>File bugs and features in natural language. The OS compiles your intent into structured needles.</p>
@@ -187,9 +200,9 @@ cargo build --features embeddings</code></pre>
 ostk should "add retry logic to the API client"</code></pre>
 
     <h2>Downloads</h2>
-    <p>Latest release: <strong>v2.2.9</strong></p>
+    <p>Latest release: <strong>v2.3.0</strong></p>
     <ul>
-      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.9" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v2.2.9 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.3.0" onclick="plausible('Download', {props: {target: 'release-page'}})">ostk v2.3.0 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
     </ul>
     <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install" onclick="plausible('Install', {props: {method: 'curl'}})">view install script</a></p>
     <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
@@ -207,7 +220,7 @@ ostk should "add retry logic to the API client"</code></pre>
     <h2>Further reading</h2>
     <ul>
       <li><a href="/bench">needle-bench: benchmarking agents</a></li>
-      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.2.9">v2.2.9 release notes</a></li>
+      <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.3.0">v2.3.0 release notes</a></li>
       <li><a href="https://github.com/os-tack">Find us</a></li>
     </ul>
   </div>

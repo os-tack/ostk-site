@@ -285,12 +285,80 @@ import Base from '../layouts/Base.astro';
       +3056 is ephemeral. The kernel survives.</p>
     </div>
 
+    <div class="insight">
+      <h3>36. .language IS the tool surface</h3>
+      <p class="tagline">Adding a tool = adding a .language entry. One place, one format.</p>
+      <p>MCP tool schemas were hardcoded. Every new tool meant editing Rust source, recompiling, redeploying. v2.3.0 generates MCP tool schemas from .language entries. The .language file &mdash; which already holds verb definitions, momentum scores, and resolution tiers &mdash; now also defines the tool surface that external MCP clients see. Adding a tool is adding a line. Removing a tool is removing a line. The tool surface is a compiled artifact of intent, not a hand-maintained registry.</p>
+      <div class="evidence"><strong>Evidence:</strong> 38 commits since v2.2.9. MCP tool generation from .language wired in build_tools(). Zero hardcoded tool schemas remain.</div>
+    </div>
+
+    <div class="insight">
+      <h3>37. VerbCtx &mdash; the calling convention</h3>
+      <p class="tagline">~45 verbs resolve as direct Rust function calls. No fork. No exec.</p>
+      <p>Before v2.3.0, every verb dispatched through fork+exec of the same binary with different arguments. A 4MB binary re-parsing its own CLI for every operation. VerbCtx changed this: <code>kernel::resolve::try_internal()</code> checks an internal dispatch table before falling back to shell. ~45 verbs now resolve as direct function calls with shared kernel state. The OS stopped paying the fork tax on its own operations.</p>
+      <div class="evidence"><strong>Evidence:</strong> kernel::resolve::try_internal() handles ~45 verbs. Shell fallback only for external/custom verbs. Session latency measurably improved.</div>
+    </div>
+
+    <div class="insight">
+      <h3>38. INIT &mdash; the execution engine</h3>
+      <p class="tagline">.boot/INIT is the authoritative boot sequence. Not boot.md. Not the harness.</p>
+      <p>boot.md is a compiled artifact &mdash; tack directives that load state. But the execution engine is <code>.boot/INIT</code>: the sequence of post-language verbs that must resolve before the OS reports ready. INIT validates each verb against .language at boot. Missing verbs reduce boot confidence. A verb that resolves to nothing is a degraded boot, not a silent failure. The INIT file is the contract between the kernel and its verbs.</p>
+      <div class="evidence"><strong>Evidence:</strong> .boot/INIT validated at boot. Missing verbs produce BOOT DEGRADED with specific verb names. Boot confidence exposed in status bar.</div>
+    </div>
+
+    <div class="insight">
+      <h3>39. HUMANFILE BOOT/VERB extension points</h3>
+      <p class="tagline">Custom bootloaders per maintainer or LLM.</p>
+      <p>The HUMANFILE gained two new directive types: <code>BOOT</code> and <code>VERB</code>. <code>BOOT :verify-codeowners</code> injects a custom step into the boot sequence. <code>VERB :deploy internal (path) deploy to production</code> defines a new verb that resolves through .language. The HUMANFILE becomes a per-operator extension surface &mdash; different humans get different boot sequences and different verb vocabularies, all compiled into the same .language at shutdown.</p>
+      <div class="evidence"><strong>Evidence:</strong> HUMANFILE parser handles BOOT and VERB directives. Custom verbs resolve through .language Tier 1. Boot steps execute in declaration order.</div>
+    </div>
+
+    <div class="insight">
+      <h3>40. Page tables for LLMs &mdash; model switch handoff</h3>
+      <p class="tagline">~200 tokens of pointers, not data. The new model demand-pages what it needs.</p>
+      <p>When <code>:model</code> crosses a provider boundary (claude&rarr;gemini, gemini&rarr;deepseek), the kernel builds a lookup table: hot files with paths and one-line summaries, recent decisions with timestamps, the active intent thread, and demand-page pointers back to kernel tools. ~200 tokens total. The new model boots with the INDEX, not the data. When it needs a file, it calls a tool. The tool is the page fault handler. No existing system does this &mdash; it requires persistent kernel state that survives across model instances, plus demand-paging tools that serve as the memory bus.</p>
+      <p><a href="/insights/model-switch-handoff" class="read-more">Read the full architecture deep dive &rarr;</a></p>
+      <div class="evidence"><strong>Evidence:</strong> kernel::handoff::build_page_table() produces ~200 token INDEX. Three cross-provider switches tested: claude&rarr;gemini, gemini&rarr;deepseek, deepseek&rarr;claude. All resumed without re-reading files already summarized in the page table.</div>
+    </div>
+
+    <div class="insight">
+      <h3>41. Secret masking &mdash; structure-preserving redaction</h3>
+      <p class="tagline">"sk-proj-●●●● (164 chars)" &mdash; prefix + length visible, value hidden.</p>
+      <p>Secrets leak through tool results, not through tool calls. An agent runs <code>cat .env</code> and the API key is in the response. v2.3.0 masks at the <code>build_tool_result</code> chokepoint &mdash; the single function every tool result passes through before reaching the LLM. Structure-preserving: the prefix and length remain visible so the model can identify which key it&rsquo;s looking at without seeing the value. Every leak vector &mdash; cat, grep, env, printenv, file reads &mdash; passes through this chokepoint. One mask point, all vectors covered.</p>
+      <div class="evidence"><strong>Evidence:</strong> build_tool_result() applies mask_secrets() to all tool output. Pattern: prefix up to first separator + "●●●● (N chars)". Tests cover cat, grep, env, and multi-key output.</div>
+    </div>
+
+    <div class="insight">
+      <h3>42. Session checkpoints &mdash; continuity at boundaries</h3>
+      <p class="tagline">Written at shutdown. Read at boot. The session survives its own death.</p>
+      <p>When the kernel shuts down, it writes a checkpoint: the active intent thread, open needles, recent decisions, .language state, and the page table for the next model. At boot, the kernel reads the most recent checkpoint and resumes. Retention keeps the last 5 &mdash; enough to recover from a bad session without accumulating unbounded state. The checkpoint is the session's last will. The next boot is its executor.</p>
+      <div class="evidence"><strong>Evidence:</strong> .boot/checkpoints/ with rotation. shutdown writes, boot reads. Last 5 retained. Renamed from "offers" for clarity.</div>
+    </div>
+
+    <div class="insight">
+      <h3>43. Embeddings onboarding</h3>
+      <p class="tagline">One command. The model arrives. The kernel is smarter.</p>
+      <p><code>ostk embeddings download</code> fetches potion-base-8M from HuggingFace. The kernel uses it for semantic deduplication in output compression &mdash; detecting that two lines mean the same thing, not just that they&rsquo;re identical. Boot prints guidance when the model is missing. No configuration. No feature flags. Download it once, the kernel finds it.</p>
+      <div class="evidence"><strong>Evidence:</strong> ostk embeddings download fetches ~32MB model. Boot detects presence/absence. Semantic compression active when model present, falls back to exact dedup otherwise.</div>
+    </div>
+
+    <div class="session-note">
+      <h3>Session +3310 &mdash; v2.3.0 release (2026-04-03)</h3>
+      <p>38 commits since v2.2.9. Major architectural changes:<br>
+      .language as unified tool surface. VerbCtx calling convention. INIT execution engine.<br>
+      Page tables for LLM model switching. Secret masking at build_tool_result.<br>
+      Session checkpoints. Embeddings onboarding. Agent guide rewritten.<br>
+      The kernel stopped being a CLI dispatcher and became an execution engine.<br>
+      +3310 is ephemeral. The kernel survives.</p>
+    </div>
+
     <hr style="border: none; border-top: 1px solid var(--ostk-border-subtle); margin: 3rem 0;" />
 
     <div class="insight">
       <h3>Deep dives</h3>
       <p>Longer-form analysis backed by needle-bench data.</p>
       <ul>
+        <li><a href="/insights/model-switch-handoff/">Page tables for LLMs: how ostk handles model switching</a> &mdash; ISA-neutral state layer + demand-paging tools = seamless cross-provider model switching. Novel architecture.</li>
         <li><a href="/insights/context-injection/">Context injection: +34pp mean improvement across 26 models</a> &mdash; why invisible context is the highest-leverage optimization for AI coding agents.</li>
         <li><a href="/insights/local-first/">Run AI agents locally</a> &mdash; Devstral 24B + context hits 75% on real bugs. No API costs, no data leaving your laptop.</li>
         <li><a href="/insights/compounding/">Compounding development order</a> &mdash; sequence your sprint so every feature makes the next feature cheaper.</li>
