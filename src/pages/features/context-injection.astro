@@ -17,15 +17,16 @@ const relatedPages = [
 
   <h2>The experiment</h2>
   <p>
-    <a href="https://needle-bench.cc">needle-bench</a> tests AI coding agents on 32 real bugs frozen in Docker containers. Each model gets shell access and one instruction: <em>find the needle</em>. The test suite passes or it doesn&rsquo;t.
+    <a href="https://needle-bench.cc">needle-bench</a> tests AI coding agents on real bugs frozen in Docker containers. Each model gets shell access and one instruction: <em>find the needle</em>. The test suite passes or it doesn&rsquo;t.
   </p>
-  <p>Every model runs twice:</p>
+  <p>Every model runs in three arms:</p>
   <ul>
-    <li><strong>Bare</strong> &mdash; generic system prompt + bash. No project context.</li>
-    <li><strong>OS (silent)</strong> &mdash; identical prompt, but project context (README, file tree, test output, recent errors) is injected into the system prompt. The model cannot detect which arm it&rsquo;s in.</li>
+    <li><strong>Native</strong> &mdash; the model&rsquo;s own harness (Claude Code, Codex CLI, etc.) with the provider&rsquo;s API key. No ostk. This is how most developers run agents today.</li>
+    <li><strong>Kernel (OpenRouter)</strong> &mdash; ostk kernel, routed through <a href="https://openrouter.ai">OpenRouter</a> for fair cross-vendor comparison. Same API, same routing for every model.</li>
+    <li><strong>Kernel (optimized)</strong> &mdash; ostk kernel, using the provider&rsquo;s own API key directly. Best-case performance for each model.</li>
   </ul>
   <p>
-    Same tools, same turn limits, same token budgets. The only variable is what the model knows before it starts exploring. 26 models, 1,664 total runs.
+    Same bugs, same turn limits, same token budgets. The variable is what infrastructure sits between the model and the codebase.
   </p>
 
   <h2>The results</h2>
@@ -35,8 +36,8 @@ const relatedPages = [
         <tr><th></th><th>Mean</th><th>Median</th><th>Models improved</th></tr>
       </thead>
       <tbody>
-        <tr><td>Bare</td><td class="num">34.9%</td><td class="num">15.6%</td><td class="num">&mdash;</td></tr>
-        <tr><td>With context</td><td class="num">69.2%</td><td class="num">72.9%</td><td class="num">&mdash;</td></tr>
+        <tr><td>Native (no OS)</td><td class="num">34.9%</td><td class="num">15.6%</td><td class="num">&mdash;</td></tr>
+        <tr><td>Kernel (with context)</td><td class="num">69.2%</td><td class="num">72.9%</td><td class="num">&mdash;</td></tr>
         <tr><td><strong>Delta</strong></td><td class="num accent"><strong>+34.3pp</strong></td><td class="num accent"><strong>+37.5pp</strong></td><td class="num"><strong>23/26</strong></td></tr>
       </tbody>
     </table>
@@ -47,7 +48,7 @@ const relatedPages = [
 
   <h2>Why it works</h2>
   <p>
-    AI coding agents waste most of their turns on orientation. In the bare arm, a typical agent spends 5&ndash;10 turns reading README files, listing directories, running tests, and mapping the codebase before it starts debugging. That&rsquo;s token budget spent on information that could have been provided upfront.
+    AI coding agents waste most of their turns on orientation. In the native arm, a typical agent spends 5&ndash;10 turns reading README files, listing directories, running tests, and mapping the codebase before it starts debugging. That&rsquo;s token budget spent on information that could have been provided upfront.
   </p>
   <p>Context injection front-loads this information. The agent&rsquo;s first turn already knows:</p>
   <ul>
@@ -66,16 +67,16 @@ const relatedPages = [
         <tr><th>Comparison</th><th>Rate</th><th>Resolve</th></tr>
       </thead>
       <tbody>
-        <tr><td>Claude Opus 4 bare</td><td class="num muted">$15/MTok</td><td class="num">90.6%</td></tr>
+        <tr><td>Claude Opus 4 native</td><td class="num muted">$15/MTok</td><td class="num">90.6%</td></tr>
         <tr><td>Claude Haiku 4.5 + context</td><td class="num muted">$0.80/MTok</td><td class="num accent">90.6%</td></tr>
       </tbody>
     </table>
   </div>
-  <p>Haiku with context matches Opus without it &mdash; at roughly <strong>1/19th the cost</strong>. The same pattern repeats across vendors:</p>
+  <p>Haiku on the kernel matches Opus running natively &mdash; at roughly <strong>1/19th the cost</strong>. The same pattern repeats across vendors:</p>
   <ul>
-    <li><strong>GPT-4o + context</strong> (81.2%) beats <strong>GPT-4.1 bare</strong> (50.0%)</li>
-    <li><strong>Gemini Flash + context</strong> (65.6%) beats <strong>Gemini 2.5 Pro bare</strong> (28.1%)</li>
-    <li><strong>Devstral 24B + context</strong> (75.0%) beats <strong>GPT-4.1 bare</strong> (50.0%) &mdash; an open 24B model outperforms a closed frontier model</li>
+    <li><strong>GPT-4o + kernel</strong> (81.2%) beats <strong>GPT-4.1 native</strong> (50.0%)</li>
+    <li><strong>Gemini Flash + kernel</strong> (65.6%) beats <strong>Gemini 2.5 Pro native</strong> (28.1%)</li>
+    <li><strong>Devstral 24B + kernel</strong> (75.0%) beats <strong>GPT-4.1 native</strong> (50.0%) &mdash; an open 24B model outperforms a closed frontier model</li>
   </ul>
 
   <h2>How ostk does it</h2>
@@ -96,7 +97,7 @@ $ ostk boot        # starts the OS, injects context
     <code>ostk init</code> scans your project once and creates a <code>.ostk/</code> directory. <code>ostk boot</code> reads the current project state &mdash; file tree, test output, recent changes, error messages &mdash; and assembles it into the agent&rsquo;s system prompt. The agent doesn&rsquo;t know it received context. It just starts with better information.
   </p>
   <p>
-    No special model configuration. No fine-tuning. No prompt engineering on your part. The same mechanism that produced +34.3pp mean improvement across 26 models in needle-bench runs on your project with the same two commands.
+    No special model configuration. No fine-tuning. No prompt engineering on your part. The same mechanism tested across needle-bench runs on your project with the same two commands.
   </p>
 
   <h2>Beyond debugging</h2>

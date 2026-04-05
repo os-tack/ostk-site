@@ -23,7 +23,7 @@ import Base from '../../layouts/Base.astro';
       <div class="data-table-wrap">
         <table class="data-table">
           <thead>
-            <tr><th>Model</th><th>Params</th><th>VRAM</th><th>Bare</th><th>+ Context</th><th>Δ</th></tr>
+            <tr><th>Model</th><th>Params</th><th>VRAM</th><th>Native</th><th>+ Kernel</th><th>Δ</th></tr>
           </thead>
           <tbody>
             <tr><td>Devstral Medium</td><td class="num">24B</td><td class="num">~16 GB</td><td class="num">3.1%</td><td class="num">75.0%</td><td class="num accent">+71.9pp</td></tr>
@@ -42,7 +42,7 @@ import Base from '../../layouts/Base.astro';
       <div class="data-table-wrap">
         <table class="data-table">
           <thead>
-            <tr><th>Model</th><th>Type</th><th>Bare rate</th><th>Cost</th></tr>
+            <tr><th>Model</th><th>Type</th><th>Native rate</th><th>Cost</th></tr>
           </thead>
           <tbody>
             <tr class="highlight"><td>Devstral 24B + context</td><td>Local, open</td><td class="num accent">75.0%</td><td class="num">$0</td></tr>
@@ -53,7 +53,7 @@ import Base from '../../layouts/Base.astro';
           </tbody>
         </table>
       </div>
-      <p>A free, local 24B model with context outperforms GPT-4.1, Grok 4 Fast, and Claude Haiku 4.5 running bare through their APIs. The context injection is the difference.</p>
+      <p>A local 24B model on the kernel outperforms GPT-4.1, Grok 4 Fast, and Claude Haiku 4.5 running natively through their APIs. The context injection is the difference.</p>
     </section>
 
     <section>
@@ -80,7 +80,7 @@ ostk boot --model devstral</code></pre>
       <h2>When to use local vs API</h2>
       <ul>
         <li><strong>Use local</strong> when: proprietary code, air-gapped network, cost-sensitive, privacy requirements, or you want zero latency on tool calls.</li>
-        <li><strong>Use API</strong> when: you need ceiling performance (DeepSeek R1 at 96.9% bare, Opus 4 at 100% with context), or the task is complex enough that 24B parameters aren&rsquo;t sufficient.</li>
+        <li><strong>Use API</strong> when: you need ceiling performance (DeepSeek R1 at 96.9% native, Opus 4 at 100% on kernel), or the task is complex enough that 24B parameters aren&rsquo;t sufficient.</li>
         <li><strong>Use both</strong>: ostk supports switching models per task. Use a local model for routine debugging, escalate to an API model for hard cases.</li>
       </ul>
     </section>

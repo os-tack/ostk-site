@@ -200,6 +200,27 @@ const directLinks = [
       </div>
     </div>
   </footer>
+
+  <script>
+    // Auto-generate heading IDs and anchor links for h2/h3
+    document.querySelectorAll('h2, h3').forEach(heading => {
+      if (heading.closest('.footer, nav')) return;
+      if (heading.id) return;
+      const slug = heading.textContent
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      if (!slug) return;
+      heading.id = slug;
+      const anchor = document.createElement('a');
+      anchor.href = `#${slug}`;
+      anchor.className = 'heading-anchor';
+      anchor.setAttribute('aria-label', `Link to ${heading.textContent.trim()}`);
+      anchor.textContent = '#';
+      heading.appendChild(anchor);
+    });
+  </script>
 </body>
 </html>
 

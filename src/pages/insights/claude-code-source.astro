@@ -62,14 +62,14 @@ import Base from '../../layouts/Base.astro';
             <tr><th>Condition</th><th>Mean resolve</th><th>Median resolve</th></tr>
           </thead>
           <tbody>
-            <tr><td>Agent with no context (bare)</td><td class="num">34.9%</td><td class="num">15.6%</td></tr>
-            <tr><td>Agent with OS context injection</td><td class="num">69.2%</td><td class="num">72.9%</td></tr>
+            <tr><td>Native harness (no OS)</td><td class="num">34.9%</td><td class="num">15.6%</td></tr>
+            <tr><td>Kernel (with context injection)</td><td class="num">69.2%</td><td class="num">72.9%</td></tr>
             <tr><td><strong>Delta</strong></td><td class="num accent"><strong>+34.3pp</strong></td><td class="num accent"><strong>+37.5pp</strong></td></tr>
           </tbody>
         </table>
       </div>
       <p>That&rsquo;s 1,664 runs across 26 models. The improvement isn&rsquo;t from a better model. It&rsquo;s from giving the same model the context it needs before it starts burning tokens to discover it.</p>
-      <p>Claude Code without context injection is the bare arm. Claude Code does not include project-level context injection as of the March 2026 source.</p>
+      <p>Claude Code without context injection is the native arm. Claude Code does not include project-level context injection as of the March 2026 source.</p>
     </section>
 
     <section>

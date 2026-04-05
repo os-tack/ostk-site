@@ -12,7 +12,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <h2>Panels</h2>
   <p>The TUI is split into four panels, each showing a different slice of OS state.</p>
 
-  <figure>
+  <figure class="tui-fig">
     <img src="/images/tui/tui-agent-workflow.jpg" alt="ostk TUI showing fleet status panel on the left with two active agents, work queue in the center with needle priorities, and agent output stream on the right." />
   </figure>
 
@@ -59,7 +59,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <h2>Permission modal</h2>
 
-  <figure>
+  <figure class="tui-fig">
     <img src="/images/tui/tui-permission-modal.jpg" alt="ostk TUI permission modal showing a destructive operation request with the full command, a 60-second countdown, and approve/deny buttons." />
   </figure>
 
@@ -92,3 +92,19 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     <li><a href="/docs/commands">Commands</a> — <code>ostk tui</code> and <code>ostk ps</code></li>
   </ul>
 </DocsLayout>
+
+<style>
+  .tui-fig {
+    margin: var(--ostk-space-4) 0;
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    overflow: hidden;
+  }
+
+  .tui-fig img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+</style>

@@ -46,6 +46,27 @@ h1 { font-size: var(--ostk-text-3xl); margin-bottom: var(--ostk-space-6); }
 h2 { font-size: var(--ostk-text-2xl); margin-bottom: var(--ostk-space-4); margin-top: var(--ostk-space-12); }
 h3 { font-size: var(--ostk-text-xl); margin-bottom: var(--ostk-space-3); margin-top: var(--ostk-space-8); }
 
+h2, h3 { scroll-margin-top: 4.5rem; }
+
+.heading-anchor {
+  color: var(--ostk-text-ghost);
+  text-decoration: none;
+  margin-left: var(--ostk-space-2);
+  font-weight: var(--ostk-weight-normal);
+  opacity: 0;
+  transition: opacity var(--ostk-duration-fast) var(--ostk-easing);
+}
+
+h2:hover .heading-anchor,
+h3:hover .heading-anchor,
+.heading-anchor:focus {
+  opacity: 1;
+}
+
+.heading-anchor:hover {
+  color: var(--ostk-needle);
+}
+
 p {
   margin-bottom: var(--ostk-space-4);
   color: var(--ostk-text-secondary);
