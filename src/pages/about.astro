@@ -2,16 +2,14 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="about ostk — os + tack: the invisible os" description="The story behind ostk, os + tack: the invisible os.">
-  <div class="container">
+<Base title="About ostk" description="The story behind ostk — the invisible OS for AI coding agents.">
+  <div class="container page-content">
     <h1>About ostk</h1>
 
     <h2>The OS for AI agents</h2>
-    <p>ostk is the OS for AI agents.</p>
     <p>Not a framework. Not a wrapper. Infrastructure — the kind that disappears the moment it works.</p>
-    <p>An agent running on ostk reads from your filesystem, writes to your filesystem, and coordinates with other agents through your filesystem. The OS resolves conflicts, tracks generations, enforces capability boundaries, and maintains an append-only audit trail. The agent doesn't know any of this is happening.</p>
-    <p>Trust is determined by the GPG web of trust — cross-signatures in your keyring, not platform accounts. <a href="/governance">The governance model</a> is fully documented and cryptographically verifiable.</p>
-    <p>That's the design. Invisible coordination. Auditable by default.</p>
+    <p>An agent running on ostk reads from your filesystem, writes to your filesystem, and coordinates with other agents through your filesystem. The OS resolves conflicts, tracks every edit, enforces capability boundaries, and maintains an append-only audit trail. The agent doesn't know any of this is happening.</p>
+    <p>Trust is determined by the <a href="/features/governance">GPG web of trust</a> — cross-signatures in your keyring, not platform accounts.</p>
 
     <h2>The story</h2>
     <p>ostk wasn't designed in a planning meeting. It was extracted from the problem it solves.</p>
@@ -19,25 +17,12 @@ import Base from '../layouts/Base.astro';
     <p>At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS had absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.</p>
     <p>The session that named ostk shipped a release and managed the entire workflow through the OS itself. The bootstrap was complete: the machine built the machine.</p>
 
-    <h2>Built for groups</h2>
-    <p>ostk scales from one developer to a team. Each group gets their own signed OS instance — a "bail" package containing their boot state, identity anchor, and capability grants. Portable. Verifiable. Yours.</p>
-    <p>One command to prove it:</p>
-    <pre><code>$ ostk bail verify team.bail
-✓ signed by &lt;fingerprint&gt;  valid</code></pre>
-
     <h2>Agent lifecycle</h2>
     <img src="/diagrams/agent-lifecycle.svg" alt="Agent lifecycle: boot, POST, work, shutdown, and back to boot" class="diagram" />
-    <p>Every agent session follows the same cycle. State persists in the filesystem between sessions — the agent is ephemeral, the work is not.</p>
+    <p>Every agent session follows the same cycle. State persists in the filesystem between sessions — the agent is ephemeral, the work is not. The <a href="/docs/five-laws">five laws</a> that govern this design are documented in full.</p>
 
-    <h2>The five laws</h2>
-    <p>These are not guidelines. They are load-bearing constraints that shape every decision.</p>
-    <ol>
-      <li><strong>The write path is invisible.</strong> Agents edit files normally. Conflict resolution happens inside the response. No coordination APIs. No new tools to learn.</li>
-      <li><strong>Agents are ephemeral.</strong> They crash, compact, lose context. That's the lifecycle, not an error. State lives in the filesystem. The OS doesn't recover agents — agents recover themselves from the ambient context the OS provides.</li>
-      <li><strong>Coordinate through the filesystem.</strong> No messaging buses. No inboxes. No claim systems. Agents write files. The kernel resolves conflicts at write time.</li>
-      <li><strong>Optimistic concurrency.</strong> No locks. Agents write freely. <code>str_replace</code> is the compare-and-swap. Conflicts resolved, not prevented.</li>
-      <li><strong>Invisible infrastructure.</strong> If you have to think about the OS, the OS failed. It runs underneath. Always.</li>
-    </ol>
+    <h2>Source availability</h2>
+    <p>The kernel source is not currently published. The governance documents, signing keys, install script, and site are open source under MIT. All security findings, trust chain, and verification artifacts are fully public.</p>
 
     <h2>Contact</h2>
     <p>Built by agents running on ostk. Maintained by humans who speak tack.</p>

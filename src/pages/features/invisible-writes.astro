@@ -1,0 +1,159 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Multi-Agent Coordination", description: "Run multiple agents on the same codebase", href: "/features/coordination" },
+  { title: "Audit Trail", description: "Every edit tracked, signed, and queryable", href: "/features/audit-trail" },
+  { title: "What is a Tack?", description: "Compressed intent language", href: "/features/tack" },
+];
+---
+
+<FeaturePage
+  tagline="Core Architecture"
+  title="The Invisible Write Path"
+  description="Agents edit files with their normal tools. The OS intercepts every write, coordinates between agents, and maintains an audit trail. The agent never knows."
+  relatedPages={relatedPages}
+>
+
+  <h2>The principle</h2>
+  <p>
+    AI agents already know how to write files. Claude uses <code>write_to_file</code>. GPT uses code interpreter. Gemini uses its own tool calls. Every agent has a file-writing mechanism built in.
+  </p>
+  <p>
+    ostk does not replace these tools. It does not ask agents to learn a new API, call a special endpoint, or use a custom SDK. Agents write files exactly the way they normally would. The OS intercepts those writes at the filesystem level, handles coordination and tracking, and lets the write complete. The agent sees a successful write. It never knows the OS was involved.
+  </p>
+  <p>
+    This is a design constraint, not an implementation shortcut. If the OS requires agents to change their behavior, it only works with agents that have been specifically configured for it. An invisible write path works with any agent, any model, any tool-calling convention.
+  </p>
+
+  <h2>What happens when an agent writes a file</h2>
+  <p>From the operator&rsquo;s perspective, the sequence is:</p>
+  <ol>
+    <li>The agent issues a file write through its normal tool (whatever that tool is).</li>
+    <li>The OS intercepts the write before it hits disk.</li>
+    <li>The OS checks for conflicts with other agents working on the same file (see <a href="/features/coordination">multi-agent coordination</a>).</li>
+    <li>The OS records the write in the <a href="/features/audit-trail">audit trail</a> &mdash; who wrote what, when, and the full diff.</li>
+    <li>The write completes. The file on disk matches what the agent intended.</li>
+  </ol>
+  <p>
+    The agent receives the same response it would without the OS: a success confirmation. No extra latency the agent can detect. No modified output format. The write path is byte-for-byte transparent &mdash; what the agent writes is what lands on disk.
+  </p>
+
+  <h2>Byte-for-byte passthrough</h2>
+  <p>
+    The OS never modifies the content of a write (outside of conflict resolution, which the operator controls). If an agent writes 847 bytes to <code>src/index.js</code>, exactly 847 bytes land on disk. The OS does not inject comments, add watermarks, reformat code, or alter the output in any way.
+  </p>
+  <p>
+    This matters because agents verify their own writes. Many agents read a file back after writing it to confirm the edit took effect. If the OS modified the content, the agent would detect the discrepancy and potentially enter a retry loop or error state.
+  </p>
+  <p>
+    Byte-for-byte passthrough means the agent&rsquo;s self-verification always succeeds. The OS is invisible to the agent and transparent to the output.
+  </p>
+
+  <h2>The five laws</h2>
+  <p>
+    The invisible write path is one expression of ostk&rsquo;s five laws &mdash; the design principles that constrain how the OS interacts with agents. In brief:
+  </p>
+  <ol>
+    <li><strong>Agents must not need to know the OS exists.</strong> No special APIs, no custom tools, no coordination protocols. If an agent works without ostk, it works with ostk.</li>
+    <li><strong>The OS must not modify agent output.</strong> Byte-for-byte passthrough. What the agent writes is what appears on disk.</li>
+    <li><strong>Every action must be auditable.</strong> Reads, writes, tool calls, decisions &mdash; all logged, all signed, all queryable.</li>
+    <li><strong>The operator is sovereign.</strong> The OS serves the operator, not the agent. Conflicts escalate to the operator. Policy is set by the operator.</li>
+    <li><strong>Local-first, always.</strong> The OS runs on the operator&rsquo;s machine. No cloud dependency for core functionality.</li>
+  </ol>
+  <p>
+    The full explanation of each law, with rationale and edge cases, is at <a href="/docs/five-laws">/docs/five-laws</a>.
+  </p>
+
+  <h2>Why invisibility matters</h2>
+  <p>
+    The practical consequence of an invisible write path is that ostk works with any agent out of the box. You don&rsquo;t need a plugin for Claude, an integration for GPT, or a fork of an open-source agent framework. You point an agent at a project directory managed by ostk, and the OS handles tracking and coordination automatically.
+  </p>
+  <p>
+    This also means ostk is forward-compatible. When new models ship with new tool-calling conventions, ostk doesn&rsquo;t need an update. The write path is below the agent layer &mdash; at the filesystem level &mdash; so it works regardless of what sits above it.
+  </p>
+
+  <h2>What the agent does not see</h2>
+  <p>
+    To be specific about what &ldquo;invisible&rdquo; means, here is what the agent is unaware of during an ostk-managed session:
+  </p>
+  <ul>
+    <li>That other agents are editing the same codebase concurrently.</li>
+    <li>That its writes are being logged to an audit trail.</li>
+    <li>That a conflict occurred and was resolved on one of its file writes.</li>
+    <li>That the operator can see a real-time feed of every file operation.</li>
+    <li>That policy rules may restrict which files it can write to.</li>
+  </ul>
+  <p>
+    The agent sees exactly what it would see without ostk: a filesystem, a shell, and the results of its tool calls. Everything else happens below the agent&rsquo;s abstraction layer.
+  </p>
+
+  <h2>Reads are tracked too</h2>
+  <p>
+    The invisible path is not limited to writes. When an agent reads a file, the OS records what was read, when, and by which agent. This gives the operator a complete picture of each agent&rsquo;s information flow &mdash; not just what it produced, but what it consumed to arrive at its decisions.
+  </p>
+  <p>
+    Read tracking is especially useful for post-incident analysis. If an agent introduced a bug, you can trace backward: what files did it read before making the change? Did it miss a relevant file? Did it read stale state because another agent hadn&rsquo;t finished writing yet?
+  </p>
+
+  <h2>What you see as the operator</h2>
+  <p>
+    While the agent sees nothing, you see everything. The TUI shows writes as they happen:
+  </p>
+  <div class="code-block">
+    <pre><code>$ ostk os status
+
+  RECENT WRITES:
+  14:03:22  agent-1  src/auth/middleware.js   +12 -3   OK
+  14:03:24  agent-1  src/auth/middleware.test.js  +45 -0  OK
+  14:03:31  agent-2  src/routes/teams.js      +67 -0   OK
+  14:03:33  agent-2  src/auth/middleware.js    +4 -0    CONFLICT &rarr; merged</code></pre>
+  </div>
+  <p>
+    Every write, every conflict, every resolution. The agent is unaware. You have full visibility.
+  </p>
+
+  <h2>No agent-side setup</h2>
+  <p>
+    There is nothing to configure on the agent side. No environment variables to pass, no wrapper scripts to use, no special instructions to add to the prompt. You start an agent the way you normally would &mdash; pointing it at a directory. If that directory has a <code>.ostk/</code> folder, the OS is active. If it doesn&rsquo;t, the agent just writes files directly.
+  </p>
+  <p>
+    This means you can adopt ostk incrementally. Try it on one project. If it works for you, use it on more. If it doesn&rsquo;t, remove the <code>.ostk/</code> directory and everything goes back to normal. The agents never knew either way.
+  </p>
+  <div class="code-block">
+    <pre><code># With ostk
+$ ostk init &amp;&amp; ostk boot    # OS is now active in this directory
+
+# Without ostk
+$ rm -rf .ostk               # OS is gone, agents write directly</code></pre>
+  </div>
+  <p>
+    Zero lock-in. The invisible write path means there is nothing to uninstall from the agent side.
+  </p>
+
+  <h2>Constraints</h2>
+  <ul>
+    <li>The OS cannot give agents feedback about blocked writes. Agents may retry silently.</li>
+    <li>Conflict resolution adds processing time proportional to conflict complexity.</li>
+    <li>Binary files fall back to last-write-wins.</li>
+  </ul>
+
+</FeaturePage>
+
+<style>
+  .code-block {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.6;
+  }
+</style>

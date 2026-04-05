@@ -2,12 +2,12 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="Page Tables for LLMs: How ostk Handles Model Switching — ostk" description="When you switch models mid-session, ostk builds a ~200 token lookup table — pointers, not data. The new model demand-pages what it needs. No existing system does this.">
+<Base title="LLM Model Switching Without Context Loss — ostk" description="When you switch models mid-session, ostk builds a ~200 token lookup table — pointers, not data. The new model demand-pages what it needs. We haven't found another system that does this.">
   <div class="container">
     <h1>Page Tables for LLMs: How ostk Handles Model Switching</h1>
 
     <p class="lede">
-      When you type <code>:model gemini</code> in the middle of a Claude session, what happens to context? Every other system drops it. ostk builds a ~200 token lookup table and hands it to the new model. The new model boots with pointers, not data. Tools are the page fault handler.
+      When you type <code>:model gemini</code> in the middle of a Claude session, what happens to context? Typically, it's gone. ostk builds a ~200 token lookup table and hands it to the new model. The new model boots with pointers, not data. Tools are the page fault handler.
     </p>
 
     <section>
@@ -61,7 +61,7 @@ import Base from '../../layouts/Base.astro';
 
     <section>
       <h2>The architecture</h2>
-      <p>Three components make this work. All three are required. No existing system has all three.</p>
+      <p>Three components make this work. All three are required. We haven't found another system that has all three.</p>
 
       <h3>1. ISA-neutral state layer</h3>
       <p>The kernel's state is not encoded in any model's native format. It is not a Claude conversation history or a Gemini chat log. It is files on disk: audit.jsonl, gen_table, .language, boot.md, needle state. Any model that can read files can access it. The state layer is ISA-neutral &mdash; it does not assume the instruction set of the processor that will read it.</p>
@@ -75,8 +75,8 @@ import Base from '../../layouts/Base.astro';
     </section>
 
     <section>
-      <h2>Why no one else does this</h2>
-      <p>The page table architecture requires:</p>
+      <h2>What this requires</h2>
+      <p>The page table architecture depends on three things most agent frameworks lack:</p>
       <ol>
         <li><strong>Persistent kernel state</strong> that survives model instance death. Most agent frameworks store state in the conversation history &mdash; when the model dies, the state dies. ostk stores state in the filesystem.</li>
         <li><strong>Demand-paging tools</strong> that the new model can call to retrieve specific state. Most systems give the model either everything or nothing. ostk gives it pointers and lets it page in what it needs.</li>

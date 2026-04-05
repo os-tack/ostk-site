@@ -1,0 +1,134 @@
+---
+interface Props {
+  code: string;
+  lang?: string;
+  terminal?: boolean;
+  copyable?: boolean;
+}
+
+const { code, lang = '', terminal = false, copyable = true } = Astro.props;
+const id = `cb-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class:list={['code-block', { terminal }]}>
+  {terminal && (
+    <div class="terminal-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+  )}
+  <div class="code-wrap">
+    <pre><code class={lang ? `language-${lang}` : ''}>{code}</code></pre>
+    {copyable && (
+      <button
+        class="copy-btn"
+        data-code={code}
+        data-id={id}
+        aria-label="Copy code"
+        type="button"
+      >
+        <span class="copy-icon" data-state="idle">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="5" y="5" width="9" height="9" rx="1.5" />
+            <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" />
+          </svg>
+        </span>
+        <span class="copy-icon" data-state="copied" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 8.5l3 3 7-7" />
+          </svg>
+        </span>
+      </button>
+    )}
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.getAttribute('data-code') || '';
+      await navigator.clipboard.writeText(code);
+      const idle = btn.querySelector('[data-state="idle"]') as HTMLElement;
+      const copied = btn.querySelector('[data-state="copied"]') as HTMLElement;
+      if (idle && copied) {
+        idle.hidden = true;
+        copied.hidden = false;
+        setTimeout(() => { idle.hidden = false; copied.hidden = true; }, 2000);
+      }
+    });
+  });
+</script>
+
+<style>
+  .code-block {
+    position: relative;
+    margin-bottom: var(--ostk-space-4);
+  }
+
+  .code-block.terminal {
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    overflow: hidden;
+  }
+
+  .terminal-bar {
+    height: 2rem;
+    background: var(--ostk-bg-elevated);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--ostk-space-3);
+    gap: var(--ostk-space-2);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ostk-text-ghost);
+  }
+
+  .code-wrap {
+    position: relative;
+  }
+
+  .code-wrap pre {
+    margin: 0;
+  }
+
+  .terminal .code-wrap pre {
+    border: none;
+    border-radius: 0;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: var(--ostk-space-2);
+    right: var(--ostk-space-2);
+    background: var(--ostk-bg-elevated);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: var(--ostk-space-1) var(--ostk-space-2);
+    color: var(--ostk-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: color var(--ostk-duration-fast) var(--ostk-easing),
+                border-color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .copy-btn:hover {
+    color: var(--ostk-text-secondary);
+    border-color: var(--ostk-border-default);
+  }
+
+  .copy-btn:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+
+  .copy-icon {
+    display: flex;
+    align-items: center;
+  }
+</style>

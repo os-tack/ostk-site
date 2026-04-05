@@ -1,0 +1,67 @@
+---
+import Base from '../../layouts/Base.astro';
+import PillarCard from '../../components/PillarCard.astro';
+---
+
+<Base title="Features — ostk" description="What ostk does: context injection, multi-agent coordination, audit trails, invisible writes, local-first operation, and more.">
+  <div class="container page-content">
+    <h1>Features</h1>
+    <p class="lede">ostk is an OS for AI coding agents. These are the things it does.</p>
+
+    <section class="feature-group">
+      <h2 class="group-label">Core</h2>
+      <div class="feature-list">
+        <PillarCard number={1} title="Context Injection" description="Agents skip exploration. The OS front-loads project context so the first turn is productive." href="/features/context-injection" />
+        <PillarCard number={2} title="Multi-Agent Coordination" description="Multiple agents, one codebase. Conflicts resolved at write time without locks or message buses." href="/features/coordination" />
+        <PillarCard number={3} title="Invisible Write Path" description="Agents edit files normally. The OS intercepts, coordinates, and audits underneath. They never know." href="/features/invisible-writes" />
+        <PillarCard number={4} title="Audit Trail" description="Every edit tracked, cryptographically signed, append-only. You know who changed what and when." href="/features/audit-trail" />
+      </div>
+    </section>
+
+    <section class="feature-group">
+      <h2 class="group-label">Operations</h2>
+      <div class="feature-list">
+        <PillarCard number={5} title="Local-First" description="No cloud, no telemetry. A single Rust binary on your machine. Works with local models." href="/features/local-first" />
+        <PillarCard number={6} title="Tack Language" description="Compressed intent language. The OS learns your vocabulary over time. Communication gets shorter." href="/features/tack" />
+        <PillarCard number={7} title="Trust &amp; Governance" description="GPG web of trust. Capability pins enforce invisible boundaries. No admin panels, no OAuth." href="/features/governance" />
+      </div>
+    </section>
+
+    <section class="feature-group">
+      <h2 class="group-label">Tools</h2>
+      <div class="feature-list">
+        <PillarCard number={8} title="Model Switching" description="Switch models mid-session. Context survives the handoff. Works across vendors." href="/features/model-switching" />
+        <PillarCard number={9} title="Secret Management" description="API keys never enter LLM context, audit logs, or shell history. Platform keychain integration." href="/features/secret-management" />
+        <PillarCard number={10} title="TUI" description="Terminal interface showing the OS in real time. Agents, permissions, edits, costs — all visible." href="/features/tui" />
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .lede {
+    font-size: var(--ostk-text-md);
+    color: var(--ostk-text-secondary);
+    margin-bottom: var(--ostk-space-8);
+  }
+
+  .feature-group {
+    margin-bottom: var(--ostk-space-8);
+  }
+
+  .group-label {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
+    color: var(--ostk-text-muted);
+    margin-bottom: var(--ostk-space-3);
+    margin-top: 0;
+  }
+
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ostk-space-3);
+  }
+</style>

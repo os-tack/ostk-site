@@ -1,10 +1,8 @@
 ---
-import Base from '../../layouts/Base.astro';
+import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<Base title="OSfile (.primefile) — ostk governance" description="The kernel identity document. Written by the OS, not by you. Records the running kernel version and signing authority.">
-  <div class="container">
-    <h1>OSfile <span style="font-weight: normal; color: var(--color-muted)">(.primefile)</span></h1>
+<DocsLayout title="OSfile (.primefile)" description="The kernel identity document. Written by the OS, not by you. Records the running kernel version and signing authority.">
     <p class="lead">The kernel's identity document. The OS writes it. You read it to verify what's running.</p>
 
     <h2>What it is</h2>
@@ -131,5 +129,4 @@ audit = true</code></pre>
       <li><a href="/docs/agentfile">Agentfile — agent definition</a></li>
       <li><a href="/docs">Documentation index</a></li>
     </ul>
-  </div>
-</Base>
+</DocsLayout>

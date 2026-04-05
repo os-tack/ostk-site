@@ -1,0 +1,177 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Audit Trail", description: "Every edit tracked, signed, and queryable", href: "/features/audit-trail" },
+  { title: "Context Injection", description: "+34.3pp improvement across 26 models", href: "/features/context-injection" },
+  { title: "Invisible Writes", description: "Agents write files normally. The OS handles the rest.", href: "/features/invisible-writes" },
+];
+---
+
+<FeaturePage
+  tagline="Multi-Agent"
+  title="Multiple Agents, One Codebase"
+  description="Run multiple AI agents on the same codebase. The OS resolves file conflicts at write time — no locks, no message buses, no coordination code."
+  relatedPages={relatedPages}
+>
+
+  <h2>The problem</h2>
+  <p>
+    You spawn two agents. One is refactoring the auth module. The other is adding a new API endpoint that imports from the auth module. Both agents edit <code>src/auth/middleware.js</code> within seconds of each other.
+  </p>
+  <p>Who wins?</p>
+  <p>
+    Without coordination, the last write wins and the first agent&rsquo;s work disappears. With traditional locking, the second agent blocks until the first finishes &mdash; and if the first agent takes 40 turns, that&rsquo;s 40 turns of idle time. With message buses, both agents need to understand a coordination protocol they were never trained on.
+  </p>
+  <p>
+    ostk takes a different approach: agents write files normally. They don&rsquo;t know other agents exist. The OS detects conflicts at write time and resolves them without interrupting either agent.
+  </p>
+
+  <h2>What you see</h2>
+  <p>
+    From the operator&rsquo;s perspective, multi-agent coordination looks like this:
+  </p>
+  <div class="code-block">
+    <pre><code>$ ostk spawn --name auth-refactor "Refactor auth to use JWT"
+$ ostk spawn --name add-endpoint "Add POST /api/teams endpoint"
+
+# Both agents start working. You watch in the TUI:
+$ ostk ps
+
+  PID  NAME            STATUS   FILES    CONFLICTS
+  1    auth-refactor   running  4/12     0
+  2    add-endpoint    running  2/8      0</code></pre>
+  </div>
+  <p>
+    Each agent works independently. They read files, run tests, write code. When their edits don&rsquo;t overlap, writes go through immediately.
+  </p>
+
+  <h2>When conflicts happen</h2>
+  <p>
+    When two agents write to the same file, the OS detects the conflict. You see it in the TUI:
+  </p>
+  <div class="code-block">
+    <pre><code>$ ostk ps
+
+  PID  NAME            STATUS   FILES    CONFLICTS
+  1    auth-refactor   running  7/12     1
+  2    add-endpoint    running  5/8      1
+
+  CONFLICTS (1):
+  src/auth/middleware.js
+    agent-1: removed basicAuth(), added verifyJWT()
+    agent-2: added teamAuth() importing basicAuth()
+    resolution: merged &mdash; teamAuth() updated to use verifyJWT()</code></pre>
+  </div>
+  <p>
+    The OS resolves the conflict and both agents continue. Neither agent stalled. Neither agent needed to understand a coordination protocol. The resolution is recorded in the <a href="/features/audit-trail">audit trail</a>.
+  </p>
+  <p>
+    If the OS cannot resolve a conflict automatically, it pauses the second write and notifies you in the TUI. You review the diff, pick a resolution, and the agent continues.
+  </p>
+
+  <h2>How conflict resolution works</h2>
+  <p>
+    Conflict resolution is <strong>mechanical text diffing</strong>, not LLM-assisted. No model is called. The kernel classifies each conflict into one of three tiers:
+  </p>
+  <ul>
+    <li><strong>Tier 1 &mdash; Auto-merge.</strong> The two edits touch different parts of the file, sufficiently far apart. The kernel applies both changes silently and logs the merge to audit. Neither agent is interrupted. This is the common case.</li>
+    <li><strong>Tier 2 &mdash; Assisted rebase.</strong> The edits are nearby or overlapping, but the total change is small. The kernel computes a mechanical rebase &mdash; it relocates the second agent&rsquo;s edit into the file as modified by the first, returning a suggested <code>file:edit()</code> with updated line references. No model call, no blocking.</li>
+    <li><strong>Tier 3 &mdash; Manual.</strong> The changes are too large or structurally incompatible for mechanical resolution. The kernel returns the current file content and both agents&rsquo; intended changes. The agent re-reads and retries. If it cannot resolve it, the conflict escalates to the operator via the TUI.</li>
+  </ul>
+  <p>
+    The agent&rsquo;s edit itself is the conflict detection mechanism. Every <code>file:edit()</code> specifies the text it expects to find. If that text no longer exists (another agent changed it), the edit fails and the resolution tiers engage.
+  </p>
+  <p>
+    <strong>Failure modes:</strong> Tier 3 requires the agent to re-read and retry, costing tokens and time. Semantic conflicts (two agents change different files in ways that break each other&rsquo;s logic) are not caught &mdash; they surface at test time. Binary files skip resolution entirely and fall back to last-write-wins with an audit warning.
+  </p>
+
+  <h2>Fleet commands</h2>
+  <p>ostk gives you process-level control over your agent fleet:</p>
+  <div class="code-block">
+    <pre><code># List running agents
+$ ostk ps
+
+# Spawn a new agent with a task
+$ ostk spawn --name lint-fix "Fix all ESLint warnings in src/"
+
+# Run a one-shot task (waits for completion)
+$ ostk run "Add unit tests for src/auth/middleware.js"
+
+# Stop an agent
+$ ostk stop auth-refactor
+
+# View an agent's output
+$ ostk logs add-endpoint</code></pre>
+  </div>
+  <p>
+    Agents are processes. You spawn them, watch them, stop them. The OS manages the shared filesystem underneath.
+  </p>
+
+  <h2>What this means in practice</h2>
+  <p>
+    Without multi-agent coordination, you serialize work: one agent finishes before the next starts. With ostk, you can run agents in parallel on the same codebase and let the OS handle file contention.
+  </p>
+  <ul>
+    <li><strong>Parallel refactoring</strong> &mdash; one agent modernizes the API layer while another updates the test suite. Both touch shared fixtures; the OS merges the changes.</li>
+    <li><strong>Review + fix</strong> &mdash; one agent reviews code and writes findings to a file. Another agent reads findings and implements fixes. They run concurrently.</li>
+    <li><strong>Multi-module features</strong> &mdash; split a feature across agents (frontend, backend, tests). Each agent owns its area but shared files get coordinated automatically.</li>
+  </ul>
+  <p>
+    Every conflict resolution is logged. Every file write is tracked. You can audit exactly what happened after the fact using <code>ostk os audit</code>.
+  </p>
+
+  <h2>Agent isolation</h2>
+  <p>
+    Each agent operates in its own context. Agents do not share conversation history, tool state, or memory. They share only the filesystem &mdash; the codebase itself. This is deliberate:
+  </p>
+  <ul>
+    <li><strong>No cross-talk</strong> &mdash; agent-1 cannot read agent-2&rsquo;s thoughts, prompt, or intermediate reasoning. They coordinate through the files they produce, the same way human developers coordinate through commits.</li>
+    <li><strong>Independent failure</strong> &mdash; if agent-2 crashes or loops, agent-1 continues unaffected. You stop the broken agent with <code>ostk stop</code> and spawn a replacement.</li>
+    <li><strong>Model mixing</strong> &mdash; each agent can use a different model. Run a cheap local model for linting while a frontier API model handles the complex refactor. The OS coordinates their writes the same way regardless of which model is behind each agent.</li>
+  </ul>
+
+  <h2>Constraints</h2>
+  <p>Multi-agent coordination is not magic. There are limits:</p>
+  <ul>
+    <li>Conflict resolution works best on text files. Binary files fall back to last-write-wins with a warning.</li>
+    <li>Semantic conflicts (two agents change different files in ways that break each other&rsquo;s logic) require test runs to catch. ostk does not understand your program&rsquo;s semantics &mdash; it coordinates at the file level.</li>
+    <li>More agents means more potential conflicts. In practice, 2&ndash;4 agents on well-scoped tasks produce fewer conflicts than one agent doing everything.</li>
+  </ul>
+  <p>
+    The coordination model is designed for the common case: agents working on related but distinct parts of a codebase with occasional file overlap. For tasks that require tight coupling (e.g., two agents pair-programming on the same function), a single agent is a better fit.
+  </p>
+
+  <h2>Getting started</h2>
+  <p>
+    Multi-agent coordination requires no extra configuration. If ostk is initialized in your project, <code>ostk spawn</code> handles the rest:
+  </p>
+  <div class="code-block">
+    <pre><code>$ ostk init                                      # one-time setup
+$ ostk spawn --name task-a "Your first task"     # agent 1
+$ ostk spawn --name task-b "Your second task"    # agent 2
+$ ostk ps                                         # watch both</code></pre>
+  </div>
+  <p>
+    Coordination is on by default. There is no flag to enable it and no configuration file to edit.
+  </p>
+
+</FeaturePage>
+
+<style>
+  .code-block {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.6;
+  }
+</style>

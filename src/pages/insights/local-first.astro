@@ -2,9 +2,9 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="Run AI Agents Locally: Why Local-First Beats Cloud-Only — ostk" description="Run AI coding agents on your machine with local models. Devstral 24B + context injection hits 75% on real bugs. No API costs, no data leaving your laptop.">
+<Base title="Local AI Agents: Open Models With Context — ostk" description="Run AI coding agents on your machine with local models. Devstral 24B + context injection hits 75% on real bugs. No API costs, no data leaving your laptop.">
   <div class="container">
-    <h1>Run AI Agents Locally: Why Local-First Beats Cloud-Only</h1>
+    <h1>Running AI Agents Locally: Open Models With Context Injection</h1>
 
     <p class="lede">
       You don&rsquo;t need an API key to run an effective AI coding agent. A 24B open model running on your laptop, with the right context, outperforms frontier API models running blind. Here&rsquo;s the data.
@@ -70,7 +70,7 @@ ostk init
 # Run with a local model (Ollama example)
 OPENAI_BASE_URL=http://localhost:11434/v1 \
 OPENAI_API_KEY=ollama \
-ostk do --model devstral</code></pre>
+ostk boot --model devstral</code></pre>
       </div>
       <p>ostk reads your project state (file tree, test output, recent changes, error messages) and injects it into the model&rsquo;s system prompt. The model doesn&rsquo;t know it&rsquo;s been given context &mdash; it just starts with better information.</p>
       <p>No fine-tuning required. No special model configuration. The same context injection that produced +34.3pp mean improvement across 26 models in <a href="https://needle-bench.cc">needle-bench</a> works with your local model.</p>
@@ -94,12 +94,12 @@ ostk do --model devstral</code></pre>
         <li><strong>No telemetry</strong> &mdash; ostk collects nothing. No analytics, no crash reports, no usage tracking. <a href="/legal/privacy/">Privacy policy</a>.</li>
         <li><strong>Filesystem as memory</strong> &mdash; your project directory is the shared memory space. The agent reads and writes files. The OS coordinates access. Everything is a file.</li>
       </ul>
-      <p>If your threat model requires that code never leaves your machine, ostk + a local model is the only AI coding agent architecture that satisfies that constraint.</p>
+      <p>If your threat model requires that code never leaves your machine, ostk + a local model satisfies that constraint with full coordination and audit trails.</p>
     </section>
 
     <section class="takeaway">
       <h2>Start local</h2>
-      <p><a href="/docs/">Install ostk</a>, point it at a local model, and run <code>ostk do</code>. The context injection works the same whether the model is running on your GPU or in a data center. The only difference is where your code goes.</p>
+      <p><a href="/docs/">Install ostk</a>, point it at a local model, and run <code>ostk boot</code>. The context injection works the same whether the model is running on your GPU or in a data center. The only difference is where your code goes.</p>
       <p><a href="https://needle-bench.cc/insights/open-vs-closed/">Open vs closed model comparison</a> &middot; <a href="/insights/context-injection/">Context injection deep dive</a> &middot; <a href="https://needle-bench.cc">Benchmark results</a></p>
     </section>
   </div>

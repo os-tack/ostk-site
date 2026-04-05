@@ -1,0 +1,71 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Downloads" description="Download ostk binary releases for macOS and Linux. GPG-signed. Verify before you run.">
+  <p>Binary releases of ostk, GPG-signed. Install via script or download directly.</p>
+
+  <h2>Install script</h2>
+  <p>The fastest path. Detects your platform, downloads the correct binary, verifies the GPG signature, and places it in your <code>$PATH</code>.</p>
+  <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
+  <p>The script always fetches the latest release. You can <a href="https://ostk.ai/install">view the install script</a> before running it.</p>
+
+  <h2>Latest release: v2.3.0</h2>
+  <p>Download from GitHub: <a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.3.0">ostk v2.3.0 release</a></p>
+
+  <table>
+    <thead>
+      <tr><th>Platform</th><th>Architecture</th><th>Binary</th><th>Signature</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>macOS</td>
+        <td>arm64 (Apple Silicon)</td>
+        <td><code>ostk-darwin-arm64</code></td>
+        <td><code>ostk-darwin-arm64.asc</code></td>
+      </tr>
+      <tr>
+        <td>macOS</td>
+        <td>x86_64 (Intel)</td>
+        <td><code>ostk-darwin-x86_64</code></td>
+        <td><code>ostk-darwin-x86_64.asc</code></td>
+      </tr>
+      <tr>
+        <td>Linux</td>
+        <td>arm64 (musl)</td>
+        <td><code>ostk-linux-arm64</code></td>
+        <td><code>ostk-linux-arm64.asc</code></td>
+      </tr>
+      <tr>
+        <td>Linux</td>
+        <td>x86_64 (musl)</td>
+        <td><code>ostk-linux-x86_64</code></td>
+        <td><code>ostk-linux-x86_64.asc</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Binary verification</h2>
+  <p>Every release binary ships with a detached GPG signature (<code>.asc</code> file). To verify:</p>
+
+  <h3>1. Import the ostk signing key</h3>
+  <p>The public key (<code>prime.asc</code>) is in the <a href="https://github.com/os-tack/ostk.ai">os-tack/ostk.ai</a> repository.</p>
+  <pre><code>curl -fsSL https://raw.githubusercontent.com/os-tack/ostk.ai/main/prime.asc | gpg --import</code></pre>
+
+  <h3>2. Verify the binary</h3>
+  <pre><code>gpg --verify ostk-darwin-arm64.asc ostk-darwin-arm64</code></pre>
+  <p>You should see <code>Good signature from "ostk.ai &lt;contact@ostk.ai&gt;"</code>. If verification fails, do not run the binary.</p>
+
+  <h3>3. Make it executable</h3>
+  <pre><code>chmod +x ostk-darwin-arm64
+mv ostk-darwin-arm64 /usr/local/bin/ostk</code></pre>
+
+  <h2>Signing chain</h2>
+  <p>The root GPG key (<code>contact@ostk.ai</code>) certifies the CI signing key. The CI key signs release binaries. Users verify against the root key. One chain, fully offline-verifiable. See <a href="/governance">Governance</a> for the full trust model.</p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/getting-started">Quick Start</a> — install, init, boot in ~5 minutes</li>
+    <li><a href="/docs/commands">Commands</a> — full command reference</li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,256 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const pageTitle = `${title} — ostk`;
+const currentPath = Astro.url.pathname;
+
+const sidebarGroups = [
+  {
+    label: 'Getting Started',
+    items: [
+      { href: '/docs/getting-started', label: 'Quick Start' },
+      { href: '/docs/downloads', label: 'Downloads' },
+    ],
+  },
+  {
+    label: 'Reference',
+    items: [
+      { href: '/docs/commands', label: 'Commands' },
+      { href: '/docs/architecture', label: 'Architecture' },
+      { href: '/docs/compression', label: 'Compression' },
+      { href: '/docs/mcp', label: 'MCP Proxy' },
+      { href: '/docs/tui', label: 'TUI' },
+    ],
+  },
+  {
+    label: 'Configuration',
+    items: [
+      { href: '/docs/humanfile', label: 'HUMANFILE' },
+      { href: '/docs/agentfile', label: 'Agentfile' },
+      { href: '/docs/entityfile', label: 'ENTITYFILE' },
+      { href: '/docs/osfile', label: 'OSfile' },
+      { href: '/docs/secrets', label: 'Secrets' },
+      { href: '/docs/pins', label: 'Capability Pins' },
+    ],
+  },
+  {
+    label: 'Concepts',
+    items: [
+      { href: '/docs/five-laws', label: 'Five Laws' },
+    ],
+  },
+];
+
+function isActive(href: string): boolean {
+  const norm = currentPath.replace(/\/$/, '');
+  return norm === href || norm === href + '/';
+}
+---
+
+<Base title={pageTitle} description={description}>
+  <div class="docs-container">
+    <button
+      class="sidebar-toggle"
+      aria-label="Toggle documentation menu"
+      aria-expanded="false"
+      type="button"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 5h14M3 10h14M3 15h14" />
+      </svg>
+      <span>Menu</span>
+    </button>
+
+    <aside class="docs-sidebar" role="navigation" aria-label="Documentation navigation">
+      <nav>
+        {sidebarGroups.map(group => (
+          <div class="sidebar-group">
+            <h3 class="sidebar-group-label">{group.label}</h3>
+            <ul class="sidebar-list">
+              {group.items.map(item => (
+                <li>
+                  <a
+                    href={item.href}
+                    class:list={['sidebar-link', { active: isActive(item.href) }]}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <main class="docs-content page-content">
+      <h1>{title}</h1>
+      <slot />
+    </main>
+  </div>
+</Base>
+
+<script>
+  const toggle = document.querySelector('.sidebar-toggle') as HTMLButtonElement;
+  const sidebar = document.querySelector('.docs-sidebar') as HTMLElement;
+
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      sidebar.classList.toggle('open');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        toggle.setAttribute('aria-expanded', 'false');
+        sidebar.classList.remove('open');
+        toggle.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .docs-container {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 0 var(--ostk-space-6);
+    gap: var(--ostk-space-8);
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .docs-sidebar {
+    position: sticky;
+    top: 4rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    padding-top: var(--ostk-space-16);
+    padding-bottom: var(--ostk-space-8);
+    padding-right: var(--ostk-space-4);
+    border-right: 1px solid var(--ostk-border-subtle);
+  }
+
+  .sidebar-group {
+    margin-bottom: var(--ostk-space-6);
+  }
+
+  .sidebar-group-label {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
+    color: var(--ostk-text-muted);
+    margin-bottom: var(--ostk-space-2);
+    margin-top: 0;
+  }
+
+  .sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar-list li {
+    margin-bottom: 0;
+  }
+
+  .sidebar-link {
+    display: block;
+    padding: var(--ostk-space-1) var(--ostk-space-3);
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-text-secondary);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color var(--ostk-duration-fast) var(--ostk-easing),
+                border-color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .sidebar-link:hover {
+    color: var(--ostk-text-primary);
+  }
+
+  .sidebar-link.active {
+    color: var(--ostk-needle);
+    border-left-color: var(--ostk-needle);
+    font-weight: var(--ostk-weight-medium);
+  }
+
+  .sidebar-link:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+
+  .docs-content {
+    min-width: 0;
+    max-width: 48rem;
+  }
+
+  @media (max-width: 768px) {
+    .docs-container {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--ostk-space-2);
+      position: sticky;
+      top: 3.5rem;
+      z-index: var(--ostk-z-sticky);
+      background: var(--ostk-bg-base);
+      border: 1px solid var(--ostk-border-subtle);
+      border-radius: var(--ostk-radius-md);
+      padding: var(--ostk-space-2) var(--ostk-space-3);
+      margin-top: var(--ostk-space-4);
+      color: var(--ostk-text-secondary);
+      cursor: pointer;
+      font-family: var(--ostk-font-mono);
+      font-size: var(--ostk-text-xs);
+      text-transform: uppercase;
+      letter-spacing: var(--ostk-tracking-wide);
+    }
+
+    .sidebar-toggle:focus-visible {
+      outline: 2px solid var(--ostk-needle);
+      outline-offset: 2px;
+    }
+
+    .docs-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: var(--ostk-z-modal);
+      background: var(--ostk-bg-deep);
+      padding: var(--ostk-space-16) var(--ostk-space-6);
+      border-right: none;
+      max-height: 100vh;
+      transform: translateX(-100%);
+      transition: transform var(--ostk-duration-normal) var(--ostk-easing);
+    }
+
+    .docs-sidebar.open {
+      transform: translateX(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .docs-sidebar {
+        transition: none;
+      }
+    }
+  }
+</style>

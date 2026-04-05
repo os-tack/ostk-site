@@ -1,0 +1,94 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="TUI" description="ostk terminal interface: real-time fleet status, work queue, permission gates, and agent output.">
+  <p>Terminal interface for real-time OS monitoring. Powered by the fcp-screen driver.</p>
+
+  <h2>Launch</h2>
+  <pre><code>ostk tui</code></pre>
+  <p>Opens a full-screen terminal UI. Requires fcp-screen in your <a href="/docs/humanfile">HUMANFILE</a> driver list. The TUI connects to the running kernel and streams live state.</p>
+
+  <h2>Panels</h2>
+  <p>The TUI is split into four panels, each showing a different slice of OS state.</p>
+
+  <figure>
+    <img src="/images/tui/tui-agent-workflow.jpg" alt="ostk TUI showing fleet status panel on the left with two active agents, work queue in the center with needle priorities, and agent output stream on the right." />
+  </figure>
+
+  <table>
+    <thead>
+      <tr><th>Panel</th><th>What it shows</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Fleet status</td>
+        <td>All running agents — PID, model, current needle, tokens consumed, uptime. Updates in real time as agents start and stop.</td>
+      </tr>
+      <tr>
+        <td>Work queue</td>
+        <td>Pending needles sorted by priority. Shows title, priority level, tags, and which agent (if any) has claimed each needle.</td>
+      </tr>
+      <tr>
+        <td>Permissions</td>
+        <td>Pending permission requests from agents. Destructive operations queued for operator review appear here with countdown timers.</td>
+      </tr>
+      <tr>
+        <td>Agent output</td>
+        <td>Live compressed output from the selected agent. Switch between agents to see their current work stream.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Status bar</h2>
+  <p>The bottom bar shows system-level metrics at a glance.</p>
+
+  <table>
+    <thead>
+      <tr><th>Field</th><th>What it means</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>agents</td><td>Number of running agents in the fleet</td></tr>
+      <tr><td>needles</td><td>Total needles: pending / in-progress / done</td></tr>
+      <tr><td>mutations</td><td>File writes tracked this session (generation counter total)</td></tr>
+      <tr><td>tokens</td><td>Total tokens consumed across all agents</td></tr>
+      <tr><td>compression</td><td>Token savings ratio from output compression</td></tr>
+      <tr><td>tier</td><td>Current operator trust tier (T0/T1/T2/T3)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Permission modal</h2>
+
+  <figure>
+    <img src="/images/tui/tui-permission-modal.jpg" alt="ostk TUI permission modal showing a destructive operation request with the full command, a 60-second countdown, and approve/deny buttons." />
+  </figure>
+
+  <p>When an agent requests a destructive operation (and <code>LIMIT destructive_ops confirm</code> is active), a modal appears in the TUI with:</p>
+  <ul>
+    <li>The exact command the agent wants to run</li>
+    <li>Which agent is requesting it</li>
+    <li>A 60-second countdown — auto-executes if no response</li>
+    <li>Approve or deny controls</li>
+  </ul>
+  <p>The modal blocks the requesting agent but not the rest of the fleet. Other agents continue working while one waits for permission.</p>
+
+  <h2>Keyboard</h2>
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>Tab</code></td><td>Cycle between panels</td></tr>
+      <tr><td><code>j</code> / <code>k</code></td><td>Scroll within the active panel</td></tr>
+      <tr><td><code>Enter</code></td><td>Select / expand an item</td></tr>
+      <tr><td><code>q</code></td><td>Quit the TUI (kernel continues running)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/architecture">Architecture</a> — fcp-screen driver</li>
+    <li><a href="/docs/agentfile">Agentfile</a> — <code>LIMIT destructive_ops</code> for permission controls</li>
+    <li><a href="/docs/commands">Commands</a> — <code>ostk tui</code> and <code>ostk ps</code></li>
+  </ul>
+</DocsLayout>

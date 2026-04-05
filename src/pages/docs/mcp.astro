@@ -1,0 +1,95 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const configExample = `# ostk.toml
+[mcp.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_TOKEN = "$GITHUB_TOKEN" }
+
+[mcp.postgres]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres"]
+env = { DATABASE_URL = "$DATABASE_URL" }`;
+
+const addExample = `[mcp.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_TOKEN = "$GITHUB_TOKEN" }`;
+---
+
+<DocsLayout title="MCP Proxy" description="Connect external MCP servers through the ostk kernel. Proxy, audit, and pin-enforce every tool call.">
+  <p>Connect external MCP (Model Context Protocol) servers through the kernel. Agents call external tools without knowing they're external — the kernel proxies, audits, and enforces pins on every call.</p>
+
+  <h2>Concept</h2>
+  <p>MCP servers expose tools over stdio or HTTP. The kernel acts as a proxy: it discovers configured servers, registers their tools in the agent's tool list, and routes calls through the audit trail. From the agent's perspective, an MCP tool is indistinguishable from a built-in tool.</p>
+  <p>This means you can connect any MCP-compatible server — a database explorer, a CI runner, a custom internal tool — and agents use it immediately. No agent-side configuration.</p>
+
+  <h2>Configuration</h2>
+  <p>MCP servers are declared in <code>ostk.toml</code> under the <code>[mcp]</code> section:</p>
+  <pre><code set:html={configExample} /></pre>
+  <p>Each entry names a server and specifies how to launch it. Environment variables prefixed with <code>$</code> are resolved through the kernel's secret mediation — the actual values never enter agent context.</p>
+
+  <h2>Commands</h2>
+  <table>
+    <thead>
+      <tr><th>Command</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>ostk mcp list</code></td>
+        <td>Show all configured MCP servers and their available tools</td>
+      </tr>
+      <tr>
+        <td><code>ostk mcp call &lt;server&gt; &lt;tool&gt;</code></td>
+        <td>Manually invoke an MCP tool from the command line (useful for testing)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Execution modes</h2>
+  <p>MCP servers run in one of two modes, depending on the driver type:</p>
+
+  <table>
+    <thead>
+      <tr><th>Mode</th><th>Behavior</th><th>Used by</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Persistent</td>
+        <td>Server process stays running. The kernel connects once and reuses the connection across calls. Lower latency, higher memory.</td>
+        <td><code>fcp-*</code> drivers (fcp-rust, fcp-screen, fcp-web)</td>
+      </tr>
+      <tr>
+        <td>Per-call</td>
+        <td>Server process is spawned for each tool call and exits after responding. Higher latency, no persistent state. Safer for untrusted servers.</td>
+        <td>External MCP servers configured in <code>ostk.toml</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>FCP drivers (the built-in <code>fcp-*</code> binaries) run in persistent mode — they launch at boot and stay alive. External MCP servers default to per-call mode. This keeps the security surface small: an external server only runs when called and cannot observe other calls.</p>
+
+  <h2>Auditing</h2>
+  <p>Every MCP tool call is recorded in the audit trail: which agent called which tool on which server, with what arguments, and what the response was. Query with:</p>
+  <pre><code>ostk os audit --filter mcp</code></pre>
+  <p>Capability pins apply to MCP tools. If an agent's trust tier denies a capability that the MCP tool requires, the call is silently blocked.</p>
+
+  <h2>Example: adding a GitHub server</h2>
+  <ol>
+    <li>Store your token: <code>ostk secret set GITHUB_TOKEN</code></li>
+    <li>Add the server to <code>ostk.toml</code>:
+      <pre><code set:html={addExample} /></pre>
+    </li>
+    <li>Verify: <code>ostk mcp list</code></li>
+    <li>Agents can now call GitHub tools (create issues, read PRs, search repos) through the proxy.</li>
+  </ol>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/architecture">Architecture</a> — kernel and FCP driver model</li>
+    <li><a href="/docs/secrets">Secrets</a> — how the kernel resolves <code>&dollar;VARIABLE</code> references</li>
+    <li><a href="/docs/pins">Capability Pins</a> — how pins restrict MCP tool access</li>
+    <li><a href="/docs/commands">Commands</a> — <code>ostk mcp list</code> and <code>ostk mcp call</code></li>
+  </ul>
+</DocsLayout>

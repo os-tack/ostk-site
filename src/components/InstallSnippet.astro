@@ -1,0 +1,105 @@
+---
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+const installCmd = 'curl -fsSL https://ostk.ai/install | sh';
+---
+
+<div class:list={['install-snippet', { compact }]}>
+  <pre><code><span class="prompt">$</span> {installCmd}</code></pre>
+  <button
+    class="copy-btn"
+    data-code={installCmd}
+    aria-label="Copy install command"
+    type="button"
+  >
+    <span class="copy-icon" data-state="idle">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="5" y="5" width="9" height="9" rx="1.5" />
+        <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" />
+      </svg>
+    </span>
+    <span class="copy-icon" data-state="copied" hidden>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 8.5l3 3 7-7" />
+      </svg>
+    </span>
+  </button>
+</div>
+
+<script>
+  document.querySelectorAll('.install-snippet .copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const code = btn.getAttribute('data-code') || '';
+      await navigator.clipboard.writeText(code);
+      const idle = btn.querySelector('[data-state="idle"]') as HTMLElement;
+      const copied = btn.querySelector('[data-state="copied"]') as HTMLElement;
+      if (idle && copied) {
+        idle.hidden = true;
+        copied.hidden = false;
+        setTimeout(() => { idle.hidden = false; copied.hidden = true; }, 2000);
+      }
+    });
+  });
+</script>
+
+<style>
+  .install-snippet {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ostk-space-2);
+  }
+
+  .install-snippet pre {
+    margin: 0;
+    padding: var(--ostk-space-3) var(--ostk-space-12) var(--ostk-space-3) var(--ostk-space-4);
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    font-size: var(--ostk-text-sm);
+    white-space: nowrap;
+  }
+
+  .compact pre {
+    padding: var(--ostk-space-2) var(--ostk-space-8) var(--ostk-space-2) var(--ostk-space-3);
+    font-size: var(--ostk-text-xs);
+  }
+
+  .prompt {
+    color: var(--ostk-text-muted);
+    margin-right: var(--ostk-space-2);
+    user-select: none;
+  }
+
+  .copy-btn {
+    position: absolute;
+    right: var(--ostk-space-2);
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--ostk-text-muted);
+    cursor: pointer;
+    padding: var(--ostk-space-1);
+    display: flex;
+    align-items: center;
+    transition: color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .copy-btn:hover {
+    color: var(--ostk-needle);
+  }
+
+  .copy-btn:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+
+  .copy-icon {
+    display: flex;
+    align-items: center;
+  }
+</style>

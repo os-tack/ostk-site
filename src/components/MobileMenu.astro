@@ -1,0 +1,386 @@
+---
+interface NavLink {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+export interface Props {
+  navGroups: NavLink[][];
+  currentPath: string;
+}
+
+const { navGroups, currentPath } = Astro.props;
+---
+
+<div class="mobile-menu" data-mobile-menu>
+  <button
+    class="hamburger"
+    type="button"
+    aria-label="Open navigation menu"
+    aria-expanded="false"
+    aria-controls="mobile-menu-overlay"
+    data-mobile-menu-toggle
+  >
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <div
+    id="mobile-menu-overlay"
+    class="overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Navigation menu"
+    data-mobile-menu-overlay
+    hidden
+  >
+    <button
+      class="overlay-close"
+      type="button"
+      aria-label="Close navigation menu"
+      data-mobile-menu-close
+    >
+      <span class="close-line close-line-1"></span>
+      <span class="close-line close-line-2"></span>
+    </button>
+
+    <nav class="overlay-nav" aria-label="Mobile navigation">
+      {navGroups.map((group, gi) => (
+        <div class="overlay-group">
+          {group.map(link => (
+            link.external ? (
+              <a
+                href={link.href}
+                class="overlay-link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {link.label}<span class="external-icon">&#8599;</span>
+              </a>
+            ) : (
+              <a
+                href={link.href}
+                class:list={[
+                  'overlay-link',
+                  {
+                    active:
+                      currentPath === link.href ||
+                      (link.href !== '/' && currentPath.startsWith(link.href)),
+                  },
+                ]}
+              >
+                {link.label}
+              </a>
+            )
+          ))}
+        </div>
+      ))}
+    </nav>
+  </div>
+</div>
+
+<style>
+  /* ---- Hamburger button ---- */
+  .mobile-menu {
+    display: none;
+  }
+
+  @media (max-width: 640px) {
+    .mobile-menu {
+      display: block;
+    }
+  }
+
+  .hamburger {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--ostk-space-2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 2.5rem;
+    height: 2.5rem;
+    position: relative;
+    z-index: calc(var(--ostk-z-modal) + 1);
+  }
+
+  .hamburger:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+    border-radius: var(--ostk-radius-sm);
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--ostk-text-primary);
+    border-radius: 1px;
+    transition:
+      transform var(--ostk-duration-normal) var(--ostk-easing),
+      opacity var(--ostk-duration-normal) var(--ostk-easing);
+  }
+
+  /* Animate hamburger to X when open */
+  .hamburger[aria-expanded='true'] .hamburger-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .hamburger[aria-expanded='true'] .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger[aria-expanded='true'] .hamburger-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* ---- Full-screen overlay ---- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--ostk-z-modal);
+    background: var(--ostk-bg-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--ostk-duration-slow) var(--ostk-easing),
+      visibility var(--ostk-duration-slow) var(--ostk-easing);
+  }
+
+  .overlay[hidden] {
+    display: flex; /* override default hidden display:none so transitions work */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* ---- Close button (X) ---- */
+  .overlay-close {
+    position: absolute;
+    top: var(--ostk-space-4);
+    right: var(--ostk-space-6);
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: var(--ostk-space-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .overlay-close:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+    border-radius: var(--ostk-radius-sm);
+  }
+
+  .close-line {
+    position: absolute;
+    width: 22px;
+    height: 2px;
+    background: var(--ostk-text-primary);
+    border-radius: 1px;
+  }
+
+  .close-line-1 {
+    transform: rotate(45deg);
+  }
+
+  .close-line-2 {
+    transform: rotate(-45deg);
+  }
+
+  /* ---- Nav links inside overlay ---- */
+  .overlay-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ostk-space-8);
+  }
+
+  .overlay-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ostk-space-4);
+  }
+
+  .overlay-link {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-lg);
+    font-weight: var(--ostk-weight-medium);
+    color: var(--ostk-text-secondary);
+    text-decoration: none;
+    padding: var(--ostk-space-2) var(--ostk-space-4);
+    border-bottom: 2px solid transparent;
+    transition: color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .overlay-link:hover,
+  .overlay-link:focus-visible {
+    color: var(--ostk-text-primary);
+  }
+
+  .overlay-link:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 4px;
+    border-radius: var(--ostk-radius-sm);
+  }
+
+  .overlay-link.active {
+    color: var(--ostk-text-primary);
+    border-bottom-color: var(--ostk-needle);
+  }
+
+  .external-icon {
+    font-size: 0.7em;
+    margin-left: 0.25em;
+    opacity: 0.6;
+  }
+
+  /* ---- prefers-reduced-motion ---- */
+  @media (prefers-reduced-motion: reduce) {
+    .hamburger-line,
+    .overlay,
+    .overlay-link {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initMobileMenu() {
+    const root = document.querySelector('[data-mobile-menu]');
+    if (!root) return;
+
+    const toggle = root.querySelector<HTMLButtonElement>('[data-mobile-menu-toggle]');
+    const overlay = root.querySelector<HTMLElement>('[data-mobile-menu-overlay]');
+    const closeBtn = root.querySelector<HTMLButtonElement>('[data-mobile-menu-close]');
+
+    if (!toggle || !overlay || !closeBtn) return;
+
+    function open() {
+      overlay!.hidden = false;
+      // Force a reflow so the transition triggers after hidden is removed.
+      void overlay!.offsetHeight;
+      overlay!.classList.add('is-open');
+      toggle!.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      closeBtn!.focus();
+    }
+
+    function close() {
+      overlay!.classList.remove('is-open');
+      toggle!.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+
+      // Wait for transition to finish before hiding.
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) {
+        overlay!.hidden = true;
+      } else {
+        overlay!.addEventListener(
+          'transitionend',
+          () => {
+            if (!overlay!.classList.contains('is-open')) {
+              overlay!.hidden = true;
+            }
+          },
+          { once: true },
+        );
+      }
+      toggle!.focus();
+    }
+
+    function isOpen(): boolean {
+      return overlay!.classList.contains('is-open');
+    }
+
+    // --- Focus trap ---
+    function getFocusableElements(): HTMLElement[] {
+      const selectors =
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+      return Array.from(overlay!.querySelectorAll<HTMLElement>(selectors));
+    }
+
+    function trapFocus(e: KeyboardEvent) {
+      if (!isOpen()) return;
+
+      if (e.key === 'Tab') {
+        const focusable = getFocusableElements();
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
+    // --- Event listeners ---
+    toggle.addEventListener('click', () => {
+      if (isOpen()) {
+        close();
+      } else {
+        open();
+      }
+    });
+
+    closeBtn.addEventListener('click', close);
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) {
+        close();
+      }
+      trapFocus(e);
+    });
+
+    // Close when clicking the backdrop (not a link or button)
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        close();
+      }
+    });
+
+    // Close when a nav link is clicked (SPA-friendly)
+    const links = overlay.querySelectorAll<HTMLAnchorElement>('.overlay-link');
+    links.forEach((link) => {
+      link.addEventListener('click', () => {
+        close();
+      });
+    });
+  }
+
+  // Run on initial load and on Astro page transitions (View Transitions).
+  initMobileMenu();
+  document.addEventListener('astro:after-swap', initMobileMenu);
+</script>

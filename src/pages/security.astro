@@ -12,6 +12,8 @@ import Base from '../layouts/Base.astro';
     <h2>Trust tiers</h2>
     <p>Identity in ostk is determined by the <strong>GPG web of trust</strong> — not by platform accounts. Your trust tier is resolved at boot from cross-signatures in your keyring.</p>
 
+    <img src="/diagrams/trust-tiers.svg" alt="Trust tier capability matrix showing T0 through T3 permissions for read, write, governance, and agent operations" class="diagram" />
+
     <table class="trust-table">
       <thead>
         <tr>
@@ -119,7 +121,8 @@ import Base from '../layouts/Base.astro';
     <p>When an agent writes to a denied path, the write is silently blocked. The agent never knows. The audit trail records it. This is by design — the OS is invisible to the agents running on it.</p>
     <p>Every release binary is signed by the CI key before it is published. Verify before you run:</p>
 
-    <pre><code>$ gpg --verify ostk-v2.2.4-aarch64-apple-darwin.tar.gz.asc
+    <pre><code># Replace the version with the one you downloaded
+$ gpg --verify ostk-v2.3.0-aarch64-apple-darwin.tar.gz.asc
 gpg: Good signature from "ostk.ai (the kernel survives) &lt;contact@ostk.ai&gt;"
 gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
 
@@ -186,6 +189,9 @@ gpg: using EDDSA key 5FF41DFFB92A22E1EAD68E0B69FD844FE1B53386</code></pre>
     </table>
 
     <p>Full mitigations: <a href="https://github.com/os-tack/ostk.ai/blob/main/docs/security/threat-model.md">docs/security/threat-model.md</a></p>
+
+    <h2>Source availability</h2>
+    <p>The ostk kernel is closed-source. You cannot audit the implementation of write interception, conflict resolution, or capability enforcement by reading source code. The security claims on this page are verified through the test harness linked above, the published threat model, and GPG-signed release binaries. If source auditability is a requirement for your threat model, this is a constraint you should weigh.</p>
   </div>
 </Base>
 

@@ -1,0 +1,124 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Capability Pins" description="Capability pins: deny-based restrictions per trust tier. Floor semantics prevent privilege escalation.">
+  <p>Pins define what agents cannot do. The model is deny-based: everything is allowed unless explicitly denied. Pins add restrictions. They never grant capabilities.</p>
+
+  <img src="/diagrams/pin-enforcement.svg" alt="Pin enforcement flow: agent write → resolve trust tier → read pin.caps → merge defaults + tokens → check deny tokens → allow or silent block" class="diagram" />
+
+  <h2>The pin model</h2>
+  <p>A pin is a set of <strong>deny tokens</strong>. Each token names a capability that is blocked. An agent's effective restrictions are the union of their trust tier defaults and any explicit pins.</p>
+  <p>This is <strong>floor semantics</strong>: your trust tier sets a minimum set of restrictions. Pins can raise the floor (add more restrictions) but never lower it. A T2 agent with a permissive custom pin still cannot write source code — the tier floor holds.</p>
+  <pre><code># The kernel computes:
+effective_denies = tier_denies | pin_denies</code></pre>
+
+  <h2>Deny tokens</h2>
+  <table>
+    <thead>
+      <tr><th>Token</th><th>What it denies</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>write-kernel</code></td>
+        <td>Writes to <code>.ostk/</code> — the OS state directory</td>
+      </tr>
+      <tr>
+        <td><code>modify-governance</code></td>
+        <td>Writes to HUMANFILE, ENTITYFILE, GENESIS.md, AUTHORIZATION.md, Agentfile</td>
+      </tr>
+      <tr>
+        <td><code>write-src</code></td>
+        <td>Writes to source code files</td>
+      </tr>
+      <tr>
+        <td><code>read-secrets</code></td>
+        <td>Access to secret values via the kernel's secret mediation</td>
+      </tr>
+      <tr>
+        <td><code>spawn-agent</code></td>
+        <td>Launching new agents from within an agent session</td>
+      </tr>
+      <tr>
+        <td><code>network</code></td>
+        <td>Outbound network access (MCP calls, web fetches)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Default denies per trust tier</h2>
+  <table>
+    <thead>
+      <tr><th>Tier</th><th>Identity</th><th>Default denies</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>T0</strong></td>
+        <td>GPG-verified operator</td>
+        <td>None. Full access.</td>
+      </tr>
+      <tr>
+        <td><strong>T1</strong></td>
+        <td>Cross-signed contributor</td>
+        <td><code>write-kernel</code>, <code>modify-governance</code></td>
+      </tr>
+      <tr>
+        <td><strong>T2</strong></td>
+        <td>Named, unverified</td>
+        <td>All writes: <code>write-kernel</code>, <code>modify-governance</code>, <code>write-src</code></td>
+      </tr>
+      <tr>
+        <td><strong>T3</strong></td>
+        <td>Anonymous / untrusted</td>
+        <td>All writes + most reads: <code>write-kernel</code>, <code>modify-governance</code>, <code>write-src</code>, <code>read-secrets</code>, <code>spawn-agent</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>T0 has no restrictions by default. T3 can barely read. The floor rises as trust decreases.</p>
+
+  <h2>Custom pins</h2>
+  <p>Define custom pins in <code>.ostk/pin.caps</code>:</p>
+  <pre><code># pin.caps — custom capability pins
+
+[read-only]
+deny = ["write-kernel", "modify-governance", "write-src"]
+
+[no-network]
+deny = ["network"]
+
+[sandbox]
+deny = ["write-kernel", "modify-governance", "write-src", "spawn-agent", "network"]</code></pre>
+
+  <p>Apply a pin to an agent via the <a href="/docs/agentfile">Agentfile</a>:</p>
+  <pre><code>FROM auto
+PROMPT "You are a code reviewer."
+TOOL file:read
+PIN read-only</code></pre>
+
+  <p><code>PIN default</code> uses the tier-default pin with no additional restrictions. Omitting the PIN directive entirely has the same effect.</p>
+
+  <h2>Floor enforcement</h2>
+  <p>Pins can only add restrictions, never remove them. If a T1 agent uses a custom pin that omits <code>write-kernel</code> from its deny list, the kernel still denies <code>write-kernel</code> because the T1 tier floor includes it.</p>
+  <pre><code># T1 tier floor: write-kernel, modify-governance
+# Custom pin denies: write-src
+# Effective: write-kernel, modify-governance, write-src
+# The floor is never lowered.</code></pre>
+  <p>This prevents privilege escalation through pin configuration. An operator at T1 cannot create a pin that grants T0-level access.</p>
+
+  <h2>The deny-only trade-off</h2>
+  <p>Pins are deny-only. There are no allow tokens. This is the inverse of least-privilege: everything is permitted unless explicitly denied. If you forget to add a deny token, the agent has access.</p>
+  <p>This is a deliberate trade-off. Deny-only is simpler to reason about (a short list of things that are blocked) and fails open, which keeps agents productive. Allow-only (least-privilege) is safer but requires enumerating every capability an agent needs — and a missing entry blocks the agent silently, which is hard to debug. The tier floor mitigates the risk: even if your custom pin is permissive, the trust tier's default denies still apply.</p>
+
+  <h2>Silent enforcement</h2>
+  <p>When a denied operation is attempted, the kernel blocks it silently. The agent does not receive an error message — the write simply does not persist. This is intentional: agents that know about restrictions try to work around them. Agents that don't know about restrictions write normally and the OS decides what sticks.</p>
+  <p>Denied operations are logged in the audit trail. The operator can review them with <code>ostk os audit</code>.</p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/governance">Governance</a> — trust model and the full pin description</li>
+    <li><a href="/docs/five-laws">Five Laws</a> — "invisible infrastructure" and the write path</li>
+    <li><a href="/docs/agentfile">Agentfile</a> — the <code>PIN</code> directive</li>
+    <li><a href="/docs/entityfile">ENTITYFILE</a> — trust tier definitions</li>
+  </ul>
+</DocsLayout>

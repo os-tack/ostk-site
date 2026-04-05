@@ -1,0 +1,95 @@
+---
+import Base from './Base.astro';
+import RelatedPages from '../components/RelatedPages.astro';
+import CTABanner from '../components/CTABanner.astro';
+
+interface RelatedPage {
+  title: string;
+  description: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  tagline: string;
+  description: string;
+  relatedPages?: RelatedPage[];
+}
+
+const { title, tagline, description, relatedPages = [] } = Astro.props;
+const pageTitle = `${title} — ostk`;
+---
+
+<Base title={pageTitle} description={description}>
+  <div class="container page-content">
+    <article class="feature-article">
+      <header class="feature-header">
+        <span class="feature-tagline">{tagline}</span>
+        <h1 class="feature-title">{title}</h1>
+        <p class="feature-desc">{description}</p>
+        <hr class="feature-divider" />
+      </header>
+
+      <div class="feature-body">
+        <slot />
+      </div>
+
+      <RelatedPages pages={relatedPages} />
+      <CTABanner />
+    </article>
+  </div>
+</Base>
+
+<style>
+  .feature-article {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .feature-header {
+    margin-bottom: var(--ostk-space-8);
+  }
+
+  .feature-tagline {
+    display: inline-block;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
+    color: var(--ostk-needle);
+    margin-bottom: var(--ostk-space-3);
+  }
+
+  .feature-title {
+    font-size: var(--ostk-text-3xl);
+    margin-bottom: var(--ostk-space-3);
+    margin-top: 0;
+    line-height: var(--ostk-leading-tight);
+  }
+
+  .feature-desc {
+    font-size: var(--ostk-text-md);
+    color: var(--ostk-text-secondary);
+    line-height: var(--ostk-leading-relaxed);
+    max-width: 36rem;
+    margin-bottom: 0;
+  }
+
+  .feature-divider {
+    border: none;
+    border-top: 1px solid var(--ostk-border-subtle);
+    margin-top: var(--ostk-space-6);
+  }
+
+  .feature-body {
+    line-height: var(--ostk-leading-relaxed);
+  }
+
+  .feature-body :global(h2) {
+    margin-top: var(--ostk-space-12);
+  }
+
+  .feature-body :global(h3) {
+    margin-top: var(--ostk-space-8);
+  }
+</style>

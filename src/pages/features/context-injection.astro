@@ -1,0 +1,186 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Local-First", description: "Run on local models, no API dependency", href: "/features/local-first" },
+  { title: "Model Switching", description: "Switch models mid-session without losing context", href: "/features/model-switching" },
+  { title: "Benchmarks", description: "needle-bench open benchmark", href: "/bench" },
+];
+---
+
+<FeaturePage
+  tagline="Context Injection"
+  title="Agents Skip Exploration"
+  description="AI coding agents waste most of their turns orienting — reading READMEs, listing directories, mapping the codebase. ostk front-loads this context silently. The agent's first turn is already productive."
+  relatedPages={relatedPages}
+>
+
+  <h2>The experiment</h2>
+  <p>
+    <a href="https://needle-bench.cc">needle-bench</a> tests AI coding agents on 32 real bugs frozen in Docker containers. Each model gets shell access and one instruction: <em>find the needle</em>. The test suite passes or it doesn&rsquo;t.
+  </p>
+  <p>Every model runs twice:</p>
+  <ul>
+    <li><strong>Bare</strong> &mdash; generic system prompt + bash. No project context.</li>
+    <li><strong>OS (silent)</strong> &mdash; identical prompt, but project context (README, file tree, test output, recent errors) is injected into the system prompt. The model cannot detect which arm it&rsquo;s in.</li>
+  </ul>
+  <p>
+    Same tools, same turn limits, same token budgets. The only variable is what the model knows before it starts exploring. 26 models, 1,664 total runs.
+  </p>
+
+  <h2>The results</h2>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th></th><th>Mean</th><th>Median</th><th>Models improved</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bare</td><td class="num">34.9%</td><td class="num">15.6%</td><td class="num">&mdash;</td></tr>
+        <tr><td>With context</td><td class="num">69.2%</td><td class="num">72.9%</td><td class="num">&mdash;</td></tr>
+        <tr><td><strong>Delta</strong></td><td class="num accent"><strong>+34.3pp</strong></td><td class="num accent"><strong>+37.5pp</strong></td><td class="num"><strong>23/26</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    23 of 26 models improved with context injection. The median jump was +37.5 percentage points. The effect held across all 8 vendors tested.
+  </p>
+
+  <h2>Why it works</h2>
+  <p>
+    AI coding agents waste most of their turns on orientation. In the bare arm, a typical agent spends 5&ndash;10 turns reading README files, listing directories, running tests, and mapping the codebase before it starts debugging. That&rsquo;s token budget spent on information that could have been provided upfront.
+  </p>
+  <p>Context injection front-loads this information. The agent&rsquo;s first turn already knows:</p>
+  <ul>
+    <li>What the project does (README summary)</li>
+    <li>Where the relevant files are (file tree, filtered to likely areas)</li>
+    <li>What&rsquo;s failing (test output, error messages)</li>
+    <li>What was recently changed (git log, diff summary)</li>
+  </ul>
+  <p>Fewer turns wasted on exploration means more turns available for the actual task.</p>
+
+  <h2>Budget vs frontier</h2>
+  <p>Context injection lets cheap models match expensive ones.</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Comparison</th><th>Rate</th><th>Resolve</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Claude Opus 4 bare</td><td class="num muted">$15/MTok</td><td class="num">90.6%</td></tr>
+        <tr><td>Claude Haiku 4.5 + context</td><td class="num muted">$0.80/MTok</td><td class="num accent">90.6%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Haiku with context matches Opus without it &mdash; at roughly <strong>1/19th the cost</strong>. The same pattern repeats across vendors:</p>
+  <ul>
+    <li><strong>GPT-4o + context</strong> (81.2%) beats <strong>GPT-4.1 bare</strong> (50.0%)</li>
+    <li><strong>Gemini Flash + context</strong> (65.6%) beats <strong>Gemini 2.5 Pro bare</strong> (28.1%)</li>
+    <li><strong>Devstral 24B + context</strong> (75.0%) beats <strong>GPT-4.1 bare</strong> (50.0%) &mdash; an open 24B model outperforms a closed frontier model</li>
+  </ul>
+
+  <h2>How ostk does it</h2>
+  <p>
+    Two commands. The OS handles the rest.
+  </p>
+  <div class="code-block">
+    <pre><code>$ ostk init        # one-time project setup
+$ ostk boot        # starts the OS, injects context
+
+# What the agent sees (invisible, in system prompt):
+# - Project: api-server (Node.js + Express)
+# - Files: 47 files, 3,200 LOC
+# - Tests: 2 failing (auth.test.js:42, auth.test.js:67)
+# - Recent: modified auth/middleware.js 2 hours ago</code></pre>
+  </div>
+  <p>
+    <code>ostk init</code> scans your project once and creates a <code>.ostk/</code> directory. <code>ostk boot</code> reads the current project state &mdash; file tree, test output, recent changes, error messages &mdash; and assembles it into the agent&rsquo;s system prompt. The agent doesn&rsquo;t know it received context. It just starts with better information.
+  </p>
+  <p>
+    No special model configuration. No fine-tuning. No prompt engineering on your part. The same mechanism that produced +34.3pp mean improvement across 26 models in needle-bench runs on your project with the same two commands.
+  </p>
+
+  <h2>Beyond debugging</h2>
+  <p>needle-bench measures debugging, but the principle generalizes. Any task where an agent spends turns on orientation benefits from context injection:</p>
+  <ul>
+    <li><strong>Code review</strong> &mdash; agent knows the PR context, related files, and test coverage before reading the diff</li>
+    <li><strong>Feature implementation</strong> &mdash; agent knows the architecture, existing patterns, and dependency constraints upfront</li>
+    <li><strong>Refactoring</strong> &mdash; agent knows what depends on what before it starts moving code</li>
+  </ul>
+  <p>The mechanism is the same: reduce exploration turns, increase productive turns.</p>
+
+  <h2>Constraints</h2>
+  <ul>
+    <li>Context injection adds tokens to the system prompt. Overhead depends on project size.</li>
+    <li>Injected context can be stale if the project state changed since the last boot.</li>
+    <li>Works best when the task is related to files already in the project. Less effective for greenfield code with no existing structure to reference.</li>
+  </ul>
+
+  <h2>Try it</h2>
+  <p>
+    Install ostk, run <code>ostk init</code> in your project, then <code>ostk boot</code>. See the difference on your own codebase.
+  </p>
+  <p>
+    <a href="/docs/">Read the docs</a> &middot;
+    <a href="https://needle-bench.cc/insights/model-comparison/">See all 26 models</a> &middot;
+    <a href="https://needle-bench.cc">Live leaderboard</a>
+  </p>
+
+</FeaturePage>
+
+<style>
+  .data-table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    text-align: left;
+  }
+
+  .data-table th {
+    color: var(--ostk-text-muted);
+    font-weight: 500;
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .data-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-table .accent {
+    color: var(--ostk-needle);
+  }
+
+  .data-table .muted {
+    color: var(--ostk-text-muted);
+  }
+
+  .code-block {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.6;
+  }
+</style>

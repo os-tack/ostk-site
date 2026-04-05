@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" fill="none">
+  <style>
+    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
+    .label { fill: #e8e8ec; font-size: 12px; font-weight: 600; }
+    .sublabel { fill: #a0a0aa; font-size: 11px; font-weight: 400; }
+    .step { fill: #e8e8ec; font-size: 11px; font-weight: 500; }
+    .token { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; font-weight: 500; }
+    .arrow { stroke-width: 1.5; marker-end: url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#a0a0aa" stroke-width="1"/>
+    </marker>
+    <marker id="arrowgreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#4ade80" stroke-width="1"/>
+    </marker>
+    <marker id="arrowred" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#ef4444" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <rect width="640" height="400" fill="#111114" rx="8"/>
+  <text x="320" y="28" text-anchor="middle" fill="#e8e8ec" font-size="14" font-weight="700">Pin Enforcement Flow</text>
+
+  <!-- Agent write request -->
+  <rect x="40" y="50" width="160" height="40" rx="4" fill="#1a1a1e" stroke="#60a5fa" stroke-width="1"/>
+  <text x="120" y="72" text-anchor="middle" class="label">Agent: file:edit()</text>
+
+  <!-- Arrow to tier check -->
+  <line x1="200" y1="70" x2="260" y2="70" class="arrow" stroke="#a0a0aa"/>
+
+  <!-- Tier defaults -->
+  <rect x="260" y="46" width="150" height="48" rx="4" fill="#1a1a1e" stroke="#f59e0b" stroke-width="1"/>
+  <text x="335" y="64" text-anchor="middle" class="step">Resolve trust tier</text>
+  <text x="335" y="80" text-anchor="middle" class="sublabel">GPG web-of-trust lookup</text>
+
+  <!-- Arrow to pin check -->
+  <line x1="410" y1="70" x2="460" y2="70" class="arrow" stroke="#a0a0aa"/>
+
+  <!-- Pin check -->
+  <rect x="460" y="46" width="150" height="48" rx="4" fill="#1a1a1e" stroke="#a78bfa" stroke-width="1"/>
+  <text x="535" y="64" text-anchor="middle" class="step">Read pin.caps</text>
+  <text x="535" y="80" text-anchor="middle" class="sublabel">OSTK_PIN env var</text>
+
+  <!-- Arrow down to merge -->
+  <line x1="335" y1="94" x2="335" y2="130" class="arrow" stroke="#a0a0aa"/>
+  <line x1="535" y1="94" x2="535" y2="130" class="arrow" stroke="#a0a0aa"/>
+
+  <!-- Merge box -->
+  <rect x="220" y="130" width="350" height="44" rx="4" fill="#1a1a1e" stroke="#e8e8ec" stroke-width="0.5"/>
+  <text x="395" y="148" text-anchor="middle" class="step">Merge: tier defaults + pin tokens</text>
+  <text x="395" y="164" text-anchor="middle" class="sublabel">Tier is floor. Pin adds restrictions, never removes them.</text>
+
+  <!-- Arrow down to token check -->
+  <line x1="395" y1="174" x2="395" y2="210" class="arrow" stroke="#a0a0aa"/>
+
+  <!-- Token evaluation -->
+  <rect x="220" y="210" width="350" height="44" rx="4" fill="#1a1a1e" stroke="#e8e8ec" stroke-width="0.5"/>
+  <text x="395" y="228" text-anchor="middle" class="step">Check deny tokens against target path</text>
+  <text x="395" y="244" text-anchor="middle" class="sublabel">write-kernel? modify-governance? write-src?</text>
+
+  <!-- Branch: allow -->
+  <line x1="310" y1="254" x2="200" y2="310" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arrowgreen)"/>
+  <text x="220" y="280" class="sublabel" fill="#4ade80">no deny match</text>
+
+  <!-- Branch: deny -->
+  <line x1="480" y1="254" x2="535" y2="310" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowred)"/>
+  <text x="520" y="280" class="sublabel" fill="#ef4444">token matches</text>
+
+  <!-- Allow box -->
+  <rect x="80" y="310" width="180" height="40" rx="4" fill="#0f1f16" stroke="#4ade80" stroke-width="1"/>
+  <text x="170" y="332" text-anchor="middle" class="label" fill="#4ade80">Proceed to flock + CAS</text>
+
+  <!-- Deny box -->
+  <rect x="460" y="310" width="150" height="40" rx="4" fill="#1f0f0f" stroke="#ef4444" stroke-width="1"/>
+  <text x="535" y="326" text-anchor="middle" class="label" fill="#ef4444">Silent block</text>
+  <text x="535" y="342" text-anchor="middle" class="sublabel" fill="#ef4444">logged to audit</text>
+
+  <!-- Token examples -->
+  <rect x="40" y="368" width="560" height="24" rx="3" fill="#1a1a1e"/>
+  <text x="50" y="384" class="token" fill="#a78bfa">write-kernel</text>
+  <text x="145" y="384" class="sublabel">blocks .ostk/ paths</text>
+  <text x="270" y="384" class="token" fill="#a78bfa">modify-governance</text>
+  <text x="392" y="384" class="sublabel">blocks HUMANFILE, Agentfiles</text>
+  <text x="520" y="384" class="token" fill="#a78bfa">write-src</text>
+  <text x="575" y="384" class="sublabel">blocks /src/</text>
+</svg>

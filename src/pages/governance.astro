@@ -2,28 +2,15 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Governance — ostk" description="How ostk governs itself: GPG web of trust, capability pins, and the documents that define the OS.">
-  <div class="container">
+<Base title="Governance — ostk" description="How ostk governs itself: GPG web of trust, signed documents, and cryptographic trust.">
+  <div class="container page-content">
     <h1>Governance</h1>
 
     <p class="lede">ostk is governed by signed documents, not by permissions dashboards. Trust is cryptographic. Enforcement is invisible.</p>
 
-    <h2>The trust model</h2>
-    <p>Identity in ostk is determined by the <strong>GPG web of trust</strong>. Your trust tier is resolved at boot by checking whether your GPG key carries a cross-signature from a trusted key.</p>
-    <p>There are no admin panels. No role assignments. No OAuth scopes. You have a GPG key. The key either carries a cross-signature from a T0 holder, or it doesn't. That's the entire model.</p>
+    <p>For trust tiers, capability pins, and how the GPG model works in practice, see <a href="/features/governance">Trust & Governance</a>.</p>
 
-    <h3>How cross-signing works</h3>
-    <ol>
-      <li>You generate a GPG key and add it to your GitHub account.</li>
-      <li>You share your fingerprint with a T0 holder (a project maintainer).</li>
-      <li>They sign your key: <code>gpg --sign-key YOUR_FINGERPRINT</code></li>
-      <li>They export the signed key: <code>gpg --export --armor YOUR_FINGERPRINT > signed.asc</code></li>
-      <li>You import their signature: <code>gpg --import signed.asc</code></li>
-      <li>You boot ostk. The kernel detects the cross-signature. You're T1.</li>
-    </ol>
-    <p>No server was involved. No API was called. The trust relationship exists in the GPG keyring on your machine.</p>
-
-    <h2>The governance documents</h2>
+    <h2>Governance documents</h2>
     <p>Four documents define the OS. Each has a specific role:</p>
 
     <table>
@@ -54,65 +41,27 @@ import Base from '../layouts/Base.astro';
       </tbody>
     </table>
 
-    <p>These files are protected by the <code>modify-governance</code> deny token. Any agent at T1 or below is silently blocked from writing to them. The agent never knows the write was denied. The audit trail records it.</p>
-
-    <h2>Capability pins</h2>
-    <p>Pins are invisible capability boundaries. They define what agents <em>cannot</em> do — not what they can. The design inverts the traditional permission model.</p>
-
-    <h3>Traditional model</h3>
-    <pre><code># "Grant access to X" — the agent must request it
-agent.request_permission("write", "src/")
-if approved: proceed()</code></pre>
-
-    <h3>ostk model</h3>
-    <pre><code># The agent writes normally. The OS decides.
-# If denied, the write silently fails. The agent never knows.
-echo "new code" > src/main.rs   # ← blocked for T2, allowed for T1</code></pre>
-
-    <p>Three deny tokens control the boundaries:</p>
-    <table>
-      <thead>
-        <tr><th>Token</th><th>What it denies</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>write-kernel</code></td><td>Writes to <code>.ostk/</code> — the OS state directory</td></tr>
-        <tr><td><code>modify-governance</code></td><td>Writes to HUMANFILE, ENTITYFILE, GENESIS.md, AUTHORIZATION.md, Agentfile</td></tr>
-        <tr><td><code>write-src</code></td><td>Writes to source code</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Floor semantics</h3>
-    <p>Your trust tier sets a <strong>floor</strong> — the minimum set of restrictions. Explicit pins can add more restrictions but never remove tier defaults.</p>
-    <p>A T2 user who sets <code>OSTK_PIN=my-permissive-pin</code> still cannot write source. The kernel computes the union: <code>tier_denies ∪ explicit_denies</code>. The floor holds.</p>
-
-    <h2>The five laws</h2>
-    <p>These are not guidelines. They are load-bearing constraints. Every design decision in the OS must satisfy all five.</p>
-    <ol>
-      <li><strong>The write path is invisible.</strong> Agents edit files normally. Coordination happens underneath. No new tools to learn.</li>
-      <li><strong>Agents are ephemeral.</strong> They crash, compact, lose context. State lives in the filesystem, not in the agent.</li>
-      <li><strong>Coordinate through the filesystem.</strong> No messaging buses. No inboxes. Agents write files. The kernel resolves conflicts.</li>
-      <li><strong>Optimistic concurrency.</strong> No locks. Agents write freely. Conflicts resolved, not prevented.</li>
-      <li><strong>Invisible infrastructure.</strong> If you have to think about the OS, the OS failed.</li>
-    </ol>
+    <p>These files are protected by the <code>modify-governance</code> deny token. Any agent at T1 or below is silently blocked from writing to them. See <a href="/docs/pins">Capability Pins</a> for details.</p>
 
     <h2>Needles</h2>
     <p>Work items in ostk are called <strong>needles</strong> — as in needle-in-a-haystack. Each needle is an executable unit of work with a title, priority, and test criteria. The kernel tracks them, agents execute them, the audit trail records completion.</p>
-    <p>Needles are filed with <code>ostk needle add</code>, compiled from unstructured thinking with <code>ostk compile</code>, and closed when the work is done. The backlog is visible at <code>ostk show needles</code>.</p>
-    <p>That's the whole metaphor. Needles are work items. The haystack is the project state. The OS helps you find and resolve them.</p>
+    <pre><code>ostk needle add "fix auth flow" .p0    # file a work item
+ostk compile                            # triage thinking into needles
+ostk verify                             # check against criteria</code></pre>
 
     <h2>The signing chain</h2>
-    <p>Every release follows the same chain:</p>
     <ol>
       <li><strong>Development</strong> — commits signed by the developer's personal key</li>
-      <li><strong>Release</strong> — the <code>ostk.ai</code> repository commit signed by the institutional key (<code>contact@ostk.ai</code>)</li>
+      <li><strong>Release</strong> — the <code>ostk.ai</code> repository commit signed by the institutional key</li>
       <li><strong>Binary</strong> — release binaries signed by the CI key (cross-signed by root)</li>
-      <li><strong>Verification</strong> — any user can verify any artifact against the public key (<code>prime.asc</code> in the repo)</li>
+      <li><strong>Verification</strong> — any user can verify any artifact against the public key</li>
     </ol>
-    <p>The root key certifies the CI key. The CI key signs binaries. Users verify against the root. One chain, fully offline-verifiable.</p>
 
     <h2>Source availability</h2>
     <p>The kernel binary is distributed as GPG-signed release artifacts. The <a href="https://github.com/os-tack/ostk.ai">os-tack/ostk.ai</a> repository — containing the governance documents, signing keys, install script, and release configuration — is open source under MIT license.</p>
     <p>The kernel source is not currently published. The governance model, trust chain, and all verification artifacts are fully public and auditable.</p>
+
+    <p>See also: <a href="/docs/five-laws">The Five Laws</a> that govern all OS design decisions.</p>
   </div>
 </Base>
 
@@ -126,5 +75,4 @@ echo "new code" > src/main.rs   # ← blocked for T2, allowed for T1</code></pre
   }
   h2 { margin-top: var(--ostk-space-12); }
   h2:first-of-type { margin-top: var(--ostk-space-8); }
-  h3 { margin-top: var(--ostk-space-6); }
 </style>

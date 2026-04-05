@@ -1,0 +1,56 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+---
+
+<FeaturePage
+  title="Compressed Intent Language"
+  tagline="Tack"
+  description="You type compressed commands. The OS compiles them into actions. Communication compresses across sessions as the OS learns your vocabulary."
+  relatedPages={[
+    { title: "Context Injection", description: "+34.3pp improvement across 26 models", href: "/features/context-injection" },
+    { title: "Model Switching", description: "Switch models without losing context", href: "/features/model-switching" },
+    { title: "Command Reference", description: "Full command table", href: "/docs/commands" },
+  ]}
+>
+  <h2>The problem</h2>
+  <p>Every interaction with an AI agent costs tokens. A typical operation — "read this file, understand the context, make this change" — carries communication overhead before the agent even starts working.</p>
+  <p>Multiply that across hundreds of operations per session. The communication cost adds up.</p>
+
+  <h2>What it looks like</h2>
+  <p>You type compressed intent. The OS resolves it.</p>
+
+  <pre><code>:compile                    # triage unstructured thinking into work items
+:compile :plan :ship        # compile, plan, commit — three words, full execution
+:needle add "fix auth" .p0  # file a priority-0 work item
+:calibrate                  # run a retrospective on the current thread
+.? status                   # what's the current state?</code></pre>
+
+  <p>Each <code>:verb</code> resolves through the OS. The resolution is tiered:</p>
+  <ul>
+    <li>Known verbs execute directly</li>
+    <li>Learned verbs (from your usage patterns) execute with confidence weighting</li>
+    <li>Unknown verbs fall back to LLM inference</li>
+  </ul>
+
+  <h2>It learns</h2>
+  <p>Tack is not a fixed grammar. The OS observes your patterns across sessions and builds a vocabulary specific to your project. What you type today becomes a recognized verb tomorrow.</p>
+  <p>Session 1: you type full instructions. Session 5: you type <code>:compile :plan :ship</code> and the OS knows exactly what you mean. The vocabulary persists across sessions and across agents.</p>
+
+  <h2>Intent patterns</h2>
+  <p>Beyond verbs, tack recognizes intent signals:</p>
+  <table>
+    <thead>
+      <tr><th>You type</th><th>What happens</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>:correct X</code></td><td>Agent reverses course on X</td></tr>
+      <tr><td><code>:? topic</code></td><td>Answer concisely, don't execute</td></tr>
+      <tr><td><code>→needle</code></td><td>File a work item from current context</td></tr>
+      <tr><td><code>.p0</code></td><td>Priority zero (highest urgency)</td></tr>
+      <tr><td><code>CAPS</code></td><td>Boundary signal — hard constraint</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The result</h2>
+  <p>Communication gets shorter over time. The OS tracks compression in <code>ostk os metrics</code>. How much shorter depends on the project and the operator — tack adapts to how you actually work, not to a fixed grammar.</p>
+</FeaturePage>

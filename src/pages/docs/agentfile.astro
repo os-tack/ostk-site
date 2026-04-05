@@ -1,10 +1,8 @@
 ---
-import Base from '../../layouts/Base.astro';
+import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<Base title="Agentfile — ostk governance" description="Define what an agent can do. One file per agent type. Dockerfile for intelligence.">
-  <div class="container">
-    <h1>Agentfile</h1>
+<DocsLayout title="Agentfile" description="Define what an agent can do. One file per agent type. Dockerfile for intelligence.">
     <p class="lead">The definition file for one agent. Specifies model, tools, limits, and work scope. One file per agent type.</p>
 
     <h2>What it is</h2>
@@ -209,5 +207,4 @@ LIMIT destructive_ops allow     # pass through (not recommended for production)<
       <li><a href="/docs/entityfile">ENTITYFILE — trust tiers and agent registration</a></li>
       <li><a href="/docs">Documentation index</a></li>
     </ul>
-  </div>
-</Base>
+</DocsLayout>

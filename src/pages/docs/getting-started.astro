@@ -1,0 +1,69 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Quick Start" description="Install ostk and boot the OS on any git repository in under 5 minutes. macOS and Linux.">
+  <p>Install ostk and boot the OS on a repository. ~5 minutes from install to boot.</p>
+
+  <h2>Prerequisites</h2>
+  <ul>
+    <li>macOS (arm64/x86_64) or Linux (musl arm64/x86_64)</li>
+    <li><code>curl</code></li>
+    <li><code>git</code> (configured with <code>user.name</code> and <code>user.email</code>)</li>
+    <li>Optional: a GPG key for T0 operator trust</li>
+  </ul>
+
+  <h2>Install</h2>
+  <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
+  <p>The script detects your platform, downloads the correct binary, verifies its GPG signature, and places it in your <code>$PATH</code>. You should see the version and install location printed on success.</p>
+
+  <h2>Initialize</h2>
+  <h3>ostk init</h3>
+  <pre><code>cd your-repo
+ostk init</code></pre>
+  <p>Downloads the governance bail from <a href="https://github.com/os-tack/ostk.ai">os-tack/ostk.ai</a>, verifies its GPG signature, and creates your project's <code>.ostk/</code> directory with:</p>
+  <ul>
+    <li><a href="/docs/humanfile">HUMANFILE</a> — operator identity, personalized to your git config</li>
+    <li><a href="/docs/agentfile">Agentfile</a> — default agent definition</li>
+    <li><code>pin.caps</code> — capability pin defaults for your trust tier</li>
+    <li><code>ostk.toml</code> — project configuration</li>
+  </ul>
+
+  <h3>ostk init --guided</h3>
+  <pre><code>ostk init --guided</code></pre>
+  <p>Interactive 7-step wizard that walks through:</p>
+  <ol>
+    <li>Repository detection</li>
+    <li>Isolation mode</li>
+    <li>GPG key selection</li>
+    <li>Provider configuration</li>
+    <li>Autonomy level</li>
+    <li>API key setup</li>
+    <li>Summary and confirmation</li>
+  </ol>
+  <p>Use <code>--guided</code> on your first project. Use bare <code>init</code> when you know what you want.</p>
+
+  <h2>Boot</h2>
+  <pre><code>ostk boot</code></pre>
+  <p>Loads state from <code>.ostk/</code>, detects your trust tier, and prints a status report. After boot, the OS:</p>
+  <ul>
+    <li>Tracks every file write with generation counters</li>
+    <li>Resolves conflicts between concurrent agents (Hot PR)</li>
+    <li>Compresses shell output to save tokens</li>
+    <li>Maintains an audit trail of every action</li>
+  </ul>
+  <p>No configuration needed. No <code>.ostk.yml</code>. The OS reads the repo and orients.</p>
+
+  <h2>Optional: embeddings</h2>
+  <pre><code>ostk embeddings download</code></pre>
+  <p>Fetches the potion-base-8M embeddings model from HuggingFace. Enables semantic compression — the kernel deduplicates output by meaning, not just identical lines. The kernel uses it automatically once available. Boot prints guidance if the model is missing.</p>
+
+  <h2>Next steps</h2>
+  <ul>
+    <li><a href="/docs/commands">Commands</a> — full command reference</li>
+    <li><a href="/docs/humanfile">HUMANFILE</a> — configure your operator identity</li>
+    <li><a href="/docs/agentfile">Agentfile</a> — define what an agent can do</li>
+    <li><a href="/docs/tui">TUI</a> — real-time OS monitoring</li>
+    <li><a href="/docs/mcp">MCP Proxy</a> — connect external tool servers</li>
+  </ul>
+</DocsLayout>

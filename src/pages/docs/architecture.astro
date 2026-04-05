@@ -1,0 +1,89 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Architecture" description="ostk architecture: a single Rust binary kernel with FCP drivers for domain intelligence and coordination.">
+  <p>ostk is a single binary that coordinates AI agents working on a codebase. Two layers: the kernel and drivers.</p>
+
+  <figure>
+    <img src="/diagrams/architecture-overview.svg" alt="Architecture diagram showing the ostk kernel at center, with FCP drivers (fcp-rust, fcp-screen, fcp-web) connecting as plugins, agents writing to the filesystem above, and the audit trail below." />
+  </figure>
+
+  <h2>The kernel</h2>
+  <p>A single Rust binary. Statically linked. No runtime dependencies. The kernel handles:</p>
+  <ul>
+    <li><strong>Write tracking</strong> — every file write is intercepted and assigned a generation counter</li>
+    <li><strong>Conflict resolution</strong> — when two agents edit the same file, the kernel detects and resolves via Hot PR</li>
+    <li><strong>Output compression</strong> — strips ANSI codes, deduplicates lines, removes progress bars before output reaches agent context</li>
+    <li><strong>Capability enforcement</strong> — deny tokens applied silently based on trust tier and pin configuration</li>
+    <li><strong>Audit trail</strong> — every agent action is recorded. Queryable via <code>ostk os audit</code></li>
+    <li><strong>Secret mediation</strong> — API keys resolved from keychain at call time, never stored in agent context</li>
+    <li><strong>Fleet coordination</strong> — agent lifecycle, work queue, needle dispatch</li>
+  </ul>
+  <p>The kernel boots from the <code>.ostk/</code> directory. It reads governance documents (HUMANFILE, ENTITYFILE), resolves trust tier, and begins tracking. No config needed beyond <code>ostk init</code> and <code>ostk boot</code>.</p>
+
+  <h2>Write interception</h2>
+  <p>
+    ostk intercepts writes at the <strong>tool layer</strong>, not the filesystem. There is no FUSE mount, no <code>inotify</code> watcher, no <code>LD_PRELOAD</code> shim, and no <code>ptrace</code> syscall interception. Agents write files through kernel-provided primitives (<code>file:edit</code>, <code>file:write</code>, <code>file:create</code>) that apply policy, locking, and version tracking before bytes hit disk.
+  </p>
+  <p>
+    This is a deliberate trade-off. Filesystem-level interception provides universal coverage &mdash; any process writing to any path gets caught &mdash; but at the cost of platform fragility and performance overhead. Tool-layer mediation covers only writes that go through the kernel&rsquo;s primitives, but with zero overhead for unmediated I/O, no platform-specific modules, and deterministic behavior: if a write went through the tool, the kernel saw it.
+  </p>
+
+  <h2>FCP drivers</h2>
+  <p>Drivers extend the kernel with domain capabilities. They follow the FCP (Fleet Communication Protocol) interface — the kernel discovers, loads, and routes to them.</p>
+
+  <table>
+    <thead>
+      <tr><th>Driver</th><th>What it provides</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>fcp-rust</code></td>
+        <td>Rust project analysis — crate graph, type resolution, compilation diagnostics routed to agents</td>
+      </tr>
+      <tr>
+        <td><code>fcp-screen</code></td>
+        <td>TUI rendering — fleet status, work queue, permission modals, real-time agent output</td>
+      </tr>
+      <tr>
+        <td><code>fcp-web</code></td>
+        <td>Web page reading — fetch, render, and extract content from URLs for agent consumption</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Drivers are declared in your <a href="/docs/humanfile">HUMANFILE</a>:</p>
+  <pre><code>DRIVER fcp-rust
+DRIVER fcp-screen
+DRIVER fcp-web</code></pre>
+  <p>The kernel loads them at boot. If a driver binary isn't found, the kernel skips it and logs a warning. Drivers are optional — the kernel works without any.</p>
+
+  <h2>What the operator sees</h2>
+  <p>From the operator's perspective, ostk is one command (<code>ostk</code>) that does everything. The kernel/driver split is invisible at the CLI level. You run <code>ostk tui</code> — fcp-screen handles rendering. You run <code>ostk run Agentfile</code> — the kernel dispatches. You never address a driver directly.</p>
+  <p>The architecture exists to keep the binary small and the extension surface clean. It does not affect how you use ostk.</p>
+
+  <h2>State layout</h2>
+  <p>All OS state lives in the <code>.ostk/</code> directory at your project root:</p>
+  <table>
+    <thead>
+      <tr><th>Path</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>.ostk/HUMANFILE</code></td><td>Operator identity and configuration</td></tr>
+      <tr><td><code>.ostk/ENTITYFILE</code></td><td>Trust tiers and key registry</td></tr>
+      <tr><td><code>.ostk/boot.md</code></td><td>Boot state — read by agents at session start</td></tr>
+      <tr><td><code>.ostk/pin.caps</code></td><td>Capability pin definitions</td></tr>
+      <tr><td><code>.ostk/audit/</code></td><td>Append-only audit trail</td></tr>
+      <tr><td><code>.ostk/needles/</code></td><td>Work items — one file per needle</td></tr>
+    </tbody>
+  </table>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/five-laws">Five Laws</a> — the constraints the architecture must satisfy</li>
+    <li><a href="/docs/compression">Output Compression</a> — how the kernel saves tokens</li>
+    <li><a href="/docs/mcp">MCP Proxy</a> — connecting external tool servers through the kernel</li>
+    <li><a href="/docs/tui">TUI</a> — the fcp-screen driver interface</li>
+  </ul>
+</DocsLayout>

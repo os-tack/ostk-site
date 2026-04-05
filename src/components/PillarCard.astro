@@ -1,0 +1,98 @@
+---
+interface Props {
+  number: number;
+  title: string;
+  description: string;
+  href: string;
+}
+
+const { number, title, description, href } = Astro.props;
+---
+
+<a href={href} class="pillar-card">
+  <span class="pillar-number">{String(number).padStart(2, '0')}</span>
+  <div class="pillar-content">
+    <span class="pillar-title">{title}</span>
+    <span class="pillar-desc">{description}</span>
+  </div>
+  <span class="pillar-arrow" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M6 3l5 5-5 5" />
+    </svg>
+  </span>
+</a>
+
+<style>
+  .pillar-card {
+    display: flex;
+    align-items: center;
+    gap: var(--ostk-space-4);
+    padding: var(--ostk-space-4) var(--ostk-space-6);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    background: var(--ostk-bg-base);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--ostk-duration-fast) var(--ostk-easing),
+                background var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .pillar-card:hover {
+    border-color: var(--ostk-needle-dim);
+    background: var(--ostk-bg-raised);
+    color: inherit;
+  }
+
+  .pillar-card:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+
+  .pillar-number {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    color: var(--ostk-text-ghost);
+    min-width: 1.5rem;
+    user-select: none;
+  }
+
+  .pillar-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ostk-space-1);
+  }
+
+  .pillar-title {
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-text-primary);
+    font-size: var(--ostk-text-base);
+  }
+
+  .pillar-desc {
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-text-secondary);
+    line-height: var(--ostk-leading-normal);
+  }
+
+  .pillar-arrow {
+    color: var(--ostk-text-ghost);
+    transition: color var(--ostk-duration-fast) var(--ostk-easing),
+                transform var(--ostk-duration-fast) var(--ostk-easing);
+    flex-shrink: 0;
+  }
+
+  .pillar-card:hover .pillar-arrow {
+    color: var(--ostk-needle);
+    transform: translateX(2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pillar-card, .pillar-arrow {
+      transition: none;
+    }
+    .pillar-card:hover .pillar-arrow {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,79 @@
+---
+interface Props {
+  caption?: string;
+}
+
+const { caption } = Astro.props;
+---
+
+<div class="data-table-wrap">
+  <table class="data-table">
+    {caption && <caption class="data-caption">{caption}</caption>}
+    <slot />
+  </table>
+</div>
+
+<style>
+  .data-table-wrap {
+    overflow-x: auto;
+    margin-bottom: var(--ostk-space-6);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .data-caption {
+    text-align: left;
+    font-family: var(--ostk-font-sans);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
+    color: var(--ostk-text-muted);
+    padding-bottom: var(--ostk-space-3);
+    caption-side: top;
+  }
+
+  .data-table :global(th) {
+    text-align: left;
+    padding: var(--ostk-space-2) var(--ostk-space-3);
+    border-bottom: 1px solid var(--ostk-border-default);
+    color: var(--ostk-text-primary);
+    font-weight: var(--ostk-weight-medium);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
+    white-space: nowrap;
+  }
+
+  .data-table :global(td) {
+    padding: var(--ostk-space-2) var(--ostk-space-3);
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    color: var(--ostk-text-secondary);
+    white-space: nowrap;
+  }
+
+  /* Right-align numeric columns */
+  .data-table :global(td.num),
+  .data-table :global(th.num) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Positive/negative value highlighting */
+  .data-table :global(td.positive) {
+    color: var(--ostk-ok);
+  }
+
+  .data-table :global(td.negative) {
+    color: var(--ostk-err);
+  }
+
+  .data-table :global(tr:hover td) {
+    background: var(--ostk-bg-raised);
+  }
+</style>

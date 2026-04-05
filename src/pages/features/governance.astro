@@ -1,0 +1,64 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+---
+
+<FeaturePage
+  title="GPG Web of Trust"
+  tagline="Trust & Governance"
+  description="Identity is cryptographic. Trust tiers from T0 (operator) to T3 (anonymous) determine what each entity can do. Capability pins enforce invisible boundaries."
+  relatedPages={[
+    { title: "Audit Trail", description: "Every edit tracked and signed", href: "/features/audit-trail" },
+    { title: "Secret Management", description: "Keys never enter LLM context", href: "/features/secret-management" },
+    { title: "HUMANFILE Reference", description: "Operator identity document", href: "/docs/humanfile" },
+  ]}
+>
+  <p class="cross-link">For the full governance process, signing chain, and source availability, see the <a href="/governance">Governance</a> page.</p>
+
+  <h2>No admin panels. No OAuth. Just signatures.</h2>
+  <p>ostk uses GPG keys for identity. Your key signs your HUMANFILE. The kernel's key signs the OS identity. Cross-signing establishes trust. No accounts, no passwords, no tokens that expire.</p>
+
+  <h2>Trust tiers</h2>
+  <img src="/diagrams/trust-tiers.svg" alt="Trust tier capability matrix: T0 has full access, T1 can write source and boot agents, T2 is read-only, T3 is anonymous with minimal access" class="diagram" />
+  <table>
+    <thead>
+      <tr><th>Tier</th><th>Identity</th><th>Access</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>T0</strong></td><td>Human operator, GPG-verified</td><td>Full — kernel, governance, source, secrets</td></tr>
+      <tr><td><strong>T1</strong></td><td>Cross-signed by T0</td><td>Source code, fleet operations. Cannot modify governance or kernel.</td></tr>
+      <tr><td><strong>T2</strong></td><td>Named alias, unverified</td><td>Read-only</td></tr>
+      <tr><td><strong>T3</strong></td><td>Anonymous</td><td>Public artifacts only</td></tr>
+    </tbody>
+  </table>
+  <p>Trust tier is determined at <code>ostk boot</code> based on GPG key verification and cross-signing status. There is no way to self-promote — T0 must sign you in.</p>
+
+  <h2>Capability pins</h2>
+  <img src="/diagrams/pin-enforcement.svg" alt="Pin enforcement flow: agent write request → resolve trust tier → read pin.caps → merge tier defaults with pin tokens → check deny tokens → allow (proceed to flock + CAS) or silent block (logged to audit)" class="diagram" />
+  <p>Pins are invisible boundaries. An agent at T1 can write source code but cannot modify governance files. If it tries, the write is silently blocked — the agent never sees an error, and cannot detect the boundary.</p>
+  <p>Pins use deny tokens. Each trust tier has default denies:</p>
+  <ul>
+    <li><strong>T1:</strong> write-kernel, modify-governance</li>
+    <li><strong>T2:</strong> all writes</li>
+    <li><strong>T3:</strong> all writes, most reads</li>
+  </ul>
+  <p>You can add custom pins in <code>.ostk/pin.caps</code>. Pins can only add restrictions — they cannot grant capabilities beyond what the trust tier allows.</p>
+
+  <h2>Configuration files</h2>
+  <p>Four signed files define authority:</p>
+  <ul>
+    <li><a href="/docs/humanfile"><strong>HUMANFILE</strong></a> — your operator identity. Models, secrets, drivers. GPG-signed by you.</li>
+    <li><a href="/docs/agentfile"><strong>Agentfile</strong></a> — agent process descriptor. Model, tools, work scope, resource limits.</li>
+    <li><a href="/docs/entityfile"><strong>ENTITYFILE</strong></a> — instance governance. Trust chain, fleet state, laws.</li>
+    <li><a href="/docs/osfile"><strong>OSfile</strong></a> — kernel identity. Written and signed by the OS, verified by you.</li>
+  </ul>
+
+  <h2>The signing chain</h2>
+  <p>Every governance change is signed. The chain is verifiable:</p>
+  <ol>
+    <li>You sign your HUMANFILE with your GPG key</li>
+    <li>The kernel cross-signs at boot, establishing T1 trust</li>
+    <li>Agents inherit the trust tier of their Agentfile</li>
+    <li>Every action is attributed in the audit trail</li>
+  </ol>
+  <p>Run <code>ostk sign</code> to sign or re-sign your HUMANFILE. The kernel verifies signatures at every boot.</p>
+</FeaturePage>

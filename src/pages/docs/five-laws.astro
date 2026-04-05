@@ -1,0 +1,44 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Five Laws" description="The five laws governing ostk: invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infrastructure.">
+  <p>These are not guidelines. They are load-bearing constraints. Every design decision in the OS must satisfy all five. If a feature violates a law, the feature is wrong.</p>
+
+  <h2>1. The write path is invisible</h2>
+  <p>Agents edit files normally. They use whatever tools their model provider gives them — <code>file:write</code>, <code>shell</code>, heredocs, patches. The OS coordinates underneath. No new API. No coordination protocol. No SDK.</p>
+  <p>An agent that has never heard of ostk can run under it. The write path looks identical to writing without an OS. The kernel intercepts at the filesystem level, tracks generations, and resolves conflicts. The agent never knows.</p>
+  <p><strong>In practice:</strong> your agents never learn a new API or coordination protocol. They write files. That's it.</p>
+
+  <h2>2. Agents are ephemeral</h2>
+  <p>Agents crash. They hit context limits and compact. They lose memory. They get killed by operators, by OOM, by network timeouts. This is not a failure mode to prevent — it is the expected operating condition.</p>
+  <p>State lives in the filesystem: <code>.ostk/</code>, the audit trail, needle status, generation counters. When an agent dies, nothing is lost. A new agent boots, reads the filesystem, and picks up where the last one stopped.</p>
+  <p><strong>In practice:</strong> session death does not mean work death. The OS survives its agents.</p>
+
+  <h2>3. Coordinate through the filesystem</h2>
+  <p>No message buses. No inboxes. No pub/sub. No RPC between agents. Agents coordinate by writing files and reading files. The filesystem is the communication channel.</p>
+  <p>If agent A needs agent B to know something, agent A writes a file. Agent B reads it at boot or when the kernel tells it to. There is no other mechanism. This makes coordination inspectable — <code>ls</code> and <code>cat</code> are your debugging tools.</p>
+  <p><strong>In practice:</strong> the filesystem IS the communication channel. Every coordination artifact is a file you can read.</p>
+
+  <h2>4. Optimistic concurrency</h2>
+  <p>No locks. No mutexes. No "agent A is editing this file, please wait." Agents write freely and concurrently. When two agents edit the same file, the kernel detects the conflict via generation counters and resolves it.</p>
+  <p>Conflict resolution, not conflict prevention. Locks kill throughput. In a fleet of agents working on a codebase, blocking on file access would serialize all work. The OS resolves conflicts after the fact — which is faster, simpler, and matches how humans work on shared codebases (branches and merges, not file locks).</p>
+  <p>The kernel uses internal file-level locking for write atomicity — but agents never block on a lock. From the agent's perspective, writes are non-blocking. The distinction: conflict prevention (locks that agents wait on) vs. conflict resolution (the OS resolves after the fact).</p>
+  <p><strong>In practice:</strong> agents never block each other. Two agents can edit the same file at the same time. The OS handles it.</p>
+
+  <h2>5. Invisible infrastructure, always</h2>
+  <p>If you have to think about the OS, the OS failed. No config files to learn. No YAML to write. No dashboard to check. No onboarding guide for your agents.</p>
+  <p>The install is one command. Init is one command. Boot is one command. After that, the OS is invisible. It tracks writes, compresses output, resolves conflicts, enforces capability pins, and maintains the audit trail — all without the operator or agent needing to know.</p>
+  <p><strong>In practice:</strong> zero config, zero learning curve for agents. The OS works or it doesn't. There is nothing to configure.</p>
+
+  <h2>Why laws, not principles</h2>
+  <p>Principles are aspirational. Laws are constraints. A principle says "we try to keep infrastructure invisible." A law says "if the agent has to learn a new API to use the OS, we reject the design."</p>
+  <p>Every feature proposal is tested against all five. If it violates one, the proposal is redesigned or rejected. There are no exceptions and no escape hatches.</p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/governance">Governance</a> — trust model, signing chain, capability pins</li>
+    <li><a href="/docs/architecture">Architecture</a> — how the kernel and drivers implement the laws</li>
+    <li><a href="/docs/pins">Capability Pins</a> — invisible enforcement boundaries</li>
+  </ul>
+</DocsLayout>

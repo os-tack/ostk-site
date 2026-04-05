@@ -1,0 +1,74 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+---
+
+<FeaturePage
+  title="No Cloud. No Telemetry. Your Machine."
+  tagline="Local-First"
+  description="ostk is a single Rust binary that runs on your machine. No cloud dependency, no data leaving your network. Works with local models or API models — your choice."
+  relatedPages={[
+    { title: "Context Injection", description: "+34.3pp improvement, even on local models", href: "/features/context-injection" },
+    { title: "Model Switching", description: "Switch between local and API models mid-session", href: "/features/model-switching" },
+    { title: "Secret Management", description: "API keys never enter LLM context", href: "/features/secret-management" },
+  ]}
+>
+  <h2>What local-first means</h2>
+  <p>ostk has no cloud component. The binary runs locally. State lives in <code>.ostk/</code> inside your repository. There is no account, no sign-up, no telemetry, no phone-home.</p>
+  <p>Your code stays on your machine. The audit trail stays on your machine. The only network calls are the ones your agents make to LLM APIs — and even those are optional if you run local models.</p>
+
+  <h2>Local models work</h2>
+  <p>With context injection, open-weight models running locally match or beat frontier API models running without context.</p>
+
+  <div class="data-table-wrap">
+    <table>
+      <thead>
+        <tr><th>Setup</th><th>Model</th><th>Resolve Rate</th><th>API Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Local + context</td><td>Devstral 24B</td><td class="num">75.0%</td><td class="num">$0</td></tr>
+        <tr><td>API, no context</td><td>GPT-4.1</td><td class="num">50.0%</td><td class="num">$2/MTok</td></tr>
+        <tr><td>API, no context</td><td>Claude Sonnet 4</td><td class="num">65.6%</td><td class="num">$3/MTok</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Devstral 24B runs on a machine with 16GB VRAM. With ostk providing context injection, it outperforms GPT-4.1 running without context — and the model runs entirely on your hardware.</p>
+
+  <h2>How to run locally</h2>
+  <pre><code># Install ostk
+curl -fsSL https://ostk.ai/install | sh
+
+# Set up a local model (e.g., via Ollama)
+ollama pull devstral
+
+# Configure your HUMANFILE to use the local model
+# MODEL devstral
+# AVAILABLE devstral, claude-sonnet-4
+
+# Init and boot
+ostk init
+ostk boot</code></pre>
+
+  <p>The OS works the same whether your model is local or remote. Context injection, audit trails, conflict resolution — all run locally regardless of where the LLM is.</p>
+
+  <h2>Privacy by architecture</h2>
+  <p>ostk collects nothing. The website uses <a href="https://plausible.io">Plausible</a> (privacy-first, cookie-free analytics). The binary has no analytics, no crash reporting, no usage tracking. There is no server to send data to.</p>
+  <p>The <a href="/legal/privacy">privacy policy</a> is short because there is nothing to disclose.</p>
+</FeaturePage>
+
+<style>
+  .data-table-wrap {
+    overflow-x: auto;
+    margin-bottom: var(--ostk-space-4);
+  }
+
+  .data-table-wrap table {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

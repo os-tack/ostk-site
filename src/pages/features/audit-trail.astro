@@ -1,0 +1,189 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Governance", description: "Policy controls for agent behavior", href: "/governance" },
+  { title: "Multi-Agent Coordination", description: "Run multiple agents on the same codebase", href: "/features/coordination" },
+  { title: "Invisible Writes", description: "Agents write files normally. The OS handles the rest.", href: "/features/invisible-writes" },
+];
+---
+
+<FeaturePage
+  tagline="Accountability"
+  title="Every Edit Tracked"
+  description="An append-only, cryptographically signed log of every file edit, every agent action, every decision. You know who changed what and when."
+  relatedPages={relatedPages}
+>
+
+  <h2>What gets tracked</h2>
+  <p>
+    Every action an agent takes through the OS is recorded in an append-only log at <code>.ostk/audit.jsonl</code>. This includes:
+  </p>
+  <ul>
+    <li><strong>File writes</strong> &mdash; full path, timestamp, byte count, diff from previous version, which agent wrote it.</li>
+    <li><strong>File reads</strong> &mdash; what the agent read and when. Useful for understanding how the agent arrived at a decision.</li>
+    <li><strong>Tool calls</strong> &mdash; shell commands executed, arguments passed, exit codes returned.</li>
+    <li><strong>Conflict resolutions</strong> &mdash; when two agents wrote to the same file, what the conflict was, how it was resolved, and whether the operator intervened.</li>
+    <li><strong>Agent lifecycle</strong> &mdash; spawn time, completion time, exit status, task description.</li>
+  </ul>
+  <p>
+    The log is append-only. Entries are never modified or deleted during a session. Each entry is timestamped and attributed to a specific agent by PID and name.
+  </p>
+
+  <h2>Querying the audit trail</h2>
+  <p>
+    <code>ostk os audit</code> is the primary interface for reading the trail:
+  </p>
+  <div class="code-block">
+    <pre><code># Show all writes in the current session
+$ ostk os audit --writes
+
+# Show everything agent-1 did
+$ ostk os audit --agent auth-refactor
+
+# Show all conflicts and their resolutions
+$ ostk os audit --conflicts
+
+# Show writes to a specific file
+$ ostk os audit --file src/auth/middleware.js
+
+# Export the full trail as JSON
+$ ostk os audit --export json > audit-2026-04-05.json</code></pre>
+  </div>
+  <p>
+    The audit trail is a local file. You can grep it, pipe it, or write scripts against it. The JSON Lines format means each line is a self-contained JSON object &mdash; standard tooling works.
+  </p>
+
+  <h2>GPG signing</h2>
+  <p>
+    Each audit entry is signed with GPG. If you have a GPG key configured, ostk signs every log entry at write time. This gives you:
+  </p>
+  <ul>
+    <li><strong>Tamper evidence</strong> &mdash; if an entry is modified after the fact, the signature breaks. You can verify the integrity of the entire trail with <code>ostk os audit --verify</code>.</li>
+    <li><strong>Non-repudiation</strong> &mdash; the trail is tied to a specific operator identity. Useful in team environments where multiple people run agents on the same codebase.</li>
+    <li><strong>Compliance</strong> &mdash; for regulated environments that require signed audit logs of automated actions on source code.</li>
+  </ul>
+  <p>
+    GPG signing is optional. Without a key configured, the trail is still append-only and timestamped, but not cryptographically signed.
+  </p>
+
+  <h2>The threat model</h2>
+  <p>
+    ostk has undergone a security review. The findings summary:
+  </p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Status</th><th>Count</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Findings total</td><td class="num">10</td></tr>
+        <tr><td>Fixed</td><td class="num accent">8</td></tr>
+        <tr><td>Mitigated</td><td class="num">2</td></tr>
+        <tr><td>Open</td><td class="num">0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The audit trail is one component of the security model. The full threat model, findings, and remediation details are at <a href="/security">/security</a>.
+  </p>
+  <p>
+    The key threats the audit trail addresses:
+  </p>
+  <ul>
+    <li><strong>Rogue writes</strong> &mdash; an agent writes to a file it shouldn&rsquo;t. The trail records it, the operator sees it, and policy rules can prevent it in future sessions.</li>
+    <li><strong>Silent conflicts</strong> &mdash; two agents step on each other&rsquo;s changes. The trail records both writes and the resolution. Nothing is silently lost.</li>
+    <li><strong>Post-incident review</strong> &mdash; something broke after an agent session. The trail tells you exactly what changed, in what order, by which agent.</li>
+  </ul>
+
+  <h2>Why it matters</h2>
+  <p>
+    When an agent acts autonomously on your codebase, you need to know what it did. Not a summary. Not a chat log. The actual sequence of file operations, with diffs, in order, with timestamps.
+  </p>
+  <p>
+    Git history tells you what changed between commits. The audit trail tells you what happened between keystrokes &mdash; every intermediate state, every abandoned edit, every conflict that was resolved before the final commit.
+  </p>
+  <p>
+    This is the difference between trusting an agent and verifying an agent. The audit trail makes verification possible.
+  </p>
+
+  <h2>Practical example</h2>
+  <div class="code-block">
+    <pre><code>$ ostk os audit --agent auth-refactor --writes
+
+  14:03:12  WRITE  src/auth/types.ts          +8 -2
+  14:03:18  WRITE  src/auth/middleware.js      +12 -3
+  14:03:22  WRITE  src/auth/middleware.js      +4 -1   (amend)
+  14:03:24  WRITE  src/auth/middleware.test.js +45 -0
+  14:03:33  WRITE  src/auth/middleware.js      +4 -0   CONFLICT
+            resolved: merge with agent-2 (auto)
+  14:03:41  WRITE  src/routes/index.ts        +2 -1
+
+  6 writes, 1 conflict (auto-resolved), 0 operator interventions</code></pre>
+  </div>
+  <p>
+    Six writes, one conflict, zero surprises. Every edit accounted for.
+  </p>
+
+  <h2>Constraints</h2>
+  <ul>
+    <li>The audit trail grows with every operation. Large sessions produce large logs.</li>
+    <li>GPG signing per entry adds processing overhead.</li>
+    <li>Append-only enforcement is detection-based, not prevention-based.</li>
+  </ul>
+
+</FeaturePage>
+
+<style>
+  .data-table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ostk-border-subtle);
+    text-align: left;
+  }
+
+  .data-table th {
+    color: var(--ostk-text-muted);
+    font-weight: 500;
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .data-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-table .accent {
+    color: var(--ostk-needle);
+  }
+
+  .code-block {
+    background: var(--ostk-bg-raised);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-sm);
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-sm);
+    line-height: 1.6;
+  }
+</style>

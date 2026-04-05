@@ -1,0 +1,83 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Output Compression" description="How ostk compresses tool output to save tokens. ANSI stripping, deduplication, semantic compression.">
+  <p>The kernel compresses tool output before it enters agent context. Raw shell output is noisy — ANSI escape codes, progress bars, repeated lines. Agents pay for that noise in tokens. The kernel removes it.</p>
+
+  <h2>What gets compressed</h2>
+  <table>
+    <thead>
+      <tr><th>Noise source</th><th>What the kernel does</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ANSI escape codes</td>
+        <td>Stripped entirely. Color codes, cursor movement, terminal control sequences — all removed.</td>
+      </tr>
+      <tr>
+        <td>Progress bars</td>
+        <td>Collapsed. Hundreds of lines of <code>████░░░░ 34%</code> become one line with the final state.</td>
+      </tr>
+      <tr>
+        <td>Repeated lines</td>
+        <td>Deduplicated. If the same line appears 50 times, the agent sees it once with a count.</td>
+      </tr>
+      <tr>
+        <td>Build log boilerplate</td>
+        <td>Condensed. Successful compilation output is reduced to the summary. Failures are preserved in full.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Result</h2>
+  <p>Roughly <strong>80% token savings</strong> on tool output. A 10,000-token raw <code>cargo build</code> output becomes ~2,000 tokens. The agent gets the same information — what compiled, what failed, what warnings exist — without the noise.</p>
+  <p>Savings are tracked per-session. Check them with:</p>
+  <pre><code>ostk os metrics</code></pre>
+
+  <h2>Inputs and outputs</h2>
+  <p>The compression pipeline is transparent. You put raw tool output in. You get compressed output out. The agent sees the compressed version in its context window.</p>
+  <table>
+    <thead>
+      <tr><th>Stage</th><th>What happens</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Input</td>
+        <td>Raw stdout/stderr from any tool call (shell commands, file reads, MCP tool responses)</td>
+      </tr>
+      <tr>
+        <td>Processing</td>
+        <td>ANSI strip, progress bar collapse, line deduplication, boilerplate condensation</td>
+      </tr>
+      <tr>
+        <td>Output</td>
+        <td>Clean, deduplicated text that preserves all meaningful content</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>The original uncompressed output is preserved in the audit trail. Compression is lossy for noise, lossless for information.</p>
+
+  <h2>Semantic compression</h2>
+  <p>Optional. Beyond syntactic deduplication, the kernel can deduplicate by meaning — lines that say the same thing differently get merged.</p>
+  <p>This requires a local embeddings model. Download it with:</p>
+  <pre><code>ostk embeddings download</code></pre>
+  <p>This fetches <strong>potion-base-8M</strong> from HuggingFace (~30 MB). The kernel uses it automatically once available. No configuration needed.</p>
+  <p>Without the embeddings model, the kernel falls back to exact-match deduplication. Boot prints guidance if the model is missing and semantic compression would help.</p>
+
+  <h2>What the operator sees</h2>
+  <p>Compression is invisible during normal operation. The agent's context contains compressed output. The operator sees compression stats in <code>ostk os metrics</code>:</p>
+  <ul>
+    <li>Total tokens saved this session</li>
+    <li>Compression ratio per tool call</li>
+    <li>Whether semantic compression is active</li>
+  </ul>
+  <p>There is nothing to configure. The kernel compresses all tool output by default. You cannot disable it — there is no reason to feed noise to agents.</p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/architecture">Architecture</a> — where compression fits in the kernel</li>
+    <li><a href="/docs/getting-started">Quick Start</a> — installing the embeddings model</li>
+    <li><a href="/docs/commands">Commands</a> — <code>ostk os metrics</code> and <code>ostk embeddings download</code></li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,83 @@
+---
+interface RelatedPage {
+  title: string;
+  description: string;
+  href: string;
+}
+
+interface Props {
+  pages: RelatedPage[];
+}
+
+const { pages } = Astro.props;
+---
+
+{pages.length > 0 && (
+  <nav class="related-pages" aria-label="Related pages">
+    <h3 class="related-heading">Related</h3>
+    <div class="related-grid">
+      {pages.map(page => (
+        <a href={page.href} class="related-card">
+          <span class="related-title">{page.title}</span>
+          <span class="related-desc">{page.description}</span>
+        </a>
+      ))}
+    </div>
+  </nav>
+)}
+
+<style>
+  .related-pages {
+    border-top: 1px solid var(--ostk-border-subtle);
+    padding-top: var(--ostk-space-8);
+    margin-top: var(--ostk-space-12);
+  }
+
+  .related-heading {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
+    color: var(--ostk-text-muted);
+    margin-bottom: var(--ostk-space-4);
+    margin-top: 0;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--ostk-space-3);
+  }
+
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ostk-space-1);
+    padding: var(--ostk-space-4);
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    text-decoration: none;
+    transition: border-color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .related-card:hover {
+    border-color: var(--ostk-needle-dim);
+  }
+
+  .related-card:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+
+  .related-title {
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-text-primary);
+    font-size: var(--ostk-text-sm);
+  }
+
+  .related-desc {
+    font-size: var(--ostk-text-xs);
+    color: var(--ostk-text-muted);
+    line-height: var(--ostk-leading-normal);
+  }
+</style>

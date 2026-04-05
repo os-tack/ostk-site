@@ -1,0 +1,92 @@
+---
+interface Props {
+  heading?: string;
+  subtext?: string;
+}
+
+const { heading = 'Get started', subtext = 'Install ostk and boot the OS in under 5 minutes.' } = Astro.props;
+---
+
+<section class="cta-banner">
+  <h2 class="cta-heading">{heading}</h2>
+  <p class="cta-subtext">{subtext}</p>
+  <div class="cta-actions">
+    <slot>
+      <a href="/docs/getting-started" class="cta-primary">Get Started</a>
+      <a href="/docs" class="cta-secondary">Documentation</a>
+    </slot>
+  </div>
+</section>
+
+<style>
+  .cta-banner {
+    border-top: 1px solid var(--ostk-border-subtle);
+    padding: var(--ostk-space-12) 0;
+    text-align: center;
+    margin-top: var(--ostk-space-12);
+  }
+
+  .cta-heading {
+    font-size: var(--ostk-text-xl);
+    margin-bottom: var(--ostk-space-2);
+    margin-top: 0;
+  }
+
+  .cta-subtext {
+    color: var(--ostk-text-secondary);
+    font-size: var(--ostk-text-base);
+    margin-bottom: var(--ostk-space-6);
+  }
+
+  .cta-actions {
+    display: flex;
+    gap: var(--ostk-space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-primary {
+    display: inline-block;
+    padding: var(--ostk-space-2) var(--ostk-space-6);
+    background: var(--ostk-needle);
+    color: var(--ostk-bg-deep);
+    border-radius: var(--ostk-radius-md);
+    font-weight: var(--ostk-weight-bold);
+    font-size: var(--ostk-text-sm);
+    text-decoration: none;
+    transition: background var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .cta-primary:hover {
+    background: var(--ostk-needle-bright);
+    color: var(--ostk-bg-deep);
+  }
+
+  .cta-primary:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+
+  .cta-secondary {
+    display: inline-block;
+    padding: var(--ostk-space-2) var(--ostk-space-6);
+    border: 1px solid var(--ostk-border-default);
+    color: var(--ostk-text-secondary);
+    border-radius: var(--ostk-radius-md);
+    font-weight: var(--ostk-weight-medium);
+    font-size: var(--ostk-text-sm);
+    text-decoration: none;
+    transition: border-color var(--ostk-duration-fast) var(--ostk-easing),
+                color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .cta-secondary:hover {
+    border-color: var(--ostk-needle-dim);
+    color: var(--ostk-text-primary);
+  }
+
+  .cta-secondary:focus-visible {
+    outline: 2px solid var(--ostk-needle);
+    outline-offset: 2px;
+  }
+</style>

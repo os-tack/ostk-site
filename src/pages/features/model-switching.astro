@@ -1,0 +1,37 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+---
+
+<FeaturePage
+  title="Switch Models Mid-Session"
+  tagline="Model Switching"
+  description="Type :model gemini and keep working. Context survives the handoff. Works across vendors — Claude, Gemini, DeepSeek, Devstral, and more."
+  relatedPages={[
+    { title: "Context Injection", description: "+34.3pp improvement across 26 models", href: "/features/context-injection" },
+    { title: "Tack Language", description: "Compressed intent language", href: "/features/tack" },
+    { title: "Local-First", description: "Switch between local and API models", href: "/features/local-first" },
+  ]}
+>
+  <h2>The problem</h2>
+  <p>When an LLM model crashes, compacts, or hits its context ceiling, the session dies. Starting a new session with a different model means losing everything — the context, the intent, the progress.</p>
+  <p>Even a deliberate model switch (moving to a cheaper model for routine work, or a stronger model for a hard problem) requires rebuilding context from scratch.</p>
+
+  <h2>How it works</h2>
+  <p>Type <code>:model gemini</code> mid-session. The OS builds a compact handoff that tells the new model what matters: which files are active, what decisions were made, what the current intent is.</p>
+  <p>The new model boots with pointers to the project state, not a copy of the full context. It requests what it needs as it works.</p>
+
+  <h2>What you see</h2>
+  <pre><code>:model gemini            # switch to Gemini
+# ... Gemini picks up where Claude left off ...
+
+:model devstral          # switch to local model
+# ... Devstral continues the work ...
+
+:model claude            # switch back
+# ... Claude resumes with full awareness of what happened ...</code></pre>
+
+  <p>The handoff is invisible. The new model doesn't know it's continuing another model's work — it just has the right context to proceed.</p>
+
+  <h2>Cross-vendor</h2>
+  <p>Model switching works across vendors. The handoff is model-agnostic — it contains project state, not model-specific context. Tested paths include Claude → Gemini → DeepSeek → Claude with no context loss.</p>
+</FeaturePage>

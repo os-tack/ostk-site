@@ -1,10 +1,8 @@
 ---
-import Base from '../../layouts/Base.astro';
+import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<Base title="HUMANFILE — ostk governance" description="The operator identity document. Tells the OS who you are and how you work.">
-  <div class="container">
-    <h1>HUMANFILE</h1>
+<DocsLayout title="HUMANFILE" description="The operator identity document. Tells the OS who you are and how you work.">
     <p class="lead">Your compiled identity. The OS reads this at boot and calibrates to you.</p>
 
     <h2>What it is</h2>
@@ -70,8 +68,8 @@ DRIVER fcp-web</code></pre>
     </p>
     <p>The kernel resolves secrets in order:</p>
     <ol>
-      <li><strong>ostk secret store</strong> — <code>ostk secret set KEY</code> stores in platform keychain (macOS Keychain / Linux secret-tool)</li>
       <li><strong>BYO secret manager</strong> — set <code>OSTK_SECRET_CMD</code> to your tool (bw, op, pass)</li>
+      <li><strong>Platform keychain</strong> — <code>ostk secret set KEY</code> stores in platform keychain (macOS Keychain / Linux secret-tool)</li>
       <li><strong>Environment variable</strong> — fallback to <code>$KEY</code> in your shell env</li>
     </ol>
     <p>You only need the key(s) for your chosen provider:</p>
@@ -133,5 +131,4 @@ DRIVER fcp-web</code></pre>
       <li><a href="/docs/agentfile">Agentfile — define what an agent can do</a></li>
       <li><a href="/docs">Documentation index</a></li>
     </ul>
-  </div>
-</Base>
+</DocsLayout>

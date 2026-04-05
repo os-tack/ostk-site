@@ -1,0 +1,200 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Command Reference" description="Full ostk command reference: lifecycle, work items, fleet management, OS operations, and secrets.">
+  <p>All operator-facing <code>ostk</code> commands, grouped by category. Each entry shows syntax, a brief description, and a copy-pasteable example.</p>
+
+  <h2>Lifecycle</h2>
+  <dl class="cmd-ref">
+    <dt><code>ostk init [--guided]</code></dt>
+    <dd>
+      <p>Initialize <code>.ostk/</code> in the current repo. Downloads governance bail, creates HUMANFILE, Agentfile, and pins. Pass <code>--guided</code> for interactive 7-step setup.</p>
+      <pre><code>ostk init --guided</code></pre>
+    </dd>
+    <dt><code>ostk boot</code></dt>
+    <dd>
+      <p>Load state from <code>.ostk/</code>, detect trust tier, and print a status report.</p>
+      <pre><code>ostk boot</code></pre>
+    </dd>
+    <dt><code>ostk shutdown</code></dt>
+    <dd>
+      <p>End the session. Compiles <code>.language</code>, signs the boot record, and commits.</p>
+      <pre><code>ostk shutdown</code></pre>
+    </dd>
+    <dt><code>ostk commit</code></dt>
+    <dd>
+      <p>Commit with spec attribution and needle tracking.</p>
+      <pre><code>ostk commit</code></pre>
+    </dd>
+  </dl>
+
+  <h2>Work</h2>
+  <dl class="cmd-ref">
+    <dt><code>ostk needle add [--priority P0|P1|P2] &lt;title&gt;</code></dt>
+    <dd>
+      <p>File a new needle (executable work item).</p>
+      <pre><code>ostk needle add --priority P0 "Fix auth token refresh"</code></pre>
+    </dd>
+    <dt><code>ostk compile</code></dt>
+    <dd>
+      <p>Triage unstructured thinking (hay) into executable needles.</p>
+      <pre><code>ostk compile</code></pre>
+    </dd>
+    <dt><code>ostk hay "&lt;thought&gt;"</code></dt>
+    <dd>
+      <p>Capture raw uncompiled intent for later compilation.</p>
+      <pre><code>ostk hay "rate limiter feels wrong, revisit after auth lands"</code></pre>
+    </dd>
+    <dt><code>ostk verify</code></dt>
+    <dd>
+      <p>Run verification against the current needle's acceptance criteria.</p>
+      <pre><code>ostk verify</code></pre>
+    </dd>
+    <dt><code>ostk should "&lt;description&gt;"</code></dt>
+    <dd>
+      <p>File a bug or feature request in natural language.</p>
+      <pre><code>ostk should "return 429 when rate limit exceeded"</code></pre>
+    </dd>
+    <dt><code>ostk thread</code></dt>
+    <dd>
+      <p>Group related needles into a thread for coordinated execution.</p>
+      <pre><code>ostk thread</code></pre>
+    </dd>
+    <dt><code>ostk compounds</code></dt>
+    <dd>
+      <p>Show highest-compounding work &mdash; what unblocks the most downstream needles.</p>
+      <pre><code>ostk compounds</code></pre>
+    </dd>
+  </dl>
+
+  <h2>Fleet</h2>
+  <dl class="cmd-ref">
+    <dt><code>ostk run &lt;Agentfile | "task"&gt;</code></dt>
+    <dd>
+      <p>Run an agent. Accepts an Agentfile path or a quoted task description. Blocks until complete.</p>
+      <pre><code>ostk run "Add unit tests for src/auth/middleware.js"</code></pre>
+    </dd>
+    <dt><code>ostk spawn --name &lt;name&gt; "&lt;task&gt;"</code></dt>
+    <dd>
+      <p>Launch a background agent worker. Returns immediately; the agent runs in the fleet.</p>
+      <pre><code>ostk spawn --name lint-fix "Fix all ESLint warnings in src/"</code></pre>
+    </dd>
+    <dt><code>ostk stop &lt;name&gt;</code></dt>
+    <dd>
+      <p>Stop a running agent by name.</p>
+      <pre><code>ostk stop auth-refactor</code></pre>
+    </dd>
+    <dt><code>ostk logs &lt;name&gt;</code></dt>
+    <dd>
+      <p>View an agent's output stream.</p>
+      <pre><code>ostk logs add-endpoint</code></pre>
+    </dd>
+    <dt><code>ostk ps</code></dt>
+    <dd>
+      <p>Show fleet status &mdash; all running agents, file progress, and conflicts.</p>
+      <pre><code>ostk ps</code></pre>
+    </dd>
+    <dt><code>ostk ask "&lt;question&gt;"</code></dt>
+    <dd>
+      <p>Single-turn LLM query through the kernel. Does not spawn an agent.</p>
+      <pre><code>ostk ask "What does the auth middleware export?"</code></pre>
+    </dd>
+  </dl>
+
+  <h2>OS</h2>
+  <dl class="cmd-ref">
+    <dt><code>ostk os status</code></dt>
+    <dd>
+      <p>Kernel status &mdash; needles, hay, threads, and mutations.</p>
+      <pre><code>ostk os status</code></pre>
+    </dd>
+    <dt><code>ostk os audit [--writes] [--agent &lt;name&gt;] [--file &lt;path&gt;] [--conflicts] [--export json]</code></dt>
+    <dd>
+      <p>Query the append-only audit trail. Filters are combinable.</p>
+      <pre><code>ostk os audit --agent auth-refactor --writes</code></pre>
+    </dd>
+    <dt><code>ostk os metrics</code></dt>
+    <dd>
+      <p>Compression savings and token usage for the current session.</p>
+      <pre><code>ostk os metrics</code></pre>
+    </dd>
+    <dt><code>ostk secret &lt;set|get|list|env&gt; [KEY]</code></dt>
+    <dd>
+      <p>Manage secrets in the platform keychain. Values never enter LLM context.</p>
+      <pre><code>ostk secret set ANTHROPIC_API_KEY</code></pre>
+    </dd>
+    <dt><code>ostk do &lt;verb&gt;</code></dt>
+    <dd>
+      <p>Execute intent &mdash; resolve a <code>:verb</code> through <code>.language</code> and dispatch.</p>
+      <pre><code>ostk do compile</code></pre>
+    </dd>
+    <dt><code>ostk mcp &lt;list|call&gt; [&lt;server&gt; &lt;tool&gt;]</code></dt>
+    <dd>
+      <p>MCP proxy &mdash; list configured servers or manually invoke a tool.</p>
+      <pre><code>ostk mcp list</code></pre>
+    </dd>
+    <dt><code>ostk bail</code></dt>
+    <dd>
+      <p>Package portable OS state for handoff to another machine or operator.</p>
+      <pre><code>ostk bail</code></pre>
+    </dd>
+    <dt><code>ostk sign</code></dt>
+    <dd>
+      <p>Sign or re-sign the HUMANFILE with your GPG key.</p>
+      <pre><code>ostk sign</code></pre>
+    </dd>
+    <dt><code>ostk tui</code></dt>
+    <dd>
+      <p>Terminal interface for real-time OS monitoring (fleet, needles, audit).</p>
+      <pre><code>ostk tui</code></pre>
+    </dd>
+    <dt><code>ostk bench</code></dt>
+    <dd>
+      <p>Run needle-in-a-haystack benchmarks against the current context engine.</p>
+      <pre><code>ostk bench</code></pre>
+    </dd>
+    <dt><code>ostk embeddings download</code></dt>
+    <dd>
+      <p>Fetch the potion-base-8M embeddings model for semantic compression.</p>
+      <pre><code>ostk embeddings download</code></pre>
+    </dd>
+  </dl>
+</DocsLayout>
+
+<style>
+  .cmd-ref {
+    margin: 0;
+    padding: 0;
+  }
+  .cmd-ref dt {
+    font-family: var(--ostk-font-mono, monospace);
+    font-size: var(--ostk-text-sm, 0.875rem);
+    padding: 0.6rem 0 0.2rem;
+    border-top: 1px solid var(--ostk-border-subtle, #2a2a2a);
+    margin-top: 1rem;
+  }
+  .cmd-ref dt:first-child {
+    border-top: none;
+    margin-top: 0;
+  }
+  .cmd-ref dd {
+    margin: 0 0 0.25rem;
+  }
+  .cmd-ref dd p {
+    margin: 0.25rem 0;
+    color: var(--ostk-text-muted, #8b949e);
+    font-size: var(--ostk-text-sm, 0.875rem);
+  }
+  .cmd-ref pre {
+    background: var(--ostk-bg-raised, #161b22);
+    border: 1px solid var(--ostk-border-subtle, #2a2a2a);
+    border-radius: var(--ostk-radius-sm, 4px);
+    padding: 0.5rem 0.75rem;
+    margin: 0.4rem 0 0;
+    overflow-x: auto;
+    font-family: var(--ostk-font-mono, monospace);
+    font-size: var(--ostk-text-sm, 0.875rem);
+    line-height: 1.5;
+  }
+</style>

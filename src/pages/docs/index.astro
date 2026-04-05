@@ -1,0 +1,90 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Documentation" description="How to install, configure, and use ostk. Quick start, command reference, architecture, and configuration guides.">
+  <p>How to install, configure, and use ostk.</p>
+
+  <pre><code>curl -fsSL https://ostk.ai/install | sh
+cd your-repo && ostk init
+ostk boot</code></pre>
+
+  <div class="doc-group">
+    <h3 class="section-header">Getting Started</h3>
+    <ul class="doc-links">
+      <li><a href="/docs/getting-started"><strong>Quick Start</strong></a> — install, init, boot in ~5 minutes</li>
+      <li><a href="/docs/downloads"><strong>Downloads</strong></a> — binary releases and install script</li>
+    </ul>
+  </div>
+
+  <div class="doc-group">
+    <h3 class="section-header">Reference</h3>
+    <ul class="doc-links">
+      <li><a href="/docs/commands"><strong>Commands</strong></a> — full command reference, grouped by category</li>
+      <li><a href="/docs/architecture"><strong>Architecture</strong></a> — kernel, drivers, and system layers</li>
+      <li><a href="/docs/compression"><strong>Compression</strong></a> — VTE strip, dedup, and semantic compression pipeline</li>
+      <li><a href="/docs/mcp"><strong>MCP Proxy</strong></a> — connect external MCP servers through the kernel</li>
+      <li><a href="/docs/tui"><strong>TUI</strong></a> — terminal interface for real-time OS monitoring</li>
+    </ul>
+  </div>
+
+  <div class="doc-group">
+    <h3 class="section-header">Configuration</h3>
+    <ul class="doc-links">
+      <li><a href="/docs/humanfile"><strong>HUMANFILE</strong></a> — operator identity, models, secrets, drivers</li>
+      <li><a href="/docs/agentfile"><strong>Agentfile</strong></a> — agent process descriptor: model, tools, limits, work</li>
+      <li><a href="/docs/entityfile"><strong>ENTITYFILE</strong></a> — trust tiers, authority chain, kernel attestation</li>
+      <li><a href="/docs/osfile"><strong>OSfile</strong></a> — OS identity carrier: signed binary + primefile</li>
+      <li><a href="/docs/secrets"><strong>Secrets</strong></a> — OS-mediated secret resolution, keychain integration</li>
+      <li><a href="/docs/pins"><strong>Capability Pins</strong></a> — per-tier tool and resource restrictions</li>
+    </ul>
+  </div>
+
+  <div class="doc-group">
+    <h3 class="section-header">Concepts</h3>
+    <ul class="doc-links">
+      <li><a href="/docs/five-laws"><strong>Five Laws</strong></a> — the governance principles behind ostk</li>
+    </ul>
+  </div>
+
+  <h2>Downloads</h2>
+  <p>Latest release: <strong>v2.3.0</strong></p>
+  <ul>
+    <li><a href="https://github.com/os-tack/ostk.ai/releases/tag/v2.3.0">ostk v2.3.0 release</a> — macOS arm64/x86_64, Linux musl arm64/x86_64, GPG .asc signatures</li>
+  </ul>
+  <p>Or install via script (always fetches latest): <a href="https://ostk.ai/install">view install script</a></p>
+  <pre><code>curl -fsSL https://ostk.ai/install | sh</code></pre>
+</DocsLayout>
+
+<style>
+  .doc-group {
+    margin-bottom: var(--ostk-space-6, 1.5rem);
+  }
+  .section-header {
+    font-family: var(--ostk-font-mono, monospace);
+    font-size: var(--ostk-text-xs, 0.75rem);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide, 0.05em);
+    color: var(--ostk-text-muted, #8b949e);
+    margin-bottom: var(--ostk-space-2, 0.5rem);
+    margin-top: 0;
+  }
+  .doc-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .doc-links li {
+    padding: 0.35rem 0;
+  }
+  .doc-links a {
+    text-decoration: none;
+    color: var(--ostk-text-primary, #e6edf3);
+  }
+  .doc-links a:hover {
+    color: var(--ostk-needle, #58a6ff);
+  }
+  .doc-links a strong {
+    font-weight: var(--ostk-weight-medium, 500);
+  }
+</style>

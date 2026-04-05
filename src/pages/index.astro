@@ -1,10 +1,17 @@
 ---
 import Base from '../layouts/Base.astro';
+import PillarCard from '../components/PillarCard.astro';
+import InstallSnippet from '../components/InstallSnippet.astro';
+import CTABanner from '../components/CTABanner.astro';
 ---
 
-<Base title="ostk — os + tack: the invisible os" description="An invisible OS for AI coding agents. GPG-signed audit trail, local-first Rust CLI, +34pp mean improvement across 26 models. Free and open source.">
+<Base title="ostk — the invisible OS for AI coding agents" description="A local-first OS for AI coding agents. Invisible coordination, GPG-signed audit trail, conflict resolution. Free and open source.">
   <div class="container">
+
     <section class="hero">
+      <h1 class="hero-value">Your AI agents run on an OS. ostk is that OS.</h1>
+      <p class="hero-sub">Local-first. GPG-signed. Audited. Yours.</p>
+
       <div class="terminal">
         <div class="terminal-bar">
           <span class="terminal-dot"></span>
@@ -12,120 +19,105 @@ import Base from '../layouts/Base.astro';
           <span class="terminal-dot"></span>
         </div>
         <div class="terminal-body">
-          <div class="hero-title">ostk</div>
-          <div class="hero-tagline">os + tack: the invisible os</div>
-          <div class="terminal-blank"></div>
           <div class="terminal-line"><span class="prompt">$</span> curl -fsSL https://ostk.ai/install | sh</div>
-          <div class="terminal-line"><span class="prompt">$</span> cd ~/projects/my-os</div>
+          <div class="terminal-line"><span class="prompt">$</span> cd ~/projects/my-repo</div>
           <div class="terminal-line"><span class="prompt">$</span> ostk init --guided</div>
           <div class="terminal-blank"></div>
-          <div class="terminal-line"><span class="prompt">$</span> ostk</div>
+          <div class="terminal-line"><span class="prompt">$</span> ostk boot</div>
         </div>
+      </div>
+
+      <div class="hero-actions">
+        <a href="/docs/getting-started" class="btn-primary">Get Started</a>
+        <a href="#pillars" class="btn-secondary">How it works</a>
       </div>
     </section>
 
-    <section class="section banner">
-      <h2>The Claude Code source leaked. <a href="/insights/claude-code-source">Here&rsquo;s what it&rsquo;s missing.</a></h2>
-      <p>207 commands. 184 tools. No audit trail. No multi-agent coordination. No context economics. Every problem people complain about &mdash; token waste, cold starts, no session memory &mdash; is an architecture problem. <a href="/insights/claude-code-source">We wrote the analysis.</a></p>
+    <section id="pillars" class="pillars">
+      <h2 class="section-label">What it does</h2>
+      <div class="pillars-list">
+        <PillarCard
+          number={1}
+          title="Invisible Write Path"
+          description="Agents edit files normally. The OS intercepts, coordinates, and audits underneath. They never know."
+          href="/features/invisible-writes"
+        />
+        <PillarCard
+          number={2}
+          title="Multi-Agent Coordination"
+          description="Multiple agents, one codebase. Conflicts resolved at write time. No locks, no message buses."
+          href="/features/coordination"
+        />
+        <PillarCard
+          number={3}
+          title="Audit Trail"
+          description="Every edit tracked, cryptographically signed, append-only. You know who changed what and when."
+          href="/features/audit-trail"
+        />
+        <PillarCard
+          number={4}
+          title="Context Injection"
+          description="Agents skip exploration. The OS front-loads project context so the first turn is productive."
+          href="/features/context-injection"
+        />
+        <PillarCard
+          number={5}
+          title="Local-First"
+          description="No cloud. No telemetry. A single Rust binary on your machine. Works with local models."
+          href="/features/local-first"
+        />
+      </div>
     </section>
 
-    <section class="section">
-      <h2>What is it</h2>
-      <p>Your AI agents run on an OS. ostk is that OS.</p>
-      <p>Local-first. GPG-signed. Audited. Yours.</p>
-      <p>A single Rust binary that coordinates agents through the filesystem — byte-for-byte passthrough for every command, with conflict resolution and audit trails underneath. Agents run on it without knowing.</p>
-      <p>Trust is cryptographic: GPG web of trust determines what you can do. <a href="/governance">No admin panels. No OAuth. Just signatures.</a></p>
-    </section>
-
-    <section class="section">
-      <h2>What is tack?</h2>
-      <p>Tack is the shorthand intent language built into ostk. You type compressed commands; the OS compiles them into actions.</p>
-      <pre><code>:compile  →  ostk compile
-:boot     →  ostk boot
-.? status →  what's the current state?
-:compile :plan :ship  →  compile, plan, commit</code></pre>
-      <p>Tack is not a fixed grammar. The OS learns your shorthand over sessions. What you type today becomes vocabulary tomorrow. Communication cost drops from ~200 tokens/op to ~10 tokens/op.</p>
-      <p>See the full <a href="/docs#tack-grammar">tack grammar reference</a> in the docs.</p>
-    </section>
-
-    <section class="section">
+    <section class="how-it-works">
       <h2>How it works</h2>
-      <ol>
-        <li><strong>Install.</strong> <code>curl -fsSL https://ostk.ai/install | sh</code> — installs the binary. Then <code>ostk init</code> in any git repo to boot the OS.</li>
-        <li><strong>Work.</strong> Your agents use their normal tools. The OS intercepts writes, resolves conflicts, compresses output, and tracks every edit. Nothing changes for the agent.</li>
-        <li><strong>Speak tack.</strong> You type intent in shorthand. The OS compiles it into agent actions. <code>:compile :plan :ship</code> — three words, full execution.</li>
-      </ol>
-      <p>Signed binaries. GPG web of trust. Audit trail for every edit. Capability pins that enforce boundaries invisibly. Your agents coordinate through the filesystem — no cloud, no lock-in.</p>
-    </section>
-
-    <section class="section">
-      <h2>Why it exists</h2>
-      <p>Agent frameworks ask agents to learn new APIs. That's backwards. An OS doesn't ask processes to coordinate — it provides the primitives and stays out of the way.</p>
-      <p>ostk emerged from building itself — hundreds of needles, all managed by agents running on the OS that was being built. No meetings. No standups. No Jira tickets. The evidence is the product.</p>
-
-      <p>Five laws govern everything:</p>
-      <ol>
-        <li>The write path is invisible</li>
-        <li>Agents are ephemeral</li>
-        <li>Coordinate through the filesystem</li>
-        <li>Optimistic concurrency</li>
-        <li>Invisible infrastructure, always</li>
+      <ol class="steps">
+        <li>
+          <strong>Install.</strong>
+          <code>curl -fsSL https://ostk.ai/install | sh</code> — then <code>ostk init</code> in any git repo.
+        </li>
+        <li>
+          <strong>Work.</strong>
+          Your agents use their normal tools. The OS intercepts writes, resolves conflicts, and tracks every edit. Nothing changes for the agent.
+        </li>
+        <li>
+          <strong>Compound.</strong>
+          The OS learns your project's vocabulary across sessions. Communication compresses. Repeated patterns resolve faster. Later sessions start where earlier sessions left off.
+        </li>
       </ol>
     </section>
 
-    <section class="section">
-      <h2>Get started</h2>
-      <pre><code>curl -fsSL https://ostk.ai/install | sh
-cd your-repo
-ostk init
-ostk embeddings download   # optional: semantic compression
-ostk boot</code></pre>
-      <p>The OS is running. Your agents are already on it.</p>
-      <p>
-        <a href="/docs">Documentation</a> &middot;
-        <a href="/bench">Benchmarks</a> &middot;
-        <a href="https://github.com/os-tack">Find us</a>
-      </p>
+    <section class="tui-preview">
+      <h2>See it working</h2>
+      <figure class="tui-figure">
+        <img src="/images/tui/tui-agent-workflow.jpg" alt="TUI showing an agent executing work items with real-time status bar showing model, context usage, and cost" class="tui-screenshot" />
+        <figcaption>The TUI shows the OS in real time — agents executing work, file edits resolving, permissions gating. <a href="/features/tui">Learn more.</a></figcaption>
+      </figure>
     </section>
+
+    <CTABanner />
   </div>
 </Base>
 
 <style>
-  .banner {
-    border: 1px solid var(--ostk-needle, #0ff);
-    border-radius: var(--ostk-radius-sm, 6px);
-    padding: var(--ostk-space-4, 1rem) var(--ostk-space-6, 1.5rem);
-    background: var(--ostk-bg-raised, #111);
-    margin-bottom: var(--ostk-space-8, 2rem);
-  }
-
-  .banner h2 {
-    font-size: var(--ostk-text-md, 1rem);
-    margin-bottom: 0.5rem;
-  }
-
-  .banner h2 a {
-    color: var(--ostk-needle, #0ff);
-    text-decoration: none;
-  }
-
-  .banner h2 a:hover {
-    text-decoration: underline;
-  }
-
-  .banner p {
-    font-size: var(--ostk-text-sm, 0.9rem);
-    color: var(--ostk-text-muted, #999);
-    margin: 0;
-  }
-
-  .banner p a {
-    color: var(--ostk-needle, #0ff);
-  }
-
   .hero {
     padding-top: var(--ostk-space-8);
-    padding-bottom: var(--ostk-space-12);
+    padding-bottom: var(--ostk-space-8);
+  }
+
+  .hero-value {
+    font-size: var(--ostk-text-2xl);
+    font-weight: var(--ostk-weight-bold);
+    color: var(--ostk-text-primary);
+    line-height: var(--ostk-leading-tight);
+    letter-spacing: var(--ostk-tracking-tight);
+    margin-bottom: var(--ostk-space-2);
+  }
+
+  .hero-sub {
+    font-size: var(--ostk-text-md);
+    color: var(--ostk-text-secondary);
+    margin-bottom: var(--ostk-space-6);
   }
 
   .terminal {
@@ -133,6 +125,7 @@ ostk boot</code></pre>
     border: 1px solid var(--ostk-border-subtle);
     border-radius: var(--ostk-radius-md);
     overflow: hidden;
+    margin-bottom: var(--ostk-space-6);
   }
 
   .terminal-bar {
@@ -156,26 +149,13 @@ ostk boot</code></pre>
     font-family: var(--ostk-font-mono);
   }
 
-  .hero-title {
-    font-size: var(--ostk-text-3xl);
-    font-weight: var(--ostk-weight-bold);
-    color: var(--ostk-text-primary);
-    letter-spacing: var(--ostk-tracking-tight);
-  }
-
-  .hero-tagline {
-    font-size: var(--ostk-text-md);
-    color: var(--ostk-text-secondary);
-    margin-bottom: var(--ostk-space-2);
+  .terminal-line {
+    line-height: 1.8;
+    font-size: var(--ostk-text-sm);
   }
 
   .terminal-blank {
     height: var(--ostk-space-4);
-  }
-
-  .terminal-line {
-    line-height: 1.8;
-    font-size: var(--ostk-text-sm);
   }
 
   .prompt {
@@ -183,19 +163,109 @@ ostk boot</code></pre>
     margin-right: var(--ostk-space-2);
   }
 
-  .terminal-comment {
+  .hero-actions {
+    display: flex;
+    gap: var(--ostk-space-3);
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: var(--ostk-space-2) var(--ostk-space-6);
+    background: var(--ostk-needle);
+    color: var(--ostk-bg-deep);
+    border-radius: var(--ostk-radius-md);
+    font-weight: var(--ostk-weight-bold);
+    font-size: var(--ostk-text-sm);
+    text-decoration: none;
+    transition: background var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .btn-primary:hover {
+    background: var(--ostk-needle-bright);
+    color: var(--ostk-bg-deep);
+  }
+
+  .btn-secondary {
+    display: inline-block;
+    padding: var(--ostk-space-2) var(--ostk-space-6);
+    border: 1px solid var(--ostk-border-default);
+    color: var(--ostk-text-secondary);
+    border-radius: var(--ostk-radius-md);
+    font-weight: var(--ostk-weight-medium);
+    font-size: var(--ostk-text-sm);
+    text-decoration: none;
+    transition: border-color var(--ostk-duration-fast) var(--ostk-easing),
+                color var(--ostk-duration-fast) var(--ostk-easing);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--ostk-needle-dim);
+    color: var(--ostk-text-primary);
+  }
+
+  .section-label {
+    font-family: var(--ostk-font-mono);
+    font-size: var(--ostk-text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ostk-tracking-wide);
     color: var(--ostk-text-muted);
+    margin-bottom: var(--ostk-space-3);
+    margin-top: 0;
   }
 
-  .terminal-cmd {
-    color: var(--ostk-needle);
-  }
-
-  .section {
+  .pillars {
     margin-bottom: var(--ostk-space-12);
   }
 
-  .section h2 {
-    margin-top: 0;
+  .pillars-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ostk-space-3);
   }
+
+  .how-it-works {
+    margin-bottom: var(--ostk-space-12);
+  }
+
+  .steps {
+    padding-left: var(--ostk-space-6);
+  }
+
+  .steps li {
+    margin-bottom: var(--ostk-space-4);
+    line-height: var(--ostk-leading-relaxed);
+  }
+
+  .steps code {
+    background: var(--ostk-bg-raised);
+    padding: 0.15em 0.4em;
+    border-radius: var(--ostk-radius-sm);
+    font-size: 0.9em;
+  }
+
+  .tui-preview {
+    margin-bottom: var(--ostk-space-12);
+  }
+
+  .tui-figure {
+    margin: 0;
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    overflow: hidden;
+  }
+
+  .tui-screenshot {
+    width: 100%;
+    display: block;
+  }
+
+  .tui-figure figcaption {
+    padding: var(--ostk-space-3) var(--ostk-space-4);
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-text-muted);
+    border-top: 1px solid var(--ostk-border-subtle);
+    line-height: var(--ostk-leading-normal);
+  }
+
 </style>

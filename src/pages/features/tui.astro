@@ -1,0 +1,67 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+---
+
+<FeaturePage
+  title="See the OS Working"
+  tagline="Terminal Interface"
+  description="The TUI shows agents executing work, file edits resolving, permissions gating dangerous operations. Everything the kernel does is visible in real time."
+  relatedPages={[
+    { title: "Multi-Agent Coordination", description: "Watch multiple agents working together", href: "/features/coordination" },
+    { title: "Audit Trail", description: "The log behind what TUI shows", href: "/features/audit-trail" },
+    { title: "Command Reference", description: "ostk tui and related commands", href: "/docs/commands" },
+  ]}
+>
+  <h2>Launch</h2>
+  <pre><code>ostk tui</code></pre>
+
+  <h2>What you see</h2>
+  <figure class="tui-figure">
+    <img src="/images/tui/tui-agent-workflow.jpg" alt="TUI showing an agent executing work items with file edits, read operations, and real-time status bar" class="tui-screenshot" />
+    <figcaption>Agent workflow — the scheduler executes work items sequentially. Each file edit shows confirmation. The status bar tracks elapsed time, tool count, agent identity, model, context usage, and cost.</figcaption>
+  </figure>
+
+  <h2>The status bar</h2>
+  <table>
+    <thead>
+      <tr><th>Field</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>86s</code></td><td>Wall-clock time since session start</td></tr>
+      <tr><td><code>8 tools</code></td><td>Tool calls made this session</td></tr>
+      <tr><td><code>@prime+3056</code></td><td>Agent identity and session counter</td></tr>
+      <tr><td><code>opus</code></td><td>Model in use</td></tr>
+      <tr><td><code>ctx:142k (71%)</code></td><td>Context window usage</td></tr>
+      <tr><td><code>$30.50</code></td><td>Session cost</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Permission gates</h2>
+  <figure class="tui-figure">
+    <img src="/images/tui/tui-permission-modal.jpg" alt="TUI permission modal with allow, deny, and always-allow options" class="tui-screenshot" />
+    <figcaption>When an agent requests a dangerous operation, the TUI presents a permission gate. <code>[y]</code> allow once, <code>[n]</code> deny, <code>[a]</code> always allow for this tool.</figcaption>
+  </figure>
+  <p>No agent runs dangerous commands without your approval. The TUI shows exactly what will execute and lets you choose.</p>
+</FeaturePage>
+
+<style>
+  .tui-figure {
+    margin: var(--ostk-space-4) 0;
+    border: 1px solid var(--ostk-border-subtle);
+    border-radius: var(--ostk-radius-md);
+    overflow: hidden;
+  }
+
+  .tui-screenshot {
+    width: 100%;
+    display: block;
+  }
+
+  .tui-figure figcaption {
+    padding: var(--ostk-space-3) var(--ostk-space-4);
+    font-size: var(--ostk-text-sm);
+    color: var(--ostk-text-muted);
+    border-top: 1px solid var(--ostk-border-subtle);
+    line-height: var(--ostk-leading-normal);
+  }
+</style>
