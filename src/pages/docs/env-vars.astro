@@ -1,0 +1,157 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Environment Variables" description="Runtime configuration for ostk via environment variables. Agent identity, scheduler, drain snapshots, secrets, diagnostics.">
+  <p>ostk reads environment variables for runtime configuration that doesn't belong in files. Most are optional &mdash; the kernel works with zero env vars set.</p>
+
+  <h2>Agent identity</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>OSTK_AGENT</code></td>
+        <td>Agent alias. Set by the kernel on spawn. Used for audit attribution, heartbeat files, gen_table writer identity, and cache-prefix partitioning.</td>
+        <td><code>"unknown"</code></td>
+      </tr>
+      <tr>
+        <td><code>OSTK_PIN</code></td>
+        <td>Active capability pin name. Set by <code>ostk run --pin &lt;name&gt;</code> or by the Agentfile <code>PIN</code> directive. Loads <code>.ostk/pins/&lt;name&gt;/pin.caps</code> for deny-token enforcement.</td>
+        <td>Tier default</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_TRUST_TIER</code></td>
+        <td>Override trust tier resolution. Bypasses GPG web-of-trust detection. Used by CI and tests.</td>
+        <td>Auto-detected from GPG</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_AGENTFILE</code></td>
+        <td>Path to the Agentfile to load at boot. Set by the spawn path when launching agents from an Agentfile.</td>
+        <td>None (Agentfile loading skipped)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Daemon and scheduler</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>OSTK_SCHEDULER_TICK_SECONDS</code></td>
+        <td>Interval (seconds) for the scheduler tick loop. The daemon wakes the scheduler agent on this timer. Set to <code>0</code> or unset to disable.</td>
+        <td>Disabled</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_SCHEDULER_STUCK_AFTER_SECS</code></td>
+        <td>Seconds of continuous busy before the tick loop escalates from <code>skipped</code> to <code>stuck</code> in audit.</td>
+        <td><code>90</code></td>
+      </tr>
+      <tr>
+        <td><code>OSTK_SCHEDULER_FORCE_CLEAR_AFTER_SECS</code></td>
+        <td>Seconds of continuous busy before the tick loop force-clears the busy flag and dispatches a fresh tick.</td>
+        <td><code>300</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Drain and recovery</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>OSTK_DRAIN_SNAPSHOT</code></td>
+        <td>Controls the drain snapshot write hook. Set to <code>0</code> to disable. Any other value (or unset) enables &mdash; snapshots write at every turn boundary.</td>
+        <td>Enabled (v2.5.0+)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Model and secrets</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>OSTK_MODEL</code></td>
+        <td>Override the default model for <code>ostk run</code>, <code>ostk do</code>, and <code>FROM auto</code> resolution. Takes precedence over HUMANFILE model selection.</td>
+        <td>Auto-resolved from HUMANFILE</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_SECRET_CMD</code></td>
+        <td>BYO vault command for secret resolution. The kernel calls <code>$OSTK_SECRET_CMD &lt;key&gt;</code> and reads stdout. Supports Bitwarden CLI, 1Password CLI, <code>pass</code>, or any command.</td>
+        <td>None (falls back to platform keychain, then env vars)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Diagnostics</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>OSTK_DUMP_REQUEST</code></td>
+        <td>Directory path. When set, the Anthropic driver writes the full API request JSON to numbered files in this directory. For debugging cache behavior and preload drift.</td>
+        <td>Disabled</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_DUMP_HANDSHAKE</code></td>
+        <td>File path. When set, the kernel writes the handshake bytes (envelope grammar + session identity) to this file at boot. For debugging byte-stability.</td>
+        <td>Disabled</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_NO_CACHE</code></td>
+        <td>Set to <code>1</code> to disable all <code>cache_control</code> breakpoint placement. For verifying correctness independent of the prompt cache.</td>
+        <td>Disabled</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_T2_OBSERVER</code></td>
+        <td>Set to <code>1</code> to enable Hot PR Tier 2 arbitration observer. Emits <code>hotpr.tier2.arbitration_needed</code> audit rows when mechanical rebase fails.</td>
+        <td>Disabled</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>System</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>OSTK_STATE_DIR</code></td>
+        <td>Override the state directory name. The kernel uses this instead of <code>.ostk</code>.</td>
+        <td><code>.ostk</code></td>
+      </tr>
+      <tr>
+        <td><code>OSTK_OS_NAME</code></td>
+        <td>Override the binary name used in dispatched shell commands. Set automatically from <code>argv[0]</code>.</td>
+        <td>Auto-detected</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_DIR</code></td>
+        <td>Absolute path to the <code>.ostk</code> directory. Set by the kernel when spawning FCP driver subprocesses.</td>
+        <td>Auto-detected</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_REGISTRY_DIR</code></td>
+        <td>Override the global registry directory (<code>~/.ostk/registry.jsonl</code>). Used by CI for isolation.</td>
+        <td><code>~/.ostk/</code></td>
+      </tr>
+      <tr>
+        <td><code>OSTK_PREPROCESS</code></td>
+        <td>Preprocessing model for tool output. Values: <code>apple/default</code> or custom. Overrides HUMANFILE <code>PREPROCESS</code> directive.</td>
+        <td>HUMANFILE setting</td>
+      </tr>
+      <tr>
+        <td><code>OSTK_TOOL_THRESHOLD</code></td>
+        <td>Momentum threshold for verb loading from <code>.language</code>. Float between 0 and 1. Lower = more verbs loaded.</td>
+        <td><code>0.45</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/ostk-toml">ostk.toml</a> &mdash; project-level file configuration</li>
+    <li><a href="/docs/osfile">.primefile</a> &mdash; kernel identity</li>
+    <li><a href="/docs/humanfile">HUMANFILE</a> &mdash; operator identity and model selection</li>
+    <li><a href="/docs/secrets">Secrets</a> &mdash; <code>OSTK_SECRET_CMD</code> and keychain integration</li>
+  </ul>
+</DocsLayout>

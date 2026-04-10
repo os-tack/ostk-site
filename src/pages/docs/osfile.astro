@@ -2,31 +2,20 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<DocsLayout title="OSfile (.primefile)" description="The kernel identity document. Written by the OS, not by you. Records the running kernel version and signing authority.">
-    <p class="lead">The kernel's identity document. The OS writes it. You read it to verify what's running.</p>
+<DocsLayout title=".primefile" description="The kernel identity document. Written by the OS, not by you. Records the running kernel version and signing authority.">
+    <p>The kernel's identity document. The OS writes it. You read it to verify what's running.</p>
 
     <h2>What it is</h2>
     <p>
-      The OSfile is the signed <code>.primefile</code> — the kernel identity document.
-      The OS's equivalent of your HUMANFILE. You don't write it. The kernel writes and
-      signs it at initialization, and updates it on version changes.
+      The <code>.primefile</code> is the root of trust for the entire ostk installation.
+      It is <strong>dual-signed</strong>: once by the kernel's own GPG key (T1), and once
+      by the operator's personal GPG key (T0). Changes to the primefile require re-signing
+      by both keys, in person.
     </p>
-    <p>
-      Read it to understand what kernel version is running, who signed it, and
-      what the active trust chain looks like.
-    </p>
-
-    <h2>OSfile vs ostk.toml</h2>
-    <p>These are two different things:</p>
-    <ul>
-      <li><strong>OSfile (.primefile)</strong> — the kernel's signed identity document. Written and owned by the OS. Records version, signing keys, session state. You verify it; you don't edit it.</li>
-      <li><strong>ostk.toml</strong> — project collaboration config. Defines project-level settings for agent coordination: default kernel version, laws, pin defaults, feature flags. You write and maintain this.</li>
-    </ul>
-    <p>The OSfile proves what kernel is running. <code>ostk.toml</code> configures how your team uses it.</p>
+    <p>Read it to understand what kernel version is running, who signed it, and what the active trust chain looks like.</p>
 
     <h2>Location</h2>
-    <p><code>.ostk/.primefile</code> — the signed kernel identity, in your project's ostk state directory.</p>
-    <p><code>ostk.toml</code> — project collaboration config, at your repository root.</p>
+    <p><code>.ostk/.primefile</code> &mdash; in your project's ostk state directory.</p>
 
     <h2>Example</h2>
     <pre><code>---BEGIN HAYSTACK.PRIME KERNEL DECLARATION---
@@ -65,29 +54,6 @@ LINEAGE:
 
 ---SIGNATURES BELOW---</code></pre>
 
-    <h2>ostk.toml example</h2>
-    <p>Created by <code>ostk init</code> at your project root:</p>
-    <pre><code># ostk.toml — my-project
-
-[project]
-name = "my-project"
-
-[kernel]
-version = ">=2.2.4"
-boot_mode = "embedded-first"
-laws = ["invisible-write", "ephemeral", "filesystem", "OCC", "invisible-infra"]
-
-[pins.default]
-read = [".ostk/", ".language"]
-write = [".ostk/store/default/"]
-execute = "shell(readonly)"
-deny = ["write-kernel", "modify-governance"]
-
-[features]
-tui = true
-agents = true
-audit = true</code></pre>
-
     <h2>Fields</h2>
     <table>
       <thead>
@@ -95,38 +61,29 @@ audit = true</code></pre>
       </thead>
       <tbody>
         <tr><td><code>KERNEL</code></td><td>Kernel identity name. Default: <code>@project.prime</code>.</td></tr>
-        <tr><td><code>VERSION</code></td><td>Kernel declaration version. Compare to latest release to check for updates.</td></tr>
-        <tr><td><code>AUTHORITY</code></td><td>Who controls the kernel — primary (human), kernel, and co-signer requirements.</td></tr>
+        <tr><td><code>VERSION</code></td><td>Kernel declaration version.</td></tr>
+        <tr><td><code>AUTHORITY</code></td><td>Who controls the kernel &mdash; primary (human), kernel, and co-signer requirements.</td></tr>
         <tr><td><code>KEYS</code></td><td>GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.</td></tr>
         <tr><td><code>LINEAGE</code></td><td>Root of trust chain, co-signers, and chain continuity date.</td></tr>
-        <tr><td><code>GOVERNANCE</code></td><td>References to ENTITYFILE, GOVERNANCE.md, MANIFESTO.md, and catastrophic loss procedure.</td></tr>
       </tbody>
     </table>
 
     <h2>Signature verification</h2>
-    <p>
-      The <code>.primefile</code> is GPG-signed by the kernel root key. To verify the
-      running kernel hasn't been tampered with:
-    </p>
     <pre><code>gpg --verify .ostk/.primefile.asc .ostk/.primefile</code></pre>
-    <p>
-      If verification fails, the kernel should not be trusted. The signature chain runs:
-      human T0 key → kernel root key → CI key. Each link in the chain is cross-signed.
-    </p>
+    <p>If verification fails, the kernel should not be trusted. The signature chain runs: human T0 key &rarr; kernel root key &rarr; CI key. Each link in the chain is cross-signed.</p>
 
     <h2>You don't edit this</h2>
     <p>
-      Unlike HUMANFILE and ENTITYFILE, you do not write the OSfile. The kernel owns it.
+      Unlike HUMANFILE and ENTITYFILE, you do not write the primefile. The kernel owns it.
       Modifying it manually will invalidate the signature and may cause the kernel to
-      refuse to boot. If you need to update kernel configuration, use the provided
-      governance commands rather than direct edits.
+      refuse to boot.
     </p>
 
     <h2>See also</h2>
     <ul>
-      <li><a href="/docs/humanfile">HUMANFILE — your operator identity</a></li>
-      <li><a href="/docs/entityfile">ENTITYFILE — trust architecture</a></li>
-      <li><a href="/docs/agentfile">Agentfile — agent definition</a></li>
-      <li><a href="/docs">Documentation index</a></li>
+      <li><a href="/docs/ostk-toml">ostk.toml</a> &mdash; project collaboration config (the file you DO edit)</li>
+      <li><a href="/docs/env-vars">Environment Variables</a> &mdash; runtime configuration via env</li>
+      <li><a href="/docs/humanfile">HUMANFILE</a> &mdash; your operator identity</li>
+      <li><a href="/docs/entityfile">ENTITYFILE</a> &mdash; trust architecture</li>
     </ul>
 </DocsLayout>

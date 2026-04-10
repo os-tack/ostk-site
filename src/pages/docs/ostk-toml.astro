@@ -1,0 +1,138 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="ostk.toml" description="Project collaboration config for ostk. Defines version constraints, identity, distribution, kernel settings, pins, and feature flags.">
+  <p>The project-level configuration file. Lives at the repository root. You write and maintain this. The kernel reads it at boot.</p>
+
+  <h2>Full example</h2>
+  <pre><code># ostk.toml
+
+[version]
+release = "2.5.0"
+kernel = ">=2.5.0"
+released_at = "2026-04-10T00:00:00Z"
+
+[identity]
+name = "@my-project"
+root_key = "6C31536F..."
+ci_key = "A7B73859..."
+signed_by = ["@operator", "@project.prime"]
+
+[authorization]
+github_gpg_required = true
+trust_tiers = [
+  "T0:dual-signed",
+  "T1:cross-signed",
+  "T2:gpg-not-cross-signed",
+  "T3:anonymous"
+]
+
+[distribution]
+mirrors = [
+  "https://github.com/your-org/your-repo/releases",
+]
+verify_signature = true
+tarball_pattern = "ostk-&#123;version&#125;-&#123;target&#125;.tar.gz"
+
+[kernel]
+boot_mode = "embedded-first"
+daemon_lifecycle = "tui-owned"
+laws = [
+  "invisible-write",
+  "ephemeral",
+  "filesystem",
+  "OCC",
+  "invisible-infra"
+]
+
+[onboarding]
+steps = [
+  "binary-install",
+  "environment-detect",
+  "humanfile-create",
+  "os-init",
+  "import-offer"
+]
+
+[pins.default]
+read = [".ostk/", ".language"]
+write = [".ostk/store/default/"]
+execute = "shell(readonly)"
+deny = ["write-kernel", "modify-governance"]
+
+[features]
+tui = true
+agents = true
+audit = true
+digest = true
+embeddings = false</code></pre>
+
+  <h2>Section reference</h2>
+
+  <h3>[version]</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>release</code></td><td>Current release version string.</td></tr>
+      <tr><td><code>kernel</code></td><td>Semver constraint for compatible kernel versions. Boot fails if the binary doesn't match.</td></tr>
+      <tr><td><code>released_at</code></td><td>ISO timestamp of this release.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>[identity]</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>name</code></td><td>Project identity handle (e.g. <code>@my-project</code>).</td></tr>
+      <tr><td><code>root_key</code></td><td>GPG fingerprint of the T0 human root key.</td></tr>
+      <tr><td><code>ci_key</code></td><td>GPG fingerprint of the T1 CI signing key.</td></tr>
+      <tr><td><code>signed_by</code></td><td>Required co-signers for governance changes.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>[authorization]</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>github_gpg_required</code></td><td>Require GPG key on GitHub for T2+ access.</td></tr>
+      <tr><td><code>trust_tiers</code></td><td>Tier definitions with signing requirements.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>[kernel]</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>boot_mode</code></td><td>How the kernel initializes. <code>embedded-first</code> tries the compiled-in state before reading disk.</td></tr>
+      <tr><td><code>daemon_lifecycle</code></td><td>Who owns the daemon's lifecycle. <code>tui-owned</code> means the TUI starts/stops the daemon.</td></tr>
+      <tr><td><code>laws</code></td><td>The Five Laws this project enforces. Cannot be changed after initialization.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>[pins.default]</h3>
+  <p>The default capability pin applied to agents that don't specify a custom pin. See <a href="/docs/pins">Capability Pins</a>.</p>
+
+  <h3>[features]</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>tui</code></td><td>Enable the terminal interface (fcp-screen).</td></tr>
+      <tr><td><code>agents</code></td><td>Enable agent dispatch and fleet management.</td></tr>
+      <tr><td><code>audit</code></td><td>Enable the append-only audit trail.</td></tr>
+      <tr><td><code>digest</code></td><td>Enable digest injection (<code>[procs]</code>, <code>[loadavg]</code>, etc.) on tool responses.</td></tr>
+      <tr><td><code>embeddings</code></td><td>Enable the semantic dedup tier (requires embeddings model download).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>vs .primefile</h2>
+  <p><code>ostk.toml</code> is your project config. The <a href="/docs/osfile">.primefile</a> is the kernel's signed identity document. You edit ostk.toml; the kernel writes the primefile. Different purposes, different owners.</p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/osfile">.primefile</a> &mdash; the kernel's signed identity (you don't edit this)</li>
+    <li><a href="/docs/env-vars">Environment Variables</a> &mdash; runtime configuration via env</li>
+    <li><a href="/docs/pins">Capability Pins</a> &mdash; the <code>[pins.default]</code> section in detail</li>
+    <li><a href="/docs/humanfile">HUMANFILE</a> &mdash; operator identity</li>
+  </ul>
+</DocsLayout>
