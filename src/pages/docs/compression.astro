@@ -2,68 +2,105 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<DocsLayout title="Output Compression" description="How ostk compresses tool output to save tokens. ANSI stripping, deduplication, semantic compression.">
-  <p>The kernel compresses tool output before it enters agent context. Raw shell output is noisy — ANSI escape codes, progress bars, repeated lines. Agents pay for that noise in tokens. The kernel removes it.</p>
+<DocsLayout title="Output Compression" description="How ostk compresses tool output to save tokens. Three-tier pipeline: VTE strip, implicit dedup, semantic dedup. Grammar-aware classification. Dangerous command detection.">
+  <p>The kernel compresses every tool output before it enters agent context. Three tiers: strip noise, deduplicate, classify. Agents never see raw terminal output.</p>
 
-  <h2>What gets compressed</h2>
+  <h2>Three-tier pipeline</h2>
+  <p>Every tool result passes through these tiers in order. Each tier is independent — if the embeddings model is missing, only tier 3 is skipped.</p>
   <table>
     <thead>
-      <tr><th>Noise source</th><th>What the kernel does</th></tr>
+      <tr><th>Tier</th><th>What it does</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td>ANSI escape codes</td>
-        <td>Stripped entirely. Color codes, cursor movement, terminal control sequences — all removed.</td>
+        <td><strong>VTE strip</strong></td>
+        <td>ANSI escape codes, cursor movement, terminal control sequences. All removed. Zero exceptions. The agent never pays tokens for color codes or progress bar redraws.</td>
       </tr>
       <tr>
-        <td>Progress bars</td>
-        <td>Collapsed. Hundreds of lines of <code>████░░░░ 34%</code> become one line with the final state.</td>
+        <td><strong>Implicit dedup</strong></td>
+        <td>Consecutive similar lines collapsed. Levenshtein similarity at 0.3 threshold. Template tokenization normalizes versions, hashes, and paths before comparison &mdash; so <code>v1.2.3</code> and <code>v1.2.4</code> match, and 50 lines of <code>Compiling foo v0.1.x</code> become one line with a count.</td>
       </tr>
       <tr>
-        <td>Repeated lines</td>
-        <td>Deduplicated. If the same line appears 50 times, the agent sees it once with a count.</td>
-      </tr>
-      <tr>
-        <td>Build log boilerplate</td>
-        <td>Condensed. Successful compilation output is reduced to the summary. Failures are preserved in full.</td>
+        <td><strong>Semantic dedup</strong></td>
+        <td>Optional third tier. Lines are batch-embedded, classified by signal type (hazard, warning, outcome, progress), and clustered with per-signal thresholds. Hazards cluster at 0.98 (nearly exact &mdash; errors are sacred). Progress clusters at 0.85 (aggressive &mdash; download bars are noise). Requires the embeddings model.</td>
       </tr>
     </tbody>
   </table>
+  <p><strong>In practice:</strong> roughly 80% token savings on tool output. A 10,000-token raw <code>cargo build</code> becomes ~2,000 tokens. The agent gets the same information without the noise.</p>
 
-  <h2>Result</h2>
-  <p>Roughly <strong>80% token savings</strong> on tool output. A 10,000-token raw <code>cargo build</code> output becomes ~2,000 tokens. The agent gets the same information — what compiled, what failed, what warnings exist — without the noise.</p>
-  <p>Savings are tracked per-session. Check them with:</p>
-  <pre><code>ostk os metrics</code></pre>
-
-  <h2>Inputs and outputs</h2>
-  <p>The compression pipeline is transparent. You put raw tool output in. You get compressed output out. The agent sees the compressed version in its context window.</p>
+  <h2>Grammar-aware compression</h2>
+  <p>When the kernel recognizes the command (<code>cargo build</code>, <code>npm install</code>, <code>git log</code>), it switches from bulk compression to line-level classification. Every line is tagged:</p>
   <table>
     <thead>
-      <tr><th>Stage</th><th>What happens</th></tr>
+      <tr><th>Classification</th><th>Behavior</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td>Input</td>
-        <td>Raw stdout/stderr from any tool call (shell commands, file reads, MCP tool responses)</td>
+        <td><strong>Hazard</strong></td>
+        <td>Always kept. Errors are never compressed away.</td>
       </tr>
       <tr>
-        <td>Processing</td>
-        <td>ANSI strip, progress bar collapse, line deduplication, boilerplate condensation</td>
+        <td><strong>Outcome</strong></td>
+        <td>Always kept. The agent must see whether the command succeeded.</td>
       </tr>
       <tr>
-        <td>Output</td>
-        <td>Clean, deduplicated text that preserves all meaningful content</td>
+        <td><strong>Noise(Strip)</strong></td>
+        <td>Dropped entirely. Build progress, download bars, timing lines.</td>
+      </tr>
+      <tr>
+        <td><strong>Noise(Dedup) / Unknown</strong></td>
+        <td>Fed through the dedup engine. Similar lines collapse; unique lines survive.</td>
       </tr>
     </tbody>
   </table>
-  <p>The original uncompressed output is preserved in the audit trail. Compression is lossy for noise, lossless for information.</p>
+  <p>Grammar detection strips environment prefixes and resolves compound command chains. <code>ENV_VAR=x cargo build</code> and <code>cd dir && cargo build</code> both resolve to <code>cargo build</code>.</p>
 
-  <h2>Semantic compression</h2>
-  <p>Optional. Beyond syntactic deduplication, the kernel can deduplicate by meaning — lines that say the same thing differently get merged.</p>
-  <p>This requires a local embeddings model. Download it with:</p>
+  <h2>Command categories</h2>
+  <p>Before compression runs, the router classifies the command. First match wins.</p>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Behavior</th><th>Examples</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Dangerous</strong></td>
+        <td>Flagged. Output preserved in full with a warning. The agent is told the command is destructive.</td>
+        <td><code>rm -rf</code>, <code>git push --force</code>, <code>mkfs</code></td>
+      </tr>
+      <tr>
+        <td><strong>Narrate</strong></td>
+        <td>Silent commands get a human-readable execution summary instead of empty output.</td>
+        <td><code>cp</code>, <code>mv</code>, <code>mkdir</code></td>
+      </tr>
+      <tr>
+        <td><strong>Passthrough</strong></td>
+        <td>Output returned verbatim with a metadata footer. For commands whose output IS the answer.</td>
+        <td><code>ls</code>, <code>cat</code>, <code>grep</code></td>
+      </tr>
+      <tr>
+        <td><strong>Structured</strong></td>
+        <td>Machine-readable output parsed and reformatted for the agent.</td>
+        <td><code>git status</code>, <code>docker ps</code></td>
+      </tr>
+      <tr>
+        <td><strong>Condense</strong></td>
+        <td>Everything else. Full three-tier pipeline applied.</td>
+        <td><code>cargo build</code>, <code>npm install</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Resolution order: dangerous pattern check first (full command string). Then multi-token subcommand classification. Then single-token. Then Condense as fallback.</p>
+
+  <h2>Dangerous command detection</h2>
+  <p>The kernel scans every shell command for destructive patterns before the agent sees the output. Two groups:</p>
+  <p><strong>Legacy patterns</strong> &mdash; <code>rm -rf</code>, <code>git push --force</code>, <code>dd</code> to disk, <code>chmod 777</code>, <code>mkfs</code>.</p>
+  <p><strong>Threat-modeled patterns</strong> &mdash; pager shell escapes (<code>less</code>, <code>man</code>, <code>vi</code> with <code>!cmd</code>), <code>find</code> with <code>-delete</code>/<code>-exec</code>, <code>awk system()</code>, read tools with write flags (<code>sort -o</code>, <code>uniq -o</code>), network pipe execution (<code>curl|sh</code>, <code>wget|bash</code>), writes to sensitive paths (<code>.ssh</code>, <code>.bashrc</code>, <code>cron</code>), reads of secret paths (<code>/etc/shadow</code>, SSH keys), kernel operations (<code>insmod</code>, <code>sysctl -w</code>, <code>iptables</code>), and wrapper programs that preserve execution (<code>sudo</code>, <code>doas</code>, <code>pkexec</code>, <code>setsid</code>).</p>
+  <p>The scan is compound-aware. <code>cd /tmp && rm -rf /</code> triggers. Environment prefixes are stripped. Bias: false positives preferred over missed destructive commands.</p>
+
+  <h2>Embeddings model</h2>
+  <p>The semantic dedup tier requires a local embeddings model. Download it:</p>
   <pre><code>ostk embeddings download</code></pre>
-  <p>This fetches <strong>potion-base-8M</strong> from HuggingFace (~30 MB). The kernel uses it automatically once available. No configuration needed.</p>
-  <p>Without the embeddings model, the kernel falls back to exact-match deduplication. Boot prints guidance if the model is missing and semantic compression would help.</p>
+  <p>This fetches <strong>potion-base-8M</strong> from HuggingFace (~30 MB). The kernel uses it automatically once available. Without it, the kernel falls back to implicit dedup. No configuration needed either way.</p>
 
   <h2>What the operator sees</h2>
   <p>Compression is invisible during normal operation. The agent's context contains compressed output. The operator sees compression stats in <code>ostk os metrics</code>:</p>
@@ -72,12 +109,13 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     <li>Compression ratio per tool call</li>
     <li>Whether semantic compression is active</li>
   </ul>
-  <p>There is nothing to configure. The kernel compresses all tool output by default. You cannot disable it — there is no reason to feed noise to agents.</p>
+  <p>There is nothing to configure. The kernel compresses all tool output by default. You cannot disable it &mdash; there is no reason to feed noise to agents.</p>
 
   <h2>See also</h2>
   <ul>
-    <li><a href="/docs/architecture">Architecture</a> — where compression fits in the kernel</li>
-    <li><a href="/docs/getting-started">Quick Start</a> — installing the embeddings model</li>
-    <li><a href="/docs/commands">Commands</a> — <code>ostk os metrics</code> and <code>ostk embeddings download</code></li>
+    <li><a href="/docs/architecture">Architecture</a> &mdash; where compression fits in the kernel</li>
+    <li><a href="/docs/kernel-spec">Kernel Specification</a> &mdash; the seven primitives and design principles</li>
+    <li><a href="/docs/getting-started">Quick Start</a> &mdash; installing the embeddings model</li>
+    <li><a href="/docs/commands">Commands</a> &mdash; <code>ostk os metrics</code> and <code>ostk embeddings download</code></li>
   </ul>
 </DocsLayout>
