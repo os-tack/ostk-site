@@ -2,27 +2,24 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<DocsLayout title="HUMANFILE" description="The operator identity document. Tells the OS who you are and how you work.">
-    <p class="lead">Your compiled identity. The OS reads this at boot and calibrates to you.</p>
+<DocsLayout title="HUMANFILE" description="The operator identity document. Tells the OS who you are, what models to use, what secrets are authorized, and how to calibrate.">
+    <p>Your compiled identity. The OS reads this at boot and calibrates to you.</p>
 
     <h2>What it is</h2>
     <p>
       HUMANFILE is the document that tells the OS who you are, what models and secrets
-      agents can use, and what drivers to load. Not a config file — a governance document.
+      agents can use, what drivers to load, and how to preprocess input. Not a config file &mdash; a governance document.
       You write it once. Every agent that runs under your OS reads it.
     </p>
-    <p>Location: <code>.ostk/HUMANFILE</code> in your project (project-level), or <code>~/.HUMANFILE</code> (global, shared across all projects).</p>
-
-    <h2>Format</h2>
-    <p>HUMANFILE uses a directive format: uppercase keywords, <code>#</code> comments, and <code>&lt;&lt;TAG</code> heredoc blocks for lists.</p>
+    <p>Location: <code>.ostk/HUMANFILE</code> (project-level) or <code>~/.HUMANFILE</code> (global, shared across all projects).</p>
 
     <h2>Example</h2>
-    <pre><code># HUMANFILE — @yourname (Your Name &lt;you@example.com&gt;)
+    <pre><code># HUMANFILE &mdash; @scott
 
-IDENTITY yourname
-SIGN YOUR_GPG_FINGERPRINT_HERE
+IDENTITY scott
+SIGN 7141A45868F8295E5BEB6286BAF08C963C7E3184
 
-MODEL claude-sonnet-4-5
+MODEL claude-opus-4-6
 FALLBACK mistral-large-latest
 
 AVAILABLE &lt;&lt;MODELS
@@ -39,11 +36,14 @@ SECRET &lt;&lt;KEYS
 ANTHROPIC_API_KEY
 GEMINI_API_KEY
 OPENROUTER_API_KEY
+MISTRAL_API_KEY
 KEYS
 
-DRIVER fcp-rust
-DRIVER fcp-screen
-DRIVER fcp-web</code></pre>
+DRIVER rust fcp-rust
+
+EMBED codebase
+
+PREPROCESS apple/default</code></pre>
 
     <h2>Directives</h2>
     <table>
@@ -52,83 +52,63 @@ DRIVER fcp-web</code></pre>
       </thead>
       <tbody>
         <tr><td><code>IDENTITY</code></td><td>Yes</td><td>Your username. Used in audit attribution and agent identity.</td></tr>
-        <tr><td><code>SIGN</code></td><td>No</td><td>Your GPG key fingerprint. Establishes T0 trust tier when verified.</td></tr>
+        <tr><td><code>SIGN</code></td><td>No</td><td>GPG key fingerprint. Establishes T0 trust tier when verified.</td></tr>
         <tr><td><code>MODEL</code></td><td>Yes</td><td>Default model for agent sessions. The kernel auto-detects provider from model name.</td></tr>
         <tr><td><code>FALLBACK</code></td><td>No</td><td>Model to use when the primary is unavailable or rate-limited.</td></tr>
-        <tr><td><code>AVAILABLE &lt;&lt;MODELS</code></td><td>No</td><td>Heredoc block listing all models the OS is authorized to use. Used by <code>FROM auto</code> in Agentfiles.</td></tr>
-        <tr><td><code>SECRET &lt;&lt;KEYS</code></td><td>No</td><td>Heredoc block listing API key names agents can access. Keys are stored in platform keychain via <code>ostk secret set</code> — never in the file itself.</td></tr>
-        <tr><td><code>DRIVER</code></td><td>No</td><td>FCP device driver to load at boot. One per line. Standard drivers: <code>fcp-rust</code>, <code>fcp-screen</code>, <code>fcp-web</code>.</td></tr>
+        <tr><td><code>AVAILABLE &lt;&lt;MODELS</code></td><td>No</td><td>Heredoc block listing all models the OS is authorized to use. Consumed by <code>FROM auto</code> in Agentfiles.</td></tr>
+        <tr><td><code>SECRET &lt;&lt;KEYS</code></td><td>No</td><td>Heredoc block listing authorized API key names. Keys are stored in the platform keychain &mdash; never in the file itself.</td></tr>
+        <tr><td><code>DRIVER &lt;type&gt; &lt;name&gt;</code></td><td>No</td><td>FCP driver to load at boot. <code>type</code> is the driver kind (e.g. <code>rust</code>), <code>name</code> is the binary name (e.g. <code>fcp-rust</code>). Internal drivers (fcp-screen, fcp-web) don't need a declaration.</td></tr>
+        <tr><td><code>EMBED</code></td><td>No</td><td>Embedding index mode. <code>codebase</code> = full index at boot. <code>incremental</code> = git-diff-only updates. <code>off</code> = disable.</td></tr>
+        <tr><td><code>PREPROCESS</code></td><td>No</td><td>Local model for preprocessing user input (grammar correction, intent expansion). Values: <code>apple/default</code> (on-device), or a model path.</td></tr>
+        <tr><td><code>TRUST</code></td><td>No</td><td>Trust policy for Agentfile signing. <code>unsigned</code> skips the signature requirement for agent dispatch.</td></tr>
+        <tr><td><code>EXTENDS</code></td><td>No</td><td>Path to a parent HUMANFILE for inheritance. Project-level HUMANFILE can extend a global one. Child directives override parent.</td></tr>
+        <tr><td><code>BOOT</code></td><td>No</td><td>Custom boot steps appended after the kernel's initialization sequence. e.g. <code>BOOT :verify-codeowners</code></td></tr>
+        <tr><td><code>VERB</code></td><td>No</td><td>Custom verb registration merged into <code>.language</code> at boot. Extends the syscall table without editing the language file directly.</td></tr>
       </tbody>
     </table>
 
     <h2>Secrets</h2>
     <p>
       The <code>SECRET</code> block is the only place where API keys are authorized for agent use.
-      If a key isn't listed, agents cannot access it — even if it exists in your system keychain.
+      If a key isn't listed, agents cannot access it &mdash; even if it exists in your system keychain.
     </p>
     <p>The kernel resolves secrets in order:</p>
     <ol>
-      <li><strong>BYO secret manager</strong> — set <code>OSTK_SECRET_CMD</code> to your tool (bw, op, pass)</li>
-      <li><strong>Platform keychain</strong> — <code>ostk secret set KEY</code> stores in platform keychain (macOS Keychain / Linux secret-tool)</li>
-      <li><strong>Environment variable</strong> — fallback to <code>$KEY</code> in your shell env</li>
+      <li><strong>BYO secret manager</strong> &mdash; set <code>OSTK_SECRET_CMD</code> to your tool (<code>bw</code>, <code>op</code>, <code>pass</code>). See <a href="/docs/env-vars">Environment Variables</a>.</li>
+      <li><strong>Platform keychain</strong> &mdash; <code>ostk secret set KEY</code> stores in macOS Keychain / Linux secret-tool</li>
+      <li><strong>Environment variable</strong> &mdash; fallback to <code>$KEY</code> in your shell env</li>
     </ol>
-    <p>You only need the key(s) for your chosen provider:</p>
+    <p>Provider mapping:</p>
     <ul>
-      <li><code>claude-*</code> → <code>ANTHROPIC_API_KEY</code></li>
-      <li><code>gemini-*</code> → <code>GEMINI_API_KEY</code></li>
-      <li><code>mistral-*</code> / <code>codestral-*</code> → <code>MISTRAL_API_KEY</code></li>
-      <li><code>openrouter/*</code> → <code>OPENROUTER_API_KEY</code></li>
+      <li><code>claude-*</code> &rarr; <code>ANTHROPIC_API_KEY</code></li>
+      <li><code>gemini-*</code> &rarr; <code>GEMINI_API_KEY</code></li>
+      <li><code>mistral-*</code> / <code>codestral-*</code> &rarr; <code>MISTRAL_API_KEY</code></li>
+      <li><code>openrouter/*</code> &rarr; <code>OPENROUTER_API_KEY</code></li>
     </ul>
-
-    <h2>The bail template</h2>
-    <p>
-      When you run <code>ostk init</code>, the OS downloads a governance bail from
-      <a href="https://github.com/os-tack/ostk.ai">os-tack/ostk.ai</a> and personalizes
-      the HUMANFILE template with your git identity and GPG key:
-    </p>
-    <pre><code># HUMANFILE — @&#123;USERNAME&#125; (&#123;OPERATOR&#125;)
-#
-# Your identity, secrets, and autonomy grants.
-# Created by ostk init from os-tack/ostk.ai governance bail.
-#
-# Docs: https://ostk.ai/docs/humanfile
-
-IDENTITY &#123;USERNAME&#125;
-SIGN &#123;GPG_KEY&#125;
-
-MODEL claude-sonnet-4-5
-
-SECRET &lt;&lt;KEYS
-ANTHROPIC_API_KEY
-KEYS
-
-DRIVER fcp-rust
-DRIVER fcp-screen
-DRIVER fcp-web</code></pre>
-    <p>Placeholders (<code>&#123;USERNAME&#125;</code>, <code>&#123;GPG_KEY&#125;</code>) are replaced with values from your git config and GPG keyring.</p>
 
     <h2>GPG signing</h2>
     <p>
-      Signing your HUMANFILE establishes T0 operator identity — the highest trust tier.
+      Signing your HUMANFILE establishes T0 operator identity &mdash; the highest trust tier.
       Without a signature, the OS operates at T2 (named, unverified).
     </p>
     <pre><code>ostk sign</code></pre>
-    <p>This signs the HUMANFILE with the GPG key specified in your <code>SIGN</code> directive. Alternatively:</p>
-    <pre><code>gpg --armor --detach-sign .ostk/HUMANFILE</code></pre>
-    <p>The signature file (<code>HUMANFILE.asc</code>) is read at boot alongside HUMANFILE.</p>
+    <p>This signs the HUMANFILE with the GPG key specified in your <code>SIGN</code> directive. The signature file (<code>HUMANFILE.asc</code>) is read at boot alongside HUMANFILE.</p>
 
-    <h2>Global vs project HUMANFILE</h2>
-    <p>
-      <code>~/.HUMANFILE</code> applies to all projects on your machine. <code>.ostk/HUMANFILE</code>
-      is project-specific and takes precedence. The global file is created by <code>ostk init --guided</code>
-      when you configure identity.
-    </p>
+    <h2>Inheritance</h2>
+    <p><code>~/.HUMANFILE</code> applies to all projects on your machine. <code>.ostk/HUMANFILE</code> is project-specific and takes precedence. Use <code>EXTENDS</code> to inherit from a parent:</p>
+    <pre><code># .ostk/HUMANFILE
+EXTENDS ~/.HUMANFILE
+
+# Override just the model for this project
+MODEL claude-haiku-4-5</code></pre>
+    <p>Child directives override parent. Secrets, models, and drivers merge (child adds to parent's list). The global file is created by <code>ostk init --guided</code>.</p>
 
     <h2>See also</h2>
     <ul>
-      <li><a href="/docs/secrets">Secrets — how the OS resolves and protects API keys</a></li>
-      <li><a href="/docs/entityfile">ENTITYFILE — trust architecture for teams and CI</a></li>
-      <li><a href="/docs/agentfile">Agentfile — define what an agent can do</a></li>
-      <li><a href="/docs">Documentation index</a></li>
+      <li><a href="/docs/secrets">Secrets</a> &mdash; how the OS resolves and protects API keys</li>
+      <li><a href="/docs/env-vars">Environment Variables</a> &mdash; <code>OSTK_SECRET_CMD</code>, <code>OSTK_MODEL</code>, and other runtime config</li>
+      <li><a href="/docs/entityfile">ENTITYFILE</a> &mdash; trust architecture for teams and CI</li>
+      <li><a href="/docs/agentfile">Agentfile</a> &mdash; agent definition (consumes HUMANFILE at boot)</li>
+      <li><a href="/docs/ostk-toml">ostk.toml</a> &mdash; project collaboration config</li>
     </ul>
 </DocsLayout>
