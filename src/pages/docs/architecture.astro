@@ -2,66 +2,129 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
-<DocsLayout title="Architecture" description="ostk architecture: a single Rust binary kernel with FCP drivers for domain intelligence and coordination.">
-  <p>ostk is a single binary that coordinates AI agents working on a codebase. Two layers: the kernel and drivers.</p>
-
-  <figure>
-    <img src="/diagrams/architecture-overview.svg" alt="Architecture diagram showing the ostk kernel at center, with FCP drivers (fcp-rust, fcp-screen, fcp-web) connecting as plugins, agents writing to the filesystem above, and the audit trail below." />
-  </figure>
+<DocsLayout title="Architecture" description="ostk architecture: a single Rust binary kernel, FCP drivers for domain intelligence, and a daemon that coordinates agent fleets.">
+  <p>ostk is a single binary that coordinates AI agents working on a codebase. Three layers: the kernel, the daemon, and drivers.</p>
 
   <h2>The kernel</h2>
-  <p>A single Rust binary. Statically linked. No runtime dependencies. The kernel handles:</p>
+  <p>A single Rust binary. Statically linked. No runtime dependencies. Seven primitives built on Unix-inspired filesystem operations. The kernel handles:</p>
   <ul>
-    <li><strong>Write tracking</strong> — every file write is intercepted and assigned a generation counter</li>
-    <li><strong>Conflict resolution</strong> — when two agents edit the same file, the kernel detects and resolves via Hot PR</li>
-    <li><strong>Output compression</strong> — strips ANSI codes, deduplicates lines, removes progress bars before output reaches agent context</li>
-    <li><strong>Capability enforcement</strong> — deny tokens applied silently based on trust tier and pin configuration</li>
-    <li><strong>Audit trail</strong> — every agent action is recorded. Queryable via <code>ostk os audit</code></li>
-    <li><strong>Secret mediation</strong> — API keys resolved from keychain at call time, never stored in agent context</li>
-    <li><strong>Fleet coordination</strong> — agent lifecycle, work queue, needle dispatch</li>
+    <li><strong>Write tracking</strong> &mdash; every file write is intercepted and assigned a generation counter via optimistic concurrency control</li>
+    <li><strong>Conflict resolution</strong> &mdash; when two agents edit the same file, the kernel detects and resolves via Hot PR (three tiers: auto-merge, mechanical rebase, manual)</li>
+    <li><strong>Output compression</strong> &mdash; three-tier pipeline strips ANSI, deduplicates lines, and classifies tool output. ~80% token savings. See <a href="/docs/compression">Compression</a></li>
+    <li><strong>Capability enforcement</strong> &mdash; deny-based <a href="/docs/pins">pins</a> at the tool layer, process-level sandboxing via Landlock/Seatbelt at the syscall layer</li>
+    <li><strong>Audit trail</strong> &mdash; every agent action is an append-only audit event. The process table is <code>fold(audit.jsonl)</code> &mdash; replaying the log reconstructs the fleet</li>
+    <li><strong>Secret mediation</strong> &mdash; API keys resolved from keychain at call time, never stored in agent context</li>
+    <li><strong>Fleet coordination</strong> &mdash; agent lifecycle (spawn, drain, reap, rehydrate), heartbeat crash detection, session topology, sub-stack isolation</li>
+    <li><strong>Dangerous command detection</strong> &mdash; 14 pattern detectors scan every shell command for destructive operations before the agent sees the output</li>
   </ul>
-  <p>The kernel boots from the <code>.ostk/</code> directory. It reads governance documents (HUMANFILE, ENTITYFILE), resolves trust tier, and begins tracking. No config needed beyond <code>ostk init</code> and <code>ostk boot</code>.</p>
+  <p>The kernel boots from the <code>.ostk/</code> directory. It reads governance documents (HUMANFILE, ENTITYFILE), resolves trust tier, and begins tracking. No config needed beyond <code>ostk init</code> and <code>ostk boot</code>. See <a href="/docs/kernel-spec">Kernel Specification</a> for the full seven-primitive model.</p>
+
+  <h2>The daemon</h2>
+  <p><code>ostk listen</code> starts the kernel daemon &mdash; a long-lived anchor process that holds the socket, the process table, and the scheduler. The daemon is the coordination hub for multi-agent work:</p>
+  <ul>
+    <li><strong>Session management</strong> &mdash; agents run as managed sessions inside the daemon. Each session has its own context, heartbeat, and drain snapshot.</li>
+    <li><strong>Scheduler tick loop</strong> &mdash; a background task that wakes the scheduler agent on a timer. The scheduler inspects fleet state and dispatches work (spawn workers, nudge agents, reap dead sessions).</li>
+    <li><strong>Crash recovery</strong> &mdash; drain snapshots written at every turn boundary (default ON). On daemon restart, <code>fold(audit.jsonl)</code> reconstructs the fleet and rehydrates sessions from snapshots. Mid-flight: heartbeat monitor detects crashed workers and hot-rehydrates them without a restart.</li>
+    <li><strong>Client multiplexing</strong> &mdash; TUI, MCP clients, CLI one-shots, and IDE extensions attach and detach from the daemon via the kernel socket. Agent sessions continue running regardless of client lifecycle.</li>
+  </ul>
+  <p>The daemon is a cache, not a ledger. The source of truth is the filesystem &mdash; <code>audit.jsonl</code>, <code>gen_table.jsonl</code>, drain snapshots. A daemon restart reconstructs identical state from disk. See <a href="/docs/session-topology">Session Topology</a>.</p>
 
   <h2>Write interception</h2>
   <p>
     ostk intercepts writes at the <strong>tool layer</strong>, not the filesystem. There is no FUSE mount, no <code>inotify</code> watcher, no <code>LD_PRELOAD</code> shim, and no <code>ptrace</code> syscall interception. Agents write files through kernel-provided primitives (<code>file:edit</code>, <code>file:write</code>, <code>file:create</code>) that apply policy, locking, and version tracking before bytes hit disk.
   </p>
   <p>
-    This is a deliberate trade-off. Filesystem-level interception provides universal coverage &mdash; any process writing to any path gets caught &mdash; but at the cost of platform fragility and performance overhead. Tool-layer mediation covers only writes that go through the kernel&rsquo;s primitives, but with zero overhead for unmediated I/O, no platform-specific modules, and deterministic behavior: if a write went through the tool, the kernel saw it.
+    This is a deliberate trade-off. Filesystem-level interception provides universal coverage but at the cost of platform fragility and performance overhead. Tool-layer mediation covers only writes that go through the kernel&rsquo;s primitives, but with zero overhead for unmediated I/O, no platform-specific modules, and deterministic behavior: if a write went through the tool, the kernel saw it.
   </p>
 
   <h2>FCP drivers</h2>
-  <p>Drivers extend the kernel with domain capabilities. They follow the FCP (Fleet Communication Protocol) interface — the kernel discovers, loads, and routes to them.</p>
+  <p>Drivers extend the kernel with domain capabilities. They follow the FCP (File Context Protocol) interface &mdash; MCP servers that let LLMs interact with complex file formats and domain-specific operations through a verb-based DSL.</p>
 
+  <h3>Internal drivers (ship with the kernel binary)</h3>
   <table>
     <thead>
       <tr><th>Driver</th><th>What it provides</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td><code>fcp-rust</code></td>
-        <td>Rust project analysis — crate graph, type resolution, compilation diagnostics routed to agents</td>
-      </tr>
-      <tr>
         <td><code>fcp-screen</code></td>
-        <td>TUI rendering — fleet status, work queue, permission modals, real-time agent output</td>
+        <td>TUI rendering &mdash; fleet status, work queue, permission modals, real-time agent output</td>
       </tr>
       <tr>
         <td><code>fcp-web</code></td>
-        <td>Web page reading — fetch, render, and extract content from URLs for agent consumption</td>
+        <td>Web page reading &mdash; fetch, render, and extract content from URLs for agent consumption</td>
+      </tr>
+      <tr>
+        <td><code>fcp-llm</code></td>
+        <td>LLM inference abstraction &mdash; CpuDriver trait, provider routing (Anthropic, Gemini, Mistral, OpenRouter)</td>
       </tr>
     </tbody>
   </table>
 
+  <h3>External drivers (separate repos, demand-spawned)</h3>
+  <table>
+    <thead>
+      <tr><th>Driver</th><th>What it provides</th><th>Repo</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>fcp-rust</code></td>
+        <td>Rust project analysis via rust-analyzer &mdash; crate graph, type resolution, compilation diagnostics</td>
+        <td><a href="https://github.com/os-tack/fcp-rust" target="_blank" rel="noopener noreferrer">os-tack/fcp-rust</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-python</code></td>
+        <td>Python code intelligence via pylsp &mdash; query and refactor Python codebases</td>
+        <td><a href="https://github.com/os-tack/fcp-python" target="_blank" rel="noopener noreferrer">os-tack/fcp-python</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-pdf</code></td>
+        <td>Semantic PDF operations &mdash; read, manipulate, annotate, merge, split</td>
+        <td><a href="https://github.com/os-tack/fcp-pdf" target="_blank" rel="noopener noreferrer">os-tack/fcp-pdf</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-sheets</code></td>
+        <td>Semantic spreadsheet operations &mdash; CSV, Excel, structured data manipulation</td>
+        <td><a href="https://github.com/os-tack/fcp-sheets" target="_blank" rel="noopener noreferrer">os-tack/fcp-sheets</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-terraform</code></td>
+        <td>Terraform HCL generation &mdash; infrastructure-as-code via intent</td>
+        <td><a href="https://github.com/os-tack/fcp-terraform" target="_blank" rel="noopener noreferrer">os-tack/fcp-terraform</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-drawio</code></td>
+        <td>draw.io diagram creation and editing through intent-level commands</td>
+        <td><a href="https://github.com/os-tack/fcp-drawio" target="_blank" rel="noopener noreferrer">os-tack/fcp-drawio</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-regex</code></td>
+        <td>Regex construction via named fragment composition</td>
+        <td><a href="https://github.com/os-tack/fcp-regex" target="_blank" rel="noopener noreferrer">os-tack/fcp-regex</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-midi</code></td>
+        <td>Semantic MIDI music composition</td>
+        <td><a href="https://github.com/os-tack/fcp-midi" target="_blank" rel="noopener noreferrer">os-tack/fcp-midi</a></td>
+      </tr>
+      <tr>
+        <td><code>fcp-slides</code></td>
+        <td>Presentation generation</td>
+        <td><a href="https://github.com/os-tack/fcp-slides" target="_blank" rel="noopener noreferrer">os-tack/fcp-slides</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Build your own drivers with the shared framework: <a href="https://github.com/os-tack/fcp-core" target="_blank" rel="noopener noreferrer">fcp-core</a> (TypeScript + Python) or <a href="https://github.com/os-tack/fcp-core-rust" target="_blank" rel="noopener noreferrer">fcp-core-rust</a> (Rust).</p>
+
   <p>Drivers are declared in your <a href="/docs/humanfile">HUMANFILE</a>:</p>
   <pre><code>DRIVER fcp-rust
-DRIVER fcp-screen
-DRIVER fcp-web</code></pre>
-  <p>The kernel loads them at boot. If a driver binary isn't found, the kernel skips it and logs a warning. Drivers are optional — the kernel works without any.</p>
+DRIVER fcp-python
+DRIVER fcp-pdf</code></pre>
+  <p>The kernel loads them at boot. If a driver binary isn&rsquo;t found, the kernel skips it and logs a warning. Drivers are optional &mdash; the kernel works without any.</p>
 
   <h2>What the operator sees</h2>
-  <p>From the operator's perspective, ostk is one command (<code>ostk</code>) that does everything. The kernel/driver split is invisible at the CLI level. You run <code>ostk tui</code> — fcp-screen handles rendering. You run <code>ostk run Agentfile</code> — the kernel dispatches. You never address a driver directly.</p>
-  <p>The architecture exists to keep the binary small and the extension surface clean. It does not affect how you use ostk.</p>
+  <p>From the operator&rsquo;s perspective, ostk is one command (<code>ostk</code>) that does everything. The kernel/daemon/driver split is invisible at the CLI level. You run <code>ostk</code> &mdash; fcp-screen handles rendering. You run <code>ostk listen</code> &mdash; the daemon starts. You run <code>ostk kernel spawn</code> &mdash; a worker appears. You never address a driver directly.</p>
 
   <h2>State layout</h2>
   <p>All OS state lives in the <code>.ostk/</code> directory at your project root:</p>
@@ -72,18 +135,26 @@ DRIVER fcp-web</code></pre>
     <tbody>
       <tr><td><code>.ostk/HUMANFILE</code></td><td>Operator identity and configuration</td></tr>
       <tr><td><code>.ostk/ENTITYFILE</code></td><td>Trust tiers and key registry</td></tr>
-      <tr><td><code>.ostk/boot.md</code></td><td>Boot state — read by agents at session start</td></tr>
-      <tr><td><code>.ostk/pin.caps</code></td><td>Capability pin definitions</td></tr>
-      <tr><td><code>.ostk/audit/</code></td><td>Append-only audit trail</td></tr>
-      <tr><td><code>.ostk/needles/</code></td><td>Work items — one file per needle</td></tr>
+      <tr><td><code>.ostk/audit.jsonl</code></td><td>Append-only audit trail &mdash; the source of truth for fleet state</td></tr>
+      <tr><td><code>.ostk/gen_table.jsonl</code></td><td>Generation counters for OCC &mdash; version vector per tracked file</td></tr>
+      <tr><td><code>.ostk/.language</code></td><td>Syscall table &mdash; verb definitions, momentum, resolution routes</td></tr>
+      <tr><td><code>.ostk/drain/</code></td><td>Drain snapshots &mdash; per-session state for crash recovery</td></tr>
+      <tr><td><code>.ostk/needles/</code></td><td>Work items &mdash; the executable work queue</td></tr>
+      <tr><td><code>.ostk/stacks/</code></td><td>Sub-stack isolation boundaries &mdash; scoped audit, drain, IPC per stack</td></tr>
+      <tr><td><code>.ostk/boot.md</code></td><td>Boot state &mdash; compacted session context read at agent start</td></tr>
+      <tr><td><code>.ostk/anchor.lock</code></td><td>Single-anchor flock &mdash; guarantees one daemon per project root</td></tr>
     </tbody>
   </table>
 
   <h2>See also</h2>
   <ul>
-    <li><a href="/docs/five-laws">Five Laws</a> — the constraints the architecture must satisfy</li>
-    <li><a href="/docs/compression">Output Compression</a> — how the kernel saves tokens</li>
-    <li><a href="/docs/mcp">MCP Proxy</a> — connecting external tool servers through the kernel</li>
-    <li><a href="/docs/tui">TUI</a> — the fcp-screen driver interface</li>
+    <li><a href="/docs/kernel-spec">Kernel Specification</a> &mdash; the seven primitives, Five Laws, memory hierarchy</li>
+    <li><a href="/docs/session-topology">Session Topology</a> &mdash; anchors, lineages, crash recovery, sub-stacks</li>
+    <li><a href="/docs/five-laws">Five Laws</a> &mdash; the constraints the architecture must satisfy</li>
+    <li><a href="/docs/compression">Output Compression</a> &mdash; the three-tier pipeline</li>
+    <li><a href="/docs/pins">Capability Pins</a> &mdash; two-layer enforcement (pins + nono)</li>
+    <li><a href="/docs/mcp">MCP Proxy</a> &mdash; connecting external tool servers through the kernel</li>
+    <li><a href="/docs/tui">TUI</a> &mdash; the fcp-screen driver interface</li>
+    <li><a href="https://github.com/os-tack/fcp" target="_blank" rel="noopener noreferrer">FCP specification</a> &mdash; the File Context Protocol</li>
   </ul>
 </DocsLayout>
