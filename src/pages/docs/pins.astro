@@ -114,6 +114,27 @@ PIN read-only</code></pre>
   <p>When a denied operation is attempted, the kernel blocks it silently. The agent does not receive an error message — the write simply does not persist. This is intentional: agents that know about restrictions try to work around them. Agents that don't know about restrictions write normally and the OS decides what sticks.</p>
   <p>Denied operations are logged in the audit trail. The operator can review them with <code>ostk os audit</code>.</p>
 
+  <h2>Two-layer enforcement</h2>
+  <p>Pins are one of two independent enforcement layers. They complement, not replace, process-level sandboxing:</p>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Mechanism</th><th>What it catches</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Pins (tool layer)</strong></td>
+        <td>MCP tool dispatch checks <code>pin.caps</code> before invoking tools</td>
+        <td>Writes through kernel-mediated verbs (<code>file:edit</code>, <code>shell</code>). The agent calls a tool; the kernel checks the pin before the tool runs.</td>
+      </tr>
+      <tr>
+        <td><strong>nono (syscall layer)</strong></td>
+        <td>Landlock (Linux) / Seatbelt (macOS) filesystem allowlist, enforced by the OS kernel</td>
+        <td>Direct filesystem access. If the agent somehow bypasses tool mediation, the syscall-level sandbox catches it. Cannot be bypassed by user code.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Enable process-level sandboxing via <code>ISOLATION nono</code> in the <a href="/docs/agentfile">Agentfile</a>. Pins and isolation enforce independently &mdash; bypassing one does not bypass the other. Together they form defense in depth: pins are the fast, fine-grained check; nono is the kernel-enforced backstop.</p>
+
   <h2>See also</h2>
   <ul>
     <li><a href="/governance">Governance</a> — trust model and the full pin description</li>

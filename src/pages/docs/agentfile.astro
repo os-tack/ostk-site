@@ -107,6 +107,14 @@ PIN default</code></pre>
             <code>BETA fast-mode</code>. Multiple BETA directives allowed.
           </td>
         </tr>
+        <tr>
+          <td><code>ISOLATION</code></td>
+          <td>No</td>
+          <td>
+            Sandbox tier for the agent process. <code>ISOLATION nono</code> enables process-level
+            sandboxing via Landlock (Linux) or Seatbelt (macOS). Default: <code>none</code>.
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -170,6 +178,50 @@ LIMIT destructive_ops allow     # pass through (not recommended for production)<
       "what controls exist around destructive actions?" <code>LIMIT destructive_ops</code>
       is the answer.
     </p>
+
+    <h2>Process isolation</h2>
+    <p>The <code>ISOLATION</code> directive selects the sandbox tier for the agent process. Four tiers, from least to most isolated:</p>
+    <table>
+      <thead>
+        <tr><th>Tier</th><th>Mechanism</th><th>Overhead</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>none</code></td>
+          <td>No sandbox. Full host access.</td>
+          <td>Zero</td>
+          <td>Default (current)</td>
+        </tr>
+        <tr>
+          <td><code>nono</code></td>
+          <td>Process-level sandbox. Landlock on Linux, Seatbelt on macOS. Filesystem allowlist enforced by the kernel.</td>
+          <td>Zero (applied once at fork, inherited across exec)</td>
+          <td>API complete, spawn wiring in progress</td>
+        </tr>
+        <tr>
+          <td><code>docker</code></td>
+          <td>Container isolation. Namespace separation.</td>
+          <td>~500ms boot</td>
+          <td>Reserved</td>
+        </tr>
+        <tr>
+          <td><code>firecracker</code></td>
+          <td>Hardware-level microVM via KVM. Full kernel isolation.</td>
+          <td>&lt;125ms boot</td>
+          <td>Reserved</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>The nono sandbox builds a minimal filesystem allowlist from the Agentfile: system paths (read-only), project root (read-only), writable subdirs (<code>src</code>, <code>docs</code>, <code>tests</code>, <code>target</code>), and temp dirs. Critically, <code>.ostk/</code> is <strong>not</strong> in the writable list &mdash; agents route kernel mutations through kernel verbs, not direct file writes.</p>
+    <p><strong>In practice:</strong> <code>ISOLATION nono</code> is one line in the Agentfile. The sandbox is invisible to the agent &mdash; writes outside the allowlist silently fail at the syscall level. The agent never knows it's constrained.</p>
+    <p>Isolation and <a href="/docs/pins">capability pins</a> are complementary. Pins restrict at the tool layer (which MCP tools the agent can call). Isolation restricts at the syscall layer (which filesystem paths the process can touch). Both enforce independently &mdash; bypassing one does not bypass the other.</p>
+
+    <h2>Revival policy</h2>
+    <p>Controls what happens to this agent's session when the daemon crashes and restarts:</p>
+    <pre><code>LIMIT revival_policy revive   # auto-recover from drain snapshot (default)
+LIMIT revival_policy reap     # drop on orphan &mdash; don't recover
+LIMIT revival_policy ask      # leave orphaned, operator decides</code></pre>
+    <p>The policy is carried in the audit log so the kernel remembers it across restarts. Ask-pending lineages are resolved via <code>ostk lineage resolve &lt;id&gt; --revive</code> or <code>--reap</code>. See <a href="/docs/session-topology">Session Topology</a> for the full crash recovery model.</p>
 
     <h2>FROM auto</h2>
     <p>
