@@ -2,31 +2,41 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="About ostk" description="The story behind ostk — the invisible OS for AI coding agents.">
+<Base title="About ostk" description="A distributed operating system for AI agents. Unix-inspired. Local-first. Invisible by design.">
   <div class="container page-content">
     <h1>About ostk</h1>
 
     <h2>The OS for AI agents</h2>
-    <p>Not a framework. Not a wrapper. Infrastructure — the kind that disappears the moment it works.</p>
-    <p>An agent running on ostk reads from your filesystem, writes to your filesystem, and coordinates with other agents through your filesystem. The OS resolves conflicts, tracks every edit, enforces capability boundaries, and maintains an append-only audit trail. The agent doesn't know any of this is happening.</p>
-    <p>Trust is determined by the <a href="/features/governance">GPG web of trust</a> — cross-signatures in your keyring, not platform accounts.</p>
+    <p>Not a framework. Not a wrapper. A distributed operating system &mdash; the kind that disappears the moment it works.</p>
+    <p>Agents read from your filesystem, write to your filesystem, and coordinate with other agents through your filesystem. The kernel resolves conflicts, tracks every edit, enforces capability boundaries, compresses output, manages session lifecycle, and maintains an append-only audit trail. The agents don't know any of this is happening. That's the design.</p>
+
+    <h2>What it does</h2>
+    <ul>
+      <li><strong>Fleet coordination</strong> &mdash; spawn, drain, reap, and rehydrate agents across daemon restarts. Workers crash-recover from drain snapshots automatically.</li>
+      <li><strong>Optimistic concurrency</strong> &mdash; agents write concurrently. The kernel detects conflicts via generation counters and resolves via Hot PR. No locks held during the expensive phase.</li>
+      <li><strong>Output compression</strong> &mdash; three-tier pipeline strips ANSI, deduplicates, and classifies tool output. ~80% token savings on build logs.</li>
+      <li><strong>Capability enforcement</strong> &mdash; deny-based pins at the tool layer. Process-level sandboxing via Landlock/Seatbelt at the syscall layer. Two independent layers, defense in depth.</li>
+      <li><strong>Identity and trust</strong> &mdash; GPG-based trust chain from hardware identity to human attestation. Four trust tiers. Dual-signed primefile ceremony for governance changes.</li>
+      <li><strong>Sub-stack isolation</strong> &mdash; multi-worker tasks run in scoped sub-stacks with their own audit log, drain directory, and token budget. Budget overruns force-seal the stack. The anchor is unaffected.</li>
+      <li><strong>Prompt cache economics</strong> &mdash; byte-stable system prefix shared across the fleet via Anthropic's content-addressed cache. Fleet cost scales sublinearly &mdash; adding agents decreases per-agent cost.</li>
+    </ul>
 
     <h2>The story</h2>
     <p>ostk wasn't designed in a planning meeting. It was extracted from the problem it solves.</p>
-    <p>The kernel started as a coordination layer for AI agents working on the same codebase. The first version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, and benchmarking.</p>
-    <p>At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS had absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.</p>
-    <p>The session that named ostk shipped a release and managed the entire workflow through the OS itself. The bootstrap was complete: the machine built the machine.</p>
+    <p>The kernel started as a coordination layer for AI agents working on the same codebase. The first version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, scheduling, drain snapshots, crash recovery, sub-stacks, and fleet-wide cache sharing.</p>
+    <p>At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS had absorbed it all &mdash; not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.</p>
 
-    <h2>Agent lifecycle</h2>
-    <img src="/diagrams/agent-lifecycle.svg" alt="Agent lifecycle: boot, POST, work, shutdown, and back to boot" class="diagram" />
-    <p>Every agent session follows the same cycle. State persists in the filesystem between sessions — the agent is ephemeral, the work is not. The <a href="/docs/five-laws">five laws</a> that govern this design are documented in full.</p>
+    <h2>Architecture</h2>
+    <p>Seven kernel primitives built on Unix-inspired filesystem operations. Five laws that every design decision must satisfy. A six-tier memory hierarchy from model context window to cold audit storage. A dual-CPU scheduler that treats human operators and LLM agents as peer execution resources.</p>
+    <p>The full architecture is documented at <a href="/docs/kernel-spec">Kernel Specification</a> and <a href="/docs/session-topology">Session Topology</a>.</p>
 
     <h2>Source availability</h2>
-    <p>The kernel source is not currently published. The governance documents, signing keys, install script, and site are open source under MIT. All security findings, trust chain, and verification artifacts are fully public.</p>
+    <p>The kernel source is not currently published. An open source release under a dual license is planned. The binary is free to use for personal and internal commercial use. See <a href="/legal/license">License</a> for the full terms.</p>
+    <p>Governance documents, signing keys, install script, and this site are public. All security findings, trust chain, and verification artifacts are fully available.</p>
 
     <h2>Contact</h2>
     <p>Built by agents running on ostk. Maintained by humans who speak tack.</p>
-    <p><a href="mailto:contact@ostk.ai">contact@ostk.ai</a></p>
+    <p><a href="mailto:contact@ostk.ai">contact@ostk.ai</a> &middot; <a href="https://discord.gg/MdRNs4CC" target="_blank" rel="noopener noreferrer">Discord</a> &middot; <a href="https://github.com/os-tack" target="_blank" rel="noopener noreferrer">GitHub</a></p>
   </div>
 </Base>
 
