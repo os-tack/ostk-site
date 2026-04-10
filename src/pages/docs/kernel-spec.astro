@@ -3,10 +3,10 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 
 <DocsLayout title="Kernel Specification" description="The ostk v1 unified foundation: seven primitives, Five Laws, memory hierarchy, dual-CPU scheduler, and the running system.">
-  <p>The canonical architecture document for ostk. Synthesizes 20+ prior specs into a single ground-truth reference for the seven-primitive minimal kernel, the POSIX substrate, the memory hierarchy, the dual-CPU scheduling model, the identity/trust stack, and the running system.</p>
+  <p>The canonical architecture document for ostk. Synthesizes 20+ prior specs into a single ground-truth reference for the seven-primitive minimal kernel, the Unix-inspired substrate, the memory hierarchy, the dual-CPU scheduling model, the identity/trust stack, and the running system.</p>
 
-  <h2>The substrate: POSIX</h2>
-  <p>The ostk kernel does not implement a filesystem, a concurrency layer, or a crash-safety layer. It uses POSIX's. Six syscalls are the foundation:</p>
+  <h2>The substrate: Unix-inspired primitives</h2>
+  <p>The ostk kernel does not implement a filesystem, a concurrency layer, or a crash-safety layer. It builds on battle-tested Unix primitives. Six operations are the foundation:</p>
   <table>
     <thead>
       <tr><th>Syscall</th><th>ostk use</th></tr>
@@ -75,7 +75,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <p>Both are first-class execution resources. The CpuDriver trait abstracts the boundary &mdash; below it, the kernel doesn't know whether it's talking to a human via TTY or an LLM via HTTPS.</p>
 
   <h2>The running system</h2>
-  <p>The spec includes a complete walkthrough (Part X) tracing every POSIX call, cache operation, process-table transition, and audit event that fires when an operator asks the scheduler to fix a bug. Every step from T+0 (operator input) through T+15 (cache plane verification) is mapped to real code paths and validated by the Part X end-to-end test.</p>
+  <p>The spec includes a complete walkthrough (Part X) tracing every system call, cache operation, process-table transition, and audit event that fires when an operator asks the scheduler to fix a bug. Every step from T+0 (operator input) through T+15 (cache plane verification) is mapped to real code paths and validated by the Part X end-to-end test.</p>
 
   <h2>Identity and trust</h2>
   <p>Five identity layers (L0 device &rarr; L4 human GPG attestation) and four trust tiers (T0 governance &rarr; T3 anonymous). The <code>.primefile</code> is the root of trust, dual-signed by the kernel's GPG key and the operator's personal key.</p>
@@ -83,7 +83,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <h2>Design principles</h2>
   <p>21 rules, including:</p>
   <ul>
-    <li>Everything that matters goes in <code>.ostk/</code> as a POSIX file with a documented schema</li>
+    <li>Everything that matters goes in <code>.ostk/</code> as a file with a documented schema</li>
     <li>Every feature must be debuggable with <code>jq</code>, <code>grep</code>, <code>awk</code>, <code>git</code></li>
     <li>Byte-stability is existentially load-bearing for fleet cache economics</li>
     <li>Agents are ephemeral; knowledge is persistent</li>

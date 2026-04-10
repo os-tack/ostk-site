@@ -7,7 +7,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <h2>The anchor</h2>
   <p><code>ostk listen</code> starts the kernel daemon &mdash; a long-lived process that holds the socket, the process table, and the scheduler. It is the anchor. It survives every client's death. It is restartable without data loss.</p>
-  <p>The anchor is <strong>not</strong> the source of truth. The source of truth is POSIX &mdash; <code>audit.jsonl</code>, <code>gen_table.jsonl</code>, the filesystem. The anchor holds an in-memory projection that is reconstructed from disk on every start via <code>fold(audit.jsonl)</code>.</p>
+  <p>The anchor is <strong>not</strong> the source of truth. The source of truth is the filesystem &mdash; <code>audit.jsonl</code>, <code>gen_table.jsonl</code>, and the files on disk. The anchor holds an in-memory projection that is reconstructed from disk on every start via <code>fold(audit.jsonl)</code>.</p>
 
   <h2>Session lineage</h2>
   <p>A <strong>session lineage</strong> is a stable identity for an ongoing piece of work: <code>scheduler</code>, <code>zenith</code>, <code>worker-a</code>. A lineage outlives both the client that spawned it and the anchor that ran it.</p>
