@@ -1,0 +1,69 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Session Topology" description="How ostk manages agent sessions across daemon restarts: anchors, lineages, drain snapshots, crash recovery, and sub-stacks.">
+  <p>Session topology is how the OS manages agent lifecycles across daemon restarts, crashes, and multi-client attach. The daemon is an <strong>anchor</strong>, clients are <strong>transient</strong>, and sub-stacks are <strong>isolation boundaries</strong>.</p>
+
+  <h2>The anchor</h2>
+  <p><code>ostk listen</code> starts the kernel daemon &mdash; a long-lived process that holds the socket, the process table, and the scheduler. It is the anchor. It survives every client's death. It is restartable without data loss.</p>
+  <p>The anchor is <strong>not</strong> the source of truth. The source of truth is POSIX &mdash; <code>audit.jsonl</code>, <code>gen_table.jsonl</code>, the filesystem. The anchor holds an in-memory projection that is reconstructed from disk on every start via <code>fold(audit.jsonl)</code>.</p>
+
+  <h2>Session lineage</h2>
+  <p>A <strong>session lineage</strong> is a stable identity for an ongoing piece of work: <code>scheduler</code>, <code>zenith</code>, <code>worker-a</code>. A lineage outlives both the client that spawned it and the anchor that ran it.</p>
+  <p>Lineage state transitions:</p>
+  <ul>
+    <li><strong>Active</strong> &mdash; attached to the current anchor, running turns</li>
+    <li><strong>Orphaned</strong> &mdash; the anchor that was running it went away</li>
+    <li><strong>Reaped</strong> &mdash; terminal, no future anchor will revive it</li>
+  </ul>
+
+  <h2>Revival policy</h2>
+  <p>Each agent declares its revival policy in the Agentfile:</p>
+  <pre><code>LIMIT revival_policy revive   # auto-recover from drain snapshot (default)
+LIMIT revival_policy reap     # drop on orphan — don't recover
+LIMIT revival_policy ask      # leave orphaned, operator decides</code></pre>
+  <p>Ask-pending lineages are resolved via <code>ostk lineage resolve &lt;id&gt; --revive</code> or <code>--reap</code>.</p>
+
+  <h2>Drain snapshots</h2>
+  <p>At every turn boundary, each session writes a drain snapshot to <code>.ostk/drain/&lt;lineage_id&gt;.json</code>. Enabled by default (v2.5.0+). The snapshot captures:</p>
+  <ul>
+    <li>Full conversation history (messages)</li>
+    <li>Cumulative token accounting</li>
+    <li>The session's <code>LoopConfig</code> (model, tools, permissions, betas, quota cap)</li>
+  </ul>
+  <p>On daemon restart, <code>rehydrate_revivable_orphans</code> reads each orphaned lineage's snapshot and rebuilds the session in place &mdash; conversation history, config, and all.</p>
+
+  <h2>Crash recovery</h2>
+  <p>The full recovery flow:</p>
+  <ol>
+    <li>Daemon crashes. Flock released. Drain snapshots remain on disk.</li>
+    <li>New daemon starts. <code>anchor::start</code> acquires the lock, writes <code>anchor.started</code>.</li>
+    <li><code>orphan_previous_lineages</code> marks stale sessions as Orphaned.</li>
+    <li><code>rehydrate_revivable_orphans</code> reads drain snapshots, rebuilds sessions.</li>
+    <li><code>reap_unmanaged_orphans</code> handles anything that couldn't be recovered.</li>
+  </ol>
+  <p>Mid-flight recovery: the scheduler's tick loop detects crashed workers via heartbeat and hot-rehydrates them without a daemon restart.</p>
+
+  <h2>Transient clients</h2>
+  <p>A client is any process that connects to the daemon: TUI, MCP client, CLI one-shot, IDE extension. Clients attach and detach freely &mdash; the agents they were interacting with continue running.</p>
+  <p>Protocol: <code>client/attach</code>, <code>client/detach</code>, <code>client/subscribe</code> over JSON-RPC on the kernel socket. Each client gets its own outbound event queue with backpressure eviction at 1024 pending events.</p>
+
+  <h2>Sub-stacks</h2>
+  <p>A sub-stack is an isolated group of sessions with its own audit log, drain directory, token budget, and file-based IPC channels.</p>
+  <pre><code>.ostk/stacks/bugfix-27/
+  audit.jsonl    # scoped audit log
+  drain/         # scoped drain snapshots
+  inbox/         # commands from anchor &rarr; sub-stack
+  nudges/        # reports from sub-stack &rarr; anchor</code></pre>
+  <p>Lifecycle: <code>Spawning &rarr; Active &rarr; Sealed &rarr; Reaped</code> (or <code>Failed</code> on crash/budget overrun).</p>
+  <p>The scheduler creates sub-stacks via <code>spawn_stack</code> and terminates them via <code>seal_stack</code>. Budget overruns trigger automatic force-seal.</p>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/architecture">Architecture</a> &mdash; kernel primitives and state layout</li>
+    <li><a href="/docs/kernel-spec">Kernel Specification</a> &mdash; the seven primitives, Five Laws, memory hierarchy</li>
+    <li><a href="/docs/agentfile">Agentfile</a> &mdash; revival_policy and other agent configuration</li>
+    <li><a href="/docs/five-laws">Five Laws</a> &mdash; the constraints the architecture satisfies</li>
+  </ul>
+</DocsLayout>

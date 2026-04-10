@@ -1,0 +1,102 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Kernel Specification" description="The ostk v1 unified foundation: seven primitives, Five Laws, memory hierarchy, dual-CPU scheduler, and the running system.">
+  <p>The canonical architecture document for ostk. Synthesizes 20+ prior specs into a single ground-truth reference for the seven-primitive minimal kernel, the POSIX substrate, the memory hierarchy, the dual-CPU scheduling model, the identity/trust stack, and the running system.</p>
+
+  <h2>The substrate: POSIX</h2>
+  <p>The ostk kernel does not implement a filesystem, a concurrency layer, or a crash-safety layer. It uses POSIX's. Six syscalls are the foundation:</p>
+  <table>
+    <thead>
+      <tr><th>Syscall</th><th>ostk use</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>rename(2)</code></td><td>Atomic file replacement (tmp + fsync + rename)</td></tr>
+      <tr><td><code>flock(2)</code></td><td>Critical sections for CAS commits</td></tr>
+      <tr><td><code>fsync(2)</code></td><td>Durability before rename</td></tr>
+      <tr><td><code>O_APPEND</code></td><td>Lockless audit log append (under PIPE_BUF)</td></tr>
+      <tr><td><code>stat(2)</code></td><td>Heartbeat liveness via mtime</td></tr>
+      <tr><td><code>O_CREAT|O_EXCL</code></td><td>Exclusive create for lock files</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Seven kernel primitives</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Primitive</th><th>Layer</th><th>What breaks without it</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>atomic_write</td><td>Substrate</td><td>Torn reads, crash inconsistency</td></tr>
+      <tr><td>2</td><td>gen + CAS</td><td>Coordination</td><td>Concurrent writers clobber silently</td></tr>
+      <tr><td>3</td><td>Hot PR</td><td>Coordination</td><td>Every concurrent edit needs human judgment</td></tr>
+      <tr><td>4</td><td>audit log</td><td>Coordination</td><td>No happens-before ordering, no attribution</td></tr>
+      <tr><td>5</td><td>identity</td><td>Coordination</td><td>Writer tags lost, agents collide on names</td></tr>
+      <tr><td>6</td><td>digest injection</td><td>Agent interface</td><td>LLM can't observe filesystem state cheaply</td></tr>
+      <tr><td>7</td><td>304 elision</td><td>Agent interface</td><td>Re-reads destroy context budget</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The Five Laws</h2>
+  <ol>
+    <li><strong>The write path is invisible.</strong> Agents never see locks, generation numbers, or merge conflicts.</li>
+    <li><strong>Agents are ephemeral.</strong> Every session is reconstructible from the audit log.</li>
+    <li><strong>Coordination happens through the filesystem.</strong> No messaging, no pubsub, no RPC.</li>
+    <li><strong>Concurrency is optimistic.</strong> Writes validate at commit time, not lock time.</li>
+    <li><strong>The kernel is a microkernel.</strong> Mechanism in the kernel; policy in userspace.</li>
+  </ol>
+
+  <h2>Memory hierarchy</h2>
+  <table>
+    <thead>
+      <tr><th>Tier</th><th>Substrate</th><th>Role</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Registers</td><td>Context window</td><td>Active working memory</td><td>Base rate</td></tr>
+      <tr><td>L1 cache</td><td>Prompt cache</td><td>Fleet-shared prefix</td><td>10% read</td></tr>
+      <tr><td>RAM</td><td>.ostk/ files</td><td>Durable kernel state</td><td>Free</td></tr>
+      <tr><td>Disk</td><td>Source code</td><td>Project truth</td><td>Free</td></tr>
+      <tr><td>Swap</td><td>boot.md, history</td><td>Cold context</td><td>Free</td></tr>
+    </tbody>
+  </table>
+  <p>The prompt cache at Anthropic's edge is a content-addressed, per-organization distributed memory layer. Two ostk processes on different machines with the same API key share cache entries automatically. Fleet economics: adding more agents decreases per-agent cost because the cold-write amortizes across readers.</p>
+
+  <h2>Dual-CPU scheduler</h2>
+  <p>ostk schedules work across two heterogeneous CPU classes:</p>
+  <table>
+    <thead>
+      <tr><th>Class</th><th>Latency</th><th>Judgment</th><th>Ring</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Human CPU</td><td>Seconds to hours</td><td>Authoritative</td><td>Ring 0</td></tr>
+      <tr><td>LLM CPU</td><td>Seconds/turn</td><td>Context-bounded</td><td>Ring 3</td></tr>
+    </tbody>
+  </table>
+  <p>Both are first-class execution resources. The CpuDriver trait abstracts the boundary &mdash; below it, the kernel doesn't know whether it's talking to a human via TTY or an LLM via HTTPS.</p>
+
+  <h2>The running system</h2>
+  <p>The spec includes a complete walkthrough (Part X) tracing every POSIX call, cache operation, process-table transition, and audit event that fires when an operator asks the scheduler to fix a bug. Every step from T+0 (operator input) through T+15 (cache plane verification) is mapped to real code paths and validated by the Part X end-to-end test.</p>
+
+  <h2>Identity and trust</h2>
+  <p>Five identity layers (L0 device &rarr; L4 human GPG attestation) and four trust tiers (T0 governance &rarr; T3 anonymous). The <code>.primefile</code> is the root of trust, dual-signed by the kernel's GPG key and the operator's personal key.</p>
+
+  <h2>Design principles</h2>
+  <p>21 rules, including:</p>
+  <ul>
+    <li>Everything that matters goes in <code>.ostk/</code> as a POSIX file with a documented schema</li>
+    <li>Every feature must be debuggable with <code>jq</code>, <code>grep</code>, <code>awk</code>, <code>git</code></li>
+    <li>Byte-stability is existentially load-bearing for fleet cache economics</li>
+    <li>Agents are ephemeral; knowledge is persistent</li>
+    <li>Secrets never enter the LLM context</li>
+    <li>Everything is a file (Plan 9 literalized)</li>
+  </ul>
+
+  <h2>See also</h2>
+  <ul>
+    <li><a href="/docs/architecture">Architecture</a> &mdash; kernel/driver split and state layout</li>
+    <li><a href="/docs/session-topology">Session Topology</a> &mdash; anchors, lineages, crash recovery, sub-stacks</li>
+    <li><a href="/docs/five-laws">Five Laws</a> &mdash; the constraints in detail</li>
+    <li><a href="/docs/humanfile">HUMANFILE</a> &mdash; operator governance document</li>
+    <li><a href="/docs/agentfile">Agentfile</a> &mdash; agent process descriptor</li>
+  </ul>
+</DocsLayout>
