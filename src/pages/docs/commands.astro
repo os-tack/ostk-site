@@ -70,30 +70,45 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <h2>Fleet</h2>
   <dl class="cmd-ref">
+    <dt><code>ostk listen</code></dt>
+    <dd>
+      <p>Start the kernel daemon &mdash; the anchor that holds the socket, process table, and scheduler. Agents run as managed sessions inside the daemon.</p>
+      <pre><code>ostk listen</code></pre>
+    </dd>
+    <dt><code>ostk kernel spawn &lt;name&gt; [--model &lt;model&gt;] [--budget &lt;usd&gt;] [prompt]</code></dt>
+    <dd>
+      <p>Spawn a background agent worker inside the daemon. Returns immediately.</p>
+      <pre><code>ostk kernel spawn lint-fix --model sonnet --budget 2 "Fix all ESLint warnings"</code></pre>
+    </dd>
+    <dt><code>ostk kernel await &lt;name&gt; [--timeout &lt;seconds&gt;]</code></dt>
+    <dd>
+      <p>Block until a spawned agent finishes. Default timeout: 300 seconds.</p>
+      <pre><code>ostk kernel await lint-fix --timeout 600</code></pre>
+    </dd>
+    <dt><code>ostk kernel ps</code></dt>
+    <dd>
+      <p>Show fleet status &mdash; all running agents with heartbeat age and context utilization.</p>
+      <pre><code>ostk kernel ps</code></pre>
+    </dd>
+    <dt><code>ostk kernel reap</code></dt>
+    <dd>
+      <p>Reap dead agents from the process table.</p>
+      <pre><code>ostk kernel reap</code></pre>
+    </dd>
+    <dt><code>ostk kernel shutdown [-m &lt;message&gt;]</code></dt>
+    <dd>
+      <p>Clean session shutdown. Compiles <code>.language</code>, signs the boot record.</p>
+      <pre><code>ostk kernel shutdown -m "end of day"</code></pre>
+    </dd>
+    <dt><code>ostk lineage resolve &lt;id&gt; --revive | --reap</code></dt>
+    <dd>
+      <p>Resolve an ask-pending session lineage. <code>--revive</code> marks it for recovery on next daemon start. <code>--reap</code> marks it terminal.</p>
+      <pre><code>ostk lineage resolve worker-3 --revive</code></pre>
+    </dd>
     <dt><code>ostk run &lt;Agentfile | "task"&gt;</code></dt>
     <dd>
       <p>Run an agent. Accepts an Agentfile path or a quoted task description. Blocks until complete.</p>
       <pre><code>ostk run "Add unit tests for src/auth/middleware.js"</code></pre>
-    </dd>
-    <dt><code>ostk spawn --name &lt;name&gt; "&lt;task&gt;"</code></dt>
-    <dd>
-      <p>Launch a background agent worker. Returns immediately; the agent runs in the fleet.</p>
-      <pre><code>ostk spawn --name lint-fix "Fix all ESLint warnings in src/"</code></pre>
-    </dd>
-    <dt><code>ostk stop &lt;name&gt;</code></dt>
-    <dd>
-      <p>Stop a running agent by name.</p>
-      <pre><code>ostk stop auth-refactor</code></pre>
-    </dd>
-    <dt><code>ostk logs &lt;name&gt;</code></dt>
-    <dd>
-      <p>View an agent's output stream.</p>
-      <pre><code>ostk logs add-endpoint</code></pre>
-    </dd>
-    <dt><code>ostk ps</code></dt>
-    <dd>
-      <p>Show fleet status &mdash; all running agents, file progress, and conflicts.</p>
-      <pre><code>ostk ps</code></pre>
     </dd>
     <dt><code>ostk ask "&lt;question&gt;"</code></dt>
     <dd>

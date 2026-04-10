@@ -27,47 +27,25 @@ const relatedPages = [
     ostk takes a different approach: agents write files normally. They don&rsquo;t know other agents exist. The OS detects conflicts at write time and resolves them without interrupting either agent.
   </p>
 
-  <h2>What you see</h2>
-  <p>
-    From the operator&rsquo;s perspective, multi-agent coordination looks like this:
-  </p>
+  <h2>How it works</h2>
+  <p>The daemon (<code>ostk listen</code>) is the anchor. It holds the process table, the scheduler, and the socket. Agents run as managed sessions inside the daemon with heartbeat monitoring, drain snapshots, and crash recovery.</p>
+  <p>The scheduler LLM dispatches work by calling <code>spawn_agent</code> &mdash; a kernel tool that creates a managed worker session. The worker runs its turns, and the scheduler reaps it when done via <code>reap_agent</code>. The operator can also spawn workers directly:</p>
   <div class="code-block">
-    <pre><code>$ ostk spawn --name auth-refactor "Refactor auth to use JWT"
-$ ostk spawn --name add-endpoint "Add POST /api/teams endpoint"
+    <pre><code># Start the daemon
+$ ostk listen
 
-# Both agents start working. You watch in the TUI:
-$ ostk ps
+# Spawn workers from the CLI
+$ ostk kernel spawn auth-refactor --model sonnet --budget 2 "Refactor auth to use JWT"
+$ ostk kernel spawn add-endpoint --model sonnet --budget 2 "Add POST /api/teams endpoint"
 
-  PID  NAME            STATUS   FILES    CONFLICTS
-  1    auth-refactor   running  4/12     0
-  2    add-endpoint    running  2/8      0</code></pre>
+# Watch the fleet
+$ ostk kernel ps</code></pre>
   </div>
-  <p>
-    Each agent works independently. They read files, run tests, write code. When their edits don&rsquo;t overlap, writes go through immediately.
-  </p>
+  <p>Each agent works independently. They read files, run tests, write code. When their edits don&rsquo;t overlap, writes go through immediately. When they do overlap, the kernel resolves the conflict.</p>
 
   <h2>When conflicts happen</h2>
   <p>
-    When two agents write to the same file, the OS detects the conflict. You see it in the TUI:
-  </p>
-  <div class="code-block">
-    <pre><code>$ ostk ps
-
-  PID  NAME            STATUS   FILES    CONFLICTS
-  1    auth-refactor   running  7/12     1
-  2    add-endpoint    running  5/8      1
-
-  CONFLICTS (1):
-  src/auth/middleware.js
-    agent-1: removed basicAuth(), added verifyJWT()
-    agent-2: added teamAuth() importing basicAuth()
-    resolution: merged &mdash; teamAuth() updated to use verifyJWT()</code></pre>
-  </div>
-  <p>
-    The OS resolves the conflict and both agents continue. Neither agent stalled. Neither agent needed to understand a coordination protocol. The resolution is recorded in the <a href="/features/audit-trail">audit trail</a>.
-  </p>
-  <p>
-    If the OS cannot resolve a conflict automatically, it pauses the second write and notifies you in the TUI. You review the diff, pick a resolution, and the agent continues.
+    Every <code>file:edit()</code> specifies the text the agent expects to find. If that text no longer exists &mdash; another agent changed it &mdash; the edit fails and the resolution tiers engage.
   </p>
 
   <h2>How conflict resolution works</h2>
@@ -77,59 +55,77 @@ $ ostk ps
   <ul>
     <li><strong>Tier 1 &mdash; Auto-merge.</strong> The two edits touch different parts of the file, sufficiently far apart. The kernel applies both changes silently and logs the merge to audit. Neither agent is interrupted. This is the common case.</li>
     <li><strong>Tier 2 &mdash; Assisted rebase.</strong> The edits are nearby or overlapping, but the total change is small. The kernel computes a mechanical rebase &mdash; it relocates the second agent&rsquo;s edit into the file as modified by the first, returning a suggested <code>file:edit()</code> with updated line references. No model call, no blocking.</li>
-    <li><strong>Tier 3 &mdash; Manual.</strong> The changes are too large or structurally incompatible for mechanical resolution. The kernel returns the current file content and both agents&rsquo; intended changes. The agent re-reads and retries. If it cannot resolve it, the conflict escalates to the operator via the TUI.</li>
+    <li><strong>Tier 3 &mdash; Manual.</strong> The changes are too large or structurally incompatible for mechanical resolution. The kernel returns the current file content and both agents&rsquo; intended changes. The agent re-reads and retries. If it cannot resolve it, the conflict escalates to the operator.</li>
   </ul>
-  <p>
-    The agent&rsquo;s edit itself is the conflict detection mechanism. Every <code>file:edit()</code> specifies the text it expects to find. If that text no longer exists (another agent changed it), the edit fails and the resolution tiers engage.
-  </p>
   <p>
     <strong>Failure modes:</strong> Tier 3 requires the agent to re-read and retry, costing tokens and time. Semantic conflicts (two agents change different files in ways that break each other&rsquo;s logic) are not caught &mdash; they surface at test time. Binary files skip resolution entirely and fall back to last-write-wins with an audit warning.
   </p>
 
-  <h2>Fleet commands</h2>
-  <p>ostk gives you process-level control over your agent fleet:</p>
+  <h2>Crash recovery</h2>
+  <p>Agents crash. Context exhaustion, SIGKILL, network timeouts, budget overruns. The OS expects this.</p>
+  <p>Every agent writes a drain snapshot at every turn boundary &mdash; conversation history, token accounting, and full session config. When a worker crashes:</p>
+  <ol>
+    <li>The daemon&rsquo;s heartbeat monitor detects the stale heartbeat (>90s without update, process dead)</li>
+    <li>The worker is removed from the session manager</li>
+    <li>If a drain snapshot exists and the revival policy is <code>revive</code>, the daemon hot-rehydrates the session immediately &mdash; no restart needed</li>
+    <li>The rehydrated worker resumes with its full conversation history intact</li>
+  </ol>
+  <p>Revival policy is per-agent, declared in the <a href="/docs/agentfile">Agentfile</a>:</p>
   <div class="code-block">
-    <pre><code># List running agents
-$ ostk ps
-
-# Spawn a new agent with a task
-$ ostk spawn --name lint-fix "Fix all ESLint warnings in src/"
-
-# Run a one-shot task (waits for completion)
-$ ostk run "Add unit tests for src/auth/middleware.js"
-
-# Stop an agent
-$ ostk stop auth-refactor
-
-# View an agent's output
-$ ostk logs add-endpoint</code></pre>
+    <pre><code>LIMIT revival_policy revive   # auto-recover (default)
+LIMIT revival_policy reap     # drop on crash
+LIMIT revival_policy ask      # operator decides</code></pre>
   </div>
-  <p>
-    Agents are processes. You spawn them, watch them, stop them. The OS manages the shared filesystem underneath.
-  </p>
+  <p>Ask-pending lineages are resolved via <code>ostk lineage resolve &lt;id&gt; --revive</code> or <code>--reap</code>.</p>
 
-  <h2>What this means in practice</h2>
-  <p>
-    Without multi-agent coordination, you serialize work: one agent finishes before the next starts. With ostk, you can run agents in parallel on the same codebase and let the OS handle file contention.
-  </p>
-  <ul>
-    <li><strong>Parallel refactoring</strong> &mdash; one agent modernizes the API layer while another updates the test suite. Both touch shared fixtures; the OS merges the changes.</li>
-    <li><strong>Review + fix</strong> &mdash; one agent reviews code and writes findings to a file. Another agent reads findings and implements fixes. They run concurrently.</li>
-    <li><strong>Multi-module features</strong> &mdash; split a feature across agents (frontend, backend, tests). Each agent owns its area but shared files get coordinated automatically.</li>
-  </ul>
-  <p>
-    Every conflict resolution is logged. Every file write is tracked. You can audit exactly what happened after the fact using <code>ostk os audit</code>.
-  </p>
+  <h2>Sub-stacks</h2>
+  <p>For multi-worker tasks that need blast-radius containment, the scheduler creates a sub-stack &mdash; an isolated group of sessions with its own audit log, drain directory, and token budget:</p>
+  <div class="code-block">
+    <pre><code># The scheduler calls spawn_stack to create an isolated scope
+spawn_stack(scope="bugfix-27", prompt="Fix the auth race condition", budget=5.00)
+
+# The sub-stack gets its own filesystem layout:
+.ostk/stacks/bugfix-27/
+  audit.jsonl    # scoped audit log
+  drain/         # scoped drain snapshots
+  inbox/         # commands from anchor
+  nudges/        # reports to anchor</code></pre>
+  </div>
+  <p>Budget overruns force-seal the sub-stack. The anchor and its scheduler are unaffected. This is hierarchical failure isolation &mdash; the blast radius stops at the sub-stack boundary.</p>
 
   <h2>Agent isolation</h2>
   <p>
-    Each agent operates in its own context. Agents do not share conversation history, tool state, or memory. They share only the filesystem &mdash; the codebase itself. This is deliberate:
+    Each agent operates in its own context. Agents do not share conversation history, tool state, or memory. They share only the filesystem &mdash; the codebase itself.
   </p>
   <ul>
     <li><strong>No cross-talk</strong> &mdash; agent-1 cannot read agent-2&rsquo;s thoughts, prompt, or intermediate reasoning. They coordinate through the files they produce, the same way human developers coordinate through commits.</li>
-    <li><strong>Independent failure</strong> &mdash; if agent-2 crashes or loops, agent-1 continues unaffected. You stop the broken agent with <code>ostk stop</code> and spawn a replacement.</li>
-    <li><strong>Model mixing</strong> &mdash; each agent can use a different model. Run a cheap local model for linting while a frontier API model handles the complex refactor. The OS coordinates their writes the same way regardless of which model is behind each agent.</li>
+    <li><strong>Independent failure</strong> &mdash; if agent-2 crashes, agent-1 continues unaffected. The daemon detects the crash via heartbeat and handles recovery automatically.</li>
+    <li><strong>Model mixing</strong> &mdash; each agent can use a different model. Run a cheap model for linting while a frontier model handles the complex refactor. The OS coordinates their writes the same way regardless of which model is behind each agent.</li>
+    <li><strong>Process isolation</strong> &mdash; agents with <code>ISOLATION nono</code> in their <a href="/docs/agentfile">Agentfile</a> run inside a Landlock/Seatbelt sandbox. Filesystem access is restricted to an allowlist at the syscall level. See <a href="/docs/pins">Capability Pins</a> for the two-layer enforcement model.</li>
   </ul>
+
+  <h2>Fleet commands</h2>
+  <p>The <a href="/docs/commands">command reference</a> covers the full surface. Key fleet operations:</p>
+  <div class="code-block">
+    <pre><code># Start the daemon (the anchor)
+$ ostk listen
+
+# Spawn a background worker
+$ ostk kernel spawn lint-fix --model sonnet --budget 2 "Fix all ESLint warnings"
+
+# Wait for a worker to finish
+$ ostk kernel await lint-fix
+
+# Show fleet status
+$ ostk kernel ps
+
+# Reap dead agents from the process table
+$ ostk kernel reap
+
+# Resolve an ask-pending session
+$ ostk lineage resolve worker-3 --revive</code></pre>
+  </div>
+  <p>Inside the daemon, the scheduler LLM manages workers via MCP tools: <code>spawn_agent</code>, <code>reap_agent</code>, <code>spawn_stack</code>, <code>seal_stack</code>. The scheduler decides when to spawn, what model to use, and when to reap &mdash; the operator sets policy via Agentfiles, the kernel enforces it.</p>
 
   <h2>Constraints</h2>
   <p>Multi-agent coordination is not magic. There are limits:</p>
@@ -138,23 +134,16 @@ $ ostk logs add-endpoint</code></pre>
     <li>Semantic conflicts (two agents change different files in ways that break each other&rsquo;s logic) require test runs to catch. ostk does not understand your program&rsquo;s semantics &mdash; it coordinates at the file level.</li>
     <li>More agents means more potential conflicts. In practice, 2&ndash;4 agents on well-scoped tasks produce fewer conflicts than one agent doing everything.</li>
   </ul>
-  <p>
-    The coordination model is designed for the common case: agents working on related but distinct parts of a codebase with occasional file overlap. For tasks that require tight coupling (e.g., two agents pair-programming on the same function), a single agent is a better fit.
-  </p>
 
   <h2>Getting started</h2>
-  <p>
-    Multi-agent coordination requires no extra configuration. If ostk is initialized in your project, <code>ostk spawn</code> handles the rest:
-  </p>
   <div class="code-block">
-    <pre><code>$ ostk init                                      # one-time setup
-$ ostk spawn --name task-a "Your first task"     # agent 1
-$ ostk spawn --name task-b "Your second task"    # agent 2
-$ ostk ps                                         # watch both</code></pre>
+    <pre><code>$ ostk init                  # one-time setup
+$ ostk listen                # start the daemon
+$ ostk kernel spawn task-a --model sonnet --budget 2 "Your first task"
+$ ostk kernel spawn task-b --model sonnet --budget 2 "Your second task"
+$ ostk kernel ps             # watch both</code></pre>
   </div>
-  <p>
-    Coordination is on by default. There is no flag to enable it and no configuration file to edit.
-  </p>
+  <p>Coordination is on by default. There is no flag to enable it and no configuration file to edit.</p>
 
 </FeaturePage>
 
