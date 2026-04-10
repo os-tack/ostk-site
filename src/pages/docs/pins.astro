@@ -78,17 +78,12 @@ effective_denies = tier_denies | pin_denies</code></pre>
   <p>T0 has no restrictions by default. T3 can barely read. The floor rises as trust decreases.</p>
 
   <h2>Custom pins</h2>
-  <p>Define custom pins in <code>.ostk/pin.caps</code>:</p>
-  <pre><code># pin.caps — custom capability pins
-
-[read-only]
-deny = ["write-kernel", "modify-governance", "write-src"]
-
-[no-network]
-deny = ["network"]
-
-[sandbox]
-deny = ["write-kernel", "modify-governance", "write-src", "spawn-agent", "network"]</code></pre>
+  <p>Define custom pins under <code>.ostk/pins/&lt;name&gt;/pin.caps</code>:</p>
+  <pre><code># .ostk/pins/read-only/pin.caps
+read: .ostk/ .language
+write:
+execute: shell(readonly)
+deny: write-kernel modify-governance write-src</code></pre>
 
   <p>Apply a pin to an agent via the <a href="/docs/agentfile">Agentfile</a>:</p>
   <pre><code>FROM auto
