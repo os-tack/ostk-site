@@ -20,10 +20,10 @@ import Icon from '../../components/Icon.astro';
     <h2 class="section-label mb-6">TRUST_TIERS</h2>
     <div class="space-y-px">
       {[
-        { tier: 'T0', who: 'Human operator', caps: 'Full governance — including modifying ENTITYFILE itself', proof: 'GPG key in T0_TRUST_ANCHORS, dual-signed .primefile' },
+        { tier: 'T0', who: 'Human operator', caps: 'Full governance — including modifying ENTITYFILE itself', proof: 'Fingerprint hardcoded in src/kernel/identity.rs trust anchors' },
         { tier: 'T1', who: 'Verified agent or CI', caps: 'Write source, run agents, delegate needles. Denied: write-kernel, modify-governance', proof: 'GPG key cross-signed by a T0 holder' },
-        { tier: 'T2', who: 'Named agent (alias)', caps: 'Read + limited write (.ostk/store/ only). Denied: write-kernel, modify-governance, write-src', proof: 'GPG key present, not cross-signed' },
-        { tier: 'T3', who: 'Anonymous', caps: 'Cannot boot. Public artifacts only.', proof: 'No GPG key' },
+        { tier: 'T2', who: 'GPG key, not cross-signed', caps: 'Read everything. Narrow write exceptions. Denied: write-kernel, modify-governance, write-src', proof: 'GPG key present, check_gpg_cross_signature returns None' },
+        { tier: 'T3', who: 'No GPG key', caps: 'Boots; reads everything; all writes denied by pin caps (policy.rs:248)', proof: 'host_identity::discover() returns no gpg_key' },
       ].map(t => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
@@ -53,16 +53,24 @@ import Icon from '../../components/Icon.astro';
   <span class="text-primary">name:</span> @project.prime
   <span class="text-primary">key:</span> AAAA1111BBBB2222CCCC3333DDDD4444EEEE5555
   <span class="text-primary">domain:</span> project.prime
-  <span class="text-primary">version:</span> 1.6.0
+  <span class="text-primary">version:</span> 3.0.0
+  <span class="text-primary">boot_signature:</span> FFFF0000AAAA1111BBBB2222CCCC3333DDDD4444
   <span class="text-primary">laws:</span>
     - invisible-write
     - ephemeral
     - filesystem
     - OCC
     - invisible-infra
+  <span class="text-primary">harness:</span> terminal
+  <span class="text-primary">tool_pattern:</span> native Bash
+  <span class="text-primary">dialect:</span>
+    - tack
+    - hay
   <span class="text-primary">fleet:</span>
     alive: 1
-    agents: 54</pre>
+    agents: 54
+<span class="text-primary">signing_key:</span> 3689831ac67b433093ef15e23431b539e7222961f7f976a14feb268c8058ce6a
+<span class="text-primary">signing_algo:</span> ed25519</pre>
     </div>
   </section>
 
