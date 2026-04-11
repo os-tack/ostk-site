@@ -30,7 +30,7 @@ const relatedPages = [
 
   <h2>Permission gates</h2>
   <p>
-    When an agent requests a tool that needs approval, a modal appears with the agent alias, tool name, and input preview. Press <code>y</code> to approve, <code>n</code> to deny, <code>a</code> to approve all for that capability class.
+    When an agent requests a tool that needs approval, a modal appears with the agent alias, tool name, and input preview. Press <code>y</code> to approve, <code>n</code> to deny, <code>a</code> to approve all for that capability class. <strong>Enter defaults to deny</strong> — hitting return without thinking rejects the call. This is a safety default: a distracted operator's reflex should never be to approve. Source: <code>src/fcp_screen/action.rs:286</code>.
   </p>
 
   <h2>Capture</h2>
