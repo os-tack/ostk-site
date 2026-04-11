@@ -48,7 +48,7 @@ import Terminal from '../../components/Terminal.astro';
         <div class="font-label text-[10px] text-primary mb-2">FULL_MODE</div>
         <code class="font-body text-xs text-on-surface block mb-3">ostk bail pack</code>
         <p class="font-body text-xs text-secondary mb-4">
-          Public contents plus <code class="text-primary">os.bin</code> — encrypted internal kernel state. Requires a recipient fingerprint in <code class="text-primary">.primefile</code>; without one, silently falls back to public mode.
+          Public contents plus <code class="text-primary">os.bin</code> — encrypted internal kernel state. Requires a 40-char recipient fingerprint in <code class="text-primary">.primefile</code>; without one, pack prints a warning and falls back to public mode. Full-mode unpack is <span class="text-primary">fail-closed</span>: missing signature, missing gpg, or unknown Ed25519 key all refuse to unpack.
         </p>
         <div class="font-label text-[10px] text-outline mb-2">ADDS</div>
         <ul class="font-body text-xs text-secondary space-y-1">
@@ -134,7 +134,7 @@ import Terminal from '../../components/Terminal.astro';
       {[
         { step: '01', action: 'Receive ostk.bail from another instance (email, scp, signed URL — any transport)' },
         { step: '02', action: 'ostk bail verify ostk.bail — checks every present signature (.self.sig Ed25519, .asc GPG), prints per-sig status' },
-        { step: '03', action: 'ostk bail unpack ostk.bail — re-verifies, then merges. TOFU-pins the source identity on first use' },
+        { step: '03', action: 'ostk bail unpack ostk.bail — reads manifest.mode up front, then branches: full mode is fail-closed, public/export is advisory. TOFU-pins the source identity on first use' },
         { step: '04', action: 'Public/full: applies .boot/INIT + .primefile. Export: re-IDs needles into local numbering, appends decisions with imported marker' },
         { step: '05', action: 'ostk boot — reports merged OS state. The source signer is now locked; future bails claiming the same identity must match' },
       ].map(s => (
@@ -149,7 +149,7 @@ import Terminal from '../../components/Terminal.astro';
       ))}
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Verification is <span class="text-primary">non-fatal</span> during unpack: an unsigned or partially-signed bail is still applied, with warnings. Unsigned bails circulate freely during development. A <em>mismatched</em> signature is fatal — the kernel refuses to merge state that claims a pinned identity but fails its signature check.
+      Verification strictness follows the bail's mode (Option C, landed in haystack commit <code class="text-primary">bf69847</code>). <span class="text-primary">Full-mode unpack is fail-closed</span>: missing signature, missing gpg binary, or an unknown Ed25519 public key all refuse to unpack. Full bails carry encrypted cross-machine state and must verify against a pre-shared key. <span class="text-primary">Public and export mode unpack are advisory</span>: unsigned bails still circulate for development, and TOFU-on-first-use pins the signer. A <em>mismatched</em> signature is fatal in every mode — present-but-invalid is always a tamper signal. Source: <code class="text-primary">src/commands/bail.rs:245-371</code>.
     </p>
   </section>
 
