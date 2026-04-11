@@ -1,0 +1,76 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Skills"
+  description="SKILL directive and the skill bundle concept. How Agentfiles declare reusable capability groups by name."
+  sectionLabel="REFERENCE // SKILLS"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    A <code>SKILL</code> directive in an Agentfile names a bundle of prompt text, tool grants, and conventions that travels with the agent. The parser stores skill names as a simple <code>Vec&lt;String&gt;</code>. Resolution happens at spawn time.
+  </p>
+
+  <!-- Directive form -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">DIRECTIVE</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        Format: <code class="text-primary">SKILL &lt;bundle_name&gt;</code>. Repeatable — one per skill. The parser collects them into <code class="text-primary">Agentfile.skills: Vec&lt;String&gt;</code> at <code class="text-primary">src/agentfile/parser.rs:186–187</code>.
+      </p>
+      <p class="font-body text-xs text-secondary mb-3">
+        An empty <code class="text-primary">SKILL</code> line (no bundle name) is a parse error: <code class="text-primary">ParseError::MissingArgument {'{'} directive: "SKILL" {'}'}</code>. Source: <code class="text-primary">parser.rs:464–468, test at :933–939</code>.
+      </p>
+      <p class="font-body text-xs text-outline">
+        No multiple-SKILL conflict check — you can declare the same skill twice and it'll appear twice in the vec. The skill resolver deduplicates downstream.
+      </p>
+    </div>
+  </section>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <Terminal label="agents/fixer.af">
+      <pre><span class="text-primary">FROM</span> claude-sonnet-4-6
+
+<span class="text-primary">PROMPT</span> You fix bugs. You write tests. You commit.
+
+<span class="text-primary">SKILL</span> tdd
+<span class="text-primary">SKILL</span> commit
+
+<span class="text-primary">TOOL</span> shell
+<span class="text-primary">TOOL</span> file:edit
+<span class="text-primary">LIMIT</span> budget_usd 3</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Source: test Agentfile at <code class="text-primary">parser.rs:1368–1383</code>. The parsed <code class="text-primary">af.skills</code> becomes <code class="text-primary">vec!["tdd", "commit"]</code>.
+    </p>
+  </section>
+
+  <!-- What a skill actually is -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What a Skill Actually Is</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-6">
+      <p class="font-body text-sm text-on-surface mb-3">
+        A skill is a named bundle the spawn layer resolves by looking up <code class="text-primary">skills/&lt;name&gt;/SKILL.md</code> (or a configured alternate path). The bundle typically contains:
+      </p>
+      <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-2">
+        <li>A prompt fragment appended to the agent's system prompt</li>
+        <li>An optional list of required tools the skill expects to be available</li>
+        <li>An optional set of conventions (file naming, commit format, test layout) encoded as prose</li>
+        <li>Any subskills the bundle itself declares</li>
+      </ul>
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      <span class="text-primary font-bold">Honest caveat:</span> the parser stores skill names; the resolver that turns a name into bundled content is part of the spawn path and varies by deployment. On the path most users hit (<code class="text-primary">ostk run agents/*.af</code>), skill names are passed through to the harness configuration. The Agentfile spec <em>declares</em> the skill; it does not <em>embed</em> it.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+  </div>
+</DocsLayout>

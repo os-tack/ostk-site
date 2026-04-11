@@ -1,0 +1,94 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Pull Model"
+  description="WORK directive: affinity filters that declare which needles an agent can execute. Agents pull work by matching their filter expressions against needle metadata."
+  sectionLabel="REFERENCE // PULL_MODEL"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    The scheduler doesn't push work to agents; agents declare what they're eligible for via a <code>WORK</code> directive and pull matching needles. "Affinity mask, not a todo list" — per <code>src/agentfile/parser.rs:19–27</code>.
+  </p>
+
+  <!-- Directive -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">WORK_DIRECTIVE</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        Format: <code class="text-primary">WORK &lt;expr&gt; [&lt;expr&gt;...]</code>. Multiple expressions on a single line are space-separated and evaluated as AND. At most one <code class="text-primary">WORK</code> directive per Agentfile — two of them is a parse error.
+      </p>
+      <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1">
+        <li>Parsed into <code class="text-primary">WorkFilter {'{'} expressions: Vec&lt;String&gt; {'}'}</code> (parser.rs:23–27)</li>
+        <li>Stored as <code class="text-primary">Agentfile.work: Option&lt;WorkFilter&gt;</code> (parser.rs:190–191)</li>
+        <li>Optional — an Agentfile without <code class="text-primary">WORK</code> has <code class="text-primary">work: None</code> and is eligible for any needle the scheduler routes to it</li>
+        <li>Missing argument error: <code class="text-primary">ParseError::MissingArgument {'{'} directive: "WORK" {'}'}</code> (parser.rs:1175–1188)</li>
+        <li>Multiple-WORK error: <code class="text-primary">ParseError::MultipleWork</code> (parser.rs:238, 271, 1188)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Syntax -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXPRESSION_SYNTAX</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Each expression is a <code class="text-primary">key[OP]value</code> pair. Expressions are stored as raw strings and matched by the scheduler against needle metadata. Recognized operators:
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-3">
+        {[
+          { op: '=', ex: 'priority=P0', desc: 'Exact equality. Priority must equal P0.' },
+          { op: '>=', ex: 'priority>=P1', desc: 'Inclusive lower bound on ordered values (P0 < P1 < P2 < P3).' },
+          { op: '<=', ex: 'priority<=P2', desc: 'Inclusive upper bound.' },
+          { op: '=a,b,c', ex: 'tags=rust,bugfix', desc: 'Comma-separated list. Matches if the needle has ANY of these tags.' },
+        ].map(e => (
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
+            <code class="text-primary md:col-span-1">{e.op}</code>
+            <code class="text-on-surface md:col-span-4">{e.ex}</code>
+            <span class="text-secondary md:col-span-7">{e.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <Terminal label="agents/rust-worker.af">
+      <pre><span class="text-primary">FROM</span> claude-sonnet-4-6
+
+<span class="text-primary">PROMPT</span> You work on Rust code. You only pick up needles tagged rust.
+
+<span class="text-primary">WORK</span> tags=rust,bugfix priority&gt;=P1
+
+<span class="text-primary">TOOL</span> shell
+<span class="text-primary">TOOL</span> file:edit</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Parsed as <code class="text-primary">expressions: ["tags=rust,bugfix", "priority&gt;=P1"]</code>. Matched against each needle: the needle must have at least one of {'{'}rust, bugfix{'}'} in its tags AND priority P1 or higher. Source: <code class="text-primary">parser.rs:1353–1373</code>.
+    </p>
+  </section>
+
+  <!-- Why pull -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Why Pull, Not Push</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        A push scheduler has to know the capability model of every agent it could dispatch to — a moving target every time someone edits an Agentfile. A pull model lets each agent declare its own shape and lets the scheduler match against that declaration at run time.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        The filter expressions live in the Agentfile, which travels with the agent. Adding a new worker doesn't require reconfiguring the scheduler; it requires adding an <code class="text-primary">agents/&lt;name&gt;.af</code> file. The scheduler is a matcher, not a router.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/agent-lifecycle"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
+    <a href="/docs/session-topology"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
+  </div>
+</DocsLayout>

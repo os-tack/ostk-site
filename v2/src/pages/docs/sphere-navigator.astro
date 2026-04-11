@@ -1,0 +1,108 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Sphere Navigator"
+  description="TUI overlay for navigating the needle dependency graph. Four view levels from Galaxy (all spheres) to NeedleDetail (one needle). Opened with g."
+  sectionLabel="REFERENCE // SPHERE_NAVIGATOR"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    A four-level overlay that lets you walk the needle dependency graph from the TUI without leaving it. Press <code>g</code> to open, <code>g</code> again to close. Sphere = a connected component of needles. Source: <code>src/fcp_screen/components/sphere_nav.rs</code>.
+  </p>
+
+  <!-- View levels -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">FOUR_VIEW_LEVELS</h2>
+    <div class="space-y-px">
+      {[
+        {
+          level: 'GALAXY',
+          desc: 'Top view. Every connected sphere in the project as a row, plus a trailing "isolated" entry if any needles stand alone. Cursor moves with j/k or arrow keys; Enter descends into the selected sphere.',
+          src: 'sphere_nav.rs:32–36, 234 (default level), 506',
+        },
+        {
+          level: 'SPHERE_DETAIL',
+          desc: 'All needles in one sphere. Shows the connected graph: each needle\'s edges, priority, status. Enter on a needle descends to NeedleDetail.',
+          src: 'sphere_nav.rs:36, 252–303, 506',
+        },
+        {
+          level: 'ISOLATED_LIST',
+          desc: 'Needles with no connections — one per row. Same navigation as SphereDetail. Reached from Galaxy by descending into the isolated entry when there is one.',
+          src: 'sphere_nav.rs:38, 507',
+        },
+        {
+          level: 'NEEDLE_DETAIL',
+          desc: 'Full metadata for a single needle: title, description, AC, priority, status, dependencies, blocks, tags. No cursor navigation in this view — it is a leaf. Escape back to the level you came from.',
+          src: 'sphere_nav.rs:40, 307–382, 508',
+        },
+      ].map(v => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
+            <span class="font-body text-sm text-primary font-bold">{v.level}</span>
+          </div>
+          <div class="md:col-span-7 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{v.desc}</span>
+          </div>
+          <div class="md:col-span-2 px-4 py-4">
+            <code class="font-body text-[10px] text-outline">{v.src}</code>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Keybindings -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">KEYBINDINGS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 font-body text-xs">
+        {[
+          ['g', 'Open / close the sphere navigator overlay'],
+          ['Option+G (©)', 'Also opens the overlay (alias for g)'],
+          ['k / ↑', 'Move cursor up'],
+          ['j / ↓', 'Move cursor down (unless a joint is pending)'],
+          ['Enter', 'Descend into the selected item (sphere → detail → needle)'],
+          ['j (with cursor on needle)', 'Start or complete a joint — connects two needles as a new dependency edge'],
+          ['/ (slash)', 'Enter search mode — type to filter, Enter to confirm, Esc to cancel'],
+          ['Backspace (search)', 'Delete one character from the search input'],
+          ['Tab (search)', 'Move to next match'],
+          ['Esc', 'Cancel search or close overlay'],
+        ].map(([k, d]) => (
+          <div class="flex gap-3 py-1 border-b border-surface-variant">
+            <code class="text-primary w-28 shrink-0">{k}</code>
+            <span class="text-secondary text-[11px]">{d}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Source: <code class="text-primary">src/fcp_screen/action.rs:214</code> (g), <code class="text-primary">:229</code> (Option+G), <code class="text-primary">:243–260</code> (mode routing). Key handlers live in <code class="text-primary">src/fcp_screen/app.rs:1086–1160</code>.
+    </p>
+  </section>
+
+  <!-- Joints -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What the "j" Key Actually Does</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        In SphereDetail and IsolatedList views, the <code class="text-primary">j</code> key is overloaded: without a pending joint it moves the cursor down (the usual vim binding); with a cursor on a needle it starts a "joint" — the first half of a dependency edge.
+      </p>
+      <p class="font-body text-xs text-secondary mb-3">
+        Press <code class="text-primary">j</code> on needle A. The navigator stores A as <code class="text-primary">pending_joint</code> and the cursor can move freely to needle B (note: <code class="text-primary">j</code> as "move down" is disabled while a joint is pending, per <code class="text-primary">app.rs:1132</code>). Press <code class="text-primary">j</code> on B to complete the joint — the navigator writes a new dependency edge from A to B into the needle store.
+      </p>
+      <p class="font-body text-xs text-outline">
+        Source: <code class="text-primary">sphere_nav.rs:57</code> (pending_joint field), <code class="text-primary">app.rs:1133–1160</code> (joint handling). This is the one mutation path in the navigator — every other key is read-only.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/tui"><Icon name="tv" size="14" class="align-middle mr-1" />TUI</a>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />COMMANDS</a>
+    <a href="/docs/coordination-primitives"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+  </div>
+</DocsLayout>

@@ -587,6 +587,50 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/skills",
+      "file": "src/pages/docs/skills.astro",
+      "title": "Skills",
+      "tags": ["skill", "agentfile", "directive"],
+      "sources": [
+        { "path": "src/agentfile/parser.rs" }
+      ],
+      "related": ["/docs/agentfile", "/docs/humanfile"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →056. SKILL directive form and parser behavior cited to parser.rs:186-187 (skills field), 464-468 (dispatch), 796 (example), 933-939 (missing arg test). Honest framing: parser stores skill names as Vec<String>; the resolver that turns a name into bundled content is part of the spawn path, not the Agentfile spec."
+    },
+    {
+      "route": "/docs/pull-model",
+      "file": "src/pages/docs/pull-model.astro",
+      "title": "Pull Model",
+      "tags": ["work", "pull-model", "affinity", "scheduler"],
+      "sources": [
+        { "path": "src/agentfile/parser.rs" }
+      ],
+      "related": ["/docs/agentfile", "/docs/agent-lifecycle", "/docs/session-topology"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →057. WORK directive docs cited to parser.rs:19-27 (WorkFilter struct), 190-191 (Agentfile field), 238/271/1188 (multiple-WORK error), 502-506 (dispatch). Expression syntax built from actual test cases at parser.rs:1353-1373. 'Affinity mask, not a todo list' quoted from parser.rs:19-21 docstring."
+    },
+    {
+      "route": "/docs/sphere-navigator",
+      "file": "src/pages/docs/sphere-navigator.astro",
+      "title": "Sphere Navigator",
+      "tags": ["tui", "sphere", "navigator", "graph"],
+      "sources": [
+        { "path": "src/fcp_screen/components/sphere_nav.rs" },
+        { "path": "src/fcp_screen/action.rs" },
+        { "path": "src/fcp_screen/app.rs" }
+      ],
+      "related": ["/docs/tui", "/docs/commands", "/docs/coordination-primitives"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →054. Four ViewLevel variants cited to sphere_nav.rs:32-40 (enum), 234 (default Galaxy), 252-303 (SphereDetail loader), 307-382 (NeedleDetail loader), 506-508 (cursor count per level). Keybindings cited to action.rs:214 (g), :229 (Option+G), app.rs:1086-1160 (handler block). Joint mechanic cited to sphere_nav.rs:57 (pending_joint) + app.rs:1133-1160."
+    },
+    {
       "route": "/docs/how-to/learn-sandbox",
       "file": "src/pages/docs/how-to/learn-sandbox.astro",
       "title": "How to: Learn a Sandbox Policy",
