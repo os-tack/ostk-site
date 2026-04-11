@@ -23,9 +23,9 @@ const faqs = [
     a: 'Secret values never enter the LLM context. The kernel resolves keys from your platform keychain (macOS Keychain, Linux secret-tool) at call time and injects them via subprocess environment variables. All tool output passes through a masking layer that replaces any secret values before the LLM sees them.',
     link: '/docs/secrets',
   },
-  {
+    {
     q: 'What is my trust tier?',
-    a: 'Trust is determined by GPG cross-signatures. T0: your GPG key is in the trust anchors (full governance). T1: your key is cross-signed by a T0 holder (write access). T2: you have a GPG key but it is not cross-signed (read-only). T3: no GPG key (cannot boot). Run ostk boot to see your tier.',
+    a: 'Trust is determined by GPG cross-signatures. T0: your GPG key fingerprint is hardcoded in the kernel trust anchors (full governance — not reachable by ceremony). T1: your key is cross-signed by a T0 holder (write access). T2: GPG key present, not cross-signed (read + narrow write exceptions). T3: no GPG key (boots, reads everything, writes denied by pin caps). Run ostk boot to see your tier.',
     link: '/docs/trust-model',
   },
   {
@@ -50,7 +50,7 @@ const faqs = [
   },
   {
     q: 'What is a needle?',
-    a: 'A needle is an atomic, executable work item with acceptance criteria. It is the unit of work in ostk, stored as YAML frontmatter + markdown in .ostk/needles/. Create one with ostk needle add --priority P0 "title". Needles have priority tiers (P0-P3), status tracking, and dependency links.',
+    a: 'A needle is an atomic, executable work item with acceptance criteria. It is the unit of work in ostk, stored in .ostk/needles/issues.jsonl. Create one with ostk work add --priority P0 "title". Needles have priority tiers (P0-P3), status tracking, and dependency links.',
     link: '/docs/commands',
   },
   {
@@ -108,7 +108,7 @@ const faqs = [
         { term: 'FCP', def: 'File Context Protocol — the interface for drivers that extend the kernel with domain capabilities. MCP servers that let LLMs interact with complex file formats.' },
         { term: 'Hot PR', def: 'The kernel\'s 3-tier conflict resolution system. Tier 1: auto-merge (non-overlapping). Tier 2: mechanical rebase (nearby). Tier 3: manual escalation.' },
         { term: 'generation counter', def: 'A monotonic counter incremented on every file write. Used for optimistic concurrency — if the counter changed, another agent modified the file.' },
-        { term: 'bail', def: 'A portable OS package containing governance documents, signing keys, and configuration. Downloaded during ostk init to bootstrap a project.' },
+        { term: 'bail', def: 'A portable, signed OS bundle. Named for a bail of hay — what you extract from a haystack. Contains public identity (.primefile, ENTITYFILE), boot state, and optionally encrypted internal kernel state or selective exported content. Three modes: public, full, export. See /docs/bail.' },
         { term: 'fold(audit.jsonl)', def: 'Replaying the append-only audit log to reconstruct fleet state. The process table is a projection of the audit log — the daemon is a cache, not a ledger.' },
         { term: '.language', def: 'A pipe-delimited table of verbs, their tiers, layers, and usage momentum. The kernel loads high-momentum verbs at boot and demand-spawns the rest.' },
         { term: 'sub-stack', def: 'An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels. Created by the scheduler for multi-worker tasks.' },

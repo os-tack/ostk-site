@@ -34,7 +34,7 @@ import Icon from '../../components/Icon.astro';
       </div>
     </div>
     <p class="font-body text-[10px] text-outline mt-2">
-      GPG is optional. Without it you boot at <a href="/docs/trust-model" class="text-primary hover:underline">T2 (read-only)</a>. With a GPG key you get T1 write access. With a cross-signed key you get T0 full governance.
+      GPG is optional for booting. Without any GPG key you boot at <a href="/docs/trust-model" class="text-primary hover:underline">T3 (reads everything, writes denied by pin caps)</a>. With a GPG key that isn't cross-signed you're T2 (read + narrow write exceptions). With a T0-cross-signed key you're T1 (full write access). T0 is hardcoded trust anchors only — not reachable by ceremony.
     </p>
   </div>
 
