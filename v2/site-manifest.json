@@ -587,6 +587,25 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/coordination-primitives",
+      "file": "src/pages/docs/coordination-primitives.astro",
+      "title": "Coordination Primitives",
+      "tags": ["occ", "hotpr", "digest", "nudge", "coordination"],
+      "sources": [
+        { "path": "src/kernel/gen_table.rs" },
+        { "path": "src/kernel/hotpr.rs" },
+        { "path": "src/kernel/digest.rs" },
+        { "path": "src/kernel/nudge.rs" },
+        { "path": "src/kernel/elision.rs" },
+        { "path": "src/kernel/file.rs" }
+      ],
+      "related": ["/docs/five-laws", "/docs/kernel-spec", "/features/coordination", "/docs/compression"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →053. Four primitives unified: OCC (gen_table.rs:16-35, 151-177, 601-648), Hot PR (hotpr.rs:22, 26, 30), Digest (digest.rs:10-24, 97-256), Nudges (nudge.rs:17-39, 46-51, 129-135, 225-345). Stub status flagged for nudge dead-target handling and T2 Phase 0 arbitration observer (file.rs:33 env gated)."
+    },
+    {
       "route": "/docs/agent-lifecycle",
       "file": "src/pages/docs/agent-lifecycle.astro",
       "title": "Agent Lifecycle",

@@ -1,0 +1,174 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Coordination Primitives"
+  description="Four primitives that let multiple agents share a codebase without a message bus: optimistic concurrency, Hot PR conflict resolution, digest injection, and nudges."
+  sectionLabel="REFERENCE // COORDINATION"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Four kernel primitives. No locks, no message buses, no RPC. A generation counter for writes, a three-tier mechanical merge for conflicts, a 5-line envelope that replaces redundant file reads, and a queue for cross-boundary interrupts.
+  </p>
+
+  <!-- OCC -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">01 // OPTIMISTIC_CONCURRENCY_CONTROL</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Per-file monotonic generation counter + compare-and-swap. No locks on the data path; agents write freely and the kernel detects conflicts at write time.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-4">
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">MECHANISM</div>
+          <p class="font-body text-xs text-secondary">Every file path has a u64 counter stored in <code class="text-primary">.ostk/gen_table.jsonl</code> (JSONL format, sorted by path). Every write bumps the counter via <code class="text-primary">bump_gen()</code> or <code class="text-primary">bump_gen_with_content()</code>.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">SERIALIZATION</div>
+          <p class="font-body text-xs text-secondary">An exclusive <code class="text-primary">flock(2)</code> on <code class="text-primary">.ostk/gen_table.lock</code> wraps the entire read-compute-write cycle. Two concurrent <code class="text-primary">bump_gen</code> calls serialize: the second observes the first's new gen and increments from there. No lost updates.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">SHADOWS</div>
+          <p class="font-body text-xs text-secondary">On bump, the pre-edit content is copied to <code class="text-primary">.ostk/shadows/&lt;path_hash&gt;/gen_&lt;N&gt;</code>. Hot PR uses these shadows to compute diffs when a later CAS fails. Source: <code class="text-primary">src/kernel/gen_table.rs:69–79, 261–296</code>.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">CAS</div>
+          <p class="font-body text-xs text-secondary"><code class="text-primary">file:edit</code> sends the old_str the agent expects. If the current file content doesn't match, the CAS fails and Hot PR engages. The gen counter provides the authoritative "did the file change" signal — there is no content-hash comparison round-trip.</p>
+        </div>
+      </div>
+      <p class="font-body text-[10px] text-outline mt-6">
+        Source: <code class="text-primary">src/kernel/gen_table.rs:16–35</code> (lock acquisition), <code class="text-primary">:52–53, 84–86</code> (agent alias recorded on bump), <code class="text-primary">:151–177</code> (table compaction under lock), <code class="text-primary">:601–648</code> (concurrent bump test).
+      </p>
+    </div>
+  </section>
+
+  <!-- Hot PR -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">02 // HOT_PR_CONFLICT_RESOLUTION</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      When a CAS fails, Hot PR classifies the conflict by position and size and attempts mechanical resolution. No LLM call — just text diffing with hard thresholds. Source: <code class="text-primary">src/kernel/hotpr.rs</code>.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">TIER 1 — AUTO_MERGE</div>
+        <div class="font-body text-xs text-outline mb-3">PROXIMITY_LINES &gt; 3</div>
+        <p class="font-body text-xs text-secondary">Edits are more than 3 lines apart — non-overlapping. The kernel applies both silently. Neither agent is interrupted.</p>
+        <div class="font-label text-[10px] text-outline mt-4">hotpr.rs:22</div>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">TIER 2 — ASSISTED_MERGE</div>
+        <div class="font-body text-xs text-outline mb-3">&lt; 30 changed lines, ≤ 2 regions</div>
+        <p class="font-body text-xs text-secondary">Edits within 3 lines or overlapping but small. The kernel computes a mechanical line rebase and returns a suggested <code class="text-primary">file:edit()</code> call the agent can accept, modify, or reject. Still no LLM call.</p>
+        <div class="font-label text-[10px] text-outline mt-4">hotpr.rs:26, 30</div>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">TIER 3 — MANUAL_REBASE</div>
+        <div class="font-body text-xs text-outline mb-3">Above Tier 2 thresholds</div>
+        <p class="font-body text-xs text-secondary">The kernel returns conflict info and the agent re-reads from disk. If Tier 2 rebase fell through, an <code class="text-primary">ArbitrationObservation</code> is written to audit — Phase 0 observer for a future small-model arbiter. Gated by <code class="text-primary">OSTK_T2_OBSERVER</code>.</p>
+        <div class="font-label text-[10px] text-outline mt-4">file.rs:25–81, 33</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Digest -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">03 // DIGEST</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A 5-line envelope appended to every tool response. The agent reads it to decide whether to re-read files, how much context budget is left, and which peers are active. Replaces redundant file reads with ~5 tokens of signal.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <div class="font-label text-[10px] text-primary mb-3">ENVELOPE_COMPONENTS</div>
+      <div class="space-y-2">
+        {[
+          { tag: '[procs]', desc: 'All active agents + health status. Always included.', src: 'digest.rs:97–99, 363–364' },
+          { tag: '[presence]', desc: 'Register state glyph. Suppressed when register is Off.', src: 'digest.rs:65–67, 636–657' },
+          { tag: '[files]', desc: 'Stale files only — current files omitted. Format: path:gen=N:writer:age.', src: 'digest.rs:106–114, 260–282' },
+          { tag: '[loadavg]', desc: 'Needle count, P0 count, fleet alive, pending nudges.', src: 'digest.rs:174–231' },
+          { tag: '[meminfo]', desc: 'Context %, used/total tokens, buffers, tool call count. Assumes 800k token budget.', src: 'digest.rs:234–256, 249' },
+          { tag: '[maintenance]', desc: 'Maintenance phase + tokens reclaimed. Emitted for 3 register dumps after a cycle.', src: 'digest.rs:150–172' },
+        ].map(c => (
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
+            <code class="text-primary md:col-span-2">{c.tag}</code>
+            <span class="text-secondary md:col-span-7">{c.desc}</span>
+            <code class="text-outline md:col-span-3 text-[10px]">{c.src}</code>
+          </div>
+        ))}
+      </div>
+    </div>
+    <h3 class="section-label-secondary mb-3">DIGEST_AND_304_ELISION</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Digest and 304 elision are the two defensive layers of the same primitive:
+    </p>
+    <ol class="font-body text-xs text-secondary list-decimal pl-5 space-y-2 mb-4">
+      <li><span class="text-primary font-bold">Suppression (digest).</span> Current files are absent from <code class="text-primary">[files]</code>. No stale files means no reason to re-read.</li>
+      <li><span class="text-primary font-bold">Elision (304).</span> If the agent reads a current file anyway, the kernel returns <code class="text-primary">[304] path:gen=N (current)</code> (~5 tokens) instead of the full content (~800 tokens). Source: <code class="text-primary">src/kernel/elision.rs</code>, called from <code class="text-primary">kernel::elision::read_file_with_elision</code>.</li>
+    </ol>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      Digest is the <span class="text-primary">observation</span>; 304 is the <span class="text-primary">response</span>. Both are transparent to the agent — no protocol learning required. Source: <code class="text-primary">src/kernel/digest.rs:10–24</code>.
+    </p>
+  </section>
+
+  <!-- Nudges -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">04 // NUDGES</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A durable message queue that crosses process, host, and temporal boundaries. How an operator or peer agent injects context into a target agent's next tool response, without modifying the target's process.
+    </p>
+    <div class="space-y-px">
+      {[
+        {
+          q: 'Who can send?',
+          a: 'Operator (via CLI/API), peer agent (in-process via push_nudge), cross-host sender (via Files API + audit discovery). Source: src/kernel/nudge.rs:17–39 (local push), :225–275 (cross-host upload).',
+        },
+        {
+          q: 'Who receives?',
+          a: 'The dispatch layer reads the queue on every response via pop_nudges, injects each message as a [nudge] line in the [procs] row of the digest. Source: nudge.rs:129–135.',
+        },
+        {
+          q: 'How delivered?',
+          a: 'Local: JSONL queue at .ostk/nudges/<agent-alias>.jsonl, flock-serialized for concurrent appends. Cross-host: Files API upload + a nudge.uploaded event in the audit log. Receivers scan audit for undownloaded uploads. Source: nudge.rs:17–39, 262–272, 336–345.',
+        },
+        {
+          q: 'What about dead targets?',
+          a: 'Before delivery, pop_nudges checks if the nudge service is alive via is_capability_alive. If dead, returns empty — nudges are NOT auto-retried in that case; they are lost. This is a known stub per nudge.rs:46–51. A durable retry queue is not implemented.',
+        },
+        {
+          q: 'Persistence?',
+          a: 'Yes — the local queue is the JSONL file, truncated on pop. Cross-host nudges are recorded in .ostk/audit.jsonl as nudge.uploaded and nudge.downloaded events so rehydrating a crashed daemon can reconcile delivery state. Source: nudge.rs:83–88, 262–345.',
+        },
+      ].map(n => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
+            <span class="font-body text-xs text-primary font-bold">{n.q}</span>
+          </div>
+          <div class="md:col-span-9 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{n.a}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Why four -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Why These Four, in That Order</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        OCC catches conflicts. Hot PR resolves them. Digest prevents the need to re-read files. Nudges are how anything outside the agent's own turn gets its attention.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        Each primitive is orthogonal: removing OCC makes Hot PR impossible; removing Hot PR makes OCC hostile (conflicts block agents); removing digest makes every tool response trigger full file re-reads (ruining the prompt cache); removing nudges means the only way to signal an agent mid-run is to kill it. The four together are the minimum set that supports multi-agent coordination without a message bus.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/five-laws"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
+    <a href="/docs/kernel-spec"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
+    <a href="/features/coordination"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+    <a href="/docs/compression"><Icon name="compress" size="14" class="align-middle mr-1" />COMPRESSION</a>
+  </div>
+</DocsLayout>
