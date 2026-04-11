@@ -35,12 +35,12 @@ const relatedPages = [
 
   <h2>Conflict resolution tiers</h2>
   <p>
-    Every <code>file:edit()</code> specifies the text the agent expects. If that text changed — another agent modified it — the resolution tiers engage. No LLM is called. This is mechanical text diffing. Every conflict is recorded in the <a href="/features/audit-trail">audit trail</a>.
+    Every <code>file:edit()</code> is a compare-and-swap: the agent sends the <code>old_str</code> it expects to find and the <code>new_str</code> to replace it with. If <code>old_str</code> no longer matches — another agent modified it — the resolution tiers engage. No LLM is called. This is mechanical text diffing, implemented in <code>src/kernel/hotpr.rs</code>. Every conflict is recorded in the <a href="/features/audit-trail">audit trail</a>.
   </p>
   <ul>
-    <li><strong>Tier 1 — Auto-merge.</strong> Edits touch different parts of the file. Both changes apply silently. Neither agent is interrupted.</li>
-    <li><strong>Tier 2 — Assisted rebase.</strong> Edits are nearby or overlapping but small. The kernel computes a mechanical rebase — relocates the second edit with updated references. No model call.</li>
-    <li><strong>Tier 3 — Manual.</strong> Changes are too large for mechanical resolution. The kernel returns both edits. The agent re-reads and retries. If unresolvable, escalates to the operator.</li>
+    <li><strong>Tier 1 — Auto-merge.</strong> The agent's intended edit and the other agent's changes are more than <code>PROXIMITY_LINES = 3</code> lines apart. Both changes apply silently. Neither agent is interrupted.</li>
+    <li><strong>Tier 2 — Assisted merge.</strong> Edits are within 3 lines of each other and under <code>TIER2_MAX_CHANGED_LINES = 30</code> changed lines, with at most <code>TIER2_MAX_CONFLICT_REGIONS = 2</code> conflict regions. The kernel computes a mechanical line rebase and returns a suggested <code>file:edit()</code> call the agent can accept, modify, or reject. Still no model call.</li>
+    <li><strong>Tier 3 — Manual rebase.</strong> Above Tier 2 thresholds. The kernel returns conflict info and the agent re-reads the file from disk. If the rebase falls through Tier 2 (tier2_line_rebase returns None), an ArbitrationObservation is written to <code>.ostk/audit.jsonl</code> — the Phase 0 observer for a future small-model arbiter.</li>
   </ul>
 
   <h2>Fleet economics</h2>
