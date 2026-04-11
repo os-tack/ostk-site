@@ -1,0 +1,171 @@
+---
+import Base from '../layouts/Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Icon from '../components/Icon.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'rocket_launch', label: 'QUICK_START', href: '/docs/getting-started' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
+  ],
+};
+
+const groups = [
+  {
+    label: 'CORE_RUNTIME',
+    blurb: 'The async runtime, HTTP client, and CLI foundations that every subsystem builds on.',
+    deps: [
+      { name: 'tokio', version: '1', desc: 'Async runtime — agent loop, scheduler tick, daemon socket', url: 'https://github.com/tokio-rs/tokio' },
+      { name: 'reqwest', version: '0.12', desc: 'HTTP client for LLM provider APIs (rustls-tls)', url: 'https://github.com/seanmonstar/reqwest' },
+      { name: 'clap', version: '4', desc: 'Command-line argument parser (derive macros)', url: 'https://github.com/clap-rs/clap' },
+      { name: 'serde', version: '1', desc: 'Serialization framework for JSON, YAML, TOML', url: 'https://github.com/serde-rs/serde' },
+      { name: 'tracing', version: '0.1', desc: 'Structured, async-aware logging', url: 'https://github.com/tokio-rs/tracing' },
+    ],
+  },
+  {
+    label: 'TERMINAL_UI',
+    blurb: 'The stack that powers the ostk TUI — real-time fleet monitoring, tack bar, permission gates.',
+    deps: [
+      { name: 'ratatui', version: '0.30', desc: 'Immediate-mode terminal UI framework', url: 'https://github.com/ratatui/ratatui' },
+      { name: 'ratatui-textarea', version: '0.9', desc: 'Multi-line text input widget for the tack bar', url: 'https://github.com/rhysd/tui-textarea' },
+      { name: 'crossterm', version: '0.29', desc: 'Cross-platform terminal backend', url: 'https://github.com/crossterm-rs/crossterm' },
+      { name: 'vte', version: '0.15', desc: 'ANSI escape sequence parser (used in squash pipeline)', url: 'https://github.com/alacritty/vte' },
+      { name: 'unicode-width', version: '0.2', desc: 'Terminal-accurate unicode character width', url: 'https://github.com/unicode-rs/unicode-width' },
+    ],
+  },
+  {
+    label: 'SANDBOX_ISOLATION',
+    blurb: 'Syscall-level sandboxing for agents. Enabled via the ISOLATION nono directive in Agentfile.',
+    deps: [
+      { name: 'nono', version: '0.29', desc: 'Process sandbox — Landlock on Linux, Seatbelt on macOS', url: 'https://nono.sh' },
+      { name: 'fuser', version: '0.17', desc: 'FUSE filesystem overlay for agent workspace isolation (optional)', url: 'https://github.com/cberner/fuser' },
+    ],
+  },
+  {
+    label: 'CRYPTOGRAPHY_IDENTITY',
+    blurb: 'The trust chain — Ed25519 signing, SHA-2 hashing, Sigstore attestation, secure memory zeroing.',
+    deps: [
+      { name: 'ed25519-dalek', version: '2', desc: 'Ed25519 signatures for Agentfile and primefile attestation', url: 'https://github.com/dalek-cryptography/curve25519-dalek' },
+      { name: 'sha2', version: '0.10', desc: 'SHA-2 family hashers (RustCrypto)', url: 'https://github.com/RustCrypto/hashes' },
+      { name: 'sigstore', version: '0.13', desc: 'Sigstore client for keyless attestation (optional, ATTEST sigstore)', url: 'https://github.com/sigstore/sigstore-rs' },
+      { name: 'zeroize', version: '1', desc: 'Secure memory zeroing for secret values', url: 'https://github.com/iqlusioninc/crates/tree/main/zeroize' },
+      { name: 'rand_core', version: '0.6', desc: 'Random number generation (getrandom backend)', url: 'https://github.com/rust-random/rand' },
+    ],
+  },
+  {
+    label: 'EMBEDDINGS_ML',
+    blurb: 'Semantic deduplication in the squash pipeline. Opt-in via the embeddings feature flag.',
+    deps: [
+      { name: 'burn', version: '0.20', desc: 'Rust ML framework — inference backend (Metal/Wgpu/NdArray)', url: 'https://github.com/tracel-ai/burn' },
+      { name: 'tokenizers', version: '0.22', desc: 'Hugging Face tokenizers for input preprocessing', url: 'https://github.com/huggingface/tokenizers' },
+      { name: 'safetensors', version: '0.7', desc: 'Safe tensor serialization format for model weights', url: 'https://github.com/huggingface/safetensors' },
+    ],
+  },
+  {
+    label: 'MODEL_RUNTIME',
+    blurb: 'External runtimes ostk drives via the DRIVER directive.',
+    deps: [
+      { name: 'olleh', version: '1.1', desc: 'Ollama-compatible CLI for Apple Foundation Models (used for local input preprocessing)', url: 'https://github.com/mattt/olleh' },
+    ],
+  },
+  {
+    label: 'FILESYSTEM_PARSING',
+    blurb: 'File watching, locking, and format parsing across the kernel.',
+    deps: [
+      { name: 'notify', version: '8', desc: 'Cross-platform filesystem watcher (macos_fsevent feature)', url: 'https://github.com/notify-rs/notify' },
+      { name: 'fs2', version: '0.4', desc: 'Filesystem locking primitives for audit log append-safety', url: 'https://github.com/danburkert/fs2-rs' },
+      { name: 'nix', version: '0.29', desc: 'Unix syscall bindings (term, signal, process, poll, fs, mount)', url: 'https://github.com/nix-rust/nix' },
+      { name: 'libc', version: '0.2', desc: 'Low-level C bindings for platform-specific syscalls', url: 'https://github.com/rust-lang/libc' },
+      { name: 'pulldown-cmark', version: '0.12', desc: 'CommonMark parser for needle frontmatter and spec rendering', url: 'https://github.com/pulldown-cmark/pulldown-cmark' },
+      { name: 'regex', version: '1', desc: 'Regex engine for squash grammar matching', url: 'https://github.com/rust-lang/regex' },
+    ],
+  },
+  {
+    label: 'ERROR_HANDLING',
+    blurb: 'Structured error types and pretty reporting.',
+    deps: [
+      { name: 'color-eyre', version: '0.6', desc: 'Colorful error reports with backtraces', url: 'https://github.com/eyre-rs/color-eyre' },
+      { name: 'thiserror', version: '2', desc: 'Derive macros for custom error types', url: 'https://github.com/dtolnay/thiserror' },
+      { name: 'ctrlc', version: '3.4', desc: 'Cross-platform SIGINT handler for clean shutdown', url: 'https://github.com/Detegr/rust-ctrlc' },
+    ],
+  },
+];
+---
+
+<Base title="Credits" description="The upstream projects that power ostk. Runtime, sandbox, cryptography, ML, parsing — with linkbacks.">
+  <Sidebar title="CREDITS" subtitle="LINEAGE" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-5xl mx-auto py-12">
+      <Breadcrumb crumbs={[
+        { label: 'OSTK', href: '/' },
+        { label: 'Credits' },
+      ]} />
+
+      <div class="section-label mb-4">LINEAGE // UPSTREAM</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Credits</h1>
+      <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
+        ostk stands on decades of open-source work. Every subsystem builds on crates and tools that others published, maintained, and shared.
+      </p>
+      <p class="font-body text-sm text-secondary max-w-2xl mb-16">
+        The licenses that make this possible are listed in each crate's repository. If you find ostk useful, consider sponsoring the projects below — they do the hard work.
+      </p>
+
+      {groups.map((group, i) => (
+        <section class="mb-20">
+          <div class="bg-surface-container-low px-6 py-4 border-l-2 border-primary mb-8">
+            <div class="flex items-center gap-4">
+              <span class="font-headline text-2xl font-bold text-primary">{String(i + 1).padStart(2, '0')}</span>
+              <div>
+                <h2 class="font-label text-xs uppercase tracking-widest text-primary">{group.label}</h2>
+                <p class="font-body text-[10px] text-secondary mt-0.5 max-w-2xl">{group.blurb}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-px">
+            {group.deps.map(dep => (
+              <a href={dep.url} class="bg-surface-container grid grid-cols-12 hover:bg-surface-container-high transition-none group">
+                <div class="md:col-span-2 px-4 py-4 bg-surface-container-low">
+                  <code class="font-body text-sm text-primary group-hover:underline font-bold">{dep.name}</code>
+                  <div class="font-label text-[10px] text-outline mt-1">v{dep.version}</div>
+                </div>
+                <div class="md:col-span-8 px-4 py-4">
+                  <span class="font-body text-xs text-secondary">{dep.desc}</span>
+                </div>
+                <div class="md:col-span-2 px-4 py-4 flex items-center justify-end">
+                  <span class="font-label text-[10px] text-outline group-hover:text-primary truncate">{dep.url.replace('https://', '').replace('github.com/', '')}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <!-- Thanks note -->
+      <section class="mt-20 pt-8 border-t border-surface-variant">
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Thanks</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+          ostk also owes a debt to the broader Rust ecosystem — the Rust compiler team, crates.io maintainers, and everyone who files issues and answers them. And to Apple's Foundation Models team for making on-device inference practical via olleh.
+        </p>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-xl">
+          The Archive Industrial design system draws inspiration from technical documentation traditions — man pages, kernel source comments, and the aesthetic of well-maintained archives.
+        </p>
+      </section>
+
+      <div class="metadata-ribbon border-t border-surface-variant mt-16">
+        <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+        <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+        <a href="/docs/kernel-spec"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
+        <a href="/about"><Icon name="person" size="14" class="align-middle mr-1" />ABOUT</a>
+      </div>
+    </div>
+  </main>
+</Base>
