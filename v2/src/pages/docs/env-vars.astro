@@ -48,7 +48,7 @@ const groups = [
       { name: 'OSTK_STATE_DIR', desc: 'Override state directory name (instead of .ostk).', default_: '.ostk' },
       { name: 'OSTK_DIR', desc: 'Absolute path to .ostk directory. Set by kernel for FCP driver subprocesses.', default_: 'Auto' },
       { name: 'OSTK_REGISTRY_DIR', desc: 'Override global registry directory. Used by CI for isolation.', default_: '~/.ostk/' },
-      { name: 'OSTK_PREPROCESS', desc: 'Preprocessing model for tool output. Overrides HUMANFILE PREPROCESS.', default_: 'HUMANFILE' },
+      { name: 'OSTK_PREPROCESS', desc: 'Local model for input preprocessing via olleh runtime. Overrides HUMANFILE PREPROCESS.', default_: 'HUMANFILE' },
       { name: 'OSTK_TOOL_THRESHOLD', desc: 'Momentum threshold for verb loading from .language. Float 0-1.', default_: '0.45' },
     ],
   },

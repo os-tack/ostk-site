@@ -11,7 +11,7 @@ const directives = [
   { name: 'SECRET <<KEYS', req: false, desc: 'Heredoc listing authorized API key names. Keys stored in platform keychain.' },
   { name: 'DRIVER <type> <name>', req: false, desc: 'FCP driver to load at boot. Internal drivers don\'t need declaration.' },
   { name: 'EMBED', req: false, desc: 'Embedding index mode: codebase (full), incremental (git-diff), off.' },
-  { name: 'PREPROCESS', req: false, desc: 'Local model for preprocessing user input. e.g. apple/default.' },
+  { name: 'PREPROCESS', req: false, desc: 'Local model for preprocessing user input via olleh runtime. e.g. apple/default. Fixes grammar, expands tack shorthand before the remote LLM sees it.' },
   { name: 'TRUST', req: false, desc: 'Trust policy for Agentfile signing. unsigned skips signature requirement.' },
   { name: 'EXTENDS', req: false, desc: 'Path to parent HUMANFILE for inheritance. Child directives override.' },
   { name: 'BOOT', req: false, desc: 'Custom boot steps appended after kernel initialization.' },

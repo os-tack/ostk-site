@@ -1,0 +1,170 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Bail"
+  description="Signed, portable OS packages. Export OS identity and boot state into a single GPG-signed file that any instance can receive and boot from."
+  sectionLabel="REFERENCE // BAIL_PACKAGES"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    A signed, portable OS package. Like a VM snapshot but GPG-gated. Export identity and boot state into one file; any instance can receive it and boot.
+  </p>
+
+  <!-- What bail is -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What Bail Is</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        The name comes from a <span class="text-primary">bail bond</span> — a guarantee. The package is a verifiable guarantee of OS state, signed by a kernel key, transportable across machines and harnesses.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        Bail lets one ostk instance export its identity and boot state, then another instance (any harness, any machine) can receive it, verify the signature, and boot from it. No shared filesystem, no SSH, no cloud sync.
+      </p>
+    </div>
+  </section>
+
+  <!-- Two modes -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">TWO_MODES</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">PUBLIC_MODE</div>
+        <code class="font-body text-xs text-on-surface block mb-3">ostk bail pack --public</code>
+        <p class="font-body text-xs text-secondary mb-4">
+          Public bundle. Signed by the kernel key. Any instance on any harness can boot from it — no decryption, no prime key required.
+        </p>
+        <div class="font-label text-[10px] text-outline mb-2">CONTAINS</div>
+        <ul class="font-body text-xs text-secondary space-y-1">
+          <li><code class="text-primary">boot.md</code> — swap file, public OS state</li>
+          <li><code class="text-primary">.boot/INIT</code> — tack boot protocol</li>
+          <li><code class="text-primary">.primefile</code> — public key fingerprints</li>
+        </ul>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">FULL_MODE</div>
+        <code class="font-body text-xs text-on-surface block mb-3">ostk bail pack</code>
+        <p class="font-body text-xs text-secondary mb-4">
+          Everything in public mode plus GPG-encrypted internal state. Prime-key-to-prime-key transfer only — state never leaks to unsigned receivers.
+        </p>
+        <div class="font-label text-[10px] text-outline mb-2">ADDS</div>
+        <ul class="font-body text-xs text-secondary space-y-1">
+          <li><code class="text-primary">os.bin</code> — GPG-encrypted tarball of kernel state</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Package format -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">PACKAGE_FORMAT</h2>
+    <Terminal label="BAIL_LAYOUT">
+      <pre><span class="text-primary">ostk.bail/</span>
+  <span class="text-on-surface">manifest.json</span>       <span class="text-outline"># version, created, signer, mode, files</span>
+  <span class="text-on-surface">boot.md</span>             <span class="text-outline"># verbatim copy</span>
+  <span class="text-on-surface">.boot/INIT</span>          <span class="text-outline"># verbatim copy (if present)</span>
+  <span class="text-on-surface">.primefile</span>          <span class="text-outline"># public key fingerprints only</span>
+  <span class="text-on-surface">os.bin</span>              <span class="text-outline"># full mode only — GPG-encrypted tarball</span>
+  <span class="text-on-surface">manifest.json.asc</span>   <span class="text-outline"># GPG detached signature over manifest.json</span></pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Packed as a <code class="text-primary">.tar.gz</code> renamed to <code class="text-primary">.bail</code>.
+    </p>
+  </section>
+
+  <!-- Exclusions -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">NEVER_INCLUDED</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Internal kernel state and secrets are excluded from all bail packages. Private keys never appear in any file, log, or error message.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-error">
+      {[
+        { file: 'audit.jsonl', reason: 'Internal audit trail' },
+        { file: 'sessions/', reason: 'Ephemeral session logs' },
+        { file: 'agents.jsonl', reason: 'Runtime agent state' },
+        { file: 'hwm.jsonl, hwm.lock', reason: 'High-water mark (runtime)' },
+        { file: 'gen_table.jsonl, gen_table.lock', reason: 'OCC generation counters' },
+        { file: 'identity_counter, identity.lock', reason: 'Runtime identity counters' },
+        { file: 'dispatch.json', reason: 'Kernel dispatch table' },
+        { file: '*.secret, secrets/', reason: 'Any secret files or secret directory' },
+      ].map(e => (
+        <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
+          <code class="text-error w-64 shrink-0">{e.file}</code>
+          <span class="text-secondary">{e.reason}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Boot from bail -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Boot From a Bail</h2>
+    <div class="space-y-px">
+      {[
+        { step: '01', action: 'Receive ostk.bail from another instance' },
+        { step: '02', action: 'ostk bail verify ostk.bail — checks GPG signature, prints signer fingerprint' },
+        { step: '03', action: 'ostk bail unpack ostk.bail — applies boot.md + .primefile to current project' },
+        { step: '04', action: 'ostk boot — reads boot.md and reports OS state' },
+        { step: '05', action: 'Instance is now booted into the OS state of the sender' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3 flex items-center">
+            <code class="font-body text-xs text-secondary">{s.action}</code>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      No prime key needed for public mode. No decryption. The signature confirms the state is authentic.
+    </p>
+  </section>
+
+  <!-- Verification -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">VERIFICATION</h2>
+    <Terminal>
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">ostk bail verify ostk.bail</span></div>
+      <div class="text-secondary mt-2">extracting manifest.json + manifest.json.asc...</div>
+      <div class="text-secondary">gpg: Signature made Fri 10 Apr 2026 18:00:00 UTC</div>
+      <div class="text-secondary">gpg:                using RSA key BAF08C963C7E3184</div>
+      <div class="text-primary">✓ VERIFIED by @scott (BAF08C963C7E3184)</div>
+      <div class="text-secondary">created: 2026-04-10T18:00:00Z</div>
+      <div class="text-secondary">mode: public</div>
+      <div class="text-secondary">files: 3</div>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Verification is <span class="text-primary">non-fatal</span> during unpack — the bail is still applied, but the operator is warned if unsigned. Unsigned bails circulate freely for development without blocking adoption.
+    </p>
+  </section>
+
+  <!-- Commands -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">COMMANDS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { cmd: 'ostk bail pack [--public] [--attest]', desc: 'Pack a bail from current OS state. Public mode omits encrypted state. --attest adds Sigstore.' },
+        { cmd: 'ostk bail unpack <FILE>', desc: 'Apply a bail to the current project. Writes boot.md, .primefile, .boot/INIT.' },
+        { cmd: 'ostk bail verify <FILE>', desc: 'Verify GPG signature without unpacking. Prints signer and manifest.' },
+      ].map(c => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <code class="text-primary w-64 shrink-0">{c.cmd}</code>
+          <span class="text-secondary">{c.desc}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/primefile"><Icon name="settings" size="14" class="align-middle mr-1" />PRIMEFILE</a>
+    <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/session-topology"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
+    <a href="/governance"><Icon name="gavel" size="14" class="align-middle mr-1" />GOVERNANCE</a>
+  </div>
+</DocsLayout>
