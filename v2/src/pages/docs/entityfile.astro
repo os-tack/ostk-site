@@ -1,0 +1,137 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="ENTITYFILE"
+  description="The trust constitution of your OS instance. Identity chains, trust tiers, and governance ceremonies."
+  sectionLabel="CONFIGURATION // GOVERNANCE"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    The trust constitution of your OS instance. Written once. Governs who can do what.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    Location: <code class="text-primary">.ostk/ENTITYFILE</code>
+  </p>
+
+  <!-- Trust Tiers -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">TRUST_TIERS</h2>
+    <div class="space-y-px">
+      {[
+        { tier: 'T0', who: 'Human operator', caps: 'Full governance — including modifying ENTITYFILE itself', proof: 'GPG key in T0_TRUST_ANCHORS, dual-signed .primefile' },
+        { tier: 'T1', who: 'Verified agent or CI', caps: 'Write source, run agents, delegate needles. Denied: write-kernel, modify-governance', proof: 'GPG key cross-signed by a T0 holder' },
+        { tier: 'T2', who: 'Named agent (alias)', caps: 'Read + limited write (.ostk/store/ only). Denied: write-kernel, modify-governance, write-src', proof: 'GPG key present, not cross-signed' },
+        { tier: 'T3', who: 'Anonymous', caps: 'Cannot boot. Public artifacts only.', proof: 'No GPG key' },
+      ].map(t => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="font-body text-lg font-bold text-primary">{t.tier}</span>
+          </div>
+          <div class="md:col-span-2 px-4 py-4">
+            <span class="font-body text-xs text-on-surface">{t.who}</span>
+          </div>
+          <div class="md:col-span-6 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{t.caps}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-4">
+            <span class="font-body text-xs text-outline">{t.proof}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-outline">ENTITYFILE: v1.0 (GPG chain signed — kernel@project.prime)</span>
+<span class="text-outline">---</span>
+<span class="text-primary">entity:</span>
+  <span class="text-primary">name:</span> @project.prime
+  <span class="text-primary">key:</span> AAAA1111BBBB2222CCCC3333DDDD4444EEEE5555
+  <span class="text-primary">domain:</span> project.prime
+  <span class="text-primary">version:</span> 1.6.0
+  <span class="text-primary">laws:</span>
+    - invisible-write
+    - ephemeral
+    - filesystem
+    - OCC
+    - invisible-infra
+  <span class="text-primary">fleet:</span>
+    alive: 1
+    agents: 54</pre>
+    </div>
+  </section>
+
+  <!-- When you need it -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">WHEN_YOU_NEED_IT</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { setup: 'Solo developer, one machine', need: false },
+        { setup: 'Solo developer, GPG identity needed', need: false },
+        { setup: 'Team with shared repo', need: true },
+        { setup: 'CI pipeline dispatching agents', need: true },
+        { setup: 'Multiple humans with different trust', need: true },
+      ].map(s => (
+        <div class="flex justify-between text-xs font-body py-2 border-b border-surface-variant">
+          <span class="text-on-surface">{s.setup}</span>
+          <span class={s.need ? 'text-primary font-bold' : 'text-outline'}>{s.need ? 'YES' : 'NO'}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Negotiate Protocol -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">The Negotiate Protocol</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Changes require ceremony. You cannot unilaterally modify ENTITYFILE — even as T0.
+    </p>
+    <div class="space-y-px">
+      {[
+        { step: '01', action: 'File an offer describing the change (.ostk/offers/)' },
+        { step: '02', action: 'Counter-party reviews and responds' },
+        { step: '03', action: 'Both parties sign with their keys' },
+        { step: '04', action: 'Merge with --no-ff to preserve ceremony in git history' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3 flex items-center">
+            <span class="font-body text-xs text-secondary">{s.action}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Authority Chain -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Authority Chain</h2>
+    <div class="flex items-center gap-0 mb-4">
+      {['T0 (human)', 'kernel', 'agents'].map((level, i) => (
+        <>
+          <div class={`px-6 py-3 font-body text-xs font-bold ${i === 0 ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
+            {level}
+          </div>
+          {i < 2 && <div class="px-2 text-outline">→</div>}
+        </>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      Trust flows downward. No agent can elevate its own trust tier. No agent can modify ENTITYFILE. The human is always the final authority.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+    <a href="/docs/primefile"><Icon name="settings" size="14" class="align-middle mr-1" />PRIMEFILE</a>
+    <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+  </div>
+</DocsLayout>

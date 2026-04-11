@@ -1,0 +1,98 @@
+---
+import Base from '../layouts/Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'rocket_launch', label: 'QUICK_START', href: '/docs/getting-started' },
+    { icon: 'terminal', label: 'COMMANDS', href: '/docs/commands' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
+  ],
+};
+---
+
+<Base title="About ostk" description="ostk is a distributed operating system for AI coding agents. Unix-inspired. Local-first. Invisible by design. One binary, zero dependencies.">
+  <Sidebar title="ABOUT" subtitle="LINEAGE" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-4xl mx-auto py-12">
+      <div class="section-label mb-4">LINEAGE // ABOUT</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">About ostk</h1>
+
+      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
+        Not a framework. Not a wrapper. A distributed operating system — the kind that disappears the moment it works.
+      </p>
+
+      <!-- What it does -->
+      <section class="mb-16">
+        <h2 class="section-label mb-6">WHAT_IT_DOES</h2>
+        <div class="space-y-px">
+          {[
+            { label: 'FLEET_COORDINATION', desc: 'Spawn, drain, reap, and rehydrate agents across daemon restarts. Workers crash-recover from drain snapshots automatically.' },
+            { label: 'OPTIMISTIC_CONCURRENCY', desc: 'Agents write concurrently. The kernel detects conflicts via generation counters and resolves via Hot PR. No locks during the expensive phase.' },
+            { label: 'COST_REDUCTION', desc: '28% measured cost reduction via prompt cache reuse and shell output compression.' },
+            { label: 'CAPABILITY_ENFORCEMENT', desc: 'Deny-based pins at the tool layer. Process-level sandboxing via Landlock/Seatbelt at the syscall layer. Defense in depth.' },
+            { label: 'IDENTITY_AND_TRUST', desc: 'GPG-based trust chain from hardware identity to human attestation. Four tiers. Dual-signed primefile ceremony for governance changes.' },
+            { label: 'CACHE_ECONOMICS', desc: 'Byte-stable system prefix shared across the fleet via content-addressed cache. Fleet cost scales sublinearly — adding agents decreases per-agent cost.' },
+          ].map(item => (
+            <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+              <div class="md:col-span-4 bg-surface-container-low px-4 py-4">
+                <code class="font-body text-xs text-primary">{item.label}</code>
+              </div>
+              <div class="md:col-span-8 px-4 py-4">
+                <span class="font-body text-xs text-secondary">{item.desc}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- The story -->
+      <section class="mb-16">
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Story</h2>
+        <div class="max-w-lg space-y-4">
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            ostk wasn't designed in a planning meeting. It was extracted from the problem it solves.
+          </p>
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            The kernel started as a coordination layer for AI agents on the same codebase. First version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, scheduling, drain snapshots, crash recovery, sub-stacks, and fleet-wide cache sharing.
+          </p>
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.
+          </p>
+        </div>
+      </section>
+
+      <!-- Source availability -->
+      <section class="mb-16">
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Source Availability</h2>
+        <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+          <p class="font-body text-xs text-on-surface mb-3">
+            The kernel source is not currently published. An open source release under a dual license is planned.
+          </p>
+          <p class="font-body text-xs text-secondary">
+            The binary is free for personal and internal commercial use. Governance documents, signing keys, install script, and this site are public. See <a href="/legal/license" class="text-primary hover:underline">License</a>.
+          </p>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section class="mb-16">
+        <h2 class="section-label mb-4">CONTACT</h2>
+        <p class="font-body text-sm text-secondary mb-4">Built by agents running on ostk. Maintained by humans who speak tack.</p>
+        <div class="flex gap-6 font-body text-sm">
+          <a href="mailto:contact@ostk.ai" class="text-primary hover:underline">contact@ostk.ai</a>
+          <a href="https://discord.gg/MdRNs4CC" class="text-primary hover:underline">Discord</a>
+          <a href="https://github.com/os-tack" class="text-primary hover:underline">GitHub</a>
+        </div>
+      </section>
+    </div>
+  </main>
+</Base>

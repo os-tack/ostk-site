@@ -1,0 +1,766 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const commands = [
+  // ─── LIFECYCLE ───
+  {
+    name: 'ostk init',
+    tag: 'LIFECYCLE',
+    synopsis: 'ostk init [--guided] [--import] [--from-export <PATH>] [--attest]',
+    desc: 'Bootstrap a new ostk project: governance files, .ostk/ directory, git hooks, Ed25519 signing key.',
+    params: [
+      { flag: '--guided', value: '', desc: 'Interactive 7-step setup wizard.' },
+      { flag: '--import', value: '', desc: 'Scan git history and existing issues into needles.' },
+      { flag: '--from-export', value: 'PATH', desc: 'Seed from an export bail after init.' },
+      { flag: '--attest', value: '', desc: 'Attest identity files to Sigstore after GPG signing.' },
+    ],
+    terminal: {
+      cmd: 'ostk init --guided',
+      output: [
+        '✓ bail imported from os-tack/ostk.ai',
+        'initialized: /path/to/project',
+      ],
+    },
+    related: [
+      { name: 'ostk boot', desc: 'Load state and begin tracking after init.' },
+      { name: 'ostk shutdown', desc: 'Sign checkpoint and commit state.' },
+    ],
+  },
+  {
+    name: 'ostk boot',
+    tag: 'LIFECYCLE',
+    synopsis: 'ostk boot [--bail] [--update-prompt]',
+    desc: 'Read .ostk/ state and report bootstrap status. Reaps dead agents, loads identity files, spawns drivers.',
+    params: [
+      { flag: '--bail', value: '', desc: 'Fail-fast: exit non-zero if POST check fails or checkpoint is stale.' },
+      { flag: '--update-prompt', value: '', desc: 'Update the continuation prompt from kernel state.' },
+    ],
+    terminal: {
+      cmd: 'ostk boot',
+      output: [
+        '✓ HUMANFILE loaded (global only)',
+        'trust: T1 (cross-signed, write access)',
+        'driver rust: inactive (demand-spawn on first use)',
+        '.language: 58 verbs | fleet: 0 alive',
+        'needles: 0 open',
+        'boot confidence: 0.00 (restricted mode)',
+      ],
+    },
+    related: [
+      { name: 'ostk init', desc: 'Initialize a project before booting.' },
+      { name: 'ostk shutdown', desc: 'End session, sign checkpoint, commit.' },
+    ],
+  },
+  {
+    name: 'ostk shutdown',
+    tag: 'LIFECYCLE',
+    synopsis: 'ostk shutdown [--message <MSG>] [--agent <NAME>]',
+    desc: 'Clean session termination. Kills drivers, signs checkpoint, writes registers dump, commits state.',
+    params: [
+      { flag: '--message, -m', value: 'STRING', desc: 'Commit message (default: "Session shutdown").' },
+      { flag: '--agent', value: 'STRING', desc: 'Agent name (default: "orchestrator").' },
+    ],
+    terminal: {
+      cmd: 'ostk shutdown -m "feature complete"',
+      output: [
+        "SIGTERM'd 1 driver process(es)",
+        'checkpoint signed ✓',
+        'committed: feature complete',
+      ],
+    },
+    related: [
+      { name: 'ostk commit', desc: 'Commit with spec attribution and needle tracking.' },
+      { name: 'ostk boot', desc: 'Resume from a clean checkpoint.' },
+    ],
+  },
+  {
+    name: 'ostk commit',
+    tag: 'LIFECYCLE',
+    synopsis: 'ostk commit --message <MSG> [--spec <NAME>] [--section <SEC>] [--bead <ID>] [--agent <NAME>]',
+    desc: 'Commit with spec attribution and needle tracking. Validates spec exists and formats conventional commits.',
+    params: [
+      { flag: '--message, -m', value: 'STRING', desc: 'Commit message description (required).' },
+      { flag: '--spec', value: 'STRING', desc: 'Spec name (file in docs/spec/, without .md).' },
+      { flag: '--section', value: 'STRING', desc: 'Section within the spec.' },
+      { flag: '--bead', value: 'STRING', desc: 'Needle ID to attribute (→NNN format).' },
+      { flag: '--agent', value: 'STRING', desc: 'Agent name (default: "orchestrator").' },
+    ],
+    terminal: {
+      cmd: 'ostk commit -m "Add auth flow" --spec kernel --section auth --bead →143',
+      output: [
+        'feat: Add auth flow (spec:kernel#auth, →143)',
+        'Agent: orchestrator',
+      ],
+    },
+    related: [
+      { name: 'ostk work add', desc: 'File needles to attribute commits to.' },
+      { name: 'ostk shutdown', desc: 'End session and commit.' },
+    ],
+  },
+
+  // ─── WORK ───
+  {
+    name: 'ostk work add',
+    tag: 'WORK',
+    synopsis: 'ostk work add <TITLE> [--priority P0|P1|P2|P3] [--ac <CMD>] [--depends-on <IDS>]',
+    desc: 'Add a needle — an atomic work item with verb + target + test. Optional dependencies and acceptance criteria.',
+    params: [
+      { flag: '<TITLE>', value: 'STRING', desc: 'Short title/verb target (required).' },
+      { flag: '--priority, -p', value: 'P0-P3', desc: 'Priority level (default: P1).' },
+      { flag: '--ac', value: 'CMD', desc: 'Acceptance criteria — shell command to verify.' },
+      { flag: '--description', value: 'STRING', desc: 'Longer description of the needle.' },
+      { flag: '--depends-on', value: 'IDS', desc: 'Comma-separated needle IDs (e.g. →843,→844).' },
+      { flag: '--blocks', value: 'IDS', desc: 'Comma-separated needle IDs this blocks.' },
+      { flag: '--tags', value: 'STRING', desc: 'Comma-separated tags.' },
+    ],
+    terminal: {
+      cmd: "ostk work add 'fix auth timeout' --priority P1 --ac 'test/auth.sh'",
+      output: ['→157 fix auth timeout'],
+    },
+    related: [
+      { name: 'ostk work close', desc: 'Close a needle when done.' },
+      { name: 'ostk compounds', desc: 'Show needles that unblock the most downstream work.' },
+    ],
+  },
+  {
+    name: 'ostk work hay',
+    tag: 'WORK',
+    synopsis: 'ostk work hay [<THOUGHT>] [--source <ATTRIBUTION>]',
+    desc: 'Record a thought into the hay pile. Omit the thought to list/cluster existing hay.',
+    params: [
+      { flag: '<THOUGHT>', value: 'STRING', desc: 'Raw thought to capture (optional).' },
+      { flag: '--source', value: 'STRING', desc: 'Source attribution (default: "user").' },
+    ],
+    terminal: {
+      cmd: "ostk work hay 'consider batching requests'",
+      output: ['~ consider batching requests'],
+    },
+    related: [
+      { name: 'ostk work compile', desc: 'Triage hay into needles.' },
+    ],
+  },
+  {
+    name: 'ostk work compile',
+    tag: 'WORK',
+    synopsis: 'ostk work compile [--dry-run]',
+    desc: 'Triage hay into needles or keep as hay. Discovers dependency patterns, builds spheres, shows intelligence clustering.',
+    params: [
+      { flag: '--dry-run', value: '', desc: "Show what would be compiled without creating needles." },
+    ],
+    terminal: {
+      cmd: 'ostk work compile',
+      output: [
+        '── intelligence: 3 clusters discovered ──',
+        '── edges: 5 persisted (2 new, 3 existing) ──',
+      ],
+    },
+    related: [
+      { name: 'ostk work hay', desc: 'Capture thoughts into the hay pile first.' },
+      { name: 'ostk compounds', desc: 'Find highest-impact work after compilation.' },
+    ],
+  },
+  {
+    name: 'ostk work close',
+    tag: 'WORK',
+    synopsis: 'ostk work close <ID> [--reason <TEXT>]',
+    desc: 'Close a needle. Runs acceptance criteria if present, commits the reference.',
+    params: [
+      { flag: '<ID>', value: 'ID', desc: 'Needle ID (→576 or bare number).' },
+      { flag: '--reason', value: 'STRING', desc: 'Reason for closing.' },
+    ],
+    terminal: {
+      cmd: 'ostk work close →576 --reason "deployed"',
+      output: ['AC: PASS', 'closed →576'],
+    },
+    related: [
+      { name: 'ostk work add', desc: 'Open new needles.' },
+      { name: 'ostk show', desc: 'Inspect a needle before closing.' },
+    ],
+  },
+  {
+    name: 'ostk compounds',
+    tag: 'WORK',
+    synopsis: 'ostk compounds',
+    desc: 'Show highest-compounding work — needles that unblock the most other work via graph traversal.',
+    params: [],
+    terminal: {
+      cmd: 'ostk compounds',
+      output: [
+        '→143  Add notification system    [P0]  blocks 2 (transitive: 5)',
+        '→156  Fix memory leak            [P1]  blocks 1 (transitive: 3)',
+      ],
+    },
+    related: [
+      { name: 'ostk depends', desc: 'Show explicit dependency edges.' },
+    ],
+  },
+
+  // ─── FLEET ───
+  {
+    name: 'ostk listen',
+    tag: 'FLEET',
+    synopsis: 'ostk listen',
+    desc: 'Start the kernel daemon on a Unix domain socket. Holds the socket, process table, and scheduler.',
+    params: [],
+    terminal: {
+      cmd: 'ostk listen',
+      output: [
+        '[listen] anchor acquired: ostk@host (started_at 2026-04-10T18:00:00Z)',
+        '[listen] session manager created',
+        '[listen] firmware uploaded: kernel.fcp (8192 bytes)',
+      ],
+    },
+    related: [
+      { name: 'ostk kernel ps', desc: 'Show fleet status against the running daemon.' },
+      { name: 'ostk status', desc: 'Verify daemon health.' },
+    ],
+  },
+  {
+    name: 'ostk kernel spawn',
+    tag: 'FLEET',
+    synopsis: 'ostk kernel spawn <NAME> [--model <MODEL>] [--budget <USD>] [--prompt <PROMPT>] [--detach]',
+    desc: 'Spawn a background agent worker inside the daemon. Returns immediately. Default model: sonnet. Default budget: $2.',
+    params: [
+      { flag: '<NAME>', value: 'STRING', desc: 'Agent identifier. Used in ps, attach, await.' },
+      { flag: '--model', value: 'MODEL', desc: 'Model to use (default: sonnet).' },
+      { flag: '--budget', value: 'USD', desc: 'Budget cap in USD (default: 2).' },
+      { flag: '--prompt', value: 'STRING', desc: 'Prompt for the agent.' },
+      { flag: '--detach', value: '', desc: 'Run as detachable agent (survives session, attachable from other terminals).' },
+      { flag: '--firecracker', value: '', desc: 'Launch in QEMU microVM using the given Agentfile.' },
+    ],
+    warning: {
+      title: 'CRITICAL // RESOURCE_BOUNDS',
+      body: 'The default budget is $2. Set --budget explicitly for long-running unattended agents.',
+      ref: '→ see /docs/agentfile LIMIT budget_usd',
+    },
+    terminal: {
+      cmd: 'ostk kernel spawn lint-fix --model sonnet --budget 2 --prompt "Fix ESLint warnings"',
+      output: ['agent lint-fix spawned (detachable, pid 12345). attach: ostk attach lint-fix'],
+    },
+    related: [
+      { name: 'ostk kernel ps', desc: 'Show fleet status — heartbeat, context, budget burn.' },
+      { name: 'ostk kernel await', desc: 'Block until agent finishes. Default timeout: 300s.' },
+      { name: 'ostk attach', desc: 'Attach to a detachable agent session.' },
+    ],
+  },
+  {
+    name: 'ostk kernel await',
+    tag: 'FLEET',
+    synopsis: 'ostk kernel await <NAME> [--timeout <SECONDS>]',
+    desc: 'Block until a spawned agent finishes. Default timeout: 300 seconds.',
+    params: [
+      { flag: '<NAME>', value: 'STRING', desc: 'Agent name to wait for.' },
+      { flag: '--timeout', value: 'SECONDS', desc: 'Maximum wait time (default: 300).' },
+    ],
+    terminal: {
+      cmd: 'ostk kernel await lint-fix --timeout 600',
+      output: [
+        "awaiting agent 'lint-fix' (timeout: 600s)...",
+        "agent 'lint-fix' finished with exit code 0: task completed",
+      ],
+    },
+    related: [
+      { name: 'ostk kernel spawn', desc: 'Spawn agents to await.' },
+      { name: 'ostk kernel ps', desc: 'Check status mid-wait.' },
+    ],
+  },
+  {
+    name: 'ostk kernel ps',
+    tag: 'FLEET',
+    synopsis: 'ostk kernel ps',
+    desc: 'Show active agents in the daemon process table.',
+    params: [],
+    terminal: {
+      cmd: 'ostk kernel ps',
+      output: [
+        'daemon running (pid 12345, socket .ostk/ostk.sock)',
+        'detachable agents:',
+        '  lint-fix  alive  working on needle →842',
+      ],
+    },
+    related: [
+      { name: 'ostk kernel spawn', desc: 'Spawn agents.' },
+      { name: 'ostk kernel reap', desc: 'Clean dead agents from the table.' },
+    ],
+  },
+  {
+    name: 'ostk attach',
+    tag: 'FLEET',
+    synopsis: 'ostk attach <NAME>',
+    desc: "Attach to a detachable agent's event stream. Ctrl-C to detach.",
+    params: [
+      { flag: '<NAME>', value: 'STRING', desc: 'Agent name to attach to.' },
+    ],
+    terminal: {
+      cmd: 'ostk attach lint-fix',
+      output: [
+        "attached to agent 'lint-fix'. ctrl-C to detach.",
+        '  [tool] file:edit',
+        '  [result] modified src/auth.ts',
+        '  [lifecycle] running',
+      ],
+    },
+    related: [
+      { name: 'ostk kernel spawn', desc: 'Spawn detachable agents with --detach.' },
+    ],
+  },
+
+  // ─── OS_OPERATIONS ───
+  {
+    name: 'ostk status',
+    tag: 'OS_OPERATIONS',
+    synopsis: 'ostk status',
+    desc: 'Check daemon health.',
+    params: [],
+    terminal: {
+      cmd: 'ostk status',
+      output: ['ostk: daemon running (pid 12345)'],
+    },
+    related: [
+      { name: 'ostk listen', desc: 'Start the daemon.' },
+      { name: 'ostk kernel ps', desc: 'Show fleet detail.' },
+    ],
+  },
+  {
+    name: 'ostk os audit check',
+    tag: 'OS_OPERATIONS',
+    synopsis: 'ostk os audit check | backfill | remap',
+    desc: 'Audit trail operations. Check integrity, backfill missing entries from git, remap commit hashes after rewrites.',
+    params: [
+      { flag: 'check', value: '', desc: 'Verify audit trail integrity and report gaps.' },
+      { flag: 'backfill', value: '', desc: 'Backfill missing audit events from git history. Use --fix-rewrites to detect phantom hashes.' },
+      { flag: 'remap', value: '', desc: 'Record a commit hash remap. Requires --old, --new, --cause.' },
+    ],
+    terminal: {
+      cmd: 'ostk os audit check',
+      output: [
+        'audit trail integrity verified',
+        '234 commits audited, 0 gaps found',
+      ],
+    },
+    related: [
+      { name: 'ostk os history', desc: 'Chronological view of audit events.' },
+      { name: 'ostk os metrics', desc: 'Token savings and cache performance.' },
+    ],
+  },
+  {
+    name: 'ostk os metrics',
+    tag: 'OS_OPERATIONS',
+    synopsis: 'ostk os metrics [--json]',
+    desc: 'Show token savings, compression ratio, and prompt cache performance for the current session.',
+    params: [
+      { flag: '--json', value: '', desc: 'Emit structured JSON (chart-ready time-series).' },
+    ],
+    terminal: {
+      cmd: 'ostk os metrics',
+      output: [
+        'ostk metrics (session: 2026-04-10)',
+        '────────────────────────────────────',
+        'squash savings: 35.3% compression (87 KB saved)',
+        'prompt cache: 65% hit rate (8.2K cached reads)',
+        'total tokens: 124,567 input | 45,123 output',
+      ],
+    },
+    related: [
+      { name: 'ostk os history', desc: 'Chronological audit trail.' },
+      { name: 'ostk clock', desc: 'Session time and identity.' },
+    ],
+  },
+  {
+    name: 'ostk lineage resolve',
+    tag: 'OS_OPERATIONS',
+    synopsis: 'ostk lineage resolve <LINEAGE_ID> [--revive | --reap]',
+    desc: 'Resolve an Ask-pending lineage. Either revive (rehydrate from drain snapshot) or reap (terminal).',
+    params: [
+      { flag: '<LINEAGE_ID>', value: 'STRING', desc: 'The lineage id (session alias).' },
+      { flag: '--revive', value: '', desc: 'Mark for revival on next daemon start.' },
+      { flag: '--reap', value: '', desc: 'Mark as terminally reaped.' },
+    ],
+    terminal: {
+      cmd: 'ostk lineage resolve session-abc --revive',
+      output: ['lineage session-abc revived (will resume on next daemon start)'],
+    },
+    related: [
+      { name: 'ostk listen', desc: 'Daemon that rehydrates revived lineages.' },
+    ],
+  },
+
+  // ─── SECRETS ───
+  {
+    name: 'ostk secret set',
+    tag: 'SECRETS',
+    synopsis: 'ostk secret set <KEY> [--value <VALUE>]',
+    desc: 'Store a secret in the platform keychain (macOS Keychain, Linux secret-tool).',
+    params: [
+      { flag: '<KEY>', value: 'STRING', desc: 'Key name (e.g. ANTHROPIC_API_KEY).' },
+      { flag: '--value', value: 'STRING', desc: 'Value. Omit to prompt interactively (no echo).' },
+    ],
+    terminal: {
+      cmd: 'ostk secret set ANTHROPIC_API_KEY',
+      output: [
+        'Enter value: ●●●●●●●●',
+        '✓ stored ANTHROPIC_API_KEY in macOS Keychain',
+      ],
+    },
+    related: [
+      { name: 'ostk secret get', desc: 'Retrieve a secret value.' },
+      { name: 'ostk secret list', desc: 'List authorized keys.' },
+    ],
+  },
+  {
+    name: 'ostk secret get',
+    tag: 'SECRETS',
+    synopsis: 'ostk secret get <KEY>',
+    desc: 'Retrieve a secret from keychain. Stdout only — for subprocess capture, never logged.',
+    params: [
+      { flag: '<KEY>', value: 'STRING', desc: 'Key name to retrieve.' },
+    ],
+    terminal: {
+      cmd: 'ostk secret get ANTHROPIC_API_KEY',
+      output: ['sk-ant-v1-... (value printed to stdout)'],
+    },
+    related: [
+      { name: 'ostk secret set', desc: 'Store keys before retrieving.' },
+    ],
+  },
+  {
+    name: 'ostk secret list',
+    tag: 'SECRETS',
+    synopsis: 'ostk secret list',
+    desc: 'List available secret keys (names only, never values).',
+    params: [],
+    terminal: {
+      cmd: 'ostk secret list',
+      output: [
+        '+ ANTHROPIC_API_KEY     [anthropic] available',
+        '- MISTRAL_API_KEY       [mistral] missing',
+        '',
+        '2/8 keys available',
+      ],
+    },
+    related: [
+      { name: 'ostk secret set', desc: 'Add missing keys.' },
+    ],
+  },
+  {
+    name: 'ostk secret env',
+    tag: 'SECRETS',
+    synopsis: 'ostk secret env <KEY>',
+    desc: 'Print export statement for shell eval. WARNING: exposes value in shell history.',
+    params: [
+      { flag: '<KEY>', value: 'STRING', desc: 'Key name to export.' },
+    ],
+    terminal: {
+      cmd: 'ostk secret env ANTHROPIC_API_KEY',
+      output: ['export ANTHROPIC_API_KEY=sk-ant-v1-...'],
+    },
+    related: [
+      { name: 'ostk secret get', desc: 'Safer for subprocess capture.' },
+    ],
+  },
+
+  // ─── TUI ───
+  {
+    name: 'ostk tui',
+    tag: 'TUI',
+    synopsis: 'ostk tui',
+    desc: 'Launch the interactive TUI for fleet management, work orchestration, and tack input.',
+    params: [],
+    terminal: {
+      cmd: 'ostk tui',
+      output: ['(launches interactive TUI application)'],
+    },
+    related: [
+      { name: 'ostk repl', desc: 'Plain stdin/stdout REPL alternative.' },
+      { name: 'ostk attach', desc: 'Attach to detachable agents from the TUI.' },
+    ],
+  },
+
+  // ─── UTILITY ───
+  {
+    name: 'ostk run',
+    tag: 'UTILITY',
+    synopsis: 'ostk run <AGENTFILE> [--env-passthrough <KEY>] [--runtime <host|qemu>] [--dry-run]',
+    desc: 'Run an agent from an Agentfile. Default runtime: host. Use --runtime qemu for sandboxed execution.',
+    params: [
+      { flag: '<AGENTFILE>', value: 'PATH', desc: 'Path to the Agentfile.' },
+      { flag: '--env-passthrough', value: 'KEY', desc: 'Inject an authorized secret into agent env (repeatable).' },
+      { flag: '--runtime', value: 'STRING', desc: 'Runtime: host or qemu (default: host).' },
+      { flag: '--dry-run', value: '', desc: 'Only show what would be done.' },
+    ],
+    terminal: {
+      cmd: 'ostk run ./Agentfile',
+      output: ['loading agent from Agentfile...', 'running agent loop...'],
+    },
+    related: [
+      { name: 'ostk kernel spawn', desc: 'Spawn as a managed daemon session instead.' },
+      { name: 'ostk learn', desc: 'Discover sandbox policy by observing.' },
+    ],
+  },
+  {
+    name: 'ostk show',
+    tag: 'UTILITY',
+    synopsis: 'ostk show <TARGET> [--json]',
+    desc: 'Universal query — show anything by name or keyword: needles, hay, threads, status, clock, verbs, agents.',
+    params: [
+      { flag: '<TARGET>', value: 'STRING', desc: 'Needle ID (→NNN), needles, hay, threads, status, clock, verbs, agents.' },
+      { flag: '--json', value: '', desc: 'Output as JSON.' },
+    ],
+    terminal: {
+      cmd: 'ostk show →1234',
+      output: [
+        '→1234 Fix deployment bug [P1, open]',
+        '  status:   open',
+        '  priority: P1',
+        '  created:  2026-04-10T12:34:56Z',
+      ],
+    },
+    related: [
+      { name: 'ostk search', desc: 'Search file contents.' },
+      { name: 'ostk trace', desc: 'Show attribution chain.' },
+    ],
+  },
+  {
+    name: 'ostk search',
+    tag: 'UTILITY',
+    synopsis: 'ostk search <QUERY> [--path <PATH>] [--semantic]',
+    desc: 'Search file contents. Ripgrep-style by default, or semantic via embeddings with --semantic.',
+    params: [
+      { flag: '<QUERY>', value: 'STRING', desc: 'Search query (regex or literal).' },
+      { flag: '--path', value: 'PATH', desc: 'Limit search to this path.' },
+      { flag: '--semantic', value: '', desc: 'Use semantic search via potion-base-8M embeddings.' },
+    ],
+    terminal: {
+      cmd: "ostk search 'TODO.*urgent' --path src/",
+      output: ['src/main.rs:42:TODO urgent refactor needed'],
+    },
+    related: [
+      { name: 'ostk index', desc: 'Build the semantic index first.' },
+      { name: 'ostk show', desc: 'Show specific items by ID.' },
+    ],
+  },
+  {
+    name: 'ostk bail',
+    tag: 'UTILITY',
+    synopsis: 'ostk bail pack | unpack | verify [--public] [--attest]',
+    desc: 'Signed, portable OS package. Pack project state for transfer, unpack to apply, verify GPG signature.',
+    params: [
+      { flag: 'pack', value: '', desc: 'Pack a bail. --public for public-only, --attest for Sigstore.' },
+      { flag: 'unpack', value: '', desc: 'Unpack a bail and apply state to current project.' },
+      { flag: 'verify', value: '', desc: 'Verify GPG signature without unpacking.' },
+    ],
+    terminal: {
+      cmd: 'ostk bail pack --public',
+      output: [
+        'ostk bail pack (mode: public)',
+        '  + .boot/INIT',
+        '  + .primefile',
+        'wrote ostk-export-2026-04-10.bail',
+      ],
+    },
+    related: [
+      { name: 'ostk sign', desc: 'Sign individual files manually.' },
+      { name: 'ostk init', desc: 'Use --from-export to seed from a bail.' },
+    ],
+  },
+  {
+    name: 'ostk learn',
+    tag: 'UTILITY',
+    synopsis: 'ostk learn <AGENTFILE> [--apply] [--duration <SECONDS>]',
+    desc: 'Discover sandbox policy by observing agent filesystem access (nono learn mode).',
+    params: [
+      { flag: '<AGENTFILE>', value: 'PATH', desc: 'Path to the Agentfile.' },
+      { flag: '--apply', value: '', desc: 'Write generated LIMIT directives back to the Agentfile.' },
+      { flag: '--duration', value: 'SECONDS', desc: 'Observation duration (default: 60s or until exit).' },
+    ],
+    terminal: {
+      cmd: 'ostk learn my-agent.toml --apply',
+      output: [
+        'ostk learn: observing my-agent.toml via nono learn',
+        'ostk learn: discovered 3 new directive(s)',
+        'LIMIT sandbox.read = [...]',
+      ],
+    },
+    related: [
+      { name: 'ostk run', desc: 'Run agents with discovered policies.' },
+    ],
+  },
+];
+---
+
+<DocsLayout
+  title="Command Reference"
+  description="Full ostk command reference with synopsis, parameters, terminal examples, and related commands."
+  sectionLabel="REF_INDEX // KERNEL_CLI"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed mb-12 max-w-xl">
+    Every command is an atomic mutation or a filtered view of system state. Filesystem-as-truth.
+  </p>
+
+  {/* ── Quick Reference Index ── */}
+  <div class="mb-20">
+    <h2 class="section-label mb-6">QUICK_REFERENCE</h2>
+    <div class="bg-surface-container-low border-l-2 border-primary">
+      {[
+        { group: 'LIFECYCLE', cmds: [
+          { name: 'ostk init', desc: 'Bootstrap .ostk/ directory', anchor: 'init' },
+          { name: 'ostk boot', desc: 'Load state, detect trust tier', anchor: 'boot' },
+          { name: 'ostk shutdown', desc: 'End session, sign boot record', anchor: 'shutdown' },
+          { name: 'ostk commit', desc: 'Commit with spec attribution', anchor: 'commit' },
+        ]},
+        { group: 'WORK', cmds: [
+          { name: 'ostk needle add', desc: 'File a new work item', anchor: 'needle' },
+          { name: 'ostk compile', desc: 'Triage hay into needles', anchor: 'compile' },
+          { name: 'ostk hay', desc: 'Capture raw intent', anchor: 'hay' },
+          { name: 'ostk verify', desc: 'Run acceptance criteria', anchor: 'verify' },
+          { name: 'ostk should', desc: 'File bug/feature in plain text', anchor: 'should' },
+          { name: 'ostk compounds', desc: 'Show highest-impact work', anchor: 'compounds' },
+        ]},
+        { group: 'FLEET', cmds: [
+          { name: 'ostk listen', desc: 'Start kernel daemon', anchor: 'listen' },
+          { name: 'ostk kernel spawn', desc: 'Spawn background agent', anchor: 'spawn' },
+          { name: 'ostk kernel await', desc: 'Block until agent finishes', anchor: 'await' },
+          { name: 'ostk kernel ps', desc: 'Fleet status', anchor: 'ps' },
+          { name: 'ostk kernel reap', desc: 'Reap dead agents', anchor: 'reap' },
+        ]},
+        { group: 'OS', cmds: [
+          { name: 'ostk status', desc: 'Print kernel state', anchor: 'status' },
+          { name: 'ostk diff', desc: 'Changes with agent attribution', anchor: 'diff' },
+          { name: 'ostk audit', desc: 'Append-only event trail', anchor: 'audit' },
+          { name: 'ostk metrics', desc: 'Token usage, compression, cache', anchor: 'metrics' },
+          { name: 'ostk history', desc: 'Session history', anchor: 'history' },
+        ]},
+        { group: 'SECRETS', cmds: [
+          { name: 'ostk secret set', desc: 'Store key in platform keychain', anchor: 'secret-set' },
+          { name: 'ostk secret list', desc: 'List authorized keys', anchor: 'secret-list' },
+          { name: 'ostk secret get', desc: 'Retrieve key value (stdout only)', anchor: 'secret-get' },
+          { name: 'ostk secret env', desc: 'Export as shell variable', anchor: 'secret-env' },
+        ]},
+        { group: 'TUI', cmds: [
+          { name: 'ostk tui', desc: 'Launch terminal interface', anchor: 'tui' },
+          { name: 'ostk attach', desc: 'Attach to agent session', anchor: 'attach' },
+          { name: 'ostk detach', desc: 'Detach without stopping', anchor: 'detach' },
+        ]},
+      ].map(section => (
+        <div class="border-b border-surface-variant last:border-b-0">
+          <div class="grid grid-cols-[7rem_1fr] gap-0">
+            <div class="bg-surface-container px-4 py-3 font-label text-[10px] text-primary uppercase tracking-widest">
+              {section.group}
+            </div>
+            <div class="divide-y divide-surface-variant">
+              {section.cmds.map(c => (
+                <a href={`#${c.anchor}`} class="flex justify-between items-center px-4 py-2 hover:bg-surface-container transition-none group">
+                  <code class="font-body text-xs text-on-surface group-hover:text-primary">{c.name}</code>
+                  <span class="font-body text-xs text-outline">{c.desc}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* ── Detailed Command Sections ── */}
+  <h2 class="section-label mb-12">DETAILED_REFERENCE</h2>
+
+  {commands.map(cmd => (
+    <section class="mb-px bg-surface-container-low" id={cmd.name.split(' ').pop()}>
+      {/* Command header bar */}
+      <div class="flex items-center justify-between px-6 py-3 bg-surface-container border-l-4 border-primary">
+        <div class="flex items-baseline gap-3">
+          <code class="font-body text-xl font-bold text-primary">{cmd.name}</code>
+          <span class="font-label text-[10px] text-outline uppercase tracking-widest">{cmd.tag}</span>
+        </div>
+        <code class="font-body text-xs text-secondary hidden lg:block">{cmd.synopsis}</code>
+      </div>
+
+      <div class="px-6 py-5">
+        {/* Description */}
+        <p class="font-headline italic text-sm text-on-surface-variant mb-4 max-w-2xl">{cmd.desc}</p>
+
+        {/* Params + Warning in compact bento */}
+        {cmd.params.length > 0 && (
+          <div class={`grid grid-cols-1 ${cmd.warning ? 'lg:grid-cols-3' : ''} gap-px bg-surface-variant mb-4`}>
+            <div class={`${cmd.warning ? 'lg:col-span-2' : ''} bg-surface-container-low p-4`}>
+              <table class="w-full font-body text-xs">
+                <thead>
+                  <tr class="border-b border-surface-variant">
+                    <th class="pb-2 pr-4 text-left text-primary text-[10px]">FLAG</th>
+                    <th class="pb-2 pr-4 text-left text-outline text-[10px]">TYPE</th>
+                    <th class="pb-2 text-left text-outline text-[10px]">DESCRIPTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cmd.params.map(p => (
+                    <tr class="border-b border-surface-variant/50">
+                      <td class="py-2 pr-4 font-bold text-on-surface">{p.flag}</td>
+                      <td class="py-2 pr-4 text-secondary">{p.value || '—'}</td>
+                      <td class="py-2 text-secondary">{p.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {cmd.warning && (
+              <div class="bg-error/5 p-4">
+                <div class="font-label text-[10px] uppercase tracking-widest text-error mb-2 flex items-center gap-1">
+                  <Icon name="warning" size="14" class="text-xs" />
+                  {cmd.warning.title}
+                </div>
+                <p class="font-body text-xs text-on-surface leading-snug">{cmd.warning.body}</p>
+                <div class="mt-3 font-label text-[10px] text-error/60">{cmd.warning.ref}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Terminal — compact, no chrome bar bloat */}
+        <div class="bg-surface-container-lowest border border-surface-variant">
+          <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
+            <div class="w-2 h-2 rounded-full bg-error-container"></div>
+            <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+            <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+            <span class="ml-auto font-label text-[9px] text-outline">TERMINAL</span>
+          </div>
+          <div class="px-4 py-3 font-body text-xs leading-relaxed">
+            <div class="flex gap-2">
+              <span class="text-outline select-none">$</span>
+              <span class="text-primary">{cmd.terminal.cmd}</span>
+            </div>
+            <div class="mt-2 text-secondary">
+              {cmd.terminal.output.map(line => (
+                line === '' ? <br /> : <div>{line}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Related — inline, not a grid */}
+        <div class="flex items-center gap-4 mt-3 font-body text-xs">
+          <span class="text-outline">SEE:</span>
+          {cmd.related.map(rel => (
+            <a href={`#${rel.name.split(' ').pop()}`} class="text-primary hover:underline">{rel.name}</a>
+          ))}
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/getting-started">
+      <Icon name="rocket_launch" size="14" class="align-middle mr-1" />
+      QUICK_START
+    </a>
+    <a href="/docs/kernel-spec">
+      <Icon name="memory" size="14" class="align-middle mr-1" />
+      KERNEL_SPEC
+    </a>
+    <a href="/docs/tui">
+      <Icon name="tv" size="14" class="align-middle mr-1" />
+      TUI_GUIDE
+    </a>
+  </div>
+</DocsLayout>

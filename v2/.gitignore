@@ -1,0 +1,21 @@
+# Build outputs (the root dist/ is the canonical output via outDir)
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+.screenshots/
+
+# Astro site-manifest (managed by docfresh)
+site-manifest.json
+
+# Stray agent-browser flags
+--output

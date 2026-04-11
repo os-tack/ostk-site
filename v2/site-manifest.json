@@ -1,0 +1,1185 @@
+{
+  "version": 1,
+  "source_repo": {
+    "path": "../../haystack",
+    "default_branch": "main"
+  },
+  "pages": [
+    {
+      "route": "/",
+      "file": "src/pages/index.astro",
+      "title": "",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/404",
+      "file": "src/pages/404.astro",
+      "title": "",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/about",
+      "file": "src/pages/about.astro",
+      "title": "",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs",
+      "file": "src/pages/docs/index.astro",
+      "title": "Documentation Archive",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/agentfile",
+      "file": "src/pages/docs/agentfile.astro",
+      "title": "Agentfile",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/agentfile/mod.rs"
+        },
+        {
+          "path": "src/agentfile/parser.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/architecture",
+      "file": "src/pages/docs/architecture.astro",
+      "title": "System Architecture",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/drivers.rs"
+        },
+        {
+          "path": "src/commands/boot/drivers.rs"
+        },
+        {
+          "path": "src/kernel/drivers.rs"
+        },
+        {
+          "path": "src/fcp/mod.rs"
+        },
+        {
+          "path": "src/kernel/file.rs"
+        },
+        {
+          "path": "src/serve/tools/mod.rs"
+        },
+        {
+          "path": "src/serve/tools/arrive.rs"
+        },
+        {
+          "path": "src/serve/tools/context_release.rs"
+        },
+        {
+          "path": "src/serve/tools/context_search.rs"
+        },
+        {
+          "path": "src/serve/tools/fs_ops.rs"
+        },
+        {
+          "path": "src/serve/tools/fs_read.rs"
+        },
+        {
+          "path": "src/serve/tools/recall.rs"
+        },
+        {
+          "path": "src/serve/tools/sh_interact.rs"
+        },
+        {
+          "path": "src/serve/tools/sh_lock.rs"
+        },
+        {
+          "path": "src/serve/tools/sh_run.rs"
+        },
+        {
+          "path": "src/serve/tools/sh_session.rs"
+        },
+        {
+          "path": "src/serve/tools/sh_spawn.rs"
+        },
+        {
+          "path": "src/kernel/hotpr.rs"
+        },
+        {
+          "path": "src/kernel/digest.rs"
+        },
+        {
+          "path": "src/kernel/elision.rs"
+        },
+        {
+          "path": "src/kernel/envelope.rs"
+        },
+        {
+          "path": "src/kernel/init.rs"
+        },
+        {
+          "path": "src/kernel/agent_socket.rs"
+        },
+        {
+          "path": "src/kernel/driver_manager.rs"
+        },
+        {
+          "path": "src/kernel/driver_relay.rs"
+        },
+        {
+          "path": "src/kernel/firmware.rs"
+        },
+        {
+          "path": "src/kernel/predispatch.rs"
+        },
+        {
+          "path": "src/kernel/request.rs"
+        },
+        {
+          "path": "src/kernel/schema.rs"
+        },
+        {
+          "path": "src/fcp/driver.rs"
+        },
+        {
+          "path": "src/fcp/web.rs"
+        },
+        {
+          "path": "src/util/frontmatter.rs"
+        },
+        {
+          "path": "src/util/gpg.rs"
+        },
+        {
+          "path": "src/util/index.rs"
+        },
+        {
+          "path": "src/util/mod.rs"
+        },
+        {
+          "path": "src/util/needles.rs"
+        },
+        {
+          "path": "src/util/paths.rs"
+        },
+        {
+          "path": "src/util/time.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/commands",
+      "file": "src/pages/docs/commands.astro",
+      "title": "CRITICAL // RESOURCE_BOUNDS',",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/main.rs"
+        },
+        {
+          "path": "src/commands/attach.rs"
+        },
+        {
+          "path": "src/commands/audit.rs"
+        },
+        {
+          "path": "src/commands/bail.rs"
+        },
+        {
+          "path": "src/commands/bail_merge.rs"
+        },
+        {
+          "path": "src/commands/bench.rs"
+        },
+        {
+          "path": "src/commands/clock.rs"
+        },
+        {
+          "path": "src/commands/commit.rs"
+        },
+        {
+          "path": "src/commands/compounds.rs"
+        },
+        {
+          "path": "src/commands/decide.rs"
+        },
+        {
+          "path": "src/commands/decompose.rs"
+        },
+        {
+          "path": "src/commands/depends.rs"
+        },
+        {
+          "path": "src/commands/diff.rs"
+        },
+        {
+          "path": "src/commands/do_cmd.rs"
+        },
+        {
+          "path": "src/commands/draft.rs"
+        },
+        {
+          "path": "src/commands/embeddings.rs"
+        },
+        {
+          "path": "src/commands/fleet.rs"
+        },
+        {
+          "path": "src/commands/history.rs"
+        },
+        {
+          "path": "src/commands/import.rs"
+        },
+        {
+          "path": "src/commands/index.rs"
+        },
+        {
+          "path": "src/commands/learn.rs"
+        },
+        {
+          "path": "src/commands/lineage.rs"
+        },
+        {
+          "path": "src/commands/listen.rs"
+        },
+        {
+          "path": "src/commands/log.rs"
+        },
+        {
+          "path": "src/commands/merge.rs"
+        },
+        {
+          "path": "src/commands/metrics.rs"
+        },
+        {
+          "path": "src/commands/mount.rs"
+        },
+        {
+          "path": "src/commands/nudge.rs"
+        },
+        {
+          "path": "src/commands/post.rs"
+        },
+        {
+          "path": "src/commands/promote.rs"
+        },
+        {
+          "path": "src/commands/purge.rs"
+        },
+        {
+          "path": "src/commands/reap.rs"
+        },
+        {
+          "path": "src/commands/refine.rs"
+        },
+        {
+          "path": "src/commands/related.rs"
+        },
+        {
+          "path": "src/commands/relay.rs"
+        },
+        {
+          "path": "src/commands/repl.rs"
+        },
+        {
+          "path": "src/commands/run.rs"
+        },
+        {
+          "path": "src/commands/scheduler.rs"
+        },
+        {
+          "path": "src/commands/search.rs"
+        },
+        {
+          "path": "src/commands/shelve.rs"
+        },
+        {
+          "path": "src/commands/should.rs"
+        },
+        {
+          "path": "src/commands/show.rs"
+        },
+        {
+          "path": "src/commands/shutdown.rs"
+        },
+        {
+          "path": "src/commands/sign.rs"
+        },
+        {
+          "path": "src/commands/trace.rs"
+        },
+        {
+          "path": "src/commands/work.rs"
+        },
+        {
+          "path": "src/commands/mod.rs"
+        },
+        {
+          "path": "src/commands/helpers.rs"
+        },
+        {
+          "path": "src/commands/agent_cmd.rs"
+        },
+        {
+          "path": "src/commands/amend.rs"
+        },
+        {
+          "path": "src/commands/ask.rs"
+        },
+        {
+          "path": "src/commands/context.rs"
+        },
+        {
+          "path": "src/commands/firecracker.rs"
+        },
+        {
+          "path": "src/commands/grant.rs"
+        },
+        {
+          "path": "src/commands/issue.rs"
+        },
+        {
+          "path": "src/commands/issue_pin.rs"
+        },
+        {
+          "path": "src/commands/migrate_keys.rs"
+        },
+        {
+          "path": "src/commands/tack_test.rs"
+        },
+        {
+          "path": "src/commands/vm_init.rs"
+        },
+        {
+          "path": "src/cli/agents.rs"
+        },
+        {
+          "path": "src/cli/mod.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/compression",
+      "file": "src/pages/docs/compression.astro",
+      "title": "Compression",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/squasher/mod.rs"
+        },
+        {
+          "path": "src/squasher/classifier.rs"
+        },
+        {
+          "path": "src/squasher/dedup.rs"
+        },
+        {
+          "path": "src/squasher/router.rs"
+        },
+        {
+          "path": "src/squasher/cmd_norm.rs"
+        },
+        {
+          "path": "src/squasher/dangerous.rs"
+        },
+        {
+          "path": "src/squasher/embeddings.rs"
+        },
+        {
+          "path": "src/squasher/enrich.rs"
+        },
+        {
+          "path": "src/squasher/grammar.rs"
+        },
+        {
+          "path": "src/squasher/grammars/mod.rs"
+        },
+        {
+          "path": "src/squasher/narrate.rs"
+        },
+        {
+          "path": "src/squasher/passthrough.rs"
+        },
+        {
+          "path": "src/squasher/structured.rs"
+        },
+        {
+          "path": "src/squasher/vte_strip.rs"
+        },
+        {
+          "path": "src/kernel/preprocess.rs"
+        },
+        {
+          "path": "src/index/extract.rs"
+        },
+        {
+          "path": "src/index/mod.rs"
+        },
+        {
+          "path": "src/index/storage.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/downloads",
+      "file": "src/pages/docs/downloads.astro",
+      "title": "Downloads",
+      "tags": [],
+      "sources": [
+        {
+          "path": "Cargo.toml"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/entityfile",
+      "file": "src/pages/docs/entityfile.astro",
+      "title": "ENTITYFILE",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/fcp_screen/protocol.rs"
+        },
+        {
+          "path": "src/kernel/identity.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/env-vars",
+      "file": "src/pages/docs/env-vars.astro",
+      "title": "Environment Variables",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/main.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/five-laws",
+      "file": "src/pages/docs/five-laws.astro",
+      "title": "The write path is invisible',",
+      "tags": [],
+      "sources": [
+        {
+          "path": "docs/spec/GOVERNANCE.md"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/getting-started",
+      "file": "src/pages/docs/getting-started.astro",
+      "title": "Quick Start // System Init",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/init.rs"
+        },
+        {
+          "path": "src/commands/boot/mod.rs"
+        },
+        {
+          "path": "src/commands/boot/entity.rs"
+        },
+        {
+          "path": "src/commands/boot/verify.rs"
+        },
+        {
+          "path": "src/commands/boot/drivers.rs"
+        },
+        {
+          "path": "src/commands/onboarding/guided.rs"
+        },
+        {
+          "path": "src/commands/onboarding/mod.rs"
+        },
+        {
+          "path": "src/commands/onboarding/widget.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/humanfile",
+      "file": "src/pages/docs/humanfile.astro",
+      "title": "HUMANFILE",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/boot/humanfile.rs"
+        },
+        {
+          "path": "src/humanfile/mod.rs"
+        },
+        {
+          "path": "src/humanfile/parser.rs"
+        },
+        {
+          "path": "src/kernel/handshake.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/kernel-spec",
+      "file": "src/pages/docs/kernel-spec.astro",
+      "title": "Kernel Specification",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/memory.rs"
+        },
+        {
+          "path": "src/commands/scheduler.rs"
+        },
+        {
+          "path": "src/kernel/scheduler.rs"
+        },
+        {
+          "path": "src/kernel/mod.rs"
+        },
+        {
+          "path": "src/kernel/anchor.rs"
+        },
+        {
+          "path": "src/kernel/event_log.rs"
+        },
+        {
+          "path": "src/kernel/gen_table.rs"
+        },
+        {
+          "path": "src/kernel/heartbeat.rs"
+        },
+        {
+          "path": "src/kernel/lifecycle.rs"
+        },
+        {
+          "path": "src/kernel/process.rs"
+        },
+        {
+          "path": "src/kernel/defaults.rs"
+        },
+        {
+          "path": "src/kernel/destructor.rs"
+        },
+        {
+          "path": "src/kernel/hwm.rs"
+        },
+        {
+          "path": "src/kernel/intelligence.rs"
+        },
+        {
+          "path": "src/kernel/maintenance.rs"
+        },
+        {
+          "path": "src/kernel/nudge.rs"
+        },
+        {
+          "path": "src/kernel/presence.rs"
+        },
+        {
+          "path": "src/kernel/proactive_recall.rs"
+        },
+        {
+          "path": "src/kernel/pty.rs"
+        },
+        {
+          "path": "src/kernel/quota.rs"
+        },
+        {
+          "path": "src/kernel/registry.rs"
+        },
+        {
+          "path": "src/kernel/resolve.rs"
+        },
+        {
+          "path": "src/kernel/rollback.rs"
+        },
+        {
+          "path": "src/kernel/verb_ctx.rs"
+        },
+        {
+          "path": "src/kernel/verb_namespace.rs"
+        },
+        {
+          "path": "src/kernel/handoff.rs"
+        },
+        {
+          "path": "docs/spec/archive/README.md"
+        },
+        {
+          "path": "docs/spec/archive/haystack-mvp.md"
+        },
+        {
+          "path": "docs/spec/archive/pty-multiplexing.md"
+        },
+        {
+          "path": "docs/spec/archive/tui-buffer-architecture.md"
+        },
+        {
+          "path": "docs/spec/archive/tui-console-v2.md"
+        },
+        {
+          "path": "docs/spec/archive/tui-v1.md"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/mcp",
+      "file": "src/pages/docs/mcp.astro",
+      "title": "MCP Proxy",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/mcp.rs"
+        },
+        {
+          "path": "src/serve/dispatch.rs"
+        },
+        {
+          "path": "src/commands/mcp_proxy.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/ostk-toml",
+      "file": "src/pages/docs/ostk-toml.astro",
+      "title": "ostk.toml",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/init.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/pins",
+      "file": "src/pages/docs/pins.astro",
+      "title": "Capability Pins",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/policy.rs"
+        },
+        {
+          "path": "src/kernel/sandbox.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/primefile",
+      "file": "src/pages/docs/primefile.astro",
+      "title": ".primefile",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/identity.rs"
+        },
+        {
+          "path": "docs/spec/trust-chain.md"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/secrets",
+      "file": "src/pages/docs/secrets.astro",
+      "title": "Secrets",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/secrets.rs"
+        },
+        {
+          "path": "src/commands/secret.rs"
+        },
+        {
+          "path": "src/kernel/credential_proxy.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/session-topology",
+      "file": "src/pages/docs/session-topology.astro",
+      "title": "Session Topology",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/fcp_screen/components/session.rs"
+        },
+        {
+          "path": "src/commands/lineage.rs"
+        },
+        {
+          "path": "src/kernel/recovery.rs"
+        },
+        {
+          "path": "src/kernel/anchor.rs"
+        },
+        {
+          "path": "src/kernel/drain.rs"
+        },
+        {
+          "path": "src/cpu/session.rs"
+        },
+        {
+          "path": "src/serve/mod.rs"
+        },
+        {
+          "path": "src/serve/server.rs"
+        },
+        {
+          "path": "src/serve/socket.rs"
+        },
+        {
+          "path": "src/serve/client.rs"
+        },
+        {
+          "path": "src/serve/client_handle.rs"
+        },
+        {
+          "path": "src/serve/transport.rs"
+        },
+        {
+          "path": "src/serve/types.rs"
+        },
+        {
+          "path": "src/serve/state.rs"
+        },
+        {
+          "path": "src/kernel/session_proctable.rs"
+        },
+        {
+          "path": "src/kernel/substack.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/trust-model",
+      "file": "src/pages/docs/trust-model.astro",
+      "title": "Trust Model",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/cpu/approval.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/approval.rs"
+        },
+        {
+          "path": "src/kernel/approval.rs"
+        },
+        {
+          "path": "src/kernel/identity.rs"
+        },
+        {
+          "path": "src/kernel/policy.rs"
+        },
+        {
+          "path": "src/kernel/signing.rs"
+        },
+        {
+          "path": "src/kernel/revocation.rs"
+        },
+        {
+          "path": "src/kernel/host_identity.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/docs/tui",
+      "file": "src/pages/docs/tui.astro",
+      "title": "TUI",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/serve/tools/tack.rs"
+        },
+        {
+          "path": "src/fcp_screen/capture.rs"
+        },
+        {
+          "path": "src/squasher/grammar.rs"
+        },
+        {
+          "path": "src/fcp_screen/app.rs"
+        },
+        {
+          "path": "src/fcp_screen/action.rs"
+        },
+        {
+          "path": "src/fcp_screen/mod.rs"
+        },
+        {
+          "path": "src/fcp_screen/renderer.rs"
+        },
+        {
+          "path": "src/fcp_screen/clipboard_image.rs"
+        },
+        {
+          "path": "src/fcp_screen/daemon_poll.rs"
+        },
+        {
+          "path": "src/fcp_screen/input_thread.rs"
+        },
+        {
+          "path": "src/fcp_screen/protocol.rs"
+        },
+        {
+          "path": "src/fcp_screen/selector.rs"
+        },
+        {
+          "path": "src/fcp_screen/text_input.rs"
+        },
+        {
+          "path": "src/fcp_screen/widgets.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/approval.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/bootloader.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/context.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/dispatch.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/markdown.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/mod.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/overlays.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/render.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/selection.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/session.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/sphere_nav.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/spinner.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/status.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/tabs.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/tool_display.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features",
+      "file": "src/pages/features/index.astro",
+      "title": "",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/audit-trail",
+      "file": "src/pages/features/audit-trail.astro",
+      "title": "Audit Trail",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/audit.rs"
+        },
+        {
+          "path": "src/util/audit.rs"
+        },
+        {
+          "path": "src/serve/state.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/context-injection",
+      "file": "src/pages/features/context-injection.astro",
+      "title": "Context Injection",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/context.rs"
+        },
+        {
+          "path": "src/fcp_screen/components/context.rs"
+        },
+        {
+          "path": "src/commands/boot/context.rs"
+        },
+        {
+          "path": "src/fcp/llm.rs"
+        },
+        {
+          "path": "src/fcp/mod.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/coordination",
+      "file": "src/pages/features/coordination.astro",
+      "title": "Multiple Agents, One Codebase",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/fleet.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/governance",
+      "file": "src/pages/features/governance.astro",
+      "title": "Trust & Governance",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/identity.rs"
+        },
+        {
+          "path": "docs/spec/trust-chain.md"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/invisible-writes",
+      "file": "src/pages/features/invisible-writes.astro",
+      "title": "The Invisible Write Path",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/fuse/passthrough.rs"
+        },
+        {
+          "path": "src/squasher/passthrough.rs"
+        },
+        {
+          "path": "src/kernel/file.rs"
+        },
+        {
+          "path": "src/fuse/mod.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/local-first",
+      "file": "src/pages/features/local-first.astro",
+      "title": "Local-First",
+      "tags": [],
+      "sources": [
+        {
+          "path": "Cargo.toml"
+        },
+        {
+          "path": "src/cpu/mod.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/model-switching",
+      "file": "src/pages/features/model-switching.astro",
+      "title": "Model Switching",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/cpu/mod.rs"
+        },
+        {
+          "path": "src/cpu/session.rs"
+        },
+        {
+          "path": "src/cpu/agent_loop.rs"
+        },
+        {
+          "path": "src/cpu/anthropic.rs"
+        },
+        {
+          "path": "src/cpu/gemini.rs"
+        },
+        {
+          "path": "src/cpu/mistral.rs"
+        },
+        {
+          "path": "src/cpu/openrouter.rs"
+        },
+        {
+          "path": "src/cpu/model_registry.rs"
+        },
+        {
+          "path": "src/cpu/providers.rs"
+        },
+        {
+          "path": "src/cpu/params.rs"
+        },
+        {
+          "path": "src/cpu/sse.rs"
+        },
+        {
+          "path": "src/cpu/error.rs"
+        },
+        {
+          "path": "src/cpu/file_cache.rs"
+        },
+        {
+          "path": "src/cpu/classify.rs"
+        },
+        {
+          "path": "src/cpu/patterns.rs"
+        },
+        {
+          "path": "src/cpu/summary.rs"
+        },
+        {
+          "path": "src/cpu/tool_exec.rs"
+        },
+        {
+          "path": "src/cpu/verifier.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/secret-management",
+      "file": "src/pages/features/secret-management.astro",
+      "title": "Secret Management",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/secret.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/tack",
+      "file": "src/pages/features/tack.astro",
+      "title": "Tack",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/fcp/tack.rs"
+        },
+        {
+          "path": "src/language.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/features/tui",
+      "file": "src/pages/features/tui.astro",
+      "title": "TUI",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/legal/license",
+      "file": "src/pages/legal/license.astro",
+      "title": "",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/commands/grant.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    },
+    {
+      "route": "/security",
+      "file": "src/pages/security.astro",
+      "title": "",
+      "tags": [],
+      "sources": [
+        {
+          "path": "src/kernel/signing.rs"
+        },
+        {
+          "path": "src/kernel/identity.rs"
+        },
+        {
+          "path": "src/kernel/policy.rs"
+        }
+      ],
+      "related": [],
+      "status": "unverified"
+    }
+  ]
+}

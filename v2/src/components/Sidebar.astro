@@ -1,0 +1,76 @@
+---
+import Icon from './Icon.astro';
+
+interface SidebarItem {
+  icon: string;
+  label: string;
+  href: string;
+}
+
+interface SidebarGroup {
+  items: SidebarItem[];
+  bottomItems?: SidebarItem[];
+}
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  groups: SidebarGroup;
+}
+
+const { title, subtitle, groups } = Astro.props;
+const currentPath = Astro.url.pathname.replace(/\/$/, '');
+
+function isActive(href: string): boolean {
+  return currentPath === href || currentPath === href + '/';
+}
+---
+
+<!-- Mobile backdrop -->
+<div id="sidebar-backdrop" class="hidden md:hidden fixed inset-0 bg-black/60 z-30" aria-hidden="true"></div>
+
+<aside id="mobile-sidebar" class="fixed left-0 top-0 h-screen flex flex-col z-40 bg-surface w-64 pt-16 transform -translate-x-full md:translate-x-0 transition-transform duration-200">
+  <div class="p-6">
+    <div class="font-headline text-lg text-primary leading-tight mb-1">{title}</div>
+    {subtitle && (
+      <div class="font-label text-[10px] uppercase tracking-widest text-secondary opacity-70">{subtitle}</div>
+    )}
+  </div>
+  <div class="bg-surface-container-lowest h-px w-full"></div>
+  <nav class="flex-1 overflow-y-auto">
+    {groups.items.map(item => (
+      <a
+        href={item.href}
+        class:list={[
+          'flex items-center gap-3 py-3 px-4 transition-none',
+          isActive(item.href)
+            ? 'bg-surface-variant text-primary font-bold border-l-4 border-primary'
+            : 'text-secondary opacity-70 hover:bg-[#1c1a18] hover:opacity-100',
+        ]}
+        aria-current={isActive(item.href) ? 'page' : undefined}
+      >
+        <Icon name={item.icon} size="16" />
+        <span class="font-label text-[10px] uppercase tracking-widest">{item.label}</span>
+      </a>
+    ))}
+  </nav>
+  {groups.bottomItems && (
+    <div class="mt-auto bg-surface-container-lowest pt-2">
+      {groups.bottomItems.map(item => (
+        <a
+          href={item.href}
+          class:list={[
+            'flex items-center gap-3 py-3 px-4 transition-none',
+            isActive(item.href)
+              ? 'bg-surface-variant text-primary font-bold'
+              : 'text-secondary opacity-70 hover:bg-[#1c1a18]',
+          ]}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+        >
+          <Icon name={item.icon} size="16" />
+          <span class="font-label text-[10px] uppercase tracking-widest">{item.label}</span>
+        </a>
+      ))}
+    </div>
+  )}
+</aside>

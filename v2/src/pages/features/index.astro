@@ -1,0 +1,88 @@
+---
+import Base from '../../layouts/Base.astro';
+import Sidebar from '../../components/Sidebar.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'auto_fix_high', label: 'CONTEXT_INJECTION', href: '/features/context-injection' },
+    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination' },
+    { icon: 'edit_off', label: 'INVISIBLE_WRITES', href: '/features/invisible-writes' },
+    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail' },
+    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first' },
+    { icon: 'translate', label: 'TACK', href: '/features/tack' },
+    { icon: 'shield', label: 'GOVERNANCE', href: '/features/governance' },
+    { icon: 'swap_horiz', label: 'MODEL_SWITCHING', href: '/features/model-switching' },
+    { icon: 'key', label: 'SECRET_MGMT', href: '/features/secret-management' },
+    { icon: 'tv', label: 'TUI', href: '/features/tui' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+  ],
+};
+
+const sections = [
+  {
+    label: 'CORE',
+    features: [
+      { num: '01', title: 'Context Management', desc: 'Agents skip exploration. The OS front-loads project context so the first turn is productive.', href: '/features/context-injection' },
+      { num: '02', title: 'Agent Coordination', desc: 'Multiple agents, one codebase. Conflicts resolved at write time without locks or message buses.', href: '/features/coordination' },
+      { num: '03', title: 'File Write Tracking', desc: 'Agents edit files normally. The OS intercepts, coordinates, and audits underneath.', href: '/features/invisible-writes' },
+      { num: '04', title: 'Audit Trail', desc: 'Every edit tracked, cryptographically signed, append-only.', href: '/features/audit-trail' },
+    ],
+  },
+  {
+    label: 'OPERATIONS',
+    features: [
+      { num: '05', title: 'Local-First', desc: 'No cloud, no telemetry. A single Rust binary on your machine.', href: '/features/local-first' },
+      { num: '06', title: 'Tack Language', desc: 'Compressed intent language. The OS learns your vocabulary over time.', href: '/features/tack' },
+      { num: '07', title: 'Trust & Security', desc: 'GPG web of trust. Capability pins enforce invisible boundaries.', href: '/features/governance' },
+    ],
+  },
+  {
+    label: 'TOOLS',
+    features: [
+      { num: '08', title: 'Model Switching', desc: 'Switch models mid-session. Context survives the handoff across vendors.', href: '/features/model-switching' },
+      { num: '09', title: 'API Key Security', desc: 'API keys never enter LLM context. Platform keychain integration.', href: '/features/secret-management' },
+      { num: '10', title: 'Terminal Dashboard', desc: 'Terminal interface showing the OS in real time. Agents, permissions, edits, costs.', href: '/features/tui' },
+    ],
+  },
+];
+---
+
+<Base title="Features" description="What ostk does: multi-agent coordination, invisible write tracking, audit trails, trust governance, output compression, secret management, and model switching.">
+  <Sidebar title="FEATURES" subtitle="CAPABILITIES" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-5xl mx-auto py-12">
+      <div class="section-label mb-4">FEATURE_INDEX // v3.0.0</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Features</h1>
+      <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-16">
+        ostk is an OS for AI coding agents. These are the things it does.
+      </p>
+
+      {sections.map((section, i) => (
+        <section class="mb-20">
+          <div class="bg-surface-container-low px-6 py-4 border-l-2 border-primary mb-8">
+            <div class="flex items-center gap-4">
+              <span class="font-headline text-2xl font-bold text-primary">{String(i + 1).padStart(2, '0')}</span>
+              <h2 class="font-label text-xs uppercase tracking-widest text-primary">{section.label}</h2>
+            </div>
+          </div>
+          <div class="space-y-px">
+            {section.features.map(feature => (
+              <a href={feature.href} class="bg-surface-container grid grid-cols-12 hover:bg-surface-container-high transition-none group block">
+                <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-6">
+                  <span class="serif-text text-xl font-bold text-primary italic">{feature.num}</span>
+                </div>
+                <div class="md:col-span-11 p-6">
+                  <div class="font-body text-sm text-on-surface group-hover:text-primary font-medium">{feature.title}</div>
+                  <div class="font-body text-xs text-secondary mt-1">{feature.desc}</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </main>
+</Base>

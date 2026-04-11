@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Privacy Policy" description="ostk privacy policy. The software collects nothing. The website uses Plausible for aggregate page views only. No cookies, no tracking.">
+  <main id="main-content" class="pt-16 pb-12 px-4 md:px-10 max-w-3xl mx-auto">
+    <div class="py-12">
+      <div class="section-label mb-4">LEGAL // PRIVACY</div>
+      <h1 class="serif-text text-5xl font-bold tracking-tighter text-on-surface mb-6">Privacy Policy</h1>
+      <p class="font-body text-xs text-outline mb-12">
+        Effective: 2026-03-11 · <a href="mailto:contact@ostk.ai" class="text-primary hover:underline">contact@ostk.ai</a>
+      </p>
+
+      <section class="mb-12">
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Summary</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed">
+          The software collects nothing. It runs locally on your machine — no telemetry, no phone-home. The website uses Plausible Analytics for aggregate page view counts only: no cookies, no personal data.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">The Software</h2>
+        <p class="font-body text-xs text-secondary mb-4">ostk runs entirely on your local machine. It does not:</p>
+        <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-6">
+          <li>Send data to any server</li>
+          <li>Collect usage statistics</li>
+          <li>Phone home for license checks</li>
+          <li>Upload files, logs, or audit trails</li>
+          <li>Require network access for any core functionality</li>
+        </ul>
+        <p class="font-body text-xs text-secondary mt-4">
+          All state lives in your filesystem under <code class="text-primary">.ostk/</code> in your repository. You own it. You can read it. You can delete it.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">The Website (ostk.ai)</h2>
+        <p class="font-body text-xs text-secondary mb-4">
+          ostk uses Plausible Analytics — a privacy-first analytics tool with no cookies, no cross-site tracking, and full GDPR/CCPA compliance.
+        </p>
+        <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-6">
+          <li>Does not use cookies</li>
+          <li>Does not track individual visitors</li>
+          <li>Does not collect personal information</li>
+          <li>Records aggregate page view counts and outbound link clicks only</li>
+          <li>Serves static content only</li>
+        </ul>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Third Parties</h2>
+        <p class="font-body text-xs text-secondary">
+          The website uses <a href="https://plausible.io" class="text-primary hover:underline">Plausible Analytics</a>, which processes only aggregate, anonymous page view data. No personal data is shared. The software shares no data with any third party.
+        </p>
+      </section>
+
+      <p class="font-body text-xs text-secondary">
+        Questions: <a href="mailto:contact@ostk.ai" class="text-primary hover:underline">contact@ostk.ai</a>
+      </p>
+    </div>
+  </main>
+</Base>

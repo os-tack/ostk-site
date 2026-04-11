@@ -1,0 +1,50 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Audit Trail", description: "Every edit tracked, signed, and queryable", href: "/features/audit-trail" },
+  { title: "Invisible Writes", description: "Agents write files normally. The OS handles the rest.", href: "/features/invisible-writes" },
+  { title: "Session Topology", description: "Anchors, lineages, crash recovery", href: "/docs/session-topology" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // MULTI_AGENT"
+  title="AI Agent Coordination"
+  description="Run multiple AI agents on the same codebase. The OS resolves file conflicts at write time — no locks, no message buses, no coordination code."
+  relatedPages={relatedPages}
+>
+  <h2>The problem</h2>
+  <p>
+    You spawn two agents. One refactors the auth module. The other adds a new API endpoint that imports from auth. Both edit <code>src/auth/middleware.js</code> within seconds.
+  </p>
+  <p>
+    Without coordination, the last write wins and the first agent's work disappears. With locking, the second agent blocks for 40 turns of idle time. With message buses, both agents need a coordination protocol they were never trained on.
+  </p>
+
+  <h2>How it works</h2>
+  <p>
+    The daemon (<code>ostk listen</code>) is the <a href="/docs/session-topology">anchor</a>. Agents run as managed sessions with heartbeat monitoring, <a href="/docs/session-topology">drain snapshots</a>, and crash recovery. The operator spawns workers directly:
+  </p>
+  <p>
+    <code>ostk kernel spawn auth-refactor --model sonnet --budget 2 "Refactor auth to JWT"</code>
+  </p>
+  <p>
+    Each agent works independently. When edits don't overlap, writes go through immediately. When they do, the kernel resolves the conflict.
+  </p>
+
+  <h2>Conflict resolution tiers</h2>
+  <p>
+    Every <code>file:edit()</code> specifies the text the agent expects. If that text changed — another agent modified it — the resolution tiers engage. No LLM is called. This is mechanical text diffing. Every conflict is recorded in the <a href="/features/audit-trail">audit trail</a>.
+  </p>
+  <ul>
+    <li><strong>Tier 1 — Auto-merge.</strong> Edits touch different parts of the file. Both changes apply silently. Neither agent is interrupted.</li>
+    <li><strong>Tier 2 — Assisted rebase.</strong> Edits are nearby or overlapping but small. The kernel computes a mechanical rebase — relocates the second edit with updated references. No model call.</li>
+    <li><strong>Tier 3 — Manual.</strong> Changes are too large for mechanical resolution. The kernel returns both edits. The agent re-reads and retries. If unresolvable, escalates to the operator.</li>
+  </ul>
+
+  <h2>Fleet economics</h2>
+  <p>
+    The prompt cache at Anthropic's edge is content-addressed and per-organization. Two ostk processes with the same API key share cache entries automatically. Adding more agents amortizes the cold-write cost across readers. Fleet cost scales sublinearly.
+  </p>
+</FeaturePage>

@@ -1,0 +1,39 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Trust Model", description: "T0-T3 tiers and capability chains", href: "/docs/trust-model" },
+  { title: "Capability Pins", description: "Deny-based agent boundaries", href: "/docs/pins" },
+  { title: "ENTITYFILE", description: "The trust constitution", href: "/docs/entityfile" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // TRUST"
+  title="AI Agent Trust Model and Security"
+  description="GPG web of trust. Four trust tiers. Capability pins enforce invisible boundaries. No admin panels, no OAuth — identity is cryptographic."
+  relatedPages={relatedPages}
+>
+  <h2>Identity is cryptographic</h2>
+  <p>
+    Trust in ostk is determined by GPG cross-signatures, not platform accounts. Your trust tier resolves at boot from the web of trust anchored at the @ostk.ai root key. No OAuth flow, no API tokens, no admin dashboard.
+  </p>
+
+  <h2>Four trust tiers</h2>
+  <ul>
+    <li><strong>T0</strong> — Dual-signed (human + kernel). Full governance. Can modify ENTITYFILE and .primefile.</li>
+    <li><strong>T1</strong> — GPG key cross-signed by a T0 holder. Write access. Cannot modify OS or governance files.</li>
+    <li><strong>T2</strong> — GPG key present, not cross-signed. Read-only.</li>
+    <li><strong>T3</strong> — No GPG key. Cannot boot.</li>
+  </ul>
+
+  <h2>Capability pins</h2>
+  <p>
+    Pins are deny-based restrictions at the tool layer. Each trust tier has default deny tokens. Explicit pins can only add restrictions — the tier is a floor, not an override. A T3 user setting <code>OSTK_PIN=permissive</code> still gets deny-all.
+  </p>
+
+  <h2>Governance ceremonies</h2>
+  <p>
+    Changes to the ENTITYFILE require a negotiate protocol: file an offer, counter-party reviews, both parties sign with their keys, merge with <code>--no-ff</code>. Every trust change is auditable in git history. No silent governance changes.
+  </p>
+</FeaturePage>

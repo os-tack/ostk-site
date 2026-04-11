@@ -1,0 +1,150 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="Kernel Specification"
+  description="Seven primitives, Five Laws, memory hierarchy, dual-CPU scheduler, and the running system."
+  sectionLabel="SECTION_02 // KERNEL_SPEC"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    The canonical architecture document. Seven primitives on a Unix substrate, Five Laws, a memory hierarchy mapped to LLM inference, and a dual-CPU scheduler.
+  </p>
+
+  <!-- Unix Substrate -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Substrate</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The kernel builds on battle-tested Unix primitives. Six syscalls are the foundation.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-0">
+        {[
+          { syscall: 'rename(2)', use: 'Atomic file replacement (tmp + fsync + rename)' },
+          { syscall: 'flock(2)', use: 'Critical sections for CAS commits' },
+          { syscall: 'fsync(2)', use: 'Durability before rename' },
+          { syscall: 'O_APPEND', use: 'Lockless audit log append (under PIPE_BUF)' },
+          { syscall: 'stat(2)', use: 'Heartbeat liveness via mtime' },
+          { syscall: 'O_CREAT|O_EXCL', use: 'Exclusive create for lock files' },
+        ].map(s => (
+          <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+            <code class="text-primary w-36 shrink-0">{s.syscall}</code>
+            <span class="text-secondary">{s.use}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Seven Primitives -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Seven Primitives</h2>
+    <div class="space-y-px">
+      {[
+        { num: '1', name: 'atomic_write', layer: 'Substrate', breaks: 'Torn reads, crash inconsistency' },
+        { num: '2', name: 'gen + CAS', layer: 'Coordination', breaks: 'Concurrent writers clobber silently' },
+        { num: '3', name: 'Hot PR', layer: 'Coordination', breaks: 'Every concurrent edit needs human judgment' },
+        { num: '4', name: 'audit log', layer: 'Coordination', breaks: 'No happens-before ordering, no attribution' },
+        { num: '5', name: 'identity', layer: 'Coordination', breaks: 'Writer tags lost, agents collide on names' },
+        { num: '6', name: 'digest injection', layer: 'Agent interface', breaks: 'LLM can\'t observe filesystem state cheaply' },
+        { num: '7', name: '304 elision', layer: 'Agent interface', breaks: 'Re-reads destroy context budget' },
+      ].map(p => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 gap-0">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="serif-text text-xl font-bold text-primary">{p.num}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-4">
+            <code class="font-body text-sm text-on-surface font-bold">{p.name}</code>
+            <div class="font-label text-[10px] text-outline mt-1">{p.layer}</div>
+          </div>
+          <div class="md:col-span-8 px-4 py-4 flex items-center">
+            <span class="font-body text-xs text-secondary">Without it: {p.breaks}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Memory Hierarchy -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">Memory Hierarchy</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Classical computer memory mapped to LLM inference primitives.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { tier: 'Registers', substrate: 'Context window', role: 'Active working memory', cost: 'Base rate', width: '94%' },
+        { tier: 'L1 cache', substrate: 'Prompt cache', role: 'Fleet-shared prefix', cost: '10% read', width: '80%' },
+        { tier: 'RAM', substrate: '.ostk/ files', role: 'Durable kernel state', cost: 'Free', width: '55%' },
+        { tier: 'Disk', substrate: 'Source code', role: 'Project truth', cost: 'Free', width: '35%' },
+        { tier: 'Swap', substrate: 'boot.md, history', role: 'Cold context', cost: 'Free', width: '15%' },
+      ].map(t => (
+        <div class="flex items-center mb-3">
+          <div class="w-20 font-label text-[10px] text-secondary shrink-0">{t.tier}</div>
+          <div class="flex-1 h-10 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+            <div class="absolute left-0 top-0 h-full bg-primary opacity-10" style={`width: ${t.width}`}></div>
+            <div class="flex justify-between w-full z-10 text-xs font-body">
+              <span class="text-on-surface">{t.substrate}</span>
+              <span class="text-secondary">{t.role}</span>
+              <span class="text-primary">{t.cost}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      The prompt cache at Anthropic's edge is content-addressed and per-organization. Two ostk processes on different machines with the same API key share cache entries. Adding agents decreases per-agent cost.
+    </p>
+  </section>
+
+  <!-- Dual-CPU Scheduler -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Dual-CPU Scheduler</h2>
+    <div class="grid grid-cols-2 gap-px bg-surface-variant mb-6">
+      {[
+        { class_: 'Human CPU', latency: 'Seconds to hours', judgment: 'Authoritative', ring: 'Ring 0' },
+        { class_: 'LLM CPU', latency: 'Seconds/turn', judgment: 'Context-bounded', ring: 'Ring 3' },
+      ].map(cpu => (
+        <div class="bg-surface-container p-6">
+          <h3 class="font-body text-sm text-primary font-bold mb-3">{cpu.class_}</h3>
+          <div class="space-y-2 font-body text-xs">
+            <div class="flex justify-between"><span class="text-outline">LATENCY</span><span class="text-on-surface">{cpu.latency}</span></div>
+            <div class="flex justify-between"><span class="text-outline">JUDGMENT</span><span class="text-on-surface">{cpu.judgment}</span></div>
+            <div class="flex justify-between"><span class="text-outline">RING</span><span class="text-primary">{cpu.ring}</span></div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      Both are first-class execution resources. The CpuDriver trait abstracts the boundary — below it, the kernel doesn't know whether it's talking to a human via TTY or an LLM via HTTPS.
+    </p>
+  </section>
+
+  <!-- Design Principles -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Design Principles</h2>
+    <div class="bg-surface-container-low p-6">
+      {[
+        'Everything that matters goes in .ostk/ as a file with a documented schema',
+        'Every feature must be debuggable with jq, grep, awk, git',
+        'Byte-stability is existentially load-bearing for fleet cache economics',
+        'Agents are ephemeral; knowledge is persistent',
+        'Secrets never enter the LLM context',
+        'Everything is a file (Plan 9 literalized)',
+      ].map((rule, i) => (
+        <div class="flex gap-4 py-3 border-b border-surface-variant last:border-b-0">
+          <span class="font-label text-[10px] text-primary">{String(i + 1).padStart(2, '0')}</span>
+          <span class="font-body text-xs text-on-surface">{rule}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/session-topology"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
+    <a href="/docs/five-laws"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
+  </div>
+</DocsLayout>

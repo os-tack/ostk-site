@@ -1,0 +1,176 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="System Architecture"
+  description="ostk architecture: kernel, daemon, and FCP driver layers."
+  sectionLabel="SECTION_01 // ARCHITECTURE"
+  activeTab="architecture"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    A single Rust binary. Three layers: the kernel, the daemon, and drivers. No runtime dependencies.
+  </p>
+
+  <!-- The Kernel -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Kernel</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Statically linked. Seven primitives built on Unix-inspired filesystem operations. Boots from <code class="text-primary">.ostk/</code> and begins tracking.
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8">
+      <h3 class="section-label-secondary mb-4">KERNEL_SUBSYSTEMS</h3>
+      <div class="space-y-3">
+        {[
+          { name: 'WRITE_TRACKING', desc: 'Every file write intercepted, assigned a generation counter via OCC' },
+          { name: 'CONFLICT_RESOLUTION', desc: 'Hot PR — auto-merge, mechanical rebase, or manual. Three tiers.' },
+          { name: 'OUTPUT_COMPRESSION', desc: '3-tier pipeline: strip ANSI, dedup lines, classify before agent context' },
+          { name: 'CAPABILITY_ENFORCEMENT', desc: 'Deny-based pins at tool layer, Landlock/Seatbelt at syscall layer' },
+          { name: 'AUDIT_TRAIL', desc: 'Append-only events. fold(audit.jsonl) reconstructs the fleet' },
+          { name: 'SECRET_MEDIATION', desc: 'API keys resolved from keychain at call time, never in agent context' },
+          { name: 'FLEET_COORDINATION', desc: 'Spawn, drain, reap, rehydrate. Heartbeat crash detection.' },
+          { name: 'DANGEROUS_CMD_DETECT', desc: '14 pattern detectors scan every shell command before agent sees output' },
+        ].map(sub => (
+          <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
+            <span class="text-primary w-56 shrink-0">{sub.name}</span>
+            <span class="text-secondary">{sub.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- The Daemon -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Daemon</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      <code class="text-primary">ostk listen</code> starts the kernel daemon — a long-lived anchor process that holds the socket, the process table, and the scheduler.
+    </p>
+
+    <div class="grid grid-cols-2 gap-6 mb-8">
+      {[
+        { title: 'SESSION_MGMT', desc: 'Agents run as managed sessions. Each has its own context, heartbeat, and drain snapshot.' },
+        { title: 'SCHEDULER_TICK', desc: 'Background task wakes the scheduler on a timer. Inspects fleet state, dispatches work, reaps dead sessions.' },
+        { title: 'CRASH_RECOVERY', desc: 'Drain snapshots at every turn boundary. On restart, fold(audit.jsonl) reconstructs fleet and rehydrates sessions.' },
+        { title: 'CLIENT_MULTIPLEX', desc: 'TUI, MCP clients, CLI one-shots, and IDE extensions attach/detach via kernel socket. Sessions persist.' },
+      ].map(card => (
+        <div class="bg-surface-container p-6">
+          <h3 class="font-body text-sm text-primary font-bold mb-2">{card.title}</h3>
+          <p class="font-body text-xs text-secondary">{card.desc}</p>
+        </div>
+      ))}
+    </div>
+
+    <p class="font-body text-xs text-secondary max-w-lg">
+      The daemon is a cache, not a ledger. Source of truth is the filesystem — <code class="text-primary">audit.jsonl</code>, <code class="text-primary">gen_table.jsonl</code>, drain snapshots. A restart reconstructs identical state from disk.
+      <span class="text-primary">&rarr;</span> <a href="/docs/session-topology" class="text-primary hover:underline">SESSION_TOPOLOGY</a>
+    </p>
+  </section>
+
+  <!-- Write Interception -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">Write Interception</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-6">
+      <p class="font-body text-xs text-on-surface mb-4">
+        ostk intercepts writes at the <span class="text-primary font-bold">tool layer</span>, not the filesystem. No FUSE mount, no inotify, no LD_PRELOAD, no ptrace.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        Agents write through kernel primitives (<code class="text-primary">file:edit</code>, <code class="text-primary">file:write</code>, <code class="text-primary">file:create</code>) that apply policy, locking, and version tracking before bytes hit disk. If a write went through the tool, the kernel saw it.
+      </p>
+    </div>
+  </section>
+
+  <!-- FCP Drivers -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">FCP Drivers</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Drivers extend the kernel with domain capabilities via the File Context Protocol — MCP servers that let LLMs interact with complex file formats through a verb-based DSL.
+    </p>
+
+    <div class="mb-8">
+      <h3 class="section-label-secondary mb-4">INTERNAL_DRIVERS</h3>
+      <div class="bg-surface-container-low p-6">
+        <div class="space-y-3">
+          {[
+            { name: 'fcp-screen', caps: '[tty]', desc: 'TUI rendering — fleet status, work queue, permission modals' },
+            { name: 'fcp-web', caps: '[]', desc: 'Web page reading — fetch, render, extract content from URLs' },
+            { name: 'fcp-llm', caps: '[]', desc: 'LLM inference — CpuDriver trait, provider routing (Anthropic, Gemini, Mistral)' },
+          ].map(driver => (
+            <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
+              <span class="text-primary w-32 shrink-0">{driver.name}</span>
+              <span class="text-outline w-16 shrink-0">{driver.caps}</span>
+              <span class="text-secondary">{driver.desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="section-label-secondary mb-4">EXTERNAL_DRIVERS</h3>
+      <div class="bg-surface-container-low p-6">
+        <div class="space-y-3">
+          {[
+            { name: 'fcp-rust', desc: 'Rust analysis via rust-analyzer — crate graph, type resolution, diagnostics', repo: 'os-tack/fcp-rust' },
+            { name: 'fcp-python', desc: 'Python intelligence via pylsp — query and refactor Python codebases', repo: 'os-tack/fcp-python' },
+            { name: 'fcp-drawio', desc: 'Create and edit draw.io diagrams through intent-level commands', repo: 'os-tack/fcp-drawio' },
+            { name: 'fcp-pdf', desc: 'Semantic PDF operations — extract, search, and manipulate PDF content', repo: 'os-tack/fcp-pdf' },
+            { name: 'fcp-sheets', desc: 'Semantic spreadsheet operations — query and edit cells, formulas, ranges', repo: 'os-tack/fcp-sheets' },
+            { name: 'fcp-slides', desc: 'Slide deck operations for presentation file formats', repo: 'os-tack/fcp-slides' },
+            { name: 'fcp-midi', desc: 'Semantic MIDI music composition — notes, tracks, instruments', repo: 'os-tack/fcp-midi' },
+            { name: 'fcp-regex', desc: 'Regex construction via named fragment composition', repo: 'os-tack/fcp-regex' },
+            { name: 'fcp-terraform', desc: 'Terraform HCL generation — modules, resources, variables', repo: 'os-tack/fcp-terraform' },
+          ].map(driver => (
+            <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
+              <span class="text-primary w-32 shrink-0">{driver.name}</span>
+              <span class="text-secondary flex-1">{driver.desc}</span>
+              <a href={`https://github.com/${driver.repo}`} class="text-primary hover:underline shrink-0">{driver.repo}</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <h3 class="section-label-secondary mb-4">FRAMEWORK</h3>
+      <div class="bg-surface-container-low p-6">
+        <div class="space-y-3">
+          {[
+            { name: 'fcp', desc: 'File Context Protocol specification — verb-based DSL for file operations', repo: 'os-tack/fcp' },
+            { name: 'fcp-core', desc: 'Shared framework for building FCP servers (TypeScript + Python)', repo: 'os-tack/fcp-core' },
+            { name: 'fcp-core-rust', desc: 'Shared Rust framework for building FCP servers', repo: 'os-tack/fcp-core-rust' },
+          ].map(driver => (
+            <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
+              <span class="text-primary w-32 shrink-0">{driver.name}</span>
+              <span class="text-secondary flex-1">{driver.desc}</span>
+              <a href={`https://github.com/${driver.repo}`} class="text-primary hover:underline shrink-0">{driver.repo}</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next Sequences -->
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/kernel-spec">
+      <Icon name="memory" size="14" class="align-middle mr-1" />
+      KERNEL_SPEC
+    </a>
+    <a href="/docs/session-topology">
+      <Icon name="hub" size="14" class="align-middle mr-1" />
+      SESSION_TOPOLOGY
+    </a>
+    <a href="/docs/compression">
+      <Icon name="compress" size="14" class="align-middle mr-1" />
+      COMPRESSION
+    </a>
+    <a href="/docs/mcp">
+      <Icon name="swap_horiz" size="14" class="align-middle mr-1" />
+      MCP_PROXY
+    </a>
+  </div>
+</DocsLayout>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KERNEL_v4.0.2_STABLE | ARCHIVE_ROOT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#1c1c18",
+                        "on-surface-variant": "#d5c4b1",
+                        "tertiary-fixed": "#e5e2dc",
+                        "surface-container-lowest": "#100e0c",
+                        "surface": "#151311",
+                        "on-surface": "#e7e1de",
+                        "primary-container": "#e5a443",
+                        "inverse-on-surface": "#32302e",
+                        "surface-container": "#211f1d",
+                        "tertiary-fixed-dim": "#c9c6c1",
+                        "on-primary-container": "#5e3c00",
+                        "on-background": "#e7e1de",
+                        "surface-container-highest": "#373432",
+                        "error": "#ffb4ab",
+                        "primary": "#ffc169",
+                        "secondary-container": "#454b3b",
+                        "on-primary-fixed": "#291800",
+                        "on-secondary-fixed": "#171d10",
+                        "primary-fixed-dim": "#feba56",
+                        "surface-container-low": "#1d1b19",
+                        "on-secondary-fixed-variant": "#424939",
+                        "on-primary-fixed-variant": "#633f00",
+                        "surface-dim": "#151311",
+                        "background": "#151311",
+                        "surface-tint": "#feba56",
+                        "inverse-primary": "#835500",
+                        "on-secondary": "#2c3323",
+                        "surface-container-high": "#2c2927",
+                        "on-error": "#690005",
+                        "inverse-surface": "#e7e1de",
+                        "secondary-fixed-dim": "#c2c9b4",
+                        "secondary": "#c2c9b4",
+                        "tertiary-container": "#b2b0ab",
+                        "on-tertiary-container": "#44433f",
+                        "primary-fixed": "#ffddb4",
+                        "surface-variant": "#373432",
+                        "outline": "#9e8e7d",
+                        "on-secondary-container": "#b4bba6",
+                        "outline-variant": "#514536",
+                        "secondary-fixed": "#dee5cf",
+                        "on-tertiary-fixed-variant": "#474743",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#3b3936",
+                        "tertiary": "#cecbc6",
+                        "on-tertiary": "#31312d",
+                        "on-primary": "#452b00",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Space Grotesk", "monospace"],
+                        "label": ["Space Grotesk", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #151311;
+            color: #e7e1de;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .serif-text {
+            font-family: 'Newsreader', serif;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #100e0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #373432;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<header class="fixed top-0 left-0 w-full z-50 bg-[#1c1a18] border-none">
+<div class="flex justify-between items-center w-full px-6 py-2">
+<div class="font-serif text-xl font-bold text-[#ffc169] uppercase tracking-tighter">
+                KERNEL_v4.0.2_STABLE
+            </div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[#ffc169] border-l-2 border-[#ffc169] pl-2 font-mono text-lg tracking-tight uppercase" href="#">SYSCALLS</a>
+<a class="text-[#c2c9b4] font-mono opacity-80 hover:bg-[#373432] transition-none text-lg tracking-tight uppercase" href="#">DRIVERS</a>
+<a class="text-[#c2c9b4] font-mono opacity-80 hover:bg-[#373432] transition-none text-lg tracking-tight uppercase" href="#">FS</a>
+<a class="text-[#c2c9b4] font-mono opacity-80 hover:bg-[#373432] transition-none text-lg tracking-tight uppercase" href="#">NET</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-[#ffc169] hover:bg-[#373432] p-2 transition-none">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</button>
+<button class="text-[#ffc169] hover:bg-[#373432] p-2 transition-none">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</button>
+</div>
+</div>
+<div class="bg-[#373432] h-[2px] w-full"></div>
+</header>
+<aside class="fixed left-0 top-0 h-screen flex flex-col z-40 bg-[#151311] w-64 pt-16">
+<div class="p-6">
+<div class="font-serif text-lg text-[#ffc169] leading-tight mb-1">ARCHIVE_ROOT</div>
+<div class="font-mono text-[10px] uppercase tracking-widest text-[#c2c9b4] opacity-70">MAN_PAGE_v2.1</div>
+</div>
+<div class="bg-[#100e0c] h-px w-full"></div>
+<nav class="flex-1 overflow-y-auto">
+<a class="flex items-center gap-3 bg-[#373432] text-[#ffc169] font-bold border-l-4 border-[#ffc169] py-3 px-4 transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="book">book</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">INTRODUCTION</span>
+</a>
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="memory">memory</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">MEMORY_MGMT</span>
+</a>
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="speed">speed</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">SCHEDULER</span>
+</a>
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="folder_open">folder_open</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">VFS_LAYER</span>
+</a>
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="swap_horiz">swap_horiz</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">IPC_PROTOCOLS</span>
+</a>
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings_input_hdmi">settings_input_hdmi</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">HARDWARE_ABSTRACTION</span>
+</a>
+</nav>
+<div class="mt-auto bg-[#100e0c] pt-2">
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="list_alt">list_alt</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">LOGS</span>
+</a>
+<a class="flex items-center gap-3 text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] transition-none" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="analytics">analytics</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">DIAG</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 ml-64 pt-16 pb-12 px-10">
+<div class="max-w-7xl mx-auto py-12">
+<section class="mb-16">
+<div class="font-mono text-[10px] uppercase tracking-widest text-[#ffc169] mb-4">SYSTEM_MANIFEST_SEC_01</div>
+<h1 class="serif-text text-8xl font-bold tracking-tighter text-[#e7e1de] mb-4">Industrial Archive</h1>
+<div class="flex items-center gap-6 py-2 border-y border-[#373432] bg-surface-container-lowest">
+<div class="flex gap-2 px-4">
+<span class="font-mono text-[10px] text-[#c2c9b4]">STATUS:</span>
+<span class="font-mono text-[10px] text-[#ffc169]">NOMINAL</span>
+</div>
+<div class="flex gap-2 px-4 border-l border-[#373432]">
+<span class="font-mono text-[10px] text-[#c2c9b4]">UPTIME:</span>
+<span class="font-mono text-[10px] text-[#e7e1de]">1,402:12:44:09</span>
+</div>
+<div class="flex gap-2 px-4 border-l border-[#373432]">
+<span class="font-mono text-[10px] text-[#c2c9b4]">NODES:</span>
+<span class="font-mono text-[10px] text-[#e7e1de]">12_ACTIVE</span>
+</div>
+<div class="flex gap-2 px-4 border-l border-[#373432]">
+<span class="font-mono text-[10px] text-[#c2c9b4]">VERSION:</span>
+<span class="font-mono text-[10px] text-[#e7e1de]">STABLE_BUILD_X86_64</span>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-12 gap-8">
+<div class="col-span-8 space-y-8">
+<div class="bg-surface-container-low p-8 border-l-2 border-[#ffc169]">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h2 class="serif-text text-3xl font-medium text-[#e7e1de]">Memory Hierarchy</h2>
+<p class="font-mono text-xs text-[#c2c9b4] mt-2 max-w-md">Detailed architectural mapping of the six-tier addressing stack and data persistence layers.</p>
+</div>
+<span class="font-mono text-[10px] text-[#ffc169] bg-[#373432] px-2 py-1">TECH_SPEC_77</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center group">
+<div class="w-24 font-mono text-[10px] text-[#c2c9b4]">L1_CACHE</div>
+<div class="flex-1 h-12 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[94%] bg-[#ffc169] opacity-10"></div>
+<div class="flex justify-between w-full z-10">
+<span class="font-mono text-xs">REGISTERS &amp; PIPELINES</span>
+<span class="font-mono text-xs text-[#ffc169]">0.5ns LATENCY</span>
+</div>
+</div>
+</div>
+<div class="flex items-center group">
+<div class="w-24 font-mono text-[10px] text-[#c2c9b4]">L2_CACHE</div>
+<div class="flex-1 h-12 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[82%] bg-[#ffc169] opacity-10"></div>
+<div class="flex justify-between w-full z-10">
+<span class="font-mono text-xs">ON-DIE BUFFERING</span>
+<span class="font-mono text-xs text-[#ffc169]">7ns LATENCY</span>
+</div>
+</div>
+</div>
+<div class="flex items-center group">
+<div class="w-24 font-mono text-[10px] text-[#c2c9b4]">L3_CACHE</div>
+<div class="flex-1 h-12 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[65%] bg-[#ffc169] opacity-10"></div>
+<div class="flex justify-between w-full z-10">
+<span class="font-mono text-xs">SHARED_LLC</span>
+<span class="font-mono text-xs text-[#ffc169]">15ns LATENCY</span>
+</div>
+</div>
+</div>
+<div class="flex items-center group">
+<div class="w-24 font-mono text-[10px] text-[#c2c9b4]">MAIN_MEM</div>
+<div class="flex-1 h-12 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[40%] bg-[#ffc169] opacity-10"></div>
+<div class="flex justify-between w-full z-10">
+<span class="font-mono text-xs">DDR5_SYNCHRONOUS</span>
+<span class="font-mono text-xs text-[#ffc169]">100ns LATENCY</span>
+</div>
+</div>
+</div>
+<div class="flex items-center group">
+<div class="w-24 font-mono text-[10px] text-[#c2c9b4]">NV_STORE</div>
+<div class="flex-1 h-12 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[22%] bg-[#ffc169] opacity-10"></div>
+<div class="flex justify-between w-full z-10">
+<span class="font-mono text-xs">NVMe_INTERFACE</span>
+<span class="font-mono text-xs text-[#ffc169]">150µs LATENCY</span>
+</div>
+</div>
+</div>
+<div class="flex items-center group">
+<div class="w-24 font-mono text-[10px] text-[#c2c9b4]">REMOTE</div>
+<div class="flex-1 h-12 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full w-[8%] bg-[#ffc169] opacity-10"></div>
+<div class="flex justify-between w-full z-10">
+<span class="font-mono text-xs">DISTRIBUTED_OBJECTS</span>
+<span class="font-mono text-xs text-[#ffc169]">2ms LATENCY</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div class="bg-surface-container p-6">
+<h3 class="font-mono text-[10px] uppercase tracking-widest text-[#c2c9b4] mb-4">Module_Activation_Map</h3>
+<div class="space-y-3">
+<div class="flex justify-between text-xs font-mono py-2 border-b border-[#373432]">
+<span class="text-[#e7e1de]">SYS_DAEMON_ROOT</span>
+<span class="text-[#ffc169]">RUNNING</span>
+</div>
+<div class="flex justify-between text-xs font-mono py-2 border-b border-[#373432]">
+<span class="text-[#e7e1de]">NET_STACK_IPV6</span>
+<span class="text-[#ffc169]">RUNNING</span>
+</div>
+<div class="flex justify-between text-xs font-mono py-2 border-b border-[#373432]">
+<span class="text-[#e7e1de]">CRON_SCHEDULER</span>
+<span class="text-[#ffc169]">RUNNING</span>
+</div>
+<div class="flex justify-between text-xs font-mono py-2 border-b border-[#373432]">
+<span class="text-[#e7e1de]">LOG_ROTATE_SVC</span>
+<span class="text-[#c2c9b4]">SLEEPING</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container p-6">
+<h3 class="font-mono text-[10px] uppercase tracking-widest text-[#c2c9b4] mb-4">System_Diagnostic_Image</h3>
+<div class="aspect-square bg-surface-container-highest overflow-hidden relative group">
+<img alt="Hardware Architecture" class="w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Close-up photograph of a vintage motherboard circuit with golden traces and silicon chips in dramatic warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDADr-qj44LprtFNvbDwCjA352QWx65KxE6beTHOTQ0TfHlWK-3wZA_UT3nUf4Z-3lFGuSOY-m8IUKK652zE8HuFR30J-HS8UtZ7BkPvIJtIBe-B_j8sxtya_kw4BXpDUBuSsjBdkkuVZOrXXP6y1qXFMJTrqdlLgqgXvDaiwkj0adtVEMrXZztS47xI2-N8cMK86rs6g4C-MPy3J9wqBcfeULZAzPK70pf_NMst_gyXEoz0Ud3AUWlzdqk-UYO6XzoP1wYaNNXMw"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="p-2 border border-[#ffc169] bg-[#151311] bg-opacity-80">
+<span class="font-mono text-[10px] text-[#ffc169]">REF: HDR_SCAN_001</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-4 space-y-8">
+<div class="bg-surface-container-high p-6 border-t-4 border-[#ffc169]">
+<h3 class="serif-text text-xl mb-6">Telemetric Feed</h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between font-mono text-[10px] text-[#c2c9b4] mb-2">
+<span>CPU_UTILIZATION</span>
+<span>42.8%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest">
+<div class="h-full bg-[#ffc169]" style="width: 42.8%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-mono text-[10px] text-[#c2c9b4] mb-2">
+<span>MEMORY_LOAD</span>
+<span>71.2%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest">
+<div class="h-full bg-[#ffc169]" style="width: 71.2%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-mono text-[10px] text-[#c2c9b4] mb-2">
+<span>IO_THROUGHPUT</span>
+<span>1.2 GB/s</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest">
+<div class="h-full bg-[#ffc169]" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<div class="mt-10 pt-6 border-t border-[#373432]">
+<div class="font-mono text-[10px] text-[#c2c9b4] mb-4">ACTIVE_LOG_STREAM</div>
+<div class="font-mono text-[10px] leading-relaxed text-[#c2c9b4] opacity-60 overflow-hidden h-32">
+<p>[ 0.000000] Linux version 4.0.2-stable (gcc 9.4.0)</p>
+<p>[ 0.000000] Command line: BOOT_IMAGE=/vmlinuz-4.0.2</p>
+<p>[ 0.452110] pci 0000:00:00.0: [8086:9b43] type 00 class 0x060000</p>
+<p>[ 1.129482] usb 1-1: new high-speed USB device number 2</p>
+<p>[ 1.562111] EXT4-fs (sda2): mounted filesystem with ordered data</p>
+<p>[ 2.001923] systemd[1]: Reached target Graphical Interface.</p>
+<p>[ 2.441192] kernel: [OK] Integrated Archive System Initialized.</p>
+</div>
+</div>
+</div>
+<div class="bg-[#100e0c] p-6 border border-[#373432]">
+<h3 class="font-mono text-[10px] uppercase tracking-widest text-[#ffc169] mb-4">Command_Palette</h3>
+<div class="grid grid-cols-1 gap-2">
+<button class="bg-[#ffc169] text-[#452b00] font-mono text-xs py-3 px-4 text-left flex justify-between items-center transition-none hover:bg-[#e5a443]">
+<span>INITIALIZE_RECOVERY</span>
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+</button>
+<button class="bg-[#373432] text-[#ffc169] font-mono text-xs py-3 px-4 text-left flex justify-between items-center transition-none hover:bg-[#2c2927]">
+<span>FLUSH_MEMORY_STACK</span>
+<span class="material-symbols-outlined text-sm" data-icon="cleaning_services">cleaning_services</span>
+</button>
+<button class="bg-[#373432] text-[#ffc169] font-mono text-xs py-3 px-4 text-left flex justify-between items-center transition-none hover:bg-[#2c2927]">
+<span>EXPORT_SYS_REPORT</span>
+<span class="material-symbols-outlined text-sm" data-icon="file_download">file_download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto z-50 bg-[#100e0c] w-full px-8 py-4 border-t border-[#373432] opacity-60">
+<div class="flex justify-between items-center">
+<div class="font-serif italic text-xs text-[#c2c9b4]">
+                © 1970-2024 DISTRIBUTED_OS_GROUP | DERIVED_FROM_UNIX_V7
+            </div>
+<div class="flex gap-8">
+<a class="font-mono text-[9px] uppercase tracking-widest text-[#c2c9b4] hover:text-[#ffc169] transition-none" href="#">LICENSE</a>
+<a class="font-mono text-[9px] uppercase tracking-widest text-[#c2c9b4] hover:text-[#ffc169] transition-none" href="#">SOURCE</a>
+<a class="font-mono text-[9px] uppercase tracking-widest text-[#c2c9b4] hover:text-[#ffc169] transition-none" href="#">CONTRIBUTE</a>
+</div>
+</div>
+</footer>
+</body></html>

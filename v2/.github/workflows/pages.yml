@@ -1,0 +1,71 @@
+name: Deploy v2 to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-v2
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      # Checkout haystack source for docfresh coverage
+      - uses: actions/checkout@v4
+        with:
+          repository: os-tack/haystack
+          path: haystack
+          token: ${{ secrets.HAYSTACK_READ_TOKEN }}
+        continue-on-error: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: v2
+        run: npm ci
+
+      - name: Build site
+        working-directory: v2
+        run: npm run build
+
+      # docfresh — verify documentation freshness against haystack source
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        if: hashFiles('haystack/**') != ''
+
+      - name: Install docfresh
+        if: hashFiles('haystack/**') != ''
+        run: cargo install --git https://github.com/os-tack/docfresh
+
+      - name: docfresh CI check
+        if: hashFiles('haystack/**') != ''
+        working-directory: v2
+        env:
+          DOCFRESH_SOURCE_REPO: ../haystack
+        run: |
+          docfresh ci --max-stale 0 --min-coverage 60
+          docfresh report --format markdown >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: v2/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

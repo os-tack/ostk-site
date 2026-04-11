@@ -1,0 +1,97 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="MCP Proxy"
+  description="Connect external MCP servers through the kernel. Proxy, audit, and pin-enforce every tool call."
+  sectionLabel="REFERENCE // MCP_INTEGRATION"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    External tools become invisible to agents. The kernel proxies, audits, and enforces pins on every MCP call.
+  </p>
+
+  <!-- Configuration -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CONFIGURATION</h2>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      MCP servers are declared in <code class="text-primary">ostk.toml</code> under the <code class="text-primary">[mcp]</code> section. Environment variables prefixed with <code class="text-primary">$</code> resolve through the kernel's secret mediation.
+    </p>
+    <Terminal>
+      <pre><span class="text-outline"># ostk.toml</span>
+
+<span class="text-primary">[mcp.github]</span>
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = {'{'}  GITHUB_TOKEN = "$GITHUB_TOKEN" {'}'}
+
+<span class="text-primary">[mcp.postgres]</span>
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres"]
+env = {'{'}  DATABASE_URL = "$DATABASE_URL" {'}'}</pre>
+    </Terminal>
+  </section>
+
+  <!-- How it works -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">How It Works</h2>
+    <div class="space-y-px">
+      {[
+        { num: '01', step: 'The kernel discovers configured servers at boot and registers their tools in the agent\'s tool list.' },
+        { num: '02', step: 'When an agent calls an MCP tool, the kernel routes the call through the audit trail and pin enforcement.' },
+        { num: '03', step: 'From the agent\'s perspective, an MCP tool is indistinguishable from a built-in tool. No agent-side configuration.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.num}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.step}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Execution modes -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXECUTION_MODES</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+      <div class="bg-surface-container p-6">
+        <div class="font-body text-sm text-primary font-bold mb-2">PERSISTENT</div>
+        <p class="font-body text-xs text-secondary mb-2">Server process stays running. Connect once, reuse across calls.</p>
+        <div class="font-body text-[10px] text-outline">Lower latency, higher memory. Used by: FCP drivers, database servers.</div>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-body text-sm text-primary font-bold mb-2">ON_DEMAND</div>
+        <p class="font-body text-xs text-secondary mb-2">Process spawned per call. Fresh environment each time.</p>
+        <div class="font-body text-[10px] text-outline">Higher latency, lower memory. Used by: npx-based servers.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commands -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">COMMANDS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { cmd: 'ostk mcp list', desc: 'Show all configured servers and their available tools' },
+        { cmd: 'ostk mcp call <server> <tool>', desc: 'Manually invoke an MCP tool from the CLI (for testing)' },
+      ].map(c => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <code class="text-primary w-64 shrink-0">{c.cmd}</code>
+          <span class="text-secondary">{c.desc}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/ostk-toml"><Icon name="tune" size="14" class="align-middle mr-1" />OSTK_TOML</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/secrets"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
+  </div>
+</DocsLayout>

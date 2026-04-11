@@ -1,0 +1,38 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Multi-Agent Coordination", description: "Agents share context efficiently", href: "/features/coordination" },
+  { title: "Compression", description: "Output compression pipeline", href: "/docs/compression" },
+  { title: "Architecture", description: "Memory hierarchy and cache economics", href: "/docs/architecture" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // CONTEXT"
+  title="AI Agent Context Management"
+  description="Agents skip exploration. The OS front-loads project context — repository structure, recent changes, active needles, and governance — so the first turn is productive."
+  relatedPages={relatedPages}
+>
+  <h2>The problem</h2>
+  <p>
+    A new agent session starts with an empty context window. The agent's first 3-5 turns are spent reading files, understanding the project, and orienting. That exploration burns tokens and time. If the agent crashes and restarts, it explores again.
+  </p>
+
+  <h2>What the kernel injects</h2>
+  <p>
+    At session start, the kernel prepends a digest block to the agent's context. The digest contains:
+  </p>
+  <ul>
+    <li><strong>Repository structure</strong> — file tree, language breakdown, key entry points</li>
+    <li><strong>Recent changes</strong> — git diff summary, active branches, last N commits</li>
+    <li><strong>Active needles</strong> — open work items with priority and acceptance criteria</li>
+    <li><strong>Governance context</strong> — trust tier, active pins, HUMANFILE preferences</li>
+    <li><strong>Fleet state</strong> — other running agents, their targets, potential conflicts</li>
+  </ul>
+
+  <h2>Cache economics</h2>
+  <p>
+    The digest is byte-stable — it changes only when the underlying state changes. This means it hits the prompt cache on subsequent turns. Fleet-wide, all agents sharing the same API key share the same cache prefix. The cold-write amortizes across readers.
+  </p>
+</FeaturePage>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ostk // COMMAND_INDEX</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;family=JetBrains+Mono:wght@300;400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#9d8e7e",
+                        "on-secondary-fixed-variant": "#424939",
+                        "tertiary-container": "#ceccc6",
+                        "primary-fixed-dim": "#f9bb64",
+                        "primary": "#ffe4c5",
+                        "on-primary-fixed": "#291800",
+                        "inverse-primary": "#825500",
+                        "surface-dim": "#151311",
+                        "on-secondary": "#2c3324",
+                        "secondary-container": "#424939",
+                        "secondary": "#c2c9b4",
+                        "tertiary": "#ebe8e2",
+                        "on-error": "#690005",
+                        "on-tertiary": "#31312d",
+                        "surface-container-high": "#2c2927",
+                        "tertiary-fixed": "#e5e2dc",
+                        "surface-container": "#211f1d",
+                        "on-tertiary-container": "#575652",
+                        "primary-fixed": "#ffddb3",
+                        "tertiary-fixed-dim": "#c9c6c1",
+                        "secondary-fixed-dim": "#c2c9b4",
+                        "on-secondary-fixed": "#171d10",
+                        "on-primary-fixed-variant": "#633f00",
+                        "surface": "#151311",
+                        "secondary-fixed": "#dee5cf",
+                        "primary-container": "#ffc169",
+                        "on-surface-variant": "#d4c4b2",
+                        "surface-tint": "#f9bb64",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1c1c18",
+                        "outline-variant": "#504537",
+                        "on-primary-container": "#774e00",
+                        "surface-container-low": "#1d1b19",
+                        "surface-container-lowest": "#100e0c",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#373432",
+                        "surface-bright": "#3c3936",
+                        "on-surface": "#e8e1dd",
+                        "surface-variant": "#373432",
+                        "on-background": "#e8e1dd",
+                        "on-tertiary-fixed-variant": "#474743",
+                        "inverse-surface": "#e8e1dd",
+                        "inverse-on-surface": "#33302e",
+                        "on-secondary-container": "#b1b8a3",
+                        "on-primary": "#452b00",
+                        "error-container": "#93000a",
+                        "background": "#151311",
+                        "brick": "#cb4154"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 18px;
+        }
+        body {
+            background-color: #151311;
+            color: #e8e1dd;
+        }
+        /* Man-page scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #151311; }
+        ::-webkit-scrollbar-thumb { background: #373432; }
+    </style>
+</head>
+<body class="font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full border-b border-[#262626] bg-[#151311] text-[#ffc169] flex justify-between items-center px-6 h-14 z-50">
+<div class="font-serif font-black text-2xl text-[#ffc169] cursor-pointer">ostk</div>
+<nav class="hidden md:flex gap-8 items-center h-full">
+<a class="text-neutral-500 font-mono text-xs uppercase hover:text-white transition-colors cursor-pointer active:opacity-80" href="#">SYSCALLS</a>
+<a class="text-neutral-500 font-mono text-xs uppercase hover:text-white transition-colors cursor-pointer active:opacity-80" href="#">DRIVERS</a>
+<a class="text-neutral-500 font-mono text-xs uppercase hover:text-white transition-colors cursor-pointer active:opacity-80" href="#">FS</a>
+<a class="text-neutral-500 font-mono text-xs uppercase hover:text-white transition-colors cursor-pointer active:opacity-80" href="#">NET</a>
+<a class="text-[#ffc169] border-b-2 border-[#ffc169] font-mono text-xs uppercase h-full flex items-center" href="#">POST</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined cursor-pointer">search</span>
+<button class="bg-[#ffc169] text-[#452b00] px-4 py-1 font-mono text-xs font-bold active:opacity-80">BOOT</button>
+</div>
+</header>
+<!-- SideNavBar (Command Sidebar) -->
+<aside class="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-64 border-r border-[#262626] bg-[#1a1919] flex flex-col py-4 z-40 hidden md:flex">
+<div class="px-6 mb-8">
+<div class="font-serif italic font-bold text-[#ffc169] text-xl">OPERATOR_01</div>
+<div class="font-mono text-[11px] uppercase tracking-widest text-neutral-400">TRUST_TIER_4</div>
+</div>
+<nav class="flex-1 overflow-y-auto">
+<div class="px-4 mb-2 text-neutral-500 font-mono text-[10px] tracking-[0.2em]">CORE_COMMANDS</div>
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-[11px] uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-[#262626] transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="folder">folder</span> ARCHIVE_ROOT
+            </a>
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-[11px] uppercase tracking-widest text-[#ffc169] bg-[#262626] border-l-4 border-[#ffc169] transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span> COMMAND_INDEX
+            </a>
+<div class="mt-4 px-6 py-1 space-y-1">
+<a class="block font-mono text-[10px] text-neutral-500 hover:text-primary transition-colors" href="#init">↳ INIT</a>
+<a class="block font-mono text-[10px] text-primary transition-colors" href="#spawn">↳ SPAWN</a>
+<a class="block font-mono text-[10px] text-neutral-500 hover:text-primary transition-colors" href="#trust">↳ TRUST</a>
+<a class="block font-mono text-[10px] text-neutral-500 hover:text-primary transition-colors" href="#mint">↳ MINT</a>
+<a class="block font-mono text-[10px] text-neutral-500 hover:text-primary transition-colors" href="#audit">↳ AUDIT</a>
+<a class="block font-mono text-[10px] text-neutral-500 hover:text-primary transition-colors" href="#sync">↳ SYNC</a>
+</div>
+<a class="flex items-center gap-3 px-6 py-2 mt-4 font-mono text-[11px] uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-[#262626] transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span> TRUST_TIERS
+            </a>
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-[11px] uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-[#262626] transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="push_pin">push_pin</span> PINS
+            </a>
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-[11px] uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-[#262626] transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span> STATE_MACHINES
+            </a>
+<a class="flex items-center gap-3 px-6 py-2 font-mono text-[11px] uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-[#262626] transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span> LOG_STREAM
+            </a>
+</nav>
+<div class="px-6 pt-4 border-t border-[#262626]">
+<button class="w-full bg-[#262626] text-[#ffc169] font-mono text-[10px] py-2 tracking-widest hover:bg-surface-container-highest transition-colors">VIEW_AUDIT</button>
+<div class="flex gap-4 mt-4 opacity-50">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="material-symbols-outlined" data-icon="code">code</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-14 pb-12 min-h-screen">
+<!-- Hero Section -->
+<section class="px-8 py-12 bg-surface-container-low border-b border-outline-variant/10">
+<div class="max-w-4xl">
+<div class="font-mono text-xs text-primary mb-2 tracking-[0.3em]">REF_INDEX_024 // KERNEL_CLI</div>
+<h1 class="font-headline text-7xl font-black text-[#e8e1dd] leading-tight mb-6">COMMAND_INDEX // MAN_PAGES</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+<p class="font-headline text-xl text-on-surface-variant italic leading-relaxed">
+                        The ostk CLI is the primary interface for kernel-level agent coordination. It operates on the principle of filesystem-as-truth. Every command is an atomic mutation or a filtered view of the system state. No daemons are required; the CLI is the operator's direct link to the trust chain.
+                    </p>
+<div class="space-y-4 font-mono text-xs text-neutral-500">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-primary"></span>
+<span>VERSION: v1.0.0-stable</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-primary"></span>
+<span>COMPLIANCE: POSIX_ARCHIVE_A</span>
+</div>
+<div class="flex items-center gap-2 text-on-secondary-container">
+<span class="material-symbols-outlined text-[14px]" data-icon="info">info</span>
+<span>Direct file mutations are logged to /var/ostk/audit</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Command Block: SPAWN -->
+<section class="px-8 py-16 max-w-6xl mx-auto" id="spawn">
+<div class="flex items-baseline gap-4 mb-8">
+<h2 class="font-mono text-4xl font-bold text-primary">ostk spawn</h2>
+<span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">[AGENT_INITIALIZATION]</span>
+</div>
+<!-- Syntax -->
+<div class="bg-surface-container-highest p-6 mb-12 relative">
+<div class="absolute -top-3 left-4 px-2 bg-surface-container-highest font-mono text-[10px] text-neutral-400">SYNOPSIS</div>
+<code class="font-mono text-lg text-primary">ostk spawn [FLAGS] [REPO_PATH]</code>
+<div class="mt-4 text-neutral-400 font-headline italic">
+                    Initialize one or more AI agents within a scoped repository boundary.
+                </div>
+</div>
+<!-- Bento Layout for Command Details -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-16">
+<!-- Arguments Table -->
+<div class="lg:col-span-2 bg-surface-container p-8">
+<h3 class="font-mono text-xs uppercase tracking-widest text-neutral-500 mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="list">list</span> PARAMETERS_LIST
+                    </h3>
+<table class="w-full font-mono text-xs border-collapse">
+<thead>
+<tr class="text-left border-b border-outline-variant/20">
+<th class="pb-4 pr-4 text-primary">FLAG</th>
+<th class="pb-4 pr-4 text-neutral-400">VALUE</th>
+<th class="pb-4 text-neutral-400">DESCRIPTION</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr>
+<td class="py-4 pr-4 font-bold">--count, -c</td>
+<td class="py-4 pr-4 text-secondary">INT</td>
+<td class="py-4">Total agents to manifest (default: 1).</td>
+</tr>
+<tr>
+<td class="py-4 pr-4 font-bold">--trust-tier</td>
+<td class="py-4 pr-4 text-secondary">1-4</td>
+<td class="py-4">Security clearance level. Maps to /etc/ostk/tiers.</td>
+</tr>
+<tr>
+<td class="py-4 pr-4 font-bold">--isolate</td>
+<td class="py-4 pr-4 text-secondary">BOOL</td>
+<td class="py-4">Prohibit inter-agent socket communication.</td>
+</tr>
+<tr>
+<td class="py-4 pr-4 font-bold">--trace</td>
+<td class="py-4 pr-4 text-secondary">PATH</td>
+<td class="py-4">Export execution telemetry to specific file.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Warning Block -->
+<div class="bg-brick/10 border border-brick/30 p-8 flex flex-col justify-between">
+<div>
+<h3 class="font-mono text-xs uppercase tracking-widest text-brick mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span> 
+                            CRITICAL // DATA_PERSISTENCE
+                        </h3>
+<p class="font-headline text-lg text-on-surface leading-snug">
+                            Spawning agents with <code class="bg-brick/20 px-1 text-white">--trust-tier 4</code> allows direct syscall access. The kernel will not intervene in destructive filesystem operations.
+                        </p>
+</div>
+<div class="mt-8 font-mono text-[10px] text-brick uppercase opacity-70">
+                        → verify .ostk/rules before execution
+                    </div>
+</div>
+</div>
+<!-- Terminal Execution Flow -->
+<div class="mb-16">
+<div class="flex items-center justify-between px-4 py-2 bg-surface-container-highest border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-error-container"></div>
+<div class="w-3 h-3 rounded-full bg-primary-container"></div>
+<div class="w-3 h-3 rounded-full bg-secondary-container"></div>
+</div>
+<div class="font-mono text-[10px] text-neutral-500 uppercase tracking-tighter">OPERATOR@KERNEL_V1 ~ [TERMINAL]</div>
+</div>
+<div class="bg-surface-container-lowest p-8 font-mono text-sm leading-relaxed overflow-x-auto">
+<div class="flex gap-4">
+<span class="text-neutral-600 select-none">$</span>
+<span class="text-primary">ostk spawn --count 2 --trust-tier 2 --isolate ./src/core</span>
+</div>
+<div class="mt-4 text-neutral-400">
+                        [00:00:01] <span class="text-secondary">INFO</span>: Mounting repository context at ./src/core...<br/>
+                        [00:00:01] <span class="text-secondary">INFO</span>: Loading trust policy: TIER_2_ISOLATED<br/>
+                        [00:00:02] <span class="text-secondary">INFO</span>: Initializing Agent_Alpha [ID: 0x82FA]...<br/>
+                        [00:00:02] <span class="text-secondary">INFO</span>: Initializing Agent_Bravo [ID: 0x9B1C]...<br/>
+                        [00:00:03] <span class="text-primary-container">OK</span>: Convergence established. Agents awaiting FS signals.<br/>
+                        [00:00:03] <span class="text-neutral-500 italic">&gt;&gt; Listen on /tmp/ostk_signal_0x82FA.pipe</span>
+</div>
+<div class="mt-6 flex gap-4">
+<span class="text-neutral-600 select-none">$</span>
+<span class="animate-pulse bg-primary h-5 w-2 inline-block"></span>
+</div>
+</div>
+</div>
+<!-- Alternatives / Related -->
+<div class="border-t border-outline-variant/10 pt-12">
+<h3 class="font-mono text-xs uppercase tracking-widest text-neutral-500 mb-6">RELATED_COMMANDS</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="group cursor-pointer">
+<div class="font-mono text-primary group-hover:underline">ostk init</div>
+<p class="font-headline text-sm text-neutral-400 mt-1 italic">Configure the .ostk manifest in a new directory before spawning.</p>
+</div>
+<div class="group cursor-pointer">
+<div class="font-mono text-primary group-hover:underline">ostk attach</div>
+<p class="font-headline text-sm text-neutral-400 mt-1 italic">Join an existing coordination session already in progress.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Placeholder for other commands -->
+<section class="px-8 py-16 opacity-30 select-none">
+<h2 class="font-mono text-4xl font-bold text-neutral-600">ostk trust --verify</h2>
+<div class="mt-4 w-full h-1 bg-neutral-800"></div>
+<div class="mt-4 font-headline text-xl italic">End of current buffer. Additional documentation segments in /docs/ref/syscalls.</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="flex justify-between items-center px-6 fixed bottom-0 left-0 right-0 z-40 bg-[#151311] w-full py-2 border-t border-[#262626]">
+<div class="font-mono text-[10px] text-neutral-500">© 2024 OSTK_KERNEL_V1.0.0</div>
+<div class="flex gap-8">
+<a class="font-mono text-[10px] text-neutral-600 hover:text-neutral-300" href="#">V_DOCS</a>
+<a class="font-mono text-[10px] text-neutral-600 hover:text-neutral-300" href="#">GITHUB</a>
+<a class="font-mono text-[10px] text-[#ffc169]" href="#">ST_REF</a>
+</div>
+</footer>
+<!-- Mobile Navigation Shell -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#1a1919] border-t border-[#262626] flex items-center justify-around z-50">
+<div class="flex flex-col items-center text-neutral-400">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-[9px] font-mono">ROOT</span>
+</div>
+<div class="flex flex-col items-center text-[#ffc169]">
+<span class="material-symbols-outlined">terminal</span>
+<span class="text-[9px] font-mono">CMD</span>
+</div>
+<div class="flex flex-col items-center text-neutral-400">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-[9px] font-mono">LOGS</span>
+</div>
+</div>
+</body></html>

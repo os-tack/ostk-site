@@ -1,0 +1,116 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Capability Pins"
+  description="Deny-based agent permission boundaries. Trust tier is a floor — pins can only add restrictions."
+  sectionLabel="CONFIGURATION // POLICY_ENFORCEMENT"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-4">
+    Pins restrict what agents can write. The trust tier sets a floor. An explicit pin can only add restrictions, never remove tier defaults.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    Location: <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code>
+  </p>
+
+  <!-- pin.caps format -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">PIN.CAPS_FORMAT</h2>
+    <Terminal label="EXAMPLE">
+      <pre><span class="text-primary">read:</span> .ostk/ .language
+<span class="text-primary">write:</span> .ostk/store/{'{name}'}/ .ostk/needles/ .ostk/hay/
+<span class="text-primary">execute:</span> shell(readonly)
+<span class="text-error">deny:</span> write-kernel modify-governance
+<span class="text-error">deny-verb:</span> :shutdown
+<span class="text-error">deny-verb:</span> bail pack --private</pre>
+    </Terminal>
+  </section>
+
+  <!-- Capability tokens -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CAPABILITY_TOKENS</h2>
+    <div class="space-y-px">
+      {[
+        { token: 'write-kernel', effect: 'Denies ALL writes under .ostk/', includes: 'agents.jsonl, audit.jsonl, needles/, decisions.jsonl, hay/, sessions/, store/' },
+        { token: 'modify-governance', effect: 'Denies writes to governance files', includes: '.primefile, GOVERNANCE.md, ENTITYFILE, HUMANFILE, .af files, /agents/ directory' },
+        { token: 'write-src', effect: 'Denies writes to source directories', includes: 'Any path containing /src/' },
+      ].map(t => (
+        <div class="bg-surface-container p-5">
+          <div class="flex items-baseline gap-3 mb-2">
+            <code class="font-body text-sm text-error font-bold">{t.token}</code>
+            <span class="font-body text-xs text-secondary">{t.effect}</span>
+          </div>
+          <div class="font-body text-[10px] text-outline">Includes: {t.includes}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Verb denial -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">VERB_DENIAL</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-4">
+        <code class="text-error">deny-verb:</code> lines block specific kernel commands. Exact match or prefix match at word boundary.
+      </p>
+      <div class="space-y-2 font-body text-xs">
+        <div class="flex gap-4">
+          <code class="text-error w-48">deny-verb: :shutdown</code>
+          <span class="text-secondary">Blocks "shutdown" exactly</span>
+        </div>
+        <div class="flex gap-4">
+          <code class="text-error w-48">deny-verb: bail pack --private</code>
+          <span class="text-secondary">Blocks "bail pack --private ..." but not "bail pack" alone</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tier defaults -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">TIER_DEFAULT_CAPS</h2>
+    <div class="space-y-px">
+      {[
+        { tier: 'T0', write: true, tokens: 'None (unrestricted)', bg: 'text-primary' },
+        { tier: 'T1', write: true, tokens: 'write-kernel, modify-governance', bg: 'text-on-surface' },
+        { tier: 'T2', write: true, tokens: 'write-kernel, modify-governance, write-src', bg: 'text-secondary' },
+        { tier: 'T3', write: false, tokens: 'ALL (allows_write=false)', bg: 'text-error' },
+      ].map(t => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class={`font-body text-sm font-bold ${t.bg}`}>{t.tier}</span>
+          </div>
+          <div class="md:col-span-2 px-4 py-3">
+            <span class={`font-body text-xs ${t.write ? 'text-primary' : 'text-error'}`}>{t.write ? 'WRITE: YES' : 'WRITE: NO'}</span>
+          </div>
+          <div class="md:col-span-9 px-4 py-3">
+            <span class="font-body text-xs text-secondary">deny: {t.tokens}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Security invariant -->
+  <section class="mb-16">
+    <div class="bg-error/5 border border-error/20 p-6">
+      <div class="font-label text-[10px] uppercase tracking-widest text-error mb-2 flex items-center gap-1">
+        <Icon name="warning" size="14" class="text-xs" />
+        SECURITY_INVARIANT
+      </div>
+      <p class="font-body text-xs text-on-surface">
+        Tier is a FLOOR, not an override. A T3 user setting <code class="text-error">OSTK_PIN=permissive</code> still gets deny-all. A T2 user with a custom pin still gets <code class="text-error">write-src</code> denied. The merge takes the union of deny tokens.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/entityfile"><Icon name="groups" size="14" class="align-middle mr-1" />ENTITYFILE</a>
+  </div>
+</DocsLayout>

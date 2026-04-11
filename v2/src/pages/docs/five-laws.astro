@@ -1,0 +1,99 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const laws = [
+  {
+    num: '01',
+    title: 'The write path is invisible',
+    body: 'Agents edit files normally. They use whatever tools their model provider gives them. The OS coordinates underneath. No new API. No coordination protocol. No SDK.',
+    practice: 'Your agents never learn a new API. They write files. That\'s it.',
+  },
+  {
+    num: '02',
+    title: 'Agents are ephemeral',
+    body: 'Agents crash. They hit context limits. They lose memory. They get killed. This is the expected operating condition. State lives in the filesystem. When an agent dies, nothing is lost.',
+    practice: 'Session death does not mean work death. The OS survives its agents.',
+  },
+  {
+    num: '03',
+    title: 'Coordinate through the filesystem',
+    body: 'No message buses. No inboxes. No pub/sub. No RPC between agents. If agent A needs agent B to know something, agent A writes a file. ls and cat are your debugging tools.',
+    practice: 'The filesystem IS the communication channel. Every coordination artifact is a file you can read.',
+  },
+  {
+    num: '04',
+    title: 'Optimistic concurrency',
+    body: 'No locks. No mutexes. Agents write freely and concurrently. When two agents edit the same file, the kernel detects the conflict via generation counters and resolves it. Conflict resolution, not conflict prevention.',
+    practice: 'Agents never block each other. Two agents can edit the same file at the same time. The OS handles it.',
+  },
+  {
+    num: '05',
+    title: 'Invisible infrastructure, always',
+    body: 'If you have to think about the OS, the OS failed. No config files to learn. No YAML to write. No dashboard to check. The install is one command. Init is one command. Boot is one command.',
+    practice: 'Zero config, zero learning curve for agents. The OS works or it doesn\'t.',
+  },
+];
+---
+
+<DocsLayout
+  title="Five Laws"
+  description="The five load-bearing constraints governing every ostk design decision."
+  sectionLabel="GOVERNANCE // FOUNDATIONAL_LAWS"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-4">
+    These are not guidelines. They are load-bearing constraints. Every design decision must satisfy all five. If a feature violates a law, the feature is wrong.
+  </p>
+
+  <div class="space-y-0 mt-12">
+    {laws.map(law => (
+      <section class="bg-surface-container mb-px">
+        <div class="grid grid-cols-12 gap-0">
+          {/* Left: large number on tonal step */}
+          <div class="md:col-span-2 bg-surface-container-low flex items-center justify-center py-12">
+            <span class="serif-text text-7xl font-bold text-primary italic">{law.num}</span>
+          </div>
+          {/* Right: content */}
+          <div class="md:col-span-10 p-8">
+            <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">{law.title}</h2>
+            <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+              {law.body}
+            </p>
+            <div class="border-l-2 border-primary pl-4">
+              <span class="font-label text-[10px] text-outline block mb-1">IN_PRACTICE</span>
+              <span class="font-body text-sm text-on-surface">{law.practice}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <!-- Why laws -->
+  <section class="mt-20 pt-8 border-t border-surface-variant">
+    <h2 class="serif-text text-xl font-medium text-on-surface mb-4">Why laws, not principles</h2>
+    <p class="font-body text-sm text-secondary max-w-lg mb-2">
+      Principles are aspirational. Laws are constraints. A principle says "try to keep infrastructure invisible." A law says "if the agent learns a new API, the design is wrong."
+    </p>
+    <p class="font-body text-sm text-secondary max-w-lg">
+      The team tests every feature proposal against all five. No exceptions. No escape hatches.
+    </p>
+  </section>
+
+  <!-- Related -->
+  <div class="metadata-ribbon border-t border-surface-variant mt-16">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/architecture">
+      <Icon name="architecture" size="14" class="align-middle mr-1" />
+      ARCHITECTURE
+    </a>
+    <a href="/docs/pins">
+      <Icon name="pin_drop" size="14" class="align-middle mr-1" />
+      CAPABILITY_PINS
+    </a>
+    <a href="/docs/trust-model">
+      <Icon name="shield" size="14" class="align-middle mr-1" />
+      TRUST_MODEL
+    </a>
+  </div>
+</DocsLayout>

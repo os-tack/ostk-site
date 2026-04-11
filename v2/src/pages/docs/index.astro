@@ -1,0 +1,91 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const sections = [
+  {
+    label: 'ONBOARDING',
+    items: [
+      { title: 'Quick Start', desc: 'Zero to running agents in 5 minutes', href: '/docs/getting-started', icon: 'rocket_launch' },
+      { title: 'Downloads', desc: 'Binary releases and install script', href: '/docs/downloads', icon: 'download' },
+    ],
+  },
+  {
+    label: 'REFERENCE',
+    items: [
+      { title: 'Commands', desc: 'Full command reference', href: '/docs/commands', icon: 'terminal' },
+      { title: 'Kernel Specification', desc: 'Seven primitives, Five Laws', href: '/docs/kernel-spec', icon: 'memory' },
+      { title: 'Architecture', desc: 'Kernel, daemon, and driver layers', href: '/docs/architecture', icon: 'architecture' },
+      { title: 'Session Topology', desc: 'Daemon sessions and client multiplexing', href: '/docs/session-topology', icon: 'hub' },
+      { title: 'TUI', desc: 'Terminal interface operator guide', href: '/docs/tui', icon: 'tv' },
+      { title: 'MCP Proxy', desc: 'External tool server integration', href: '/docs/mcp', icon: 'swap_horiz' },
+      { title: 'Compression', desc: 'Output compression pipeline', href: '/docs/compression', icon: 'compress' },
+    ],
+  },
+  {
+    label: 'CONFIGURATION',
+    items: [
+      { title: 'HUMANFILE', desc: 'Operator identity and preferences', href: '/docs/humanfile', icon: 'person' },
+      { title: 'Agentfile', desc: 'Agent process descriptor', href: '/docs/agentfile', icon: 'smart_toy' },
+      { title: 'ENTITYFILE', desc: 'Governance and authority chains', href: '/docs/entityfile', icon: 'groups' },
+      { title: '.primefile', desc: 'Root trust configuration', href: '/docs/primefile', icon: 'settings' },
+      { title: 'ostk.toml', desc: 'Project configuration', href: '/docs/ostk-toml', icon: 'tune' },
+      { title: 'Secrets', desc: 'API key management', href: '/docs/secrets', icon: 'key' },
+      { title: 'Capability Pins', desc: 'Agent permission boundaries', href: '/docs/pins', icon: 'pin_drop' },
+    ],
+  },
+  {
+    label: 'GOVERNANCE',
+    items: [
+      { title: 'Five Laws', desc: 'Foundational governance principles', href: '/docs/five-laws', icon: 'gavel' },
+      { title: 'Trust Model', desc: 'T0-T3 trust tiers and capability chains', href: '/docs/trust-model', icon: 'shield' },
+      { title: 'FAQ', desc: 'Common questions from developers', href: '/docs/faq', icon: 'help' },
+    ],
+  },
+];
+---
+
+<DocsLayout
+  title="Documentation Archive"
+  description="ostk documentation — reference, configuration, and governance."
+  sectionLabel="ARCHIVE_INDEX // v3.0.0"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-12">
+    Complete reference for the ostk kernel, daemon, drivers, and governance model.
+  </p>
+
+  {sections.map((section, i) => (
+    <section class="mb-20">
+      {/* Section header with tonal step */}
+      <div class="bg-surface-container-low px-6 py-4 border-l-2 border-primary mb-8">
+        <div class="flex items-center gap-4">
+          <span class="font-headline text-2xl font-bold text-primary">{String(i + 1).padStart(2, '0')}</span>
+          <div>
+            <h2 class="font-label text-xs uppercase tracking-widest text-primary">{section.label}</h2>
+            <p class="font-body text-[10px] text-secondary mt-0.5">
+              {section.label === 'ONBOARDING' && 'Start here. Install, initialize, boot.'}
+              {section.label === 'REFERENCE' && 'Kernel internals, commands, and protocol specifications.'}
+              {section.label === 'CONFIGURATION' && 'Files that define identity, governance, and agent behavior.'}
+              {section.label === 'GOVERNANCE' && 'Trust model and operational laws.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Card grid */}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+        {section.items.map(item => (
+          <a href={item.href} class="bg-surface p-6 hover:bg-surface-container transition-none group block">
+            <div class="flex items-start gap-4">
+              <Icon name={item.icon} size="14" class="text-lg text-outline group-hover:text-primary mt-0.5" />
+              <div>
+                <div class="font-body text-sm text-on-surface group-hover:text-primary font-medium">{item.title}</div>
+                <div class="font-body text-xs text-secondary mt-1.5 leading-relaxed">{item.desc}</div>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+</DocsLayout>

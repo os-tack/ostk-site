@@ -1,0 +1,117 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const directives = [
+  { name: 'IDENTITY', req: true, desc: 'Your username. Used in audit attribution and agent identity.' },
+  { name: 'SIGN', req: false, desc: 'GPG key fingerprint. Establishes T0 trust tier when verified.' },
+  { name: 'MODEL', req: true, desc: 'Default model for agent sessions. Kernel auto-detects provider from model name.' },
+  { name: 'FALLBACK', req: false, desc: 'Model when primary is unavailable or rate-limited.' },
+  { name: 'AVAILABLE <<MODELS', req: false, desc: 'Heredoc listing all authorized models. Consumed by FROM auto in Agentfiles.' },
+  { name: 'SECRET <<KEYS', req: false, desc: 'Heredoc listing authorized API key names. Keys stored in platform keychain.' },
+  { name: 'DRIVER <type> <name>', req: false, desc: 'FCP driver to load at boot. Internal drivers don\'t need declaration.' },
+  { name: 'EMBED', req: false, desc: 'Embedding index mode: codebase (full), incremental (git-diff), off.' },
+  { name: 'PREPROCESS', req: false, desc: 'Local model for preprocessing user input. e.g. apple/default.' },
+  { name: 'TRUST', req: false, desc: 'Trust policy for Agentfile signing. unsigned skips signature requirement.' },
+  { name: 'EXTENDS', req: false, desc: 'Path to parent HUMANFILE for inheritance. Child directives override.' },
+  { name: 'BOOT', req: false, desc: 'Custom boot steps appended after kernel initialization.' },
+  { name: 'VERB', req: false, desc: 'Custom verb registration merged into .language at boot.' },
+];
+---
+
+<DocsLayout
+  title="HUMANFILE"
+  description="Operator identity document. Tells the OS who you are, what models to use, and how to calibrate."
+  sectionLabel="CONFIGURATION // IDENTITY"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    Your compiled identity. The OS reads this at boot and calibrates to you. Not a config file — a governance document.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    Location: <code class="text-primary">.ostk/HUMANFILE</code> (project) or <code class="text-primary">~/.HUMANFILE</code> (global)
+  </p>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-outline"># HUMANFILE</span>
+
+<span class="text-primary">IDENTITY</span> yourname
+<span class="text-primary">SIGN</span> YOUR_GPG_FINGERPRINT
+
+<span class="text-primary">MODEL</span> claude-opus-4-6
+<span class="text-primary">FALLBACK</span> mistral-large-latest
+
+<span class="text-primary">AVAILABLE</span> &lt;&lt;MODELS
+claude-sonnet-4-5
+claude-opus-4-6
+gemini-2.5-pro
+mistral-large-latest
+MODELS
+
+<span class="text-primary">SECRET</span> &lt;&lt;KEYS
+ANTHROPIC_API_KEY
+GEMINI_API_KEY
+KEYS
+
+<span class="text-primary">DRIVER</span> rust fcp-rust
+<span class="text-primary">EMBED</span> codebase
+<span class="text-primary">PREPROCESS</span> apple/default</pre>
+    </div>
+  </section>
+
+  <!-- Directives table -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">DIRECTIVES</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-0">
+        {directives.map(d => (
+          <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+            <code class="text-primary w-44 shrink-0">{d.name}</code>
+            <span class={`w-8 shrink-0 ${d.req ? 'text-primary' : 'text-outline'}`}>
+              {d.req ? 'REQ' : '—'}
+            </span>
+            <span class="text-secondary">{d.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Secrets resolution -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SECRET_RESOLUTION_ORDER</h2>
+    <div class="space-y-3">
+      {[
+        { step: '01', label: 'BYO_SECRET_MANAGER', desc: 'Set OSTK_SECRET_CMD to your tool (bw, op, pass)' },
+        { step: '02', label: 'PLATFORM_KEYCHAIN', desc: 'ostk secret set KEY stores in macOS Keychain / secret-tool' },
+        { step: '03', label: 'ENVIRONMENT_VARIABLE', desc: 'Fallback to $KEY in shell environment' },
+      ].map(s => (
+        <div class="flex items-center gap-4 bg-surface-container p-4">
+          <span class="serif-text text-xl font-bold text-primary">{s.step}</span>
+          <div>
+            <div class="font-body text-sm text-on-surface">{s.label}</div>
+            <div class="font-body text-xs text-secondary mt-0.5">{s.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/agentfile">
+      <Icon name="smart_toy" size="14" class="align-middle mr-1" />
+      AGENTFILE
+    </a>
+    <a href="/docs/secrets">
+      <Icon name="key" size="14" class="align-middle mr-1" />
+      SECRETS
+    </a>
+    <a href="/docs/env-vars">
+      <Icon name="tune" size="14" class="align-middle mr-1" />
+      ENV_VARS
+    </a>
+  </div>
+</DocsLayout>

@@ -1,0 +1,83 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="ostk.toml"
+  description="Project configuration: version constraints, identity, kernel settings, MCP servers, pins, and onboarding."
+  sectionLabel="CONFIGURATION // PROJECT"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    The project-level configuration file. Lives at the repository root. You write and maintain this. The kernel reads it at boot.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    Location: <code class="text-primary">./ostk.toml</code>
+  </p>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <Terminal>
+      <pre><span class="text-primary">[version]</span>
+release = "3.0.0"
+kernel = ">=3.0.0"
+
+<span class="text-primary">[identity]</span>
+name = "@my-project"
+root_key = "6C31536F..."
+signed_by = ["@operator", "@project.prime"]
+
+<span class="text-primary">[kernel]</span>
+boot_mode = "embedded-first"
+daemon_lifecycle = "tui-owned"
+laws = ["invisible-write", "ephemeral", "filesystem", "OCC", "invisible-infra"]
+
+<span class="text-primary">[pins.default]</span>
+read = [".ostk/", ".language"]
+write = [".ostk/store/default/"]
+
+<span class="text-primary">[mcp.github]</span>
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = {'{'}  GITHUB_TOKEN = "$GITHUB_TOKEN" {'}'}
+
+<span class="text-primary">[onboarding]</span>
+steps = ["binary-install", "environment-detect", "humanfile-create", "os-init"]</pre>
+    </Terminal>
+  </section>
+
+  <!-- Sections -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SECTIONS</h2>
+    <div class="space-y-px">
+      {[
+        { section: '[version]', desc: 'Release version and kernel compatibility constraint. Kernel refuses to boot if version mismatch.' },
+        { section: '[identity]', desc: 'Project name, root GPG key, CI key, signing authorities.' },
+        { section: '[authorization]', desc: 'GPG requirements, trust tier definitions.' },
+        { section: '[distribution]', desc: 'Release mirrors, signature verification, tarball pattern.' },
+        { section: '[kernel]', desc: 'Boot mode (embedded-first | daemon-first), daemon lifecycle, laws.' },
+        { section: '[pins.*]', desc: 'Named pin configurations. read/write/execute paths and deny tokens.' },
+        { section: '[mcp.*]', desc: 'MCP server declarations. Command, args, env vars.' },
+        { section: '[onboarding]', desc: 'Onboarding wizard step sequence.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-3">
+            <code class="font-body text-xs text-primary">{s.section}</code>
+          </div>
+          <div class="md:col-span-9 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/mcp"><Icon name="swap_horiz" size="14" class="align-middle mr-1" />MCP_PROXY</a>
+    <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+  </div>
+</DocsLayout>

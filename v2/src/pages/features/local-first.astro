@@ -1,0 +1,39 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Secret Management", description: "Keys never leave your machine", href: "/features/secret-management" },
+  { title: "Audit Trail", description: "Local append-only event log", href: "/features/audit-trail" },
+  { title: "Architecture", description: "Single binary, zero deps", href: "/docs/architecture" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // ARCHITECTURE"
+  title="Local-First AI Agent Coordination"
+  description="No cloud, no telemetry. A single Rust binary on your machine. Agent coordination happens through local files — no API calls, no cloud sync."
+  relatedPages={relatedPages}
+>
+  <h2>What local-first means</h2>
+  <p>
+    Your code stays on your machine. Agent coordination happens through local files — <code>.ostk/</code> state, generation counters, audit logs. No central server, no coordination API, no telemetry endpoint.
+  </p>
+  <p>
+    The only network calls ostk makes are to LLM providers (Anthropic, Google, Mistral, OpenRouter) — and only when you ask it to run an agent. The kernel itself is entirely offline.
+  </p>
+
+  <h2>Single binary</h2>
+  <p>
+    ostk is a statically linked Rust binary. No runtime dependencies. No Node, no Python, no Docker. Install is one command: <code>curl -fsSL https://ostk.ai/install | sh</code>. The binary GPG-verifies itself during install.
+  </p>
+
+  <h2>Works with local models</h2>
+  <p>
+    Set <code>OSTK_MODEL</code> to a local model endpoint and agents run entirely on your hardware. The CpuDriver trait abstracts the provider boundary — the kernel doesn't know whether it's talking to Anthropic's API or a local ollama instance.
+  </p>
+
+  <h2>No telemetry</h2>
+  <p>
+    ostk does not phone home. No analytics, no crash reporting, no usage tracking. The audit trail is local. The metrics are local. The drain snapshots are local. Run <code>ostk status</code> and see exactly what's on disk.
+  </p>
+</FeaturePage>

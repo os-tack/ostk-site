@@ -1,0 +1,91 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const groups = [
+  {
+    label: 'AGENT_IDENTITY',
+    vars: [
+      { name: 'OSTK_AGENT', desc: 'Agent alias. Set by kernel on spawn. Used for audit attribution, heartbeat, gen_table writer.', default_: '"unknown"' },
+      { name: 'OSTK_PIN', desc: 'Active capability pin name. Loads .ostk/pins/<name>/pin.caps.', default_: 'Tier default' },
+      { name: 'OSTK_TRUST_TIER', desc: 'Override trust tier resolution. Bypasses GPG detection. Used by CI/tests.', default_: 'Auto-detected' },
+      { name: 'OSTK_AGENTFILE', desc: 'Path to Agentfile to load at boot.', default_: 'None' },
+    ],
+  },
+  {
+    label: 'DAEMON_SCHEDULER',
+    vars: [
+      { name: 'OSTK_SCHEDULER_TICK_SECONDS', desc: 'Scheduler tick loop interval. Set to 0 to disable.', default_: 'Disabled' },
+      { name: 'OSTK_SCHEDULER_STUCK_AFTER_SECS', desc: 'Seconds before tick escalates from skipped to stuck in audit.', default_: '90' },
+      { name: 'OSTK_SCHEDULER_FORCE_CLEAR_AFTER_SECS', desc: 'Seconds before force-clearing busy flag.', default_: '300' },
+    ],
+  },
+  {
+    label: 'DRAIN_RECOVERY',
+    vars: [
+      { name: 'OSTK_DRAIN_SNAPSHOT', desc: 'Controls drain snapshot writes. Set to 0 to disable.', default_: 'Enabled (v3.0.0+)' },
+    ],
+  },
+  {
+    label: 'MODEL_SECRETS',
+    vars: [
+      { name: 'OSTK_MODEL', desc: 'Override default model for ostk run, ostk do, FROM auto. Overrides HUMANFILE.', default_: 'HUMANFILE' },
+      { name: 'OSTK_SECRET_CMD', desc: 'BYO vault command. Kernel calls $OSTK_SECRET_CMD <key> and reads stdout.', default_: 'None' },
+    ],
+  },
+  {
+    label: 'DIAGNOSTICS',
+    vars: [
+      { name: 'OSTK_DUMP_REQUEST', desc: 'Directory for full API request JSON dumps. For debugging cache/preload.', default_: 'Disabled' },
+      { name: 'OSTK_DUMP_HANDSHAKE', desc: 'File path for handshake bytes at boot. For debugging byte-stability.', default_: 'Disabled' },
+      { name: 'OSTK_NO_CACHE', desc: 'Set to 1 to disable cache_control breakpoints.', default_: 'Disabled' },
+      { name: 'OSTK_T2_OBSERVER', desc: 'Set to 1 for Hot PR Tier 2 arbitration audit rows.', default_: 'Disabled' },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    vars: [
+      { name: 'OSTK_STATE_DIR', desc: 'Override state directory name (instead of .ostk).', default_: '.ostk' },
+      { name: 'OSTK_DIR', desc: 'Absolute path to .ostk directory. Set by kernel for FCP driver subprocesses.', default_: 'Auto' },
+      { name: 'OSTK_REGISTRY_DIR', desc: 'Override global registry directory. Used by CI for isolation.', default_: '~/.ostk/' },
+      { name: 'OSTK_PREPROCESS', desc: 'Preprocessing model for tool output. Overrides HUMANFILE PREPROCESS.', default_: 'HUMANFILE' },
+      { name: 'OSTK_TOOL_THRESHOLD', desc: 'Momentum threshold for verb loading from .language. Float 0-1.', default_: '0.45' },
+    ],
+  },
+];
+---
+
+<DocsLayout
+  title="Environment Variables"
+  description="Runtime configuration via environment variables. Agent identity, scheduler, drain, secrets, diagnostics."
+  sectionLabel="CONFIGURATION // ENV_VARS"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-12">
+    Runtime configuration that doesn't belong in files. Most are optional — the kernel works with zero env vars set.
+  </p>
+
+  {groups.map((group, i) => (
+    <section class="mb-16">
+      <div class="flex items-center gap-4 mb-4">
+        <span class="serif-text text-2xl font-bold text-primary">{String(i + 1).padStart(2, '0')}</span>
+        <h2 class="font-label text-xs uppercase tracking-widest text-primary">{group.label}</h2>
+      </div>
+      <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+        {group.vars.map(v => (
+          <div class="flex gap-4 text-xs font-body py-3 border-b border-surface-variant">
+            <code class="text-primary w-72 shrink-0">{v.name}</code>
+            <span class="text-secondary flex-1">{v.desc}</span>
+            <span class="text-outline w-28 shrink-0 text-right">{v.default_}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/ostk-toml"><Icon name="tune" size="14" class="align-middle mr-1" />OSTK_TOML</a>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+    <a href="/docs/secrets"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
+  </div>
+</DocsLayout>

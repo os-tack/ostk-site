@@ -1,0 +1,132 @@
+---
+import Base from './Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Icon from '../components/Icon.astro';
+
+interface RelatedPage {
+  title: string;
+  description: string;
+  href: string;
+}
+
+interface Props {
+  tagline: string;
+  title: string;
+  description: string;
+  relatedPages?: RelatedPage[];
+}
+
+const { tagline, title, description, relatedPages = [] } = Astro.props;
+
+const sidebarGroups = {
+  items: [
+    { icon: 'auto_fix_high', label: 'CONTEXT_INJECTION', href: '/features/context-injection' },
+    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination' },
+    { icon: 'edit_off', label: 'INVISIBLE_WRITES', href: '/features/invisible-writes' },
+    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail' },
+    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first' },
+    { icon: 'translate', label: 'TACK', href: '/features/tack' },
+    { icon: 'shield', label: 'GOVERNANCE', href: '/features/governance' },
+    { icon: 'swap_horiz', label: 'MODEL_SWITCHING', href: '/features/model-switching' },
+    { icon: 'key', label: 'SECRET_MGMT', href: '/features/secret-management' },
+    { icon: 'tv', label: 'TUI', href: '/features/tui' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'apps', label: 'ALL_FEATURES', href: '/features' },
+  ],
+};
+---
+
+<Base title={title} description={description}>
+  <Sidebar title="FEATURES" subtitle="CAPABILITIES" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-4xl mx-auto py-12">
+      <Breadcrumb crumbs={[
+        { label: 'OSTK', href: '/' },
+        { label: 'FEATURES', href: '/features' },
+        { label: title },
+      ]} />
+      <!-- Feature header -->
+      <div class="font-label text-[10px] uppercase tracking-widest text-primary mb-4">{tagline}</div>
+      <h1 class="serif-text text-5xl font-bold tracking-tighter text-on-surface mb-6">{title}</h1>
+      <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-12">{description}</p>
+
+      <div class="bg-surface-variant h-px mb-12"></div>
+
+      <!-- Content slot -->
+      <div class="feature-content">
+        <slot />
+      </div>
+
+      <!-- Related pages -->
+      {relatedPages.length > 0 && (
+        <div class="mt-20 pt-8 border-t border-surface-variant">
+          <div class="font-label text-[10px] text-secondary mb-4">RELATED_FEATURES</div>
+          <div class="grid grid-cols-3 gap-px bg-surface-variant">
+            {relatedPages.map(page => (
+              <a href={page.href} class="bg-surface p-5 hover:bg-surface-container transition-none group block">
+                <div class="font-body text-sm text-on-surface group-hover:text-primary font-medium">{page.title}</div>
+                <div class="font-body text-xs text-secondary mt-1">{page.description}</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- CTA -->
+      <div class="mt-12 flex gap-4">
+        <a href="/docs/getting-started" class="bg-primary text-on-primary font-body text-xs py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
+          <Icon name="terminal" size="14" />
+          GET_STARTED
+        </a>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .feature-content :global(h2) {
+    font-family: 'Newsreader', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #e7e1de;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+  }
+  .feature-content :global(p) {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.833rem;
+    color: #c2c9b4;
+    line-height: 1.65;
+    max-width: 36rem;
+    margin-bottom: 1rem;
+  }
+  .feature-content :global(code) {
+    color: #ffc169;
+  }
+  .feature-content :global(ul), .feature-content :global(ol) {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.833rem;
+    color: #c2c9b4;
+    line-height: 1.65;
+    max-width: 36rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+  .feature-content :global(li) {
+    margin-bottom: 0.5rem;
+  }
+  .feature-content :global(strong) {
+    color: #e7e1de;
+  }
+  .feature-content :global(a) {
+    color: #ffc169;
+    text-decoration: none;
+  }
+  .feature-content :global(a:hover) {
+    text-decoration: underline;
+  }
+</style>

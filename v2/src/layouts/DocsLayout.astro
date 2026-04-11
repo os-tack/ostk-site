@@ -1,0 +1,59 @@
+---
+import Base from './Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  sectionLabel?: string;
+  activeTab?: 'docs' | 'architecture' | 'commands' | 'trust';
+}
+
+const { title, description, sectionLabel, activeTab = 'docs' } = Astro.props;
+
+const sidebarGroups = {
+  items: [
+    { icon: 'rocket_launch', label: 'QUICK_START', href: '/docs/getting-started' },
+    { icon: 'download', label: 'DOWNLOADS', href: '/docs/downloads' },
+    { icon: 'terminal', label: 'COMMANDS', href: '/docs/commands' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
+    { icon: 'hub', label: 'SESSION_TOPOLOGY', href: '/docs/session-topology' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
+    { icon: 'compress', label: 'COMPRESSION', href: '/docs/compression' },
+    { icon: 'swap_horiz', label: 'MCP_PROXY', href: '/docs/mcp' },
+    { icon: 'tv', label: 'TUI', href: '/docs/tui' },
+    { icon: 'person', label: 'HUMANFILE', href: '/docs/humanfile' },
+    { icon: 'smart_toy', label: 'AGENTFILE', href: '/docs/agentfile' },
+    { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile' },
+    { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile' },
+    { icon: 'tune', label: 'OSTK_TOML', href: '/docs/ostk-toml' },
+    { icon: 'key', label: 'SECRETS', href: '/docs/secrets' },
+    { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  ],
+  bottomItems: [
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
+    { icon: 'help', label: 'FAQ', href: '/docs/faq' },
+    { icon: 'verified', label: 'SECURITY', href: '/security' },
+  ],
+};
+---
+
+<Base title={title} description={description} activeTab={activeTab}>
+  <Sidebar title="DOCUMENTATION" subtitle="v3.0.0 STABLE" groups={sidebarGroups} />
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-4xl mx-auto py-12">
+      <Breadcrumb crumbs={[
+        { label: 'OSTK', href: '/' },
+        { label: 'DOCS', href: '/docs' },
+        { label: title },
+      ]} />
+      {sectionLabel && (
+        <div class="section-label mb-4">{sectionLabel}</div>
+      )}
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">{title}</h1>
+      <slot />
+    </div>
+  </main>
+</Base>

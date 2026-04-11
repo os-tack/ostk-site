@@ -1,0 +1,235 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'auto_fix_high', label: 'CONTEXT_MGMT', href: '/features/context-injection' },
+    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination' },
+    { icon: 'edit_off', label: 'WRITE_TRACKING', href: '/features/invisible-writes' },
+    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail' },
+    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first' },
+    { icon: 'shield', label: 'TRUST', href: '/features/governance' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'apps', label: 'ALL_FEATURES', href: '/features' },
+  ],
+};
+
+const capabilities = [
+  {
+    name: 'Multi-agent coordination',
+    ostk: 'Yes — optimistic concurrency with 3-tier conflict resolution (auto-merge, mechanical rebase, manual)',
+    cursor: 'No — single agent per session',
+    devin: 'No — single agent, cloud-hosted',
+    aider: 'No — single agent',
+    swe_agent: 'No — single agent per task',
+  },
+  {
+    name: 'Runs locally (no cloud)',
+    ostk: 'Yes — single Rust binary, zero dependencies, no telemetry',
+    cursor: 'Partial — IDE extension, some features need cloud',
+    devin: 'No — cloud-only',
+    aider: 'Yes — Python CLI, runs locally',
+    swe_agent: 'Yes — Python, runs locally',
+  },
+  {
+    name: 'Agent-agnostic (any LLM)',
+    ostk: 'Yes — CpuDriver trait abstracts providers (Anthropic, Google, Mistral, OpenRouter, local)',
+    cursor: 'No — Cursor-specific models',
+    devin: 'No — Devin-specific',
+    aider: 'Yes — supports multiple providers',
+    swe_agent: 'Yes — supports multiple providers',
+  },
+  {
+    name: 'File write interception',
+    ostk: 'Tool-layer — invisible to agents, byte-for-byte passthrough, generation counters',
+    cursor: 'N/A — single agent, no coordination needed',
+    devin: 'N/A — cloud sandbox',
+    aider: 'Git-based — uses git diff for tracking',
+    swe_agent: 'N/A — single agent',
+  },
+  {
+    name: 'Trust model',
+    ostk: 'GPG web of trust — 4 tiers (T0-T3), dual-signed primefile, capability pins',
+    cursor: 'None — relies on IDE permissions',
+    devin: 'None — cloud access controls',
+    aider: 'None',
+    swe_agent: 'None',
+  },
+  {
+    name: 'Audit trail',
+    ostk: 'Append-only JSONL — every action timestamped, attributed, reconstructible via fold()',
+    cursor: 'None — IDE undo history only',
+    devin: 'Partial — session logs in cloud',
+    aider: 'Git log — commit-level tracking',
+    swe_agent: 'Log files — not structured',
+  },
+  {
+    name: 'Crash recovery',
+    ostk: 'Drain snapshots at every turn boundary. Automatic rehydration on daemon restart.',
+    cursor: 'IDE session recovery',
+    devin: 'Cloud session persistence',
+    aider: 'None — restart from scratch',
+    swe_agent: 'None — restart from scratch',
+  },
+  {
+    name: 'Token cost reduction',
+    ostk: 'Prompt cache (32% hit rate) + shell output squash. Measured 28% cost reduction on real opus session.',
+    cursor: 'None',
+    devin: 'Unknown',
+    aider: 'None',
+    swe_agent: 'None',
+  },
+  {
+    name: 'Secret management',
+    ostk: 'Platform keychain integration. Values never enter LLM context. All output masked.',
+    cursor: 'IDE credential store',
+    devin: 'Cloud secrets',
+    aider: 'Environment variables (visible in context)',
+    swe_agent: 'Environment variables',
+  },
+  {
+    name: 'Process sandbox',
+    ostk: 'Landlock (Linux) + Seatbelt (macOS) — OS-level syscall enforcement',
+    cursor: 'None',
+    devin: 'Cloud container',
+    aider: 'None',
+    swe_agent: 'Docker container (optional)',
+  },
+];
+---
+
+<Base title="How ostk Compares to AI Coding Tools" description="Feature comparison: ostk vs Cursor, Devin, Aider, and SWE-agent. Multi-agent coordination, trust model, audit trails, and crash recovery.">
+  <Sidebar title="COMPARISON" subtitle="POSITIONING" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-6xl mx-auto py-12">
+      <Breadcrumb crumbs={[
+        { label: 'OSTK', href: '/' },
+        { label: 'FEATURES', href: '/features' },
+        { label: 'Comparison' },
+      ]} />
+
+      <div class="section-label mb-4">POSITIONING // COMPARISON</div>
+      <h1 class="serif-text text-5xl font-bold tracking-tighter text-on-surface mb-6">
+        How ostk Compares
+      </h1>
+      <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
+        ostk is an operating system, not an IDE or agent. It coordinates multiple agents from any provider on the same codebase simultaneously.
+      </p>
+      <p class="font-body text-sm text-secondary max-w-2xl mb-12">
+        Cursor and Aider are single-agent tools. Devin is a cloud-hosted agent. SWE-agent runs one task at a time. ostk runs locally, is agent-agnostic, and provides trust governance, audit trails, and crash recovery that none of these tools offer.
+      </p>
+
+      <!-- Comparison table -->
+      <div class="overflow-x-auto mb-16">
+        <table class="w-full font-body text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-surface-variant">
+              <th class="text-left py-3 pr-4 text-secondary font-label text-[10px] uppercase tracking-widest w-48">Capability</th>
+              <th class="text-left py-3 px-3 text-primary font-label text-[10px] uppercase tracking-widest">ostk</th>
+              <th class="text-left py-3 px-3 text-outline font-label text-[10px] uppercase tracking-widest">Cursor</th>
+              <th class="text-left py-3 px-3 text-outline font-label text-[10px] uppercase tracking-widest">Devin</th>
+              <th class="text-left py-3 px-3 text-outline font-label text-[10px] uppercase tracking-widest">Aider</th>
+              <th class="text-left py-3 px-3 text-outline font-label text-[10px] uppercase tracking-widest">SWE-agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {capabilities.map(cap => (
+              <tr class="border-b border-surface-variant/50">
+                <td class="py-3 pr-4 text-on-surface font-medium">{cap.name}</td>
+                <td class="py-3 px-3 text-secondary bg-surface-container-low">{cap.ostk}</td>
+                <td class="py-3 px-3 text-outline">{cap.cursor}</td>
+                <td class="py-3 px-3 text-outline">{cap.devin}</td>
+                <td class="py-3 px-3 text-outline">{cap.aider}</td>
+                <td class="py-3 px-3 text-outline">{cap.swe_agent}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Key differentiators -->
+      <section class="mb-16">
+        <h2 class="section-label mb-6">KEY_DIFFERENTIATORS</h2>
+        <div class="space-y-px">
+          {[
+            {
+              num: '01',
+              title: 'ostk is an OS, not an agent',
+              body: 'Cursor, Devin, and Aider are agents or agent wrappers. ostk sits below the agent layer. It coordinates any agent from any provider — Claude, Gemini, Mistral, or local models. You choose the agent; ostk handles the infrastructure.',
+            },
+            {
+              num: '02',
+              title: 'Multiple agents, simultaneously',
+              body: 'Every other tool runs one agent at a time. ostk runs a fleet. The scheduler dispatches work. Workers run in parallel. Conflicts resolve mechanically. Fleet cost scales sublinearly because agents share the prompt cache.',
+            },
+            {
+              num: '03',
+              title: 'Trust is cryptographic, not organizational',
+              body: 'No tool in this space has a trust model. ostk uses GPG cross-signatures to determine who can write what. Four tiers, dual-signed governance, deny-based capability pins. Agents earn access; they don\'t start with it.',
+            },
+            {
+              num: '04',
+              title: 'Everything is auditable and reconstructible',
+              body: 'Aider uses git commits. Devin has cloud logs. ostk has an append-only JSONL audit trail where fold(audit.jsonl) can reconstruct the exact fleet state at any point in time. Crash recovery is built into the kernel.',
+            },
+          ].map(d => (
+            <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 gap-0">
+              <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-6">
+                <span class="serif-text text-2xl font-bold text-primary">{d.num}</span>
+              </div>
+              <div class="md:col-span-11 p-6">
+                <h3 class="serif-text text-xl font-medium text-on-surface mb-2">{d.title}</h3>
+                <p class="font-body text-xs text-secondary leading-relaxed max-w-xl">{d.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- When to use ostk -->
+      <section class="mb-16">
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">When to Use ostk</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+          <div class="bg-surface-container p-6">
+            <div class="font-label text-[10px] text-primary mb-2">USE_OSTK_WHEN</div>
+            <ul class="font-body text-xs text-secondary space-y-2">
+              <li>You run 2+ AI agents on the same codebase</li>
+              <li>You need to audit every change agents make</li>
+              <li>You want agents from different providers working together</li>
+              <li>You need trust boundaries and capability restrictions</li>
+              <li>You want crash recovery and session persistence</li>
+              <li>You prefer local-first with no cloud dependency</li>
+            </ul>
+          </div>
+          <div class="bg-surface-container p-6">
+            <div class="font-label text-[10px] text-outline mb-2">CONSIDER_ALTERNATIVES_WHEN</div>
+            <ul class="font-body text-xs text-outline space-y-2">
+              <li>You use one agent at a time (Cursor or Aider may suffice)</li>
+              <li>You want a managed cloud experience (Devin)</li>
+              <li>You don't need audit trails or trust governance</li>
+              <li>You want an integrated IDE rather than a terminal OS</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <div class="flex gap-4">
+        <a href="/docs/getting-started" class="bg-primary text-on-primary font-body text-xs py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
+          <Icon name="terminal" size="14" />
+          GET_STARTED
+        </a>
+        <a href="/features" class="bg-surface-variant text-primary font-body text-xs py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
+          <Icon name="apps" size="14" />
+          ALL_FEATURES
+        </a>
+      </div>
+    </div>
+  </main>
+</Base>

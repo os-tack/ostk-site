@@ -1,0 +1,161 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
+    { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins' },
+    { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile' },
+    { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile' },
+    { icon: 'person', label: 'HUMANFILE', href: '/docs/humanfile' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  ],
+  bottomItems: [
+    { icon: 'verified', label: 'SECURITY', href: '/security' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+  ],
+};
+---
+
+<Base title="Governance" description="How ostk governs itself: signed documents, GPG web of trust, cryptographic enforcement, and the Five Laws.">
+  <Sidebar title="GOVERNANCE" subtitle="TRUST_CHAIN" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-4xl mx-auto py-12">
+      <Breadcrumb crumbs={[
+        { label: 'OSTK', href: '/' },
+        { label: 'Governance' },
+      ]} />
+
+      <div class="section-label mb-4">GOVERNANCE // OVERVIEW</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Governance</h1>
+      <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
+        ostk is governed by signed documents, not by permissions dashboards. Trust is cryptographic. Enforcement is invisible.
+      </p>
+
+      <!-- Governance documents -->
+      <section class="mb-16">
+        <h2 class="section-label mb-6">GOVERNANCE_DOCUMENTS</h2>
+        <div class="space-y-px">
+          {[
+            { doc: 'HUMANFILE', governs: 'Models, secrets, trust policy, pin defaults, operator identity', who: 'T0 only', href: '/docs/humanfile' },
+            { doc: 'ENTITYFILE', governs: 'OS identity, key registry, fleet state, laws', who: 'T0 only (negotiate protocol)', href: '/docs/entityfile' },
+            { doc: '.primefile', governs: 'Root of trust, kernel version, signing authority, lineage', who: 'Kernel (dual-signed by T0)', href: '/docs/primefile' },
+            { doc: 'Agentfile', governs: 'Agent model, prompt, tools, limits, isolation, attestation', who: 'T0 or T1 (signed)', href: '/docs/agentfile' },
+          ].map(d => (
+            <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+              <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
+                <a href={d.href} class="font-body text-sm text-primary hover:underline font-bold">{d.doc}</a>
+              </div>
+              <div class="md:col-span-6 px-4 py-4">
+                <span class="font-body text-xs text-secondary">{d.governs}</span>
+              </div>
+              <div class="md:col-span-3 px-4 py-4">
+                <span class="font-body text-xs text-outline">{d.who}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="font-body text-xs text-secondary mt-4">
+          All governance files are protected by the <code class="text-primary">modify-governance</code> deny token. Agents at T1 or below are blocked from writing to them. <a href="/docs/pins" class="text-primary hover:underline">→ Capability Pins</a>
+        </p>
+      </section>
+
+      <!-- Trust tiers summary -->
+      <section class="mb-16">
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Trust Tiers</h2>
+        <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+          Identity is determined by GPG cross-signatures. Four tiers from full governance to anonymous.
+        </p>
+        <div class="grid grid-cols-4 gap-px bg-surface-variant mb-4">
+          {[
+            { tier: 'T0', label: 'Full governance', desc: 'Dual-signed. Can modify everything.' },
+            { tier: 'T1', label: 'Write access', desc: 'Cross-signed. Write source, not OS.' },
+            { tier: 'T2', label: 'Read-only', desc: 'GPG present, not cross-signed.' },
+            { tier: 'T3', label: 'Anonymous', desc: 'No GPG key. Cannot boot.' },
+          ].map(t => (
+            <div class="bg-surface-container p-5">
+              <span class="serif-text text-2xl font-bold text-primary">{t.tier}</span>
+              <div class="font-body text-xs text-on-surface mt-1">{t.label}</div>
+              <div class="font-body text-[10px] text-outline mt-1">{t.desc}</div>
+            </div>
+          ))}
+        </div>
+        <p class="font-body text-xs text-secondary">
+          Full details: <a href="/docs/trust-model" class="text-primary hover:underline">Trust Model</a>
+        </p>
+      </section>
+
+      <!-- Five Laws summary -->
+      <section class="mb-16">
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">The Five Laws</h2>
+        <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+          {[
+            { num: '01', law: 'The write path is invisible' },
+            { num: '02', law: 'Agents are ephemeral' },
+            { num: '03', law: 'Coordinate through the filesystem' },
+            { num: '04', law: 'Optimistic concurrency' },
+            { num: '05', law: 'Invisible infrastructure, always' },
+          ].map(l => (
+            <div class="flex items-center gap-4 py-2 border-b border-surface-variant last:border-b-0">
+              <span class="font-body text-xs text-primary font-bold">{l.num}</span>
+              <span class="font-body text-sm text-on-surface">{l.law}</span>
+            </div>
+          ))}
+        </div>
+        <p class="font-body text-xs text-secondary mt-4">
+          Every feature proposal is tested against all five. No exceptions. <a href="/docs/five-laws" class="text-primary hover:underline">→ Five Laws</a>
+        </p>
+      </section>
+
+      <!-- Signing chain -->
+      <section class="mb-16">
+        <h2 class="section-label mb-6">SIGNING_CHAIN</h2>
+        <div class="space-y-px">
+          {[
+            { step: '01', stage: 'DEVELOPMENT', desc: 'Commits signed by the developer\'s personal GPG key' },
+            { step: '02', stage: 'RELEASE', desc: 'Repository commit signed by the institutional key (@ostk.ai)' },
+            { step: '03', stage: 'BINARY', desc: 'Release binaries signed by the CI key (cross-signed by root)' },
+            { step: '04', stage: 'VERIFICATION', desc: 'Any user can verify any artifact against the public key' },
+          ].map(s => (
+            <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+              <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+                <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+              </div>
+              <div class="md:col-span-3 px-4 py-3">
+                <span class="font-body text-xs text-on-surface font-bold">{s.stage}</span>
+              </div>
+              <div class="md:col-span-8 px-4 py-3">
+                <span class="font-body text-xs text-secondary">{s.desc}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Source availability -->
+      <section class="mb-16">
+        <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+          <h2 class="serif-text text-xl font-medium text-on-surface mb-3">Source Availability</h2>
+          <p class="font-body text-xs text-on-surface mb-2">
+            The <a href="https://github.com/os-tack/ostk.ai" class="text-primary hover:underline">os-tack/ostk.ai</a> repository — governance documents, signing keys, install script, and release configuration — is open source under MIT license.
+          </p>
+          <p class="font-body text-xs text-secondary">
+            The kernel source is not currently published. The governance model, trust chain, and all verification artifacts are fully public and auditable.
+          </p>
+        </div>
+      </section>
+
+      <div class="metadata-ribbon border-t border-surface-variant">
+        <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+        <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+        <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+        <a href="/docs/entityfile"><Icon name="groups" size="14" class="align-middle mr-1" />ENTITYFILE</a>
+        <a href="/docs/five-laws"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
+      </div>
+    </div>
+  </main>
+</Base>

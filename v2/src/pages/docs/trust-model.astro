@@ -1,0 +1,199 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="Trust Model"
+  description="Four trust tiers, GPG web of trust, capability pins, and the approval chain that governs every agent action."
+  sectionLabel="GOVERNANCE // TRUST_CHAIN"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    GPG cross-signatures determine trust, not harness identity. The web of trust anchors at the @ostk.ai root key and T0 holder keys.
+  </p>
+
+  <!-- Tier Overview -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">TRUST_TIERS</h2>
+    <div class="space-y-px">
+      {[
+        {
+          tier: 'T0', label: 'FULL_GOVERNANCE',
+          who: 'Human operator',
+          proof: 'GPG key in T0_TRUST_ANCHORS, dual-signed .primefile',
+          can: ['Unrestricted write access', 'Modify ENTITYFILE, .primefile, GOVERNANCE.md', 'Revoke T1 CI keys', 'Approve GPG cross-signatures', 'Skip approval chain entirely'],
+          deny: [],
+        },
+        {
+          tier: 'T1', label: 'WRITE_ACCESS',
+          who: 'Verified agent or CI',
+          proof: 'GPG key cross-signed by a T0 holder',
+          can: ['Write source code', 'Run agents, delegate needles', 'Execute within mode gate + patterns'],
+          deny: ['write-kernel', 'modify-governance'],
+        },
+        {
+          tier: 'T2', label: 'READ_ONLY',
+          who: 'GPG key present, not cross-signed',
+          proof: 'GPG key exists but check_gpg_cross_signature() returns None',
+          can: ['Boot and explore', 'Read all files', 'Write to non-src paths outside .ostk/ and governance files'],
+          deny: ['write-kernel', 'modify-governance', 'write-src'],
+        },
+        {
+          tier: 'T3', label: 'ANONYMOUS',
+          who: 'No GPG key',
+          proof: 'discover_gpg_key() returns None',
+          can: ['Public artifacts only'],
+          deny: ['ALL WRITES (allows_write=false)', 'Cannot boot — hard fail'],
+        },
+      ].map(t => (
+        <div class="bg-surface-container-low mb-px">
+          <div class="grid grid-cols-12 gap-0">
+            <div class="md:col-span-1 bg-surface-container flex items-start justify-center pt-6">
+              <span class="serif-text text-3xl font-bold text-primary">{t.tier}</span>
+            </div>
+            <div class="md:col-span-11 p-6">
+              <div class="flex items-baseline gap-3 mb-3">
+                <h3 class="font-body text-sm text-on-surface font-bold">{t.label}</h3>
+                <span class="font-body text-xs text-outline">— {t.who}</span>
+              </div>
+              <div class="font-body text-[10px] text-outline mb-4">{t.proof}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div class="font-label text-[10px] text-primary mb-2">ALLOWED</div>
+                  {t.can.map(c => (
+                    <div class="font-body text-xs text-secondary py-1">{c}</div>
+                  ))}
+                </div>
+                {t.deny.length > 0 && (
+                  <div>
+                    <div class="font-label text-[10px] text-error mb-2">DENIED</div>
+                    {t.deny.map(d => (
+                      <div class="font-body text-xs text-error/70 py-1">{d}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Determination Algorithm -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">How the Kernel Determines Trust</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      At boot, <code class="text-primary">determine_trust_tier()</code> runs this decision tree.
+    </p>
+    <div class="space-y-px">
+      {[
+        { step: '01', check: 'Read HUMANFILE SIGN key', result: 'If it matches a T0_TRUST_ANCHOR → T0' },
+        { step: '02', check: 'Discover GPG secret key', result: 'If no GPG key found → T3 (anonymous)' },
+        { step: '03', check: 'Check if key is a T0 anchor', result: 'If fingerprint in T0_TRUST_ANCHORS → T0' },
+        { step: '04', check: 'Check for T0 cross-signature', result: 'gpg --check-sigs finds sig! from T0 anchor → T1' },
+        { step: '05', check: 'GPG key present, not cross-signed', result: '→ T2 (read-only)' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-5 px-4 py-3">
+            <span class="font-body text-xs text-on-surface">{s.check}</span>
+          </div>
+          <div class="md:col-span-6 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.result}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Capability Pins -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Capability Pins</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Pins restrict what agents can write. Trust tier is a <span class="text-primary font-bold">floor</span> — an explicit pin can only add restrictions, never remove tier defaults.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <h3 class="section-label-secondary mb-4">CAPABILITY_TOKENS</h3>
+      {[
+        { token: 'write-kernel', effect: 'Denies ALL writes under .ostk/' },
+        { token: 'modify-governance', effect: 'Denies writes to .primefile, GOVERNANCE.md, ENTITYFILE, HUMANFILE, .af files, /agents/' },
+        { token: 'write-src', effect: 'Denies writes to paths containing /src/' },
+      ].map(t => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <code class="text-error w-40 shrink-0">{t.token}</code>
+          <span class="text-secondary">{t.effect}</span>
+        </div>
+      ))}
+    </div>
+
+    <h3 class="section-label-secondary mb-4">PIN.CAPS_FORMAT</h3>
+    <div class="bg-surface-container-lowest p-4 border border-surface-variant">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">read:</span> .ostk/ .language
+<span class="text-primary">write:</span> .ostk/store/{'{name}'}/ .ostk/needles/ .ostk/hay/
+<span class="text-primary">execute:</span> shell(readonly)
+<span class="text-error">deny:</span> write-kernel modify-governance
+<span class="text-error">deny-verb:</span> :shutdown
+<span class="text-error">deny-verb:</span> bail pack --private</pre>
+    </div>
+  </section>
+
+  <!-- Approval Chain -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Approval Chain</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Every tool call passes through this chain. First match wins.
+    </p>
+    <div class="space-y-px">
+      {[
+        { step: '1', name: 'HARD_DENY', desc: 'pin.caps deny tokens → auto-deny. Parse error → fail-closed.' },
+        { step: '2', name: 'DESTRUCTIVE_CHECK', desc: 'rm -rf, git push --force, etc. Always prompts. Never bypassed.' },
+        { step: '3', name: 'KERNEL_TOOLS', desc: 'kernel:read → allow. kernel:write → continue. kernel:spawn → continue.' },
+        { step: '4', name: 'PERMISSION_MODE', desc: 'Autonomous → allow all. Auto → allow reads. Governed → continue. Plan → deny.' },
+        { step: '5', name: 'SESSION_ALLOW_LIST', desc: 'Runtime-persisted class approvals. Revocable mid-session.' },
+        { step: '6', name: 'AGENTFILE_PATTERNS', desc: 'TOOL directives with trust resolution. Signed Agentfile may be required.' },
+        { step: '7', name: 'USER_PROMPT', desc: 'Modal: Y (approve), N (deny), A (approve all for this class).' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="font-body text-sm font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-3">
+            <span class="font-body text-xs text-on-surface font-bold">{s.name}</span>
+          </div>
+          <div class="md:col-span-8 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Escalation -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Tier Escalation</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
+      {[
+        { from: 'T3 → T2', action: 'Generate a GPG key', cmd: 'gpg --full-generate-key' },
+        { from: 'T2 → T1', action: 'Get cross-signed by T0', cmd: 'gpg --local-user T0_KEY --sign-key YOUR_KEY' },
+        { from: 'T1 → T0', action: 'Dual-sign .primefile', cmd: 'gpg --detach-sign --local-user T0_KEY .ostk/.primefile' },
+      ].map(e => (
+        <div class="bg-surface-container p-6">
+          <div class="font-body text-sm text-primary font-bold mb-2">{e.from}</div>
+          <p class="font-body text-xs text-secondary mb-3">{e.action}</p>
+          <code class="font-body text-[10px] text-outline">{e.cmd}</code>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/entityfile"><Icon name="groups" size="14" class="align-middle mr-1" />ENTITYFILE</a>
+    <a href="/docs/primefile"><Icon name="settings" size="14" class="align-middle mr-1" />PRIMEFILE</a>
+    <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+    <a href="/docs/five-laws"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
+  </div>
+</DocsLayout>

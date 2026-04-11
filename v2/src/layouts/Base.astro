@@ -1,0 +1,50 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeTab?: 'docs' | 'architecture' | 'commands' | 'trust';
+}
+
+const { title, description, activeTab } = Astro.props;
+const pageTitle = title.includes('ostk') ? title : `${title} — ostk`;
+const metaDescription = description || 'ostk — the operating system for AI coding agents. Local-first coordination through the filesystem.';
+---
+
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={metaDescription} />
+  <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).href} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <!-- Open Graph -->
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={metaDescription} />
+  <meta property="og:image" content="https://ostk.ai/og-image.png" />
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
+  <meta property="og:type" content="website" />
+  <!-- Twitter/X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={pageTitle} />
+  <meta name="twitter:description" content={metaDescription} />
+  <meta name="twitter:image" content="https://ostk.ai/og-image.png" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+  <!-- Material Symbols removed — using inline SVG Icon component -->
+</head>
+<body class="flex flex-col min-h-screen">
+  <Header activeTab={activeTab} />
+  <slot />
+  <Footer />
+  <slot name="schema" />
+</body>
+</html>

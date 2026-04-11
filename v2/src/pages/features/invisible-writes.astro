@@ -1,0 +1,49 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Multi-Agent Coordination", description: "Conflict resolution across agents", href: "/features/coordination" },
+  { title: "Audit Trail", description: "Every edit tracked and signed", href: "/features/audit-trail" },
+  { title: "Five Laws", description: "The design constraints", href: "/docs/five-laws" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // CORE_ARCHITECTURE"
+  title="AI Agent File Write Tracking"
+  description="Agents edit files with their normal tools. The OS intercepts every write, coordinates between agents, and maintains an audit trail. The agent never knows."
+  relatedPages={relatedPages}
+>
+  <h2>The principle</h2>
+  <p>
+    AI agents already know how to write files. Claude uses <code>write_to_file</code>. GPT uses code interpreter. Every agent has a file-writing mechanism built in.
+  </p>
+  <p>
+    ostk does not replace these tools. It does not ask agents to learn a new API, call a special endpoint, or use a custom SDK. Agents write files exactly the way they normally would. The OS intercepts those writes, handles coordination and tracking, and lets the write complete.
+  </p>
+
+  <h2>What happens when an agent writes a file</h2>
+  <ol>
+    <li>The agent issues a file write through its normal tool.</li>
+    <li>The OS intercepts the write before it hits disk.</li>
+    <li>The OS checks for conflicts with other agents on the same file.</li>
+    <li>The OS records the write in the audit trail — who, what, when, and the full diff.</li>
+    <li>The write completes. The file on disk matches what the agent intended.</li>
+  </ol>
+
+  <h2>Byte-for-byte passthrough</h2>
+  <p>
+    The OS never modifies the content of a write (outside of conflict resolution). If an agent writes 847 bytes to <code>src/index.js</code>, exactly 847 bytes land on disk. No comments injected, no watermarks, no reformatting.
+  </p>
+  <p>
+    This matters because agents verify their own writes. Many agents read a file back after writing to confirm the edit took effect. If the OS modified the content, the agent would detect the discrepancy and enter a retry loop. Byte-for-byte passthrough means self-verification always succeeds.
+  </p>
+
+  <h2>Tool-layer interception</h2>
+  <p>
+    ostk intercepts writes at the <strong>tool layer</strong>, not the filesystem. No FUSE mount, no <code>inotify</code>, no <code>LD_PRELOAD</code>, no <code>ptrace</code>. Agents write through kernel primitives (<code>file:edit</code>, <code>file:write</code>, <code>file:create</code>) that apply policy, locking, and version tracking before bytes hit disk.
+  </p>
+  <p>
+    If a write went through the tool, the kernel saw it. If a write bypassed the tool (direct shell <code>echo ></code>), the kernel did not — by design. This is a deliberate trade-off: tool-layer mediation covers only writes through the kernel's primitives, but with zero overhead for unmediated I/O and deterministic behavior.
+  </p>
+</FeaturePage>

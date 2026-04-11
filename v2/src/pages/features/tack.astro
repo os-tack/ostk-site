@@ -1,0 +1,37 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "TUI", description: "Terminal interface with tack bar", href: "/features/tui" },
+  { title: "Commands", description: "Full CLI reference", href: "/docs/commands" },
+  { title: "Five Laws", description: "The design constraints", href: "/docs/five-laws" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // LANGUAGE"
+  title="Tack — AI Agent Intent Language"
+  description="Compressed intent language. The OS learns your vocabulary over time. Communication gets shorter as you work."
+  relatedPages={relatedPages}
+>
+  <h2>What tack is</h2>
+  <p>
+    Tack is the operator intent language in the TUI. You type intent into the tack bar. The kernel resolves it — sometimes to a command, sometimes to an LLM query, sometimes to a needle reference.
+  </p>
+
+  <h2>Grammar</h2>
+  <ul>
+    <li><strong><code>:</code> prefix</strong> — Hard command. Dispatches directly to the kernel. <code>:compile</code>, <code>:reap</code>, <code>:status</code>.</li>
+    <li><strong><code>.?</code> prefix</strong> — Soft probe. Queries the OS through the LLM. <code>.? what is store</code>.</li>
+    <li><strong><code>→NNN</code></strong> — Needle reference. <code>→573</code> opens that needle.</li>
+    <li><strong>Bare text</strong> — Filed as hay (raw unstructured intent). Later compiled into needles via <code>:compile</code>.</li>
+  </ul>
+
+  <h2>The .language file</h2>
+  <p>
+    The OS maintains a <code>.language</code> file — a pipe-delimited table of verbs, their tiers, layers, and usage momentum. As you use verbs, their momentum increases. Unused verbs decay. The kernel loads high-momentum verbs at boot and demand-spawns the rest.
+  </p>
+  <p>
+    Over time, your tack vocabulary converges on the commands you actually use. The OS adapts to you, not the other way around.
+  </p>
+</FeaturePage>

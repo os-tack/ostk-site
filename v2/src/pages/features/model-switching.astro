@@ -1,0 +1,36 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "HUMANFILE", description: "Model and fallback configuration", href: "/docs/humanfile" },
+  { title: "Agentfile", description: "FROM directive for model selection", href: "/docs/agentfile" },
+  { title: "Architecture", description: "CpuDriver trait abstraction", href: "/docs/architecture" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // FLEXIBILITY"
+  title="Switch AI Models Mid-Session"
+  description="Switch models mid-session. Context survives the handoff. Works across vendors — Anthropic, Google, Mistral, OpenRouter."
+  relatedPages={relatedPages}
+>
+  <h2>How it works</h2>
+  <p>
+    The CpuDriver trait abstracts the model boundary. Below it, the kernel doesn't know whether it's talking to Claude, Gemini, or Mistral. Above it, your agent session continues with the same context, the same tools, the same permissions.
+  </p>
+
+  <h2>Fallback chains</h2>
+  <p>
+    Set <code>MODEL</code> and <code>FALLBACK</code> in your HUMANFILE. If the primary model is unavailable or rate-limited, the kernel switches to the fallback automatically. The agent doesn't see the switch.
+  </p>
+
+  <h2>Per-agent models</h2>
+  <p>
+    The <code>FROM</code> directive in an Agentfile specifies the model for that agent. Different agents in the same fleet can run different models. The scheduler on Opus, workers on Sonnet, reviewers on Haiku.
+  </p>
+
+  <h2>Available models</h2>
+  <p>
+    The <code>AVAILABLE &lt;&lt;MODELS</code> heredoc in your HUMANFILE lists all authorized models. Agents with <code>FROM auto</code> select from this list based on task requirements.
+  </p>
+</FeaturePage>

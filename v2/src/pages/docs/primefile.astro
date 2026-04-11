@@ -1,0 +1,123 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title=".primefile"
+  description="The kernel identity document. Dual-signed root of trust for the entire ostk installation."
+  sectionLabel="CONFIGURATION // ROOT_OF_TRUST"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    The kernel's identity document. The OS writes it. You read it to verify what's running.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    Location: <code class="text-primary">.ostk/.primefile</code>
+  </p>
+
+  <!-- What it is -->
+  <section class="mb-16">
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        The <code class="text-primary">.primefile</code> is <span class="text-primary font-bold">dual-signed</span>: once by the kernel's GPG key (T1), and once by the operator's personal GPG key (T0).
+      </p>
+      <p class="font-body text-xs text-secondary">
+        Changes require re-signing by both keys, in person. Modifying it manually invalidates the signature and may cause the kernel to refuse to boot.
+      </p>
+    </div>
+  </section>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-outline">---BEGIN HAYSTACK.PRIME KERNEL DECLARATION---</span>
+
+<span class="text-primary">KERNEL:</span> @project.prime
+<span class="text-primary">VERSION:</span> 3.0.0
+<span class="text-primary">CREATED:</span> 2026-03-10T00:00:00Z
+
+<span class="text-primary">AUTHORITY:</span>
+  Primary: @operator (Human operator, HUMANFILE authority)
+  Kernel: @project.prime (Persistent kernel, GOVERNANCE.md authority)
+  Co-signers: Both keys required for mutation
+
+<span class="text-primary">KEYS:</span>
+  T0 Human Root:
+    Name: Your Name &lt;you@example.com&gt;
+    Key: AAAA...1111
+    Algorithm: ed25519
+
+  T1 Kernel:
+    Name: @project.prime (v3.0) &lt;kernel@project.prime&gt;
+    Key: BBBB...2222
+    Algorithm: ed25519
+
+<span class="text-primary">LINEAGE:</span>
+  Root: @operator GPG signature
+  Co-sign: @project.prime GPG signature
+  Chain: Unbroken from 2026-03-10
+
+<span class="text-outline">---SIGNATURES BELOW---</span></pre>
+    </div>
+  </section>
+
+  <!-- Fields -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">FIELDS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { field: 'KERNEL', desc: 'Kernel identity name. Default: @project.prime.' },
+        { field: 'VERSION', desc: 'Kernel declaration version.' },
+        { field: 'AUTHORITY', desc: 'Who controls the kernel — primary (human), kernel, and co-signer requirements.' },
+        { field: 'KEYS', desc: 'GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.' },
+        { field: 'LINEAGE', desc: 'Root of trust chain, co-signers, and chain continuity date.' },
+      ].map(f => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <code class="text-primary w-28 shrink-0">{f.field}</code>
+          <span class="text-secondary">{f.desc}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Verification -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SIGNATURE_VERIFICATION</h2>
+    <div class="bg-surface-container-lowest p-4 border border-surface-variant mb-4">
+      <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant mb-3">
+        <div class="w-2 h-2 rounded-full bg-error-container"></div>
+        <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+        <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+        <span class="ml-auto font-label text-[9px] text-outline">TERMINAL</span>
+      </div>
+      <div class="font-body text-xs leading-relaxed">
+        <div><span class="text-outline select-none">$ </span><span class="text-primary">gpg --verify .ostk/.primefile.asc .ostk/.primefile</span></div>
+        <div><span class="text-outline select-none">$ </span><span class="text-primary">gpg --verify .ostk/.primefile.t0.asc .ostk/.primefile</span></div>
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      Both verifications must pass. A single-sig primefile (T1 only) is not trusted for production. The chain runs: human T0 key → kernel root key → CI key.
+    </p>
+  </section>
+
+  <!-- You don't edit this -->
+  <section class="mb-16">
+    <div class="bg-error/5 border border-error/20 p-6">
+      <div class="font-label text-[10px] uppercase tracking-widest text-error mb-2 flex items-center gap-1">
+        <Icon name="warning" size="14" class="text-xs" />
+        DO_NOT_EDIT
+      </div>
+      <p class="font-body text-xs text-on-surface">
+        Unlike HUMANFILE and ENTITYFILE, you do not write the primefile. The kernel owns it. Manual modification invalidates the signature and may prevent boot.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+    <a href="/docs/entityfile"><Icon name="groups" size="14" class="align-middle mr-1" />ENTITYFILE</a>
+    <a href="/docs/ostk-toml"><Icon name="tune" size="14" class="align-middle mr-1" />OSTK_TOML</a>
+  </div>
+</DocsLayout>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KERNEL_v4.0.2_STABLE | Configuration &amp; Manifests</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed": "#1c1c18",
+            "on-surface-variant": "#d5c4b1",
+            "tertiary-fixed": "#e5e2dc",
+            "surface-container-lowest": "#100e0c",
+            "surface": "#151311",
+            "on-surface": "#e7e1de",
+            "primary-container": "#e5a443",
+            "inverse-on-surface": "#32302e",
+            "surface-container": "#211f1d",
+            "tertiary-fixed-dim": "#c9c6c1",
+            "on-primary-container": "#5e3c00",
+            "on-background": "#e7e1de",
+            "surface-container-highest": "#373432",
+            "error": "#ffb4ab",
+            "primary": "#ffc169",
+            "secondary-container": "#454b3b",
+            "on-primary-fixed": "#291800",
+            "on-secondary-fixed": "#171d10",
+            "primary-fixed-dim": "#feba56",
+            "surface-container-low": "#1d1b19",
+            "on-secondary-fixed-variant": "#424939",
+            "on-primary-fixed-variant": "#633f00",
+            "surface-dim": "#151311",
+            "background": "#151311",
+            "surface-tint": "#feba56",
+            "inverse-primary": "#835500",
+            "on-secondary": "#2c3323",
+            "surface-container-high": "#2c2927",
+            "on-error": "#690005",
+            "inverse-surface": "#e7e1de",
+            "secondary-fixed-dim": "#c2c9b4",
+            "secondary": "#c2c9b4",
+            "tertiary-container": "#b2b0ab",
+            "on-tertiary-container": "#44433f",
+            "primary-fixed": "#ffddb4",
+            "surface-variant": "#373432",
+            "outline": "#9e8e7d",
+            "on-secondary-container": "#b4bba6",
+            "outline-variant": "#514536",
+            "secondary-fixed": "#dee5cf",
+            "on-tertiary-fixed-variant": "#474743",
+            "on-error-container": "#ffdad6",
+            "surface-bright": "#3b3936",
+            "tertiary": "#cecbc6",
+            "on-tertiary": "#31312d",
+            "on-primary": "#452b00",
+            "error-container": "#93000a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0px",
+            "lg": "0px",
+            "xl": "0px",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Newsreader", "serif"],
+            "body": ["Space Grotesk", "monospace"],
+            "label": ["Space Grotesk", "monospace"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 18px;
+    }
+    body {
+      background-color: #151311;
+      color: #e7e1de;
+      font-family: 'Space Grotesk', monospace;
+    }
+    .headline-lg { font-family: 'Newsreader', serif; font-size: 2.5rem; line-height: 1.1; font-weight: 700; }
+    .display-md { font-family: 'Newsreader', serif; font-size: 3.5rem; line-height: 1.1; font-weight: 800; }
+    .label-sm { font-family: 'Space Grotesk', monospace; font-size: 0.75rem; tracking: 0.1em; text-transform: uppercase; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .custom-gradient-cta {
+      background: linear-gradient(135deg, #ffc169 0%, #e5a443 100%);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- TopNavBar Implementation -->
+<nav class="flex justify-between items-center w-full px-6 py-2 bg-[#1c1a18] fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="font-serif text-xl font-bold text-[#ffc169] uppercase tracking-tighter">KERNEL_v4.0.2_STABLE</span>
+<div class="hidden md:flex gap-6">
+<a class="text-[#c2c9b4] font-mono opacity-80 text-lg tracking-tight uppercase hover:bg-[#373432] transition-none px-2" href="#">SYSCALLS</a>
+<a class="text-[#c2c9b4] font-mono opacity-80 text-lg tracking-tight uppercase hover:bg-[#373432] transition-none px-2" href="#">DRIVERS</a>
+<a class="text-[#ffc169] border-l-2 border-[#ffc169] pl-2 font-mono text-lg tracking-tight uppercase" href="#">FS</a>
+<a class="text-[#c2c9b4] font-mono opacity-80 text-lg tracking-tight uppercase hover:bg-[#373432] transition-none px-2" href="#">NET</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-high px-3 py-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm font-mono w-48 text-on-surface" placeholder="QUERY_MANIFEST..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:bg-[#373432]">terminal</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:bg-[#373432]">settings_input_component</span>
+</div>
+</nav>
+<div class="bg-[#373432] h-[2px] w-full fixed top-[44px] z-50"></div>
+<div class="flex flex-1 pt-[46px]">
+<!-- SideNavBar Implementation -->
+<aside class="fixed left-0 top-0 h-screen flex flex-col z-40 bg-[#151311] w-64 pt-16">
+<div class="px-6 mb-8">
+<h2 class="font-serif text-lg text-[#ffc169]">ARCHIVE_ROOT</h2>
+<p class="font-mono text-[10px] uppercase tracking-widest text-secondary">MAN_PAGE_v2.1</p>
+</div>
+<nav class="flex-1 flex flex-col">
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">book</span> INTRODUCTION
+        </a>
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">memory</span> MEMORY_MGMT
+        </a>
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">speed</span> SCHEDULER
+        </a>
+<a class="bg-[#373432] text-[#ffc169] font-bold border-l-4 border-[#ffc169] py-3 px-4 flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">folder_open</span> VFS_LAYER
+        </a>
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">swap_horiz</span> IPC_PROTOCOLS
+        </a>
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">settings_input_hdmi</span> HARDWARE_ABSTRACTION
+        </a>
+</nav>
+<div class="border-t border-[#100e0c] mt-auto">
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">list_alt</span> LOGS
+        </a>
+<a class="text-[#c2c9b4] opacity-70 py-3 px-4 hover:bg-[#1c1a18] hover:opacity-100 transition-none flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined">analytics</span> DIAG
+        </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 bg-surface p-12 overflow-y-auto">
+<!-- Page Header -->
+<header class="mb-12">
+<span class="label-sm text-secondary block mb-2 tracking-[0.3em]">FILESYSTEM_COORDINATION_MANIFEST</span>
+<h1 class="display-md text-on-surface mb-6">Coordination &amp; State Manifests</h1>
+<div class="h-[1px] bg-surface-container-highest w-full mb-6"></div>
+<div class="flex items-center gap-8 text-secondary">
+<div class="flex items-center gap-2">
+<span class="label-sm">MOUNT_POINT:</span>
+<span class="font-mono text-sm bg-surface-container-lowest px-2 py-0.5 text-primary">/var/run/ostk/state</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="label-sm">ACTIVE_NODES:</span>
+<span class="font-mono text-sm bg-surface-container-lowest px-2 py-0.5 text-primary">1,024_ACTIVE</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="label-sm">INTEGRITY:</span>
+<span class="font-mono text-sm bg-surface-container-lowest px-2 py-0.5 text-primary">0.0ms_DRIFT</span>
+</div>
+</div>
+</header>
+<!-- Bento Layout Content -->
+<div class="grid grid-cols-12 gap-6">
+<!-- State Machine Diagram -->
+<section class="col-span-12 lg:col-span-8 bg-surface-container-low p-8 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]">hub</span>
+</div>
+<h3 class="headline-lg text-primary mb-8 italic">Agent Lifecycle: State Machine</h3>
+<div class="relative flex items-center justify-between mt-12 mb-12">
+<!-- Diagram Elements -->
+<div class="z-10 bg-surface-container-highest p-4 border border-outline-variant/20 flex flex-col items-center w-32">
+<span class="label-sm mb-2 opacity-50">INIT</span>
+<span class="material-symbols-outlined text-primary mb-2">power_settings_new</span>
+<span class="font-mono text-[10px] text-center">SPAWN_PROCESS</span>
+</div>
+<div class="h-[2px] flex-1 bg-primary/30 relative">
+<div class="absolute -top-1.5 right-0 border-t-8 border-b-8 border-l-8 border-transparent border-l-primary/30"></div>
+</div>
+<div class="z-10 bg-surface-container-highest p-4 border border-outline-variant/20 flex flex-col items-center w-32 border-l-4 border-l-primary">
+<span class="label-sm mb-2 opacity-50">ACTIVE</span>
+<span class="material-symbols-outlined text-primary mb-2">sync_alt</span>
+<span class="font-mono text-[10px] text-center">WORKER_READY</span>
+</div>
+<div class="h-[2px] flex-1 bg-primary/30 relative">
+<div class="absolute -top-1.5 right-0 border-t-8 border-b-8 border-l-8 border-transparent border-l-primary/30"></div>
+</div>
+<div class="z-10 bg-surface-container-highest p-4 border border-outline-variant/20 flex flex-col items-center w-32">
+<span class="label-sm mb-2 opacity-50">TERMINATE</span>
+<span class="material-symbols-outlined text-primary mb-2">cancel</span>
+<span class="font-mono text-[10px] text-center">SIG_KILL_FLUSH</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4 mt-8">
+<div class="bg-surface-container p-3">
+<span class="label-sm text-secondary block mb-1">TRANSITION_LATENCY</span>
+<span class="font-mono text-xl text-primary">0.042ms</span>
+</div>
+<div class="bg-surface-container p-3">
+<span class="label-sm text-secondary block mb-1">LOCK_PROTOCOL</span>
+<span class="font-mono text-xl text-primary">FCNTL_WRITE</span>
+</div>
+<div class="bg-surface-container p-3">
+<span class="label-sm text-secondary block mb-1">CONCURRENCY</span>
+<span class="font-mono text-xl text-primary">ATOMIC_UP</span>
+</div>
+</div>
+</section>
+<!-- Sidebar Actions -->
+<aside class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-highest p-6 flex flex-col justify-between min-h-[240px]">
+<div>
+<h4 class="headline-lg text-on-surface mb-2">Active Manifest</h4>
+<p class="font-mono text-xs text-secondary mb-6 leading-relaxed">System-wide coordination parameters for filesystem-based message passing and atomic synchronization.</p>
+</div>
+<button class="custom-gradient-cta text-on-primary py-3 font-mono font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">publish</span> DEPLOY_UPDATES
+            </button>
+</div>
+<div class="bg-surface-container-low p-6 flex flex-col gap-4">
+<h5 class="label-sm text-primary tracking-widest">QUICK_REFERENCE</h5>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/20">
+<span class="font-mono text-[11px] text-secondary">YAML_VERSION</span>
+<span class="font-mono text-[11px] text-on-surface">1.2.x</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/20">
+<span class="font-mono text-[11px] text-secondary">SCHEMA_VALID</span>
+<span class="material-symbols-outlined text-primary text-[14px]">check_circle</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/20">
+<span class="font-mono text-[11px] text-secondary">FILE_PERMISSIONS</span>
+<span class="font-mono text-[11px] text-on-surface">0644_RW_R_R</span>
+</div>
+</div>
+</aside>
+<!-- Code Manifest Section -->
+<section class="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- YAML BLOCK -->
+<div class="bg-surface-container-lowest p-0 relative border border-outline-variant/10">
+<div class="bg-surface-container-high px-4 py-2 flex justify-between items-center">
+<span class="label-sm text-secondary">manifest_core.yaml</span>
+<span class="material-symbols-outlined text-secondary opacity-50">file_copy</span>
+</div>
+<pre class="p-6 text-on-surface font-mono text-sm leading-relaxed overflow-x-auto no-scrollbar"><span class="text-primary">version:</span> "4.0.2"
+<span class="text-primary">orchestrator:</span>
+  <span class="text-secondary">mode:</span> "fs_atomic"
+  <span class="text-secondary">path:</span> "/sys/kernel/ostk"
+  <span class="text-secondary">heartbeat:</span> 10ms
+<span class="text-primary">nodes:</span>
+  <span class="text-secondary">- id:</span> "cpu_primary"
+    <span class="text-secondary">capabilities:</span> [compute, io]
+    <span class="text-secondary">state_file:</span> "cpu0.state"
+  <span class="text-secondary">- id:</span> "gpu_aux"
+    <span class="text-secondary">capabilities:</span> [shading, matrix]
+    <span class="text-secondary">state_file:</span> "gpu0.state"
+<span class="text-primary">governance:</span>
+  <span class="text-secondary">reconciliation:</span> strict
+  <span class="text-secondary">retry_limit:</span> 3
+            </pre>
+</div>
+<!-- JSON BLOCK -->
+<div class="bg-surface-container-lowest p-0 relative border border-outline-variant/10">
+<div class="bg-surface-container-high px-4 py-2 flex justify-between items-center">
+<span class="label-sm text-secondary">network_config.json</span>
+<span class="material-symbols-outlined text-secondary opacity-50">code</span>
+</div>
+<pre class="p-6 text-on-surface font-mono text-sm leading-relaxed overflow-x-auto no-scrollbar">{
+  <span class="text-primary">"network_id"</span>: <span class="text-secondary">"OSTK-LAYER-7"</span>,
+  <span class="text-primary">"protocol"</span>: <span class="text-secondary">"IPC_DOMAIN_SOCKET"</span>,
+  <span class="text-primary">"security"</span>: {
+    <span class="text-primary">"encryption"</span>: <span class="text-secondary">"AES-256-GCM"</span>,
+    <span class="text-primary">"mTLS"</span>: <span class="text-secondary">true</span>
+  },
+  <span class="text-primary">"endpoints"</span>: [
+    { <span class="text-primary">"name"</span>: <span class="text-secondary">"local_coord"</span>, <span class="text-primary">"port"</span>: <span class="text-secondary">8081</span> },
+    { <span class="text-primary">"name"</span>: <span class="text-secondary">"telemetry"</span>, <span class="text-primary">"port"</span>: <span class="text-secondary">8082</span> }
+  ],
+  <span class="text-primary">"debug"</span>: <span class="text-secondary">false</span>
+}
+            </pre>
+</div>
+</section>
+<!-- Metadata Ribbon Section -->
+<section class="col-span-12">
+<div class="bg-surface-container-lowest px-8 py-3 flex items-center gap-6 border-l-4 border-primary">
+<span class="label-sm text-secondary">ACTIVE_HASH: 0xFD91A2</span>
+<span class="label-sm text-secondary">LAST_EDIT: 02_SEP_2024</span>
+<span class="label-sm text-secondary">REPLICA_COUNT: 3</span>
+<span class="label-sm text-secondary">STATUS: <span class="text-primary">SYNCHRONIZED</span></span>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Footer Implementation -->
+<footer class="flex justify-between items-center w-full px-8 py-4 border-t border-[#373432] opacity-60 bg-[#100e0c] z-50">
+<div class="flex items-center gap-4">
+<span class="font-serif italic text-xs text-[#c2c9b4]">© 1970-2024 DISTRIBUTED_OS_GROUP | DERIVED_FROM_UNIX_V7</span>
+</div>
+<div class="flex gap-8">
+<a class="text-[#c2c9b4] font-mono text-[9px] uppercase label-sm hover:text-[#ffc169] transition-none" href="#">LICENSE</a>
+<a class="text-[#c2c9b4] font-mono text-[9px] uppercase label-sm hover:text-[#ffc169] transition-none" href="#">SOURCE</a>
+<a class="text-[#c2c9b4] font-mono text-[9px] uppercase label-sm hover:text-[#ffc169] transition-none" href="#">CONTRIBUTE</a>
+</div>
+</footer>
+<div class="fixed bottom-8 right-8 z-[60] group">
+<!-- Contextual FAB Suppressed as per instructions for Details/Settings screens, 
+         but keeping the visual space clean for "Archive" gravity. -->
+</div>
+</body></html>

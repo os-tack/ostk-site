@@ -1,0 +1,40 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "TUI Reference", description: "Panes, shortcuts, capture", href: "/docs/tui" },
+  { title: "Tack", description: "The operator intent language", href: "/features/tack" },
+  { title: "Commands", description: "Full CLI reference", href: "/docs/commands" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // INTERFACE"
+  title="AI Agent Terminal Dashboard"
+  description="Terminal interface showing the OS in real time. Agents, permissions, edits, costs — all visible. The operator sees everything."
+  relatedPages={relatedPages}
+>
+  <h2>What you see</h2>
+  <p>
+    Launch <code>ostk tui</code> and the terminal becomes a command deck. Fleet status in one pane, audit events in another, needle backlog below, tack bar at the bottom. Every agent action surfaces in real time.
+  </p>
+
+  <h2>Panes</h2>
+  <ul>
+    <li><strong>FLEET</strong> — Running agents with status indicators: ● active, ○ stale, ✕ crashed</li>
+    <li><strong>ACTIVITY</strong> — Last 10 audit events. What just happened.</li>
+    <li><strong>WORK</strong> — Needle backlog sorted by priority (P0→P3)</li>
+    <li><strong>METRICS</strong> — Token savings, compression ratio, cache hit rate</li>
+    <li><strong>TACK BAR</strong> — Multi-line intent editor for operator commands</li>
+  </ul>
+
+  <h2>Permission gates</h2>
+  <p>
+    When an agent requests a tool that needs approval, a modal appears with the agent alias, tool name, and input preview. Press <code>y</code> to approve, <code>n</code> to deny, <code>a</code> to approve all for that capability class.
+  </p>
+
+  <h2>Capture</h2>
+  <p>
+    Record terminal sessions as asciicast v2 files with <code>:capture</code>. The TeeWriter clones raw ANSI bytes to a background thread — zero disruption to the render pipeline. Status bar shows [*] when recording.
+  </p>
+</FeaturePage>

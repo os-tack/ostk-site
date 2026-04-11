@@ -1,0 +1,145 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="Session Topology"
+  description="How ostk manages agent lifecycles: anchors, lineages, drain snapshots, crash recovery, and sub-stacks."
+  sectionLabel="SECTION_03 // SESSION_MGMT"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    The daemon is an anchor. Clients are transient. Sub-stacks are isolation boundaries. Sessions survive everything.
+  </p>
+
+  <!-- The Anchor -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Anchor</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-4">
+      <p class="font-body text-sm text-on-surface mb-3">
+        <code class="text-primary">ostk listen</code> starts the kernel daemon — a long-lived process that holds the socket, the process table, and the scheduler.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        The anchor is <span class="text-primary font-bold">not</span> the source of truth. The source of truth is the filesystem — <code class="text-primary">audit.jsonl</code>, <code class="text-primary">gen_table.jsonl</code>, and files on disk. The anchor holds an in-memory projection reconstructed via <code class="text-primary">fold(audit.jsonl)</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Session Lineage -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Session Lineage</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A lineage is a stable identity for ongoing work: <code class="text-primary">scheduler</code>, <code class="text-primary">worker-a</code>. It outlives both the client that spawned it and the anchor that ran it.
+    </p>
+
+    {/* State machine */}
+    <div class="flex items-center gap-0 mb-8">
+      {['Active', 'Orphaned', 'Reaped'].map((state, i) => (
+        <>
+          <div class={`px-6 py-3 font-body text-xs font-bold ${i === 0 ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
+            {state}
+          </div>
+          {i < 2 && <div class="px-2 text-outline">→</div>}
+        </>
+      ))}
+    </div>
+
+    <h3 class="section-label-secondary mb-4">REVIVAL_POLICY</h3>
+    <div class="bg-surface-container-lowest p-4 border border-surface-variant mb-4">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">LIMIT</span> revival_policy revive   <span class="text-outline"># auto-recover from drain snapshot (default)</span>
+<span class="text-primary">LIMIT</span> revival_policy reap     <span class="text-outline"># drop on orphan — don't recover</span>
+<span class="text-primary">LIMIT</span> revival_policy ask      <span class="text-outline"># leave orphaned, operator decides</span></pre>
+    </div>
+    <p class="font-body text-xs text-secondary">
+      Ask-pending lineages: <code class="text-primary">ostk lineage resolve &lt;id&gt; --revive</code> or <code class="text-primary">--reap</code>
+    </p>
+  </section>
+
+  <!-- Drain Snapshots -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      At every turn boundary, each session writes a drain snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Enabled by default (v3.0.0+).
+    </p>
+    <div class="grid grid-cols-3 gap-px bg-surface-variant mb-4">
+      {[
+        { label: 'MESSAGES', desc: 'Full conversation history' },
+        { label: 'TOKEN_ACCOUNTING', desc: 'Cumulative token counts' },
+        { label: 'LOOP_CONFIG', desc: 'Model, tools, permissions, quota cap' },
+      ].map(field => (
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">{field.label}</div>
+          <div class="font-body text-xs text-secondary">{field.desc}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Crash Recovery -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Crash Recovery</h2>
+    <div class="space-y-px">
+      {[
+        { step: '01', action: 'Daemon crashes. Flock released. Drain snapshots remain on disk.' },
+        { step: '02', action: 'New daemon starts. anchor::start acquires lock, writes anchor.started.' },
+        { step: '03', action: 'orphan_previous_lineages marks stale sessions as Orphaned.' },
+        { step: '04', action: 'rehydrate_revivable_orphans reads drain snapshots, rebuilds sessions.' },
+        { step: '05', action: 'reap_unmanaged_orphans handles anything that couldn\'t recover.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3 flex items-center">
+            <span class="font-body text-xs text-secondary">{s.action}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Mid-flight: the scheduler's tick loop detects crashed workers via heartbeat and hot-rehydrates without a daemon restart.
+    </p>
+  </section>
+
+  <!-- Sub-stacks -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Sub-stacks</h2>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels.
+    </p>
+    <div class="bg-surface-container-lowest p-4 border border-surface-variant mb-4">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">.ostk/stacks/bugfix-27/</span>
+  audit.jsonl    <span class="text-outline"># scoped audit log</span>
+  drain/         <span class="text-outline"># scoped drain snapshots</span>
+  inbox/         <span class="text-outline"># commands from anchor → sub-stack</span>
+  nudges/        <span class="text-outline"># reports from sub-stack → anchor</span></pre>
+    </div>
+    <div class="flex items-center gap-0">
+      {['Spawning', 'Active', 'Sealed', 'Reaped'].map((state, i) => (
+        <>
+          <div class={`px-4 py-2 font-body text-[10px] font-bold ${state === 'Active' ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
+            {state}
+          </div>
+          {i < 3 && <div class="px-1 text-outline text-xs">→</div>}
+        </>
+      ))}
+      <div class="px-1 text-outline text-xs ml-2">or</div>
+      <div class="px-4 py-2 font-body text-[10px] font-bold bg-error/10 text-error">Failed</div>
+    </div>
+  </section>
+
+  <!-- Transient Clients -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Transient Clients</h2>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      TUI, MCP clients, CLI one-shots, IDE extensions — all attach and detach freely. Agent sessions continue running regardless of client lifecycle. Protocol: <code class="text-primary">client/attach</code>, <code class="text-primary">client/detach</code>, <code class="text-primary">client/subscribe</code> over JSON-RPC on the kernel socket.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/kernel-spec"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+  </div>
+</DocsLayout>

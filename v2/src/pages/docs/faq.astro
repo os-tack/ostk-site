@@ -1,0 +1,134 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const faqs = [
+  {
+    q: 'How do multiple AI agents edit the same file without conflicts?',
+    a: 'ostk uses optimistic concurrency control. Every file:edit() specifies the text the agent expects. If another agent changed it, the kernel detects the mismatch and resolves it through a 3-tier system: auto-merge for non-overlapping edits, mechanical rebase for nearby edits, and manual escalation for structural conflicts. No locking, no blocking.',
+    link: '/features/coordination',
+  },
+  {
+    q: 'How do I install ostk?',
+    a: 'One command: curl -fsSL https://ostk.ai/install | sh. The script detects your platform (macOS arm64/x86_64, Linux arm64/x86_64), downloads the correct binary, verifies its GPG signature, and places it in your $PATH. Then run ostk init and ostk boot.',
+    link: '/docs/getting-started',
+  },
+  {
+    q: 'Do I need to modify my AI agents to work with ostk?',
+    a: 'No. The write path is invisible — agents edit files with their normal tools. The OS intercepts writes at the tool layer, coordinates between agents, and maintains an audit trail. Agents never know ostk is there. This is the first of the Five Laws.',
+    link: '/features/invisible-writes',
+  },
+  {
+    q: 'How do I keep API keys safe from AI agents?',
+    a: 'Secret values never enter the LLM context. The kernel resolves keys from your platform keychain (macOS Keychain, Linux secret-tool) at call time and injects them via subprocess environment variables. All tool output passes through a masking layer that replaces any secret values before the LLM sees them.',
+    link: '/docs/secrets',
+  },
+  {
+    q: 'What is my trust tier?',
+    a: 'Trust is determined by GPG cross-signatures. T0: your GPG key is in the trust anchors (full governance). T1: your key is cross-signed by a T0 holder (write access). T2: you have a GPG key but it is not cross-signed (read-only). T3: no GPG key (cannot boot). Run ostk boot to see your tier.',
+    link: '/docs/trust-model',
+  },
+  {
+    q: 'Can AI agents work on the same repository without conflicts?',
+    a: 'Yes. ostk coordinates file access across agents through optimistic concurrency. Each agent gets a workspace boundary. Generation counters track every file write. When conflicts occur, the kernel resolves them mechanically — no LLM is called for conflict resolution. In practice, conflicts drop to near zero.',
+    link: '/features/coordination',
+  },
+  {
+    q: 'How do I track what changes AI agents made?',
+    a: 'Every agent action is logged to an append-only audit trail (.ostk/audit.jsonl). File edits, shell commands, tool calls, spawns, approvals — all timestamped and attributed. Run ostk os audit check to verify trail integrity. The process table is reconstructible from the audit log at any point.',
+    link: '/features/audit-trail',
+  },
+  {
+    q: 'Does ostk require a cloud connection?',
+    a: 'No. ostk is local-first. Agent coordination happens through local files. The only network calls are to LLM providers when you run agents. The kernel itself is entirely offline. No telemetry, no analytics, no cloud sync.',
+    link: '/features/local-first',
+  },
+  {
+    q: 'What happens if an agent crashes?',
+    a: 'Agents are ephemeral — crashes are the expected operating condition. The kernel writes drain snapshots at every turn boundary. On daemon restart, fold(audit.jsonl) reconstructs the fleet and rehydrates sessions from snapshots. Mid-flight, the heartbeat monitor detects crashed workers and hot-rehydrates them.',
+    link: '/docs/session-topology',
+  },
+  {
+    q: 'What is a needle?',
+    a: 'A needle is an atomic, executable work item with acceptance criteria. It is the unit of work in ostk, stored as YAML frontmatter + markdown in .ostk/needles/. Create one with ostk needle add --priority P0 "title". Needles have priority tiers (P0-P3), status tracking, and dependency links.',
+    link: '/docs/commands',
+  },
+  {
+    q: 'What is tack?',
+    a: 'Tack is the operator intent language in the TUI. You type commands into the tack bar: :compile dispatches to the kernel, .? queries the OS through the LLM, →573 references a needle, and bare text is filed as hay (raw unstructured intent for later compilation into needles).',
+    link: '/features/tack',
+  },
+  {
+    q: 'How does ostk differ from Cursor, Devin, or Aider?',
+    a: 'ostk is an OS, not an IDE or agent. It coordinates multiple agents from any provider (Claude, Gemini, Mistral) on the same codebase simultaneously. Cursor and Aider are single-agent tools. Devin is a cloud-hosted agent. ostk runs locally, is agent-agnostic, and provides trust governance, audit trails, and crash recovery that none of these tools offer.',
+    link: '/about',
+  },
+];
+---
+
+<DocsLayout
+  title="FAQ"
+  description="Frequently asked questions about ostk: multi-agent coordination, installation, trust tiers, secret management, and crash recovery."
+  sectionLabel="REFERENCE // FAQ"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Common questions from developers evaluating or getting started with ostk.
+  </p>
+
+  <div class="space-y-px">
+    {faqs.map((faq, i) => (
+      <details class="group bg-surface-container">
+        <summary class="flex items-start gap-4 px-6 py-4 cursor-pointer hover:bg-surface-container-high transition-none">
+          <span class="serif-text text-lg font-bold text-primary mt-0.5">{String(i + 1).padStart(2, '0')}</span>
+          <span class="font-body text-sm text-on-surface flex-1">{faq.q}</span>
+          <Icon name="chevron_right" size="14" class="text-outline group-open:rotate-90 transition-transform duration-100 mt-1" />
+        </summary>
+        <div class="px-6 pb-5 pl-16">
+          <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-3">{faq.a}</p>
+          <a href={faq.link} class="font-label text-[10px] text-primary uppercase tracking-widest hover:underline">
+            READ_MORE →
+          </a>
+        </div>
+      </details>
+    ))}
+  </div>
+
+  <!-- Glossary -->
+  <section class="mt-20">
+    <h2 class="section-label mb-6">GLOSSARY</h2>
+    <p class="font-body text-xs text-secondary mb-6">Key terms used throughout the documentation.</p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { term: 'needle', def: 'An atomic, executable work item with acceptance criteria. Stored as YAML frontmatter + markdown in .ostk/needles/. The unit of work in ostk.' },
+        { term: 'hay', def: 'Raw unstructured intent captured for later compilation into needles. Filed via bare text in the tack bar or ostk hay "...".' },
+        { term: 'tack', def: 'The operator intent language used in the TUI. Commands prefixed with : dispatch to the kernel. Bare text files as hay.' },
+        { term: 'drain snapshot', def: 'Session state written to .ostk/drain/<lineage_id>.json at every turn boundary. Contains conversation history, token accounting, and config. Enables crash recovery.' },
+        { term: 'anchor', def: 'The long-lived daemon process started by ostk listen. Holds the socket, process table, and scheduler. Survives client disconnects.' },
+        { term: 'lineage', def: 'A stable identity for an ongoing piece of work (e.g., "scheduler", "worker-a"). Outlives both the client that spawned it and the anchor that ran it.' },
+        { term: 'FCP', def: 'File Context Protocol — the interface for drivers that extend the kernel with domain capabilities. MCP servers that let LLMs interact with complex file formats.' },
+        { term: 'Hot PR', def: 'The kernel\'s 3-tier conflict resolution system. Tier 1: auto-merge (non-overlapping). Tier 2: mechanical rebase (nearby). Tier 3: manual escalation.' },
+        { term: 'generation counter', def: 'A monotonic counter incremented on every file write. Used for optimistic concurrency — if the counter changed, another agent modified the file.' },
+        { term: 'bail', def: 'A portable OS package containing governance documents, signing keys, and configuration. Downloaded during ostk init to bootstrap a project.' },
+        { term: 'fold(audit.jsonl)', def: 'Replaying the append-only audit log to reconstruct fleet state. The process table is a projection of the audit log — the daemon is a cache, not a ledger.' },
+        { term: '.language', def: 'A pipe-delimited table of verbs, their tiers, layers, and usage momentum. The kernel loads high-momentum verbs at boot and demand-spawns the rest.' },
+        { term: 'sub-stack', def: 'An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels. Created by the scheduler for multi-worker tasks.' },
+        { term: 'OCC', def: 'Optimistic Concurrency Control. Agents write freely; the kernel detects conflicts via generation counters at commit time, not lock time.' },
+      ].map(g => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <code class="text-primary w-40 shrink-0">{g.term}</code>
+          <span class="text-secondary">{g.def}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(f => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": { "@type": "Answer", "text": f.a }
+    }))
+  })} />
+</DocsLayout>

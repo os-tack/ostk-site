@@ -1,0 +1,18 @@
+---
+interface Props {
+  label?: string;
+}
+const { label = 'TERMINAL' } = Astro.props;
+---
+
+<div class="bg-surface-container-lowest border border-surface-variant">
+  <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
+    <div class="w-2 h-2 rounded-full bg-error-container"></div>
+    <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+    <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+    <span class="ml-auto font-label text-[9px] text-outline">{label}</span>
+  </div>
+  <div class="px-4 py-3 font-body text-xs leading-relaxed">
+    <slot />
+  </div>
+</div>

@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
+    { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins' },
+    { icon: 'key', label: 'SECRETS', href: '/docs/secrets' },
+    { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile' },
+    { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+  ],
+};
+---
+
+<Base title="Security" activeTab="trust" description="ostk security model: GPG-signed binaries, 4-tier trust chain, deny-based capability pins, append-only audit trail, and platform keychain secret mediation.">
+  <Sidebar title="SECURITY" subtitle="POSTURE" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-4xl mx-auto py-12">
+      <div class="section-label mb-4">GOVERNANCE // SECURITY</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Security</h1>
+
+      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
+        Every write is signed. Every identity is verified. Every conflict is resolved — never silently.
+      </p>
+
+      <!-- Trust tiers -->
+      <section class="mb-16">
+        <h2 class="section-label mb-6">TRUST_TIERS</h2>
+        <div class="space-y-px">
+          {[
+            { tier: 'T0', meaning: 'Dual-signed (human + kernel)', how: 'Ratified by existing T0 holder', restrictions: 'None — full governance' },
+            { tier: 'T1', meaning: 'Cross-signed by T0 holder', how: 'Your GPG key signed by a T0 key', restrictions: 'Cannot modify OS or governance files' },
+            { tier: 'T2', meaning: 'GPG key present, not cross-signed', how: 'GPG key exists, no T0 signature', restrictions: 'Read-only — no OS, governance, or source writes' },
+            { tier: 'T3', meaning: 'Anonymous', how: 'No GPG key', restrictions: 'Cannot boot — public artifacts only' },
+          ].map(t => (
+            <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+              <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+                <span class="font-body text-lg font-bold text-primary">{t.tier}</span>
+              </div>
+              <div class="md:col-span-3 px-4 py-4">
+                <span class="font-body text-xs text-on-surface">{t.meaning}</span>
+              </div>
+              <div class="md:col-span-4 px-4 py-4">
+                <span class="font-body text-xs text-secondary">{t.how}</span>
+              </div>
+              <div class="md:col-span-4 px-4 py-4">
+                <span class="font-body text-xs text-outline">{t.restrictions}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="font-body text-xs text-secondary mt-4">
+          Full details: <a href="/docs/trust-model" class="text-primary hover:underline">Trust Model</a>
+        </p>
+      </section>
+
+      <!-- Defense layers -->
+      <section class="mb-16">
+        <h2 class="section-label mb-6">DEFENSE_LAYERS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+          {[
+            { layer: 'TOOL_LAYER', desc: 'Deny-based capability pins. Every tool call checked against pin.caps deny tokens before execution.' },
+            { layer: 'SYSCALL_LAYER', desc: 'Process-level sandboxing via Landlock (Linux) and Seatbelt (macOS). OS-enforced boundaries.' },
+            { layer: 'AUDIT_LAYER', desc: 'Append-only JSONL event log. Every agent action timestamped and attributed. fold(audit.jsonl) reconstructs state.' },
+            { layer: 'SECRET_LAYER', desc: 'API keys resolved at call time from platform keychain. Values never enter LLM context. All output masked.' },
+          ].map(l => (
+            <div class="bg-surface-container p-6">
+              <div class="font-label text-[10px] text-primary mb-2">{l.layer}</div>
+              <div class="font-body text-xs text-secondary">{l.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Signing -->
+      <section class="mb-16">
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Signing and Verification</h2>
+        <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+          {[
+            { what: 'Install binary', how: 'GPG-verified during curl install. Signature checked before placing in $PATH.' },
+            { what: '.primefile', how: 'Dual-signed: T1 kernel key + T0 human key. Both must verify.' },
+            { what: 'Agentfiles', how: 'Ed25519 self-signing (default), GPG, Sigstore, or both. ATTEST directive controls mode.' },
+            { what: 'Governance changes', how: 'Negotiate protocol: file offer, counter-party review, dual-sign, merge --no-ff.' },
+          ].map(s => (
+            <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+              <span class="text-primary w-36 shrink-0">{s.what}</span>
+              <span class="text-secondary">{s.how}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div class="metadata-ribbon border-t border-surface-variant">
+        <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+        <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+        <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+        <a href="/docs/secrets"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
+      </div>
+    </div>
+  </main>
+</Base>

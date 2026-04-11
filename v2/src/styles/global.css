@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #151311;
+    color: #e7e1de;
+    font-family: 'Space Grotesk', monospace;
+  }
+
+  .serif-text {
+    font-family: 'Newsreader', serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #100e0c;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #373432;
+  }
+}
+
+@layer components {
+  /* Section label — the mono uppercase amber badge */
+  .section-label {
+    @apply font-label text-[10px] uppercase tracking-widest text-primary;
+  }
+
+  /* Subsection label — secondary color variant */
+  .section-label-secondary {
+    @apply font-label text-[10px] uppercase tracking-widest text-secondary;
+  }
+
+  /* Ghost border — 15% opacity outline-variant, per design system */
+  .ghost-border {
+    border: 1px solid rgba(81, 69, 54, 0.15);
+  }
+
+  /* Metadata ribbon */
+  .metadata-ribbon {
+    @apply bg-surface-container-lowest px-6 py-3 flex items-center gap-6;
+  }
+  .metadata-ribbon a {
+    @apply font-label text-[10px] uppercase tracking-widest text-secondary hover:text-primary transition-none;
+  }
+
+}

@@ -1,0 +1,146 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="TUI"
+  description="Terminal interface operator guide: panes, keyboard shortcuts, tack grammar, approval modals, and capture."
+  sectionLabel="REFERENCE // TERMINAL_UI"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Your central command deck. Launch with <code class="text-primary">ostk tui</code>. Monitor agents, dispatch work, approve tool calls.
+  </p>
+
+  <!-- Panes -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">PANES</h2>
+    <div class="space-y-px">
+      {[
+        { name: 'STATUS_BAR', loc: 'Top', desc: 'Identity counter, boot coherence, uptime, agent states (●active ○stale ✕crashed), open needles, pending hay, API key count' },
+        { name: 'POST', loc: 'Panel', desc: 'Power-On Self Test. Pipeline throughput: compile → login → delegate → notify. Command: :post' },
+        { name: 'FLEET', loc: 'Panel', desc: 'Running agents, one row each: ● agent-1 claude-sonnet-4.6 running →573 12s' },
+        { name: 'ACTIVITY', loc: 'Panel', desc: 'Last 10 audit events. What just happened.' },
+        { name: 'METRICS', loc: 'Side', desc: 'Tokens saved, compression ratio (HSCP G2)' },
+        { name: 'LOCKS', loc: 'Side', desc: 'Files currently locked by agents' },
+        { name: 'STORE', loc: 'Side', desc: 'Files written to .ostk/store/ (output artifacts)' },
+        { name: 'WORK', loc: 'Panel', desc: 'Needle backlog sorted P0→P3. ▶ = selected. Enter to expand.' },
+        { name: 'OUTPUT', loc: 'Panel', desc: 'Result of last tack dispatch (kernel output or LLM response)' },
+        { name: 'TACK_BAR', loc: 'Bottom', desc: 'Multi-line intent editor. Tab to focus, Enter to dispatch.' },
+        { name: 'QUICKLINE', loc: 'Bottom', desc: 'Single-line fast dispatch. Main tack draft preserved.' },
+        { name: 'CLOCK_BAR', loc: 'Bottom', desc: 'Session timer, audit count, swap status, context %, date' },
+      ].map(pane => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-3">
+            <code class="font-body text-xs text-primary">{pane.name}</code>
+            <div class="font-label text-[10px] text-outline mt-0.5">{pane.loc}</div>
+          </div>
+          <div class="md:col-span-9 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{pane.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Keyboard shortcuts -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">KEYBOARD_SHORTCUTS</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+      <div class="bg-surface-container-low p-5">
+        <div class="font-label text-[10px] text-primary mb-3">GLOBAL</div>
+        {[
+          { key: 'Tab', action: 'Cycle focus through panes' },
+          { key: '↑/↓ or j/k', action: 'Scroll active pane' },
+          { key: 'PgUp/PgDn', action: 'Scroll half-page' },
+          { key: 'Esc', action: 'Cancel / dismiss modal' },
+          { key: 'Ctrl+C / Ctrl+Q', action: 'Quit' },
+        ].map(s => (
+          <div class="flex justify-between text-xs font-body py-1.5">
+            <kbd class="text-on-surface bg-surface-container-highest px-1.5">{s.key}</kbd>
+            <span class="text-secondary">{s.action}</span>
+          </div>
+        ))}
+      </div>
+      <div class="bg-surface-container-low p-5">
+        <div class="font-label text-[10px] text-primary mb-3">OPT/ALT OVERLAYS</div>
+        {[
+          { key: 'Opt+?', action: 'Help overlay' },
+          { key: 'Opt+C', action: 'Context overlay' },
+          { key: 'Opt+F', action: 'Fleet overlay' },
+          { key: 'Opt+W', action: 'Work overlay' },
+          { key: 'Opt+M', action: 'Model picker' },
+          { key: 'Opt+P', action: 'Mode picker' },
+          { key: 'Opt+G', action: 'Sphere navigator' },
+        ].map(s => (
+          <div class="flex justify-between text-xs font-body py-1.5">
+            <kbd class="text-on-surface bg-surface-container-highest px-1.5">{s.key}</kbd>
+            <span class="text-secondary">{s.action}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Tack grammar -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Tack Grammar</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { prefix: ':', meaning: 'Hard command — kernel dispatch', example: ':compile, :reap, :status' },
+        { prefix: '.?', meaning: 'Soft probe — query the OS (LLM)', example: '.? what is store' },
+        { prefix: '→NNN', meaning: 'Needle reference', example: '→573 to see that needle' },
+        { prefix: ':delegate', meaning: 'Assign needle to agent', example: ':delegate →573' },
+        { prefix: 'bare text', meaning: 'File as hay (raw intel)', example: 'thinking about X' },
+      ].map(t => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <code class="text-primary w-24 shrink-0">{t.prefix}</code>
+          <span class="text-on-surface w-48 shrink-0">{t.meaning}</span>
+          <span class="text-outline">{t.example}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Approval modal -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">APPROVAL_MODAL</h2>
+    <div class="bg-surface-container p-6">
+      <p class="font-body text-xs text-secondary mb-4">
+        Appears when an agent requests a tool that needs permission. Shows agent alias, tool name, and input preview.
+      </p>
+      <div class="flex gap-4">
+        {[
+          { key: 'y', label: 'Approve', style: 'bg-primary text-on-primary' },
+          { key: 'n', label: 'Deny', style: 'bg-error/20 text-error' },
+          { key: 'a', label: 'Approve All', style: 'bg-surface-variant text-primary' },
+          { key: 'Enter', label: 'Deny (default)', style: 'bg-error/20 text-error' },
+        ].map(b => (
+          <div class={`${b.style} px-4 py-2 font-body text-xs`}>
+            <kbd class="font-bold">{b.key}</kbd> {b.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Capture -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CAPTURE</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-xs text-on-surface mb-3">
+        Record terminal sessions as asciicast v2 files. Zero disruption to the render pipeline — the TeeWriter clones raw ANSI bytes to a background thread.
+      </p>
+      <div class="space-y-2 font-body text-xs mt-4">
+        <div><code class="text-primary">:capture [path]</code> <span class="text-secondary">— start recording. Status bar shows [*].</span></div>
+        <div><code class="text-primary">:capture stop</code> <span class="text-secondary">— stop recording, return output path.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />COMMANDS</a>
+    <a href="/docs/session-topology"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
+  </div>
+</DocsLayout>

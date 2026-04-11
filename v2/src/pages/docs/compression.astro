@@ -1,0 +1,189 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Compression"
+  description="The output compression pipeline: ANSI stripping, grammar-based classification, and semantic dedup before output enters agent context."
+  sectionLabel="SECTION_04 // SQUASHER"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Two layers reduce token cost. The squash pipeline compresses shell output before it enters context. The prompt cache reuses byte-stable prefixes across turns and across the fleet.
+  </p>
+
+  <!-- Headline: prompt cache savings -->
+  <section class="mb-16">
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <div class="font-label text-[10px] text-primary mb-2">MEASURED // PROMPT_CACHE</div>
+      <div class="serif-text text-4xl font-bold text-on-surface mb-2">28% cost reduction</div>
+      <p class="font-body text-sm text-secondary mb-4 max-w-xl">
+        Real ostk session, opus model: <span class="text-on-surface font-bold">$23.66 actual</span> vs <span class="text-on-surface">$32.93 without cache</span>. <span class="text-primary font-bold">$9.27 saved</span> across 57 API calls.
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-surface-variant">
+        <div class="bg-surface-container p-3">
+          <div class="font-label text-[10px] text-outline">CACHE_HIT</div>
+          <div class="font-body text-sm text-primary font-bold">32.2%</div>
+          <div class="font-label text-[10px] text-outline">read/total prompt</div>
+        </div>
+        <div class="bg-surface-container p-3">
+          <div class="font-label text-[10px] text-outline">CACHE_READ</div>
+          <div class="font-body text-sm text-on-surface">691,853</div>
+          <div class="font-label text-[10px] text-outline">tokens</div>
+        </div>
+        <div class="bg-surface-container p-3">
+          <div class="font-label text-[10px] text-outline">INPUT</div>
+          <div class="font-body text-sm text-on-surface">1.44M</div>
+          <div class="font-label text-[10px] text-outline">tokens</div>
+        </div>
+        <div class="bg-surface-container p-3">
+          <div class="font-label text-[10px] text-outline">BILLED</div>
+          <div class="font-body text-sm text-on-surface">2.15M</div>
+          <div class="font-label text-[10px] text-outline">tokens</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline stages -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">PIPELINE_STAGES</h2>
+    <div class="space-y-px">
+      {[
+        { num: '01', name: 'GRAMMAR_DETECT', desc: 'Identify the tool from the command string (e.g., "cargo build" → cargo grammar). Falls back to blind compress if no grammar matches.' },
+        { num: '02', name: 'VTE_STRIP', desc: 'Remove all ANSI escape sequences from raw output. Progress bars, color codes, cursor movements — stripped.' },
+        { num: '03', name: 'LINE_CLASSIFY', desc: 'Three-tier classification: grammar hazard/outcome/noise rules → universal patterns (errors, stack traces) → structural heuristics (decorative lines). Each line tagged: Hazard, Outcome, or Noise.' },
+        { num: '04', name: 'IMPLICIT_DEDUP', desc: 'Collapse consecutive similar lines: "first line [⋯ N similar lines]". Levenshtein distance with tokenization (URLs→{url}, paths→{path}, versions→{ver}).' },
+        { num: '05', name: 'ERROR_ENRICH', desc: 'On non-zero exit: pre-fetch diagnostics (path walks, file stat, permission checks). Budget: <100ms, read-only, no network. Appended under [ostk:enrich] header.' },
+        { num: '06', name: 'METRICS_RECORD', desc: 'Record to .ostk/metrics.jsonl: bytes saved, tokens saved (bytes/4), tool key, grammar hit. Flock-protected append.' },
+      ].map(stage => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="serif-text text-lg font-bold text-primary">{stage.num}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-4">
+            <code class="font-body text-xs text-on-surface font-bold">{stage.name}</code>
+          </div>
+          <div class="md:col-span-8 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{stage.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Route categories -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">ROUTE_CATEGORIES</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The router classifies every command into one of five categories. Resolution order: dangerous → multi-token → single-token → fallback.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { cat: 'CONDENSE', desc: 'Verbose output → summary. cargo build, npm install.', handler: 'Implicit dedup + hazard/outcome filtering' },
+        { cat: 'NARRATE', desc: 'Silent commands → execution narration. cp, mv, mkdir.', handler: '"→ cp: a.txt → b.txt (ok)"' },
+        { cat: 'PASSTHROUGH', desc: 'Verbatim preservation. cat, grep, ls, jq.', handler: 'Original output + metadata footer' },
+        { cat: 'STRUCTURED', desc: 'Machine-readable → formatted summary. git status, docker ps.', handler: 'Parse into branches, containers, etc.' },
+        { cat: 'DANGEROUS', desc: 'Destructive ops. rm -rf, git push --force.', handler: 'CRITICAL/WARNING severity with context' },
+      ].map(c => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <span class={`w-28 shrink-0 font-bold ${c.cat === 'DANGEROUS' ? 'text-error' : 'text-primary'}`}>{c.cat}</span>
+          <span class="text-secondary flex-1">{c.desc}</span>
+          <span class="text-outline shrink-0">{c.handler}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Semantic dedup -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Semantic Deduplication</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-xs text-on-surface mb-3">
+        Optional GPU-accelerated dedup via the <code class="text-primary">potion-base-8M</code> embeddings model (256-dim). Lines with identical structure but different variables produce identical tokenized forms.
+      </p>
+      <p class="font-body text-xs text-secondary mb-4">
+        Install: <code class="text-primary">ostk embeddings download</code>. The kernel uses it automatically once available.
+      </p>
+      <div class="font-body text-xs text-outline">
+        Backend: Metal GPU (Apple Silicon) with CPU fallback via Wgpu/NdArray. Feature-gated: --features embeddings.
+      </div>
+    </div>
+  </section>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">DEDUP_PATTERN</h2>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      How implicit dedup collapses repetitive structured output. Pattern is similarity-based — lines with the same shape but different variables (paths, versions, hashes) collapse together.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+      <div class="bg-surface-container p-4">
+        <div class="font-label text-[10px] text-error mb-2">BEFORE</div>
+        <div class="font-body text-[10px] text-secondary leading-relaxed">
+          <div>Compiling ostk v3.0.0</div>
+          <div>Compiling tokio v1.38.0</div>
+          <div>Compiling serde v1.0.203</div>
+          <div class="text-outline">⋯ 47 more crate compilations</div>
+          <div>warning: unused import `std::io`</div>
+          <div>warning: 2 warnings generated</div>
+          <div>Finished release in 42.3s</div>
+        </div>
+      </div>
+      <div class="bg-surface-container p-4">
+        <div class="font-label text-[10px] text-primary mb-2">AFTER</div>
+        <div class="font-body text-[10px] text-secondary leading-relaxed">
+          <div>Compiling ostk v3.0.0</div>
+          <div class="text-outline">[⋯ 49 similar lines]</div>
+          <div class="text-primary">warning: unused import `std::io`</div>
+          <div>warning: 2 warnings generated</div>
+          <div class="text-primary">Finished release in 42.3s</div>
+        </div>
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline mt-3 max-w-lg">
+      Note: cargo's own progress output is already terse, so real-world cargo build savings average ~1% (see measured table below). High savings come from verbose, repetitive, or noisy output streams.
+    </p>
+  </section>
+
+  <!-- Real squash benchmarks -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">MEASURED // SQUASH_PIPELINE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The shell output compression layer. Aggregated from 802 squash events in a real ostk session. Sampled from <code class="text-primary">.ostk/metrics.jsonl</code>.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-0">
+        <div class="grid grid-cols-12 gap-2 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="font-label text-[10px] text-outline col-span-6">METRIC</span>
+          <span class="font-label text-[10px] text-outline col-span-3 text-right">VALUE</span>
+          <span class="font-label text-[10px] text-outline col-span-3 text-right">NOTE</span>
+        </div>
+        {[
+          { metric: 'squash events', value: '802', note: 'shell tool calls compressed' },
+          { metric: 'original bytes', value: '246,786', note: 'raw output before pipeline' },
+          { metric: 'compressed bytes', value: '159,110', note: 'after ANSI strip + dedup' },
+          { metric: 'avg savings', value: '36%', note: 'across all 802 events' },
+          { metric: 'tokens saved', value: '~21,728', note: '4 bytes per token' },
+          { metric: 'cost saved (opus input)', value: '~$0.33', note: '$15/M tokens' },
+        ].map(r => (
+          <div class="grid grid-cols-12 gap-2 text-xs font-body py-3 border-b border-surface-variant">
+            <span class="text-on-surface col-span-6">{r.metric}</span>
+            <span class="text-primary col-span-3 text-right font-bold">{r.value}</span>
+            <span class="text-outline col-span-3 text-right">{r.note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      The squash pipeline is a small but consistent win on output. The dominant savings come from prompt cache hits on input, not output compression — see above.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/kernel-spec"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
+  </div>
+</DocsLayout>

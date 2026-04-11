@@ -1,0 +1,61 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Downloads"
+  description="Binary releases and install script for macOS and Linux."
+  sectionLabel="ONBOARDING // BINARIES"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Single Rust binary. Zero runtime dependencies. GPG-verified install.
+  </p>
+
+  <!-- Install script -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">INSTALL_SCRIPT</h2>
+    <Terminal>
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">curl -fsSL https://ostk.ai/install | sh</span></div>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Auto-detects platform, downloads the correct binary, verifies GPG signature, places in <code class="text-primary">$PATH</code>.
+    </p>
+  </section>
+
+  <!-- Platforms -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SUPPORTED_PLATFORMS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { platform: 'macOS arm64', target: 'aarch64-apple-darwin', note: 'Apple Silicon (M1/M2/M3/M4)' },
+        { platform: 'macOS x86_64', target: 'x86_64-apple-darwin', note: 'Intel Macs' },
+        { platform: 'Linux arm64', target: 'aarch64-unknown-linux-musl', note: 'ARM servers, Raspberry Pi' },
+        { platform: 'Linux x86_64', target: 'x86_64-unknown-linux-musl', note: 'Standard Linux servers' },
+      ].map(p => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="text-on-surface w-32 shrink-0">{p.platform}</span>
+          <code class="text-primary w-64 shrink-0">{p.target}</code>
+          <span class="text-outline">{p.note}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Build from source -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">BUILD_FROM_SOURCE</h2>
+    <Terminal>
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">cargo install ostk</span></div>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Requires Rust 1.85+ (MSRV). Builds a statically linked binary.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">NEXT:</span>
+    <a href="/docs/getting-started"><Icon name="rocket_launch" size="14" class="align-middle mr-1" />QUICK_START</a>
+  </div>
+</DocsLayout>

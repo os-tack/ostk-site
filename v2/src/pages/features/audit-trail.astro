@@ -1,0 +1,39 @@
+---
+import FeaturePage from '../../layouts/FeaturePage.astro';
+
+const relatedPages = [
+  { title: "Multi-Agent Coordination", description: "Conflict resolution across agents", href: "/features/coordination" },
+  { title: "Invisible Writes", description: "Agents write files normally", href: "/features/invisible-writes" },
+  { title: "Trust & Governance", description: "GPG web of trust", href: "/features/governance" },
+];
+---
+
+<FeaturePage
+  tagline="FEATURE // OBSERVABILITY"
+  title="AI Agent Audit Trail"
+  description="Every edit tracked, cryptographically signed, append-only. You know who changed what and when. fold(audit.jsonl) reconstructs the fleet at any point in time."
+  relatedPages={relatedPages}
+>
+  <h2>What gets logged</h2>
+  <p>
+    Every agent action is an append-only audit event in <code>.ostk/audit.jsonl</code>. File edits, shell commands, tool calls, agent spawns, approvals, denials, conflicts, and resolutions. Each event carries a timestamp, agent alias, action type, and target.
+  </p>
+
+  <h2>Reconstructible state</h2>
+  <p>
+    The daemon is a cache, not a ledger. The source of truth is <code>audit.jsonl</code>. Running <code>fold(audit.jsonl)</code> replays the log and reconstructs the exact fleet state — which agents were alive, what files they touched, what their context looked like. The process table is a projection of the audit log.
+  </p>
+  <p>
+    This means: daemon crashes lose nothing. A new daemon reads the log and rebuilds. Mid-flight crashes are detected by heartbeat and recovered from drain snapshots.
+  </p>
+
+  <h2>Querying the trail</h2>
+  <p>
+    <code>ostk audit --since 1h</code> shows recent events. <code>ostk audit --agent lint-fix</code> filters to one agent. The format is newline-delimited JSON — you can pipe it through <code>jq</code>, <code>grep</code>, or any tool that handles JSONL.
+  </p>
+
+  <h2>Append-only guarantees</h2>
+  <p>
+    The audit log is written with <code>O_APPEND</code> under <code>PIPE_BUF</code> — lockless, atomic, and tamper-evident. Entries are never modified or deleted. If the log file has been truncated or altered, the kernel detects it at boot.
+  </p>
+</FeaturePage>
