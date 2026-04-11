@@ -587,6 +587,27 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/agent-lifecycle",
+      "file": "src/pages/docs/agent-lifecycle.astro",
+      "title": "Agent Lifecycle",
+      "tags": ["lifecycle", "state-machine", "context-pressure", "drain", "rehydrate"],
+      "sources": [
+        { "path": "src/kernel/lifecycle.rs" },
+        { "path": "src/kernel/drain.rs" },
+        { "path": "src/kernel/heartbeat.rs" },
+        { "path": "src/kernel/presence.rs" },
+        { "path": "src/cpu/session.rs" },
+        { "path": "src/commands/reap.rs" },
+        { "path": "src/commands/agent_cmd.rs" },
+        { "path": "src/serve/dispatch.rs" }
+      ],
+      "related": ["/docs/session-topology", "/docs/five-laws", "/docs/kernel-spec", "/docs/agentfile"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →052. Five-state machine (Healthy/Aging/Dying/Draining/Dead) cited to lifecycle.rs:56-76 with thresholds at lifecycle.rs:22-23. Spawn protocol to agent_cmd.rs:33-46,88-96. Heartbeat thresholds to heartbeat.rs:47-54. Drain snapshot V2 schema to drain.rs:192-221 with exclusions at drain.rs:81-88. Kill/reap distinction cited to session_proctable.rs:161-179 vs reap.rs:69-128. Ephemeral-by-design principle cited to presence.rs:30-35. Honest recovery caveat: snapshot-to-restart-point only, not full audit replay."
+    },
+    {
       "route": "/docs/isolation-tiers",
       "file": "src/pages/docs/isolation-tiers.astro",
       "title": "Isolation Tiers",
