@@ -39,11 +39,18 @@ const relatedPages = [
     This matters because agents verify their own writes. Many agents read a file back after writing to confirm the edit took effect. If the OS modified the content, the agent would detect the discrepancy and enter a retry loop. Byte-for-byte passthrough means self-verification always succeeds.
   </p>
 
-  <h2>Tool-layer interception</h2>
+  <h2>How the interception actually works</h2>
   <p>
-    ostk intercepts writes at the <strong>tool layer</strong>, not the filesystem. No FUSE mount, no <code>inotify</code>, no <code>LD_PRELOAD</code>, no <code>ptrace</code>. Agents write through kernel primitives (<code>file:edit</code>, <code>file:write</code>, <code>file:create</code>) that apply policy, locking, and version tracking before bytes hit disk.
+    Default interception is at the <strong>tool layer</strong>. Agents write through kernel primitives (<code>file:edit</code>, <code>file:write</code>, <code>file:create</code>) that apply policy, locking, and version tracking before bytes hit disk. No <code>LD_PRELOAD</code>, no <code>ptrace</code>, no <code>kqueue</code> observer. If a write went through the tool, the kernel saw it, tracked it, and appended it to the audit trail.
   </p>
   <p>
-    If a write went through the tool, the kernel saw it. If a write bypassed the tool (direct shell <code>echo ></code>), the kernel did not — by design. This is a deliberate trade-off: tool-layer mediation covers only writes through the kernel's primitives, but with zero overhead for unmediated I/O and deterministic behavior.
+    The honest question: what if an agent bypasses the tool and writes directly through a shell? Two defenses handle that:
+  </p>
+  <ul>
+    <li><strong>Process sandbox (always on).</strong> The <code>nono</code> subsystem enforces filesystem restrictions at the OS layer — Landlock on Linux, Seatbelt on macOS. Direct writes outside allowed paths physically fail at the syscall level, regardless of which tool the agent used. Source: <code>src/kernel/sandbox.rs</code>.</li>
+    <li><strong>FUSE passthrough (optional).</strong> <code>ostk mount</code> (built with <code>--features fuse</code>) mounts a FUSE filesystem that mirrors the project tree and logs every write op. Off by default because FUSE adds dependencies; turned on when operators want every byte logged regardless of how it got written. Source: <code>src/fuse/passthrough.rs</code>.</li>
+  </ul>
+  <p>
+    Tool layer covers the expected path (and gets you conflict resolution + audit). The sandbox covers the escape path (containment, not observability). FUSE is the observability upgrade for users who need both. No single layer is load-bearing on its own — and none of them require the agent to know they exist.
   </p>
 </FeaturePage>
