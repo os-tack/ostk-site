@@ -849,8 +849,11 @@
           "path": "src/kernel/host_identity.rs"
         }
       ],
-      "related": [],
-      "status": "unverified"
+      "related": ["/docs/entityfile", "/docs/primefile", "/docs/pins"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "Tier enum, T0_TRUST_ANCHORS, determine_trust_tier, capability pin tokens, and approval chain order verified against identity.rs, policy.rs, approval.rs. T3 'cannot boot' was rhetorical — corrected to 'read-only gated by pin.caps'. T1→T0 escalation path removed — T0 is hardcoded. Ed25519 noted as additive, GPG canonical for tier determination."
     },
     {
       "route": "/docs/tui",

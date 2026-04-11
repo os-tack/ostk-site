@@ -9,7 +9,7 @@ import Icon from '../../components/Icon.astro';
   sectionLabel="GOVERNANCE // TRUST_CHAIN"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    GPG cross-signatures determine trust, not harness identity. The web of trust anchors at the @ostk.ai root key and T0 holder keys.
+    GPG cross-signatures determine trust, not harness identity. The web of trust anchors at the @ostk.ai root key and T0 holder keys. Ed25519 is additive — used for per-file signing and agent certificates — but GPG remains canonical for tier determination.
   </p>
 
   <!-- Tier Overview -->
@@ -41,9 +41,9 @@ import Icon from '../../components/Icon.astro';
         {
           tier: 'T3', label: 'ANONYMOUS',
           who: 'No GPG key',
-          proof: 'discover_gpg_key() returns None',
-          can: ['Public artifacts only'],
-          deny: ['ALL WRITES (allows_write=false)', 'Cannot boot — hard fail'],
+          proof: 'host_identity::discover() returns no gpg_key',
+          can: ['Boot and read everything', 'Run kernel verbs', 'Explore, query, audit'],
+          deny: ['ALL WRITES (allows_write=false in policy.rs:248)', 'Cannot modify any file'],
         },
       ].map(t => (
         <div class="bg-surface-container-low mb-px">
@@ -88,11 +88,11 @@ import Icon from '../../components/Icon.astro';
     </p>
     <div class="space-y-px">
       {[
-        { step: '01', check: 'Read HUMANFILE SIGN key', result: 'If it matches a T0_TRUST_ANCHOR → T0' },
-        { step: '02', check: 'Discover GPG secret key', result: 'If no GPG key found → T3 (anonymous)' },
-        { step: '03', check: 'Check if key is a T0 anchor', result: 'If fingerprint in T0_TRUST_ANCHORS → T0' },
-        { step: '04', check: 'Check for T0 cross-signature', result: 'gpg --check-sigs finds sig! from T0 anchor → T1' },
-        { step: '05', check: 'GPG key present, not cross-signed', result: '→ T2 (read-only)' },
+        { step: '01', check: 'Read HUMANFILE SIGN directive', result: 'If key matches a T0_TRUST_ANCHOR → T0 (identity.rs:136)' },
+        { step: '02', check: 'host_identity::discover() for user GPG key', result: 'If no GPG secret key → T3 (anonymous, read-only)' },
+        { step: '03', check: 'Check if key fingerprint is in T0_TRUST_ANCHORS', result: 'Hardcoded 5 anchors in identity.rs:39–45 → T0' },
+        { step: '04', check: 'gpg --check-sigs for sig! from a T0 anchor', result: 'Cross-signature found → T1 (write access)' },
+        { step: '05', check: 'GPG key present, no cross-signature', result: '→ T2 (read-only with narrow write exceptions)' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
@@ -174,11 +174,13 @@ import Icon from '../../components/Icon.astro';
   <!-- Escalation -->
   <section class="mb-16">
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Tier Escalation</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      T0 is not a user-reachable tier via ceremony — its fingerprints are hardcoded in <code class="text-primary">src/kernel/identity.rs</code> and shipped with the binary. Escalation to T0 requires a kernel release that includes your fingerprint. Everyone else escalates via GPG ceremony.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
       {[
-        { from: 'T3 → T2', action: 'Generate a GPG key', cmd: 'gpg --full-generate-key' },
-        { from: 'T2 → T1', action: 'Get cross-signed by T0', cmd: 'gpg --local-user T0_KEY --sign-key YOUR_KEY' },
-        { from: 'T1 → T0', action: 'Dual-sign .primefile', cmd: 'gpg --detach-sign --local-user T0_KEY .ostk/.primefile' },
+        { from: 'T3 → T2', action: 'Generate a GPG key. You can now boot and read everything; writes still blocked.', cmd: 'gpg --full-generate-key' },
+        { from: 'T2 → T1', action: 'Get cross-signed by a T0 holder. Unlocks write access, bounded by pin.caps deny tokens.', cmd: 'gpg --local-user T0_KEY --sign-key YOUR_KEY' },
       ].map(e => (
         <div class="bg-surface-container p-6">
           <div class="font-body text-sm text-primary font-bold mb-2">{e.from}</div>
