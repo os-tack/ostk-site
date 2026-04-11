@@ -35,10 +35,10 @@ const sidebarGroups = {
         <h2 class="section-label mb-6">TRUST_TIERS</h2>
         <div class="space-y-px">
           {[
-            { tier: 'T0', meaning: 'Dual-signed (human + kernel)', how: 'Ratified by existing T0 holder', restrictions: 'None — full governance' },
+            { tier: 'T0', meaning: 'Fingerprint in kernel trust anchors', how: 'Hardcoded in src/kernel/identity.rs (shipped with binary)', restrictions: 'None — full governance' },
             { tier: 'T1', meaning: 'Cross-signed by T0 holder', how: 'Your GPG key signed by a T0 key', restrictions: 'Cannot modify OS or governance files' },
-            { tier: 'T2', meaning: 'GPG key present, not cross-signed', how: 'GPG key exists, no T0 signature', restrictions: 'Read-only — no OS, governance, or source writes' },
-            { tier: 'T3', meaning: 'Anonymous', how: 'No GPG key', restrictions: 'Cannot boot — public artifacts only' },
+            { tier: 'T2', meaning: 'GPG key present, not cross-signed', how: 'GPG key exists, no T0 signature', restrictions: 'Read everything; narrow write exceptions' },
+            { tier: 'T3', meaning: 'No GPG key', how: 'host_identity returns no gpg_key', restrictions: 'Boots read-only; all writes denied by pin caps (policy.rs:248)' },
           ].map(t => (
             <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
               <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
