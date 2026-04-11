@@ -176,10 +176,22 @@
         },
         {
           "path": "src/util/time.rs"
+        },
+        {
+          "path": "src/kernel/sandbox.rs"
+        },
+        {
+          "path": "src/fuse/passthrough.rs"
+        },
+        {
+          "path": "src/commands/mount.rs"
         }
       ],
-      "related": [],
-      "status": "unverified"
+      "related": ["/docs/kernel-spec", "/docs/session-topology", "/docs/compression", "/docs/mcp"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "Write Interception section rewritten to honestly disclose the full stack: tool-layer interception is default; nono process sandbox (Landlock on Linux, Seatbelt on macOS via kernel/sandbox.rs) blocks escape writes at OS layer; optional FUSE passthrough (fuse/passthrough.rs, built with --features fuse, invoked via ostk mount) mirrors the tree for full write observability. Previous version claimed No FUSE/LD_PRELOAD/ptrace as absolutes, which was wrong — FUSE IS an optional feature."
     },
     {
       "route": "/docs/bail",

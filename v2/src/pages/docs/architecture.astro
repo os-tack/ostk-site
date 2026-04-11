@@ -27,7 +27,7 @@ import Icon from '../../components/Icon.astro';
           { name: 'WRITE_TRACKING', desc: 'Every file write intercepted, assigned a generation counter via OCC' },
           { name: 'CONFLICT_RESOLUTION', desc: 'Hot PR — auto-merge, mechanical rebase, or manual. Three tiers.' },
           { name: 'OUTPUT_COMPRESSION', desc: '3-tier pipeline: strip ANSI, dedup lines, classify before agent context' },
-          { name: 'CAPABILITY_ENFORCEMENT', desc: 'Deny-based pins at tool layer, Landlock/Seatbelt at syscall layer' },
+          { name: 'CAPABILITY_ENFORCEMENT', desc: 'Deny-based pins at tool layer (policy.rs), Landlock/Seatbelt at syscall layer via nono sandbox (kernel/sandbox.rs)' },
           { name: 'AUDIT_TRAIL', desc: 'Append-only events. fold(audit.jsonl) reconstructs the fleet' },
           { name: 'SECRET_MEDIATION', desc: 'API keys resolved from keychain at call time, never in agent context' },
           { name: 'FLEET_COORDINATION', desc: 'Spawn, drain, reap, rehydrate. Heartbeat crash detection.' },
@@ -74,10 +74,17 @@ import Icon from '../../components/Icon.astro';
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">Write Interception</h2>
     <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-6">
       <p class="font-body text-xs text-on-surface mb-4">
-        ostk intercepts writes at the <span class="text-primary font-bold">tool layer</span>, not the filesystem. No FUSE mount, no inotify, no LD_PRELOAD, no ptrace.
+        Default: ostk intercepts at the <span class="text-primary font-bold">tool layer</span>. Agents call kernel primitives (<code class="text-primary">file:edit</code>, <code class="text-primary">file:write</code>, <code class="text-primary">file:create</code>) that apply policy, locking, and version tracking before bytes hit disk. No LD_PRELOAD, no ptrace, no kqueue observer.
       </p>
+      <p class="font-body text-xs text-secondary mb-4">
+        Tool-layer interception has one honest limitation: if an agent escapes the tool path — by invoking a shell that writes directly — the kernel never sees it. ostk addresses this two ways:
+      </p>
+      <ol class="font-body text-xs text-secondary list-decimal pl-5 space-y-2 mb-4">
+        <li><span class="text-primary font-bold">Process sandbox (always on):</span> the <code class="text-primary">nono</code> subsystem enforces filesystem restrictions at the OS layer — Landlock on Linux, Seatbelt on macOS. Agents physically cannot write outside their allowed paths, regardless of how they try. Implemented in <code class="text-primary">src/kernel/sandbox.rs</code>.</li>
+        <li><span class="text-primary font-bold">FUSE passthrough (optional):</span> <code class="text-primary">ostk mount</code> (built with <code class="text-primary">--features fuse</code>) mounts a FUSE filesystem that mirrors the project tree and logs every write op through the kernel. Optional because FUSE adds dependencies; off by default. Implemented in <code class="text-primary">src/fuse/passthrough.rs</code>.</li>
+      </ol>
       <p class="font-body text-xs text-secondary">
-        Agents write through kernel primitives (<code class="text-primary">file:edit</code>, <code class="text-primary">file:write</code>, <code class="text-primary">file:create</code>) that apply policy, locking, and version tracking before bytes hit disk. If a write went through the tool, the kernel saw it.
+        Tool-layer covers the expected path; the OS sandbox covers the escape path; FUSE is the observability upgrade for users who want every byte logged regardless of how it got written. No single interception layer is load-bearing on its own.
       </p>
     </div>
   </section>
