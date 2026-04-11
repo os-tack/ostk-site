@@ -1,0 +1,204 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Approval Chain"
+  description="Seven-step policy chain that every tool call passes through. pin.caps hard deny, destructive check, kernel-read auto, permission mode, session allow-list, Agentfile patterns, and the user prompt."
+  sectionLabel="REFERENCE // APPROVAL_CHAIN"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Every tool call an agent requests passes through seven ordered checks before it runs. First match wins. The chain is deliberately sequenced from cheapest-and-most-certain (pin.caps deny) to most-expensive-and-most-ambiguous (user prompt). The whole sequence lives in <code>src/cpu/agent_loop.rs</code> lines 1470–1680.
+  </p>
+
+  <!-- Capability classes prelude -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">PRELUDE // CAPABILITY_CLASSES</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Before the chain runs, every tool call is classified into one of eleven capability classes ordered by privilege. The classifier lives at <code class="text-primary">src/cpu/mod.rs:557–696</code>.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 font-body text-xs">
+        {[
+          ['FileRead', 'Read, Glob, Grep — no side effects'],
+          ['FileEdit', 'Edit — mutates existing files in place'],
+          ['FileWrite', 'Write — creates or overwrites files'],
+          ['ShellRead', 'cat, ls, ps, git log — read-only shell'],
+          ['ShellWrite', 'cp, mv, rm, echo > file, git commit'],
+          ['ShellExec', 'curl, cargo build, npm install — process/network'],
+          ['ShellSecret', 'gpg, ssh-keygen, ostk secret — key material'],
+          ['KernelRead', 'ostk ps, ostk clock, ostk show — read-only kernel state'],
+          ['KernelWrite', 'ostk commit, ostk hay, ostk work add — mutates kernel state'],
+          ['KernelSpawn', 'ostk run, ostk spawn — creates agent processes'],
+          ['KernelSecret', 'ostk secret — key material through kernel'],
+        ].map(([name, desc]) => (
+          <div class="flex gap-4 py-1 border-b border-surface-variant">
+            <code class="text-primary w-32 shrink-0">{name}</code>
+            <span class="text-secondary text-[11px]">{desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- The chain -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">SEVEN_STEPS</h2>
+    <div class="space-y-px">
+      {[
+        {
+          step: '01',
+          name: 'PIN_CAPS_HARD_DENY',
+          what: 'For write-class capabilities (FileEdit, FileWrite, ShellWrite), the kernel loads pin.caps via load_pin_caps_result() and calls denies_write(target_path). If the token list includes write-kernel, modify-governance, or write-src, and the path matches, the call is denied immediately.',
+          fail_closed: 'If OSTK_PIN is set but pin.caps fails to parse, PinCapsResult::Error returns true — fail-closed. Source: agent_loop.rs:1483–1503, 1499 (Error → true).',
+          src: 'src/cpu/agent_loop.rs:1474–1533',
+        },
+        {
+          step: '02',
+          name: 'DESTRUCTIVE_CHECK',
+          what: 'For ShellWrite, ShellExec, ShellSecret, and KernelSpawn classes, extract the command string and call destructor::detect_destructive(cmd). Returns Some if the command matches a destructive pattern. A fired dangerous signal (→1245) forces this check even for ShellRead. If destructive_hit is true, the call is prompted — always, regardless of later steps.',
+          fail_closed: 'The destructive hit overrides every later auto-approve path. An Autonomous agent with a destructive command still prompts. Source: agent_loop.rs:1657–1659 ("destructive always prompts").',
+          src: 'src/cpu/agent_loop.rs:1535–1561, 1657',
+        },
+        {
+          step: '03',
+          name: 'KERNEL_READ_AUTO',
+          what: 'If the capability class is exactly KernelRead (read-only kernel state: ostk ps, ostk clock, ostk show), the call is auto-approved. This is the only class that gets a free pass regardless of mode or allow-list — kernel reads have no side effects and need no supervision.',
+          fail_closed: 'KernelWrite, KernelSpawn, and KernelSecret do NOT get this treatment. They fall through to the mode gate. Source: agent_loop.rs:1563–1564.',
+          src: 'src/cpu/agent_loop.rs:1563–1564',
+        },
+        {
+          step: '04',
+          name: 'PERMISSION_MODE_GATE',
+          what: 'Four modes defined at src/cpu/mod.rs:517–527. Autonomous → allow all. Auto → allow reads (FileRead, FileEdit, FileWrite, ShellRead, KernelRead). Governed → deny all (continue chain). Plan → deny all except KernelRead (which was already allowed at Step 3).',
+          fail_closed: 'A dangerous signal overrides Auto mode\'s auto-approval — a dangerous ShellRead still prompts. Plan mode short-circuits with a terminal deny at agent_loop.rs:1589–1606. Source: agent_loop.rs:1566–1587, 1571–1587.',
+          src: 'src/cpu/agent_loop.rs:1566–1606, src/cpu/mod.rs:517–527',
+        },
+        {
+          step: '05',
+          name: 'SESSION_ALLOW_LIST',
+          what: 'runtime_allowed is a Mutex<HashSet<String>> held on the session. When the operator approves a call with the "a" key (approve all for this class), the tool name goes into this set. Subsequent calls to the same tool name are auto-approved.',
+          fail_closed: 'In-memory only. Not persisted to disk. Revoked on daemon restart or explicit mid-session revocation via TUI. Source: agent_loop.rs:1607–1611.',
+          src: 'src/cpu/agent_loop.rs:1607–1611',
+        },
+        {
+          step: '06',
+          name: 'AGENTFILE_TOOL_PATTERNS',
+          what: 'config.tool_patterns is a Vec<(class_label, Option<path_pattern>)> parsed from the Agentfile TOOL directives. A pattern matches if the class label equals the call\'s class AND (the pattern is None for bare class match, OR the target path contains the pattern as a substring). Privileged classes (ShellExec, ShellSecret, KernelSpawn) additionally require Autonomous mode — pattern match alone is not enough.',
+          fail_closed: 'Substring match, NOT glob or regex. TOOL shell:write(src/) matches any target path containing "src/". Full TRUST hierarchy (pin > HUMANFILE > default) is a TODO at agent_loop.rs:1640–1643. Source: agent_loop.rs:1613–1655.',
+          src: 'src/cpu/agent_loop.rs:1613–1655',
+        },
+        {
+          step: '07',
+          name: 'USER_PROMPT',
+          what: 'If none of the prior steps allowed the call, the approval source (the TUI modal in interactive use, or a mock in tests) is asked. The modal renders agent alias, tool name, and the raw input JSON preview. Keybindings: y = approve, n = deny, a = approve all for this class (adds to Step 5 allow-list), Enter = deny (safety default).',
+          fail_closed: 'No approval source configured → the call is denied by default. Source: agent_loop.rs:1672–1673 and src/fcp_screen/action.rs:286 (Enter → deny).',
+          src: 'src/cpu/agent_loop.rs:1672–1673',
+        },
+      ].map(s => (
+        <div class="bg-surface-container-low">
+          <div class="grid grid-cols-12 gap-0">
+            <div class="md:col-span-1 bg-surface-container flex items-start justify-center pt-6">
+              <span class="serif-text text-3xl font-bold text-primary">{s.step}</span>
+            </div>
+            <div class="md:col-span-11 p-6">
+              <h3 class="font-body text-sm text-on-surface font-bold mb-3">{s.name}</h3>
+              <p class="font-body text-xs text-secondary mb-3 leading-relaxed">{s.what}</p>
+              <div class="bg-surface-container-lowest p-3 border-l-2 border-error/40 mb-3">
+                <div class="font-label text-[10px] text-error/60 mb-1">BEHAVIOR_UNDER_FAILURE</div>
+                <p class="font-body text-[11px] text-secondary leading-relaxed">{s.fail_closed}</p>
+              </div>
+              <div class="font-body text-[10px] text-outline">source: <code class="text-primary">{s.src}</code></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Decision flow -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">DECISION_FLOW</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The actual match, copied from <code class="text-primary">agent_loop.rs:1657–1672</code>:
+    </p>
+    <Terminal label="needs_approval decision">
+      <pre><span class="text-primary">let</span> needs_approval = <span class="text-primary">if</span> destructive_hit {'{'}
+    <span class="text-on-surface">true</span>  <span class="text-outline">// Step 2: destructive always prompts</span>
+{'}'} <span class="text-primary">else if</span> kernel_auto {'{'}
+    <span class="text-on-surface">false</span> <span class="text-outline">// Step 3: kernel:read auto-approved</span>
+{'}'} <span class="text-primary">else if</span> mode_allows {'{'}
+    <span class="text-on-surface">false</span> <span class="text-outline">// Step 4: mode gate auto-approved</span>
+{'}'} <span class="text-primary">else if</span> is_session_allowed {'{'}
+    <span class="text-on-surface">false</span> <span class="text-outline">// Step 5: session allow-list</span>
+{'}'} <span class="text-primary">else if</span> agentfile_allows {'{'}
+    <span class="text-on-surface">false</span> <span class="text-outline">// Step 6: Agentfile pattern match</span>
+{'}'} <span class="text-primary">else</span> {'{'}
+    <span class="text-on-surface">true</span>  <span class="text-outline">// Step 7: fall through to user prompt</span>
+{'}'};</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Step 1 (pin.caps hard deny) happens earlier and short-circuits with a terminal deny — it never reaches this decision block. Step 1 is structurally different from 2–7: it denies, where 2–7 decide between "allow silently" and "prompt the user."
+    </p>
+  </section>
+
+  <!-- Mode × Class matrix -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">MODE × CLASS AUTO-APPROVE MATRIX</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Which combinations auto-approve (✓) vs require a prompt (?). Destructive commands force a prompt regardless of this table. Source: <code class="text-primary">agent_loop.rs:1566–1587</code>, <code class="text-primary">src/cpu/mod.rs:517–527</code>.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary overflow-x-auto">
+      <table class="w-full font-body text-xs">
+        <thead>
+          <tr class="border-b border-surface-variant">
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-primary uppercase tracking-widest">CAPABILITY_CLASS</th>
+            <th class="pb-3 pr-3 text-center font-label text-[10px] text-outline uppercase tracking-widest">PLAN</th>
+            <th class="pb-3 pr-3 text-center font-label text-[10px] text-outline uppercase tracking-widest">GOVERNED</th>
+            <th class="pb-3 pr-3 text-center font-label text-[10px] text-outline uppercase tracking-widest">AUTO</th>
+            <th class="pb-3 text-center font-label text-[10px] text-outline uppercase tracking-widest">AUTONOMOUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { c: 'FileRead', plan: '?', gov: '?', auto: '✓', aut: '✓' },
+            { c: 'FileEdit', plan: '?', gov: '?', auto: '✓', aut: '✓' },
+            { c: 'FileWrite', plan: '?', gov: '?', auto: '✓', aut: '✓' },
+            { c: 'ShellRead', plan: '?', gov: '?', auto: '✓*', aut: '✓' },
+            { c: 'ShellWrite', plan: '?', gov: '?', auto: '?', aut: '✓' },
+            { c: 'ShellExec', plan: '?', gov: '?', auto: '?', aut: '✓' },
+            { c: 'ShellSecret', plan: '?', gov: '?', auto: '?', aut: '✓' },
+            { c: 'KernelRead', plan: '✓', gov: '✓', auto: '✓', aut: '✓' },
+            { c: 'KernelWrite', plan: '?', gov: '?', auto: '?', aut: '✓' },
+            { c: 'KernelSpawn', plan: '?', gov: '?', auto: '?', aut: '✓' },
+            { c: 'KernelSecret', plan: '?', gov: '?', auto: '?', aut: '✓' },
+          ].map(r => (
+            <tr class="border-b border-surface-variant/50">
+              <td class="py-2 pr-4 font-bold text-on-surface">{r.c}</td>
+              <td class="py-2 pr-3 text-center text-secondary">{r.plan}</td>
+              <td class="py-2 pr-3 text-center text-secondary">{r.gov}</td>
+              <td class="py-2 pr-3 text-center text-secondary">{r.auto}</td>
+              <td class="py-2 text-center text-secondary">{r.aut}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      <span class="text-primary">✓</span> auto-approved by the mode gate.
+      <span class="text-primary">?</span> falls through to session allow-list → Agentfile patterns → user prompt.
+      <span class="text-primary">✓*</span> ShellRead auto-approves in Auto mode UNLESS the dangerous signal fires, in which case it prompts (→1245 PR-A, agent_loop.rs:1571–1576).
+      KernelRead is the only class that gets auto-approved at Step 3 regardless of mode — visible as ✓ across the whole row.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/isolation-tiers"><Icon name="lock" size="14" class="align-middle mr-1" />ISOLATION_TIERS</a>
+  </div>
+</DocsLayout>

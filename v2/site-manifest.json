@@ -587,6 +587,24 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/approval-chain",
+      "file": "src/pages/docs/approval-chain.astro",
+      "title": "Approval Chain",
+      "tags": ["approval", "policy", "permission", "pin-caps", "destructive"],
+      "sources": [
+        { "path": "src/cpu/agent_loop.rs" },
+        { "path": "src/cpu/mod.rs" },
+        { "path": "src/kernel/policy.rs" },
+        { "path": "src/kernel/destructor.rs" },
+        { "path": "src/fcp_screen/action.rs" }
+      ],
+      "related": ["/docs/trust-model", "/docs/pins", "/docs/agentfile", "/docs/isolation-tiers"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →058. All 7 steps cited to agent_loop.rs line ranges read directly: Step 1 pin.caps at 1474-1533 with fail-closed at 1499, Step 2 destructive at 1535-1561+1657, Step 3 KernelRead auto at 1563-1564, Step 4 mode gate at 1566-1606, Step 5 session allow-list at 1607-1611, Step 6 Agentfile patterns at 1613-1655, Step 7 user prompt at 1672-1673. PermissionMode enum (Plan/Governed/Auto/Autonomous) cited to cpu/mod.rs:517-527. CapabilityClass (11 variants) cited to cpu/mod.rs:557-696. Decision flow match block transcribed from agent_loop.rs:1657-1672 with annotation. Mode-class matrix built from mode_allows match at :1571-1587."
+    },
+    {
       "route": "/docs/coordination-primitives",
       "file": "src/pages/docs/coordination-primitives.astro",
       "title": "Coordination Primitives",
