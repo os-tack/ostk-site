@@ -393,8 +393,11 @@
           "path": "src/cli/mod.rs"
         }
       ],
-      "related": [],
-      "status": "unverified"
+      "related": ["/docs/getting-started", "/docs/kernel-spec", "/docs/tui"],
+      "status": "partial",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "spot-check",
+      "verified_notes": "Fixed QUICK_REFERENCE inconsistencies: ostk needle add → ostk work add (needle is not a top-level subcommand); removed ostk verify (only exists as ostk bail verify); os metrics / os history properly namespaced. Fixed tack jargon on tui description. Partial status: detailed command sections not fully cross-referenced against ostk --help output — missing commands (doc, embeddings, thread, grant, ask, tack, guide, hs, do, drivers, revoke, migrate-keys, mount, bench) should be added in a follow-up pass."
     },
     {
       "route": "/docs/compression",
