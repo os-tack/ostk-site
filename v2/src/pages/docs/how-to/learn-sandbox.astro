@@ -1,0 +1,120 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Icon from '../../../components/Icon.astro';
+import Terminal from '../../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="How to: Learn a Sandbox Policy"
+  description="Use ostk learn to observe an agent's real filesystem access and generate LIMIT sandbox directives automatically. Like strace for sandbox policy — observe first, codify second."
+  sectionLabel="HOW_TO // LEARN_SANDBOX"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    You don't have to guess which paths an agent needs. Run it once under <code>nono learn</code>, collect the read/readwrite list, and bake it into the Agentfile. Two commands. Source: <code>src/commands/learn.rs</code>.
+  </p>
+
+  <!-- Prereqs -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">PREREQUISITES</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <ul class="font-body text-xs text-on-surface space-y-2 list-disc pl-5">
+        <li><code class="text-primary">ostk</code> built with the <code class="text-primary">sandbox</code> feature. Without it, <code class="text-primary">ostk learn</code> exits with the error "ostk learn requires the sandbox feature — rebuild with: <code>cargo build --features sandbox</code>". Source: <code class="text-primary">learn.rs:16–25</code>.</li>
+        <li>The <code class="text-primary">nono</code> binary on PATH. <code class="text-primary">ostk learn</code> shells out to <code class="text-primary">nono learn -- &lt;cmd&gt;</code> and parses its output. If nono is missing you get "nono learn failed (is nono installed?)". Source: <code class="text-primary">learn.rs:164–171</code>.</li>
+        <li>An Agentfile you want to sandbox. Either a path (<code class="text-primary">agents/worker.af</code>) or a bare name the kernel can resolve (<code class="text-primary">worker</code>).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Walkthrough -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">WALKTHROUGH</h2>
+    <div class="space-y-px">
+      {[
+        {
+          step: '01',
+          title: 'Start from an Agentfile with no sandbox directives',
+          body: 'No LIMIT sandbox.read or sandbox.readwrite yet. The agent currently runs at ISOLATION none — it can touch anything. That\'s the starting point ostk learn improves on.',
+        },
+        {
+          step: '02',
+          title: 'Observe',
+          body: 'ostk learn agents/worker.af runs the canonical spawn command (ostk run agents/worker.af) under nono learn. nono traces every open, read, and write syscall the process makes. An optional --duration <secs> caps the observation window. Source: learn.rs:30–90, 121–134.',
+        },
+        {
+          step: '03',
+          title: 'Review the discovered directives',
+          body: 'Output is printed to stdout. Two lines per unique path: "LIMIT sandbox.read <path>" or "LIMIT sandbox.readwrite <path>". ostk learn deduplicates against existing LIMIT sandbox entries in the Agentfile so rerunning against an already-learned file only shows new paths. Source: learn.rs:78–85.',
+        },
+        {
+          step: '04',
+          title: 'Apply (optional)',
+          body: 'Rerun with --apply to append the new directives directly to the Agentfile. Without --apply the directives are printed only, so you can pipe them, diff them, or paste them by hand. Source: learn.rs:90–95.',
+        },
+        {
+          step: '05',
+          title: 'Switch to ISOLATION nono',
+          body: 'Add ISOLATION nono to the Agentfile. Now the next ostk run spawns the agent into a Landlock (Linux) or Seatbelt (macOS) sandbox restricted to exactly the paths ostk learn observed. Source: /docs/isolation-tiers.',
+        },
+        {
+          step: '06',
+          title: 'Audit confirms',
+          body: 'ostk learn emits learn.started and learn.completed events to .ostk/audit.jsonl with the directive count. Useful when the same Agentfile is learned from multiple machines and you want to see which run produced which rule set. Source: learn.rs:48–56, 80–87.',
+        },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-4">
+            <div class="font-body text-xs text-on-surface font-bold mb-1">{s.title}</div>
+            <p class="font-body text-xs text-secondary">{s.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Sample session -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SAMPLE_SESSION</h2>
+    <Terminal label="discovery run">
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">ostk learn agents/worker.af --duration 30</span></div>
+      <div class="text-secondary mt-2">ostk learn: observing agents/worker.af via nono learn</div>
+      <div class="text-secondary">ostk learn: command = ostk run agents/worker.af</div>
+      <div class="text-secondary">(agent runs to completion or 30s timeout)</div>
+      <div class="text-secondary mt-2">ostk learn: discovered 4 new directive(s)</div>
+      <div class="text-primary mt-2">LIMIT sandbox.read /usr/lib/libSystem.B.dylib</div>
+      <div class="text-primary">LIMIT sandbox.read /etc/ssl/cert.pem</div>
+      <div class="text-primary">LIMIT sandbox.readwrite /tmp/worker-scratch</div>
+      <div class="text-primary">LIMIT sandbox.readwrite ./src</div>
+    </Terminal>
+    <Terminal label="apply + lock down">
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">ostk learn agents/worker.af --apply</span></div>
+      <div class="text-secondary mt-2">ostk learn: appended directives to agents/worker.af</div>
+      <div><span class="text-outline select-none">$ </span><span class="text-secondary"># add ISOLATION nono by hand</span></div>
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">echo "ISOLATION nono" &gt;&gt; agents/worker.af</span></div>
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">ostk run agents/worker.af</span></div>
+      <div class="text-secondary mt-2">(now sandboxed — any access outside the learned set returns EACCES)</div>
+    </Terminal>
+  </section>
+
+  <!-- Caveats -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Caveats</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <ul class="font-body text-xs text-secondary space-y-3 list-disc pl-5">
+        <li><span class="text-primary font-bold">Observation coverage is only as good as the run.</span> If the agent never needed <code class="text-primary">/opt/homebrew/bin/node</code> during the learn session but it does on a cold start, the learned policy will block the cold start. Run the agent through its real workload, not a trivial smoke test.</li>
+        <li><span class="text-primary font-bold">Non-zero exit codes are expected.</span> nono itself passes through the observed process's exit status. ostk learn only fails if nono itself can't start. Source: <code class="text-primary">learn.rs:173–183</code>.</li>
+        <li><span class="text-primary font-bold">Sensitive paths still appear in the output.</span> If the agent accidentally reads <code class="text-primary">~/.ssh/id_rsa</code> during observation, that path shows up in the discovered directives. Review before <code class="text-primary">--apply</code>.</li>
+        <li><span class="text-primary font-bold">Deduplication is exact-path only.</span> If the Agentfile already has <code class="text-primary">LIMIT sandbox.read /usr</code> and observation finds <code class="text-primary">/usr/lib/libSystem.B.dylib</code>, the specific path will still be added. Existing substring coverage is not deduced. Source: <code class="text-primary">learn.rs:75–78</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/isolation-tiers"><Icon name="lock" size="14" class="align-middle mr-1" />ISOLATION_TIERS</a>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/approval-chain"><Icon name="checklist" size="14" class="align-middle mr-1" />APPROVAL_CHAIN</a>
+  </div>
+</DocsLayout>

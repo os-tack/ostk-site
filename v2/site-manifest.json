@@ -587,6 +587,20 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/how-to/learn-sandbox",
+      "file": "src/pages/docs/how-to/learn-sandbox.astro",
+      "title": "How to: Learn a Sandbox Policy",
+      "tags": ["how-to", "sandbox", "learn", "nono", "policy"],
+      "sources": [
+        { "path": "src/commands/learn.rs" }
+      ],
+      "related": ["/docs/isolation-tiers", "/docs/agentfile", "/docs/approval-chain"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source",
+      "verified_notes": "New page for needle →055. Six-step walkthrough cited to learn.rs specific lines: feature gate at 16-25, run path at 30-90, nono subprocess at 121-134, 164-171, 173-183, dedup at 75-78, audit events at 48-56 and 80-87. Caveats section discloses observation-coverage, non-zero exit passthrough, sensitive-path exposure, exact-path dedup. Sample session shows realistic output format (r/rw prefix → LIMIT sandbox.read/readwrite)."
+    },
+    {
       "route": "/docs/approval-chain",
       "file": "src/pages/docs/approval-chain.astro",
       "title": "Approval Chain",
