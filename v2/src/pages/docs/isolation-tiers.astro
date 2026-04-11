@@ -1,0 +1,225 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Isolation Tiers"
+  description="Four isolation levels for ostk agents: unsandboxed, nono (Landlock/Seatbelt), Docker, Firecracker microVM. What's live, what's reserved, what each prevents."
+  sectionLabel="REFERENCE // ISOLATION_MODEL"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Four containment levels, plus a credential-proxy pattern at the API edge. What your Agentfile asks for, what the kernel actually enforces, and what still says "reserved" in the parser.
+  </p>
+
+  <!-- Status honesty bar -->
+  <section class="mb-16">
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        <span class="text-primary font-bold">Live today:</span> Tier 0 (unsandboxed, default) and Tier 1 (nono sandbox, opt-in via <code class="text-primary">ISOLATION nono</code>).
+      </p>
+      <p class="font-body text-xs text-secondary">
+        Tier 2 (Docker) and Tier 3 (Firecracker microVM) are <span class="text-primary">parsed but reserved</span>. The <code class="text-primary">ISOLATION docker</code> and <code class="text-primary">ISOLATION firecracker</code> directives validate in <code class="text-primary">src/agentfile/parser.rs:77–80</code>, but the spawn path does not wire them up yet. Firecracker has a draft POC in <code class="text-primary">src/commands/vm_init.rs</code> and <code class="text-primary">src/commands/firecracker.rs</code>; Docker has neither. Using a reserved value today falls back to Tier 0 behavior.
+      </p>
+    </div>
+  </section>
+
+  <!-- Tier cards -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">FOUR_TIERS</h2>
+    <div class="space-y-px">
+      {[
+        {
+          tier: 'T0',
+          label: 'UNSANDBOXED',
+          directive: 'ISOLATION none',
+          status: 'LIVE — default',
+          mechanism: 'No kernel enforcement. MCP tool layer is the only boundary. If an agent fork/exec\'s a shell, it has whatever filesystem and network access the OS gives the parent process.',
+          escape: 'Trivial. Any tool can shell out and bypass pin caps. Use only when you already trust the agent (local, signed Agentfile) and the surrounding process is itself sandboxed.',
+          source: 'src/agentfile/parser.rs:349 (IsolationTier::None default)',
+        },
+        {
+          tier: 'T1',
+          label: 'NONO_SANDBOX',
+          directive: 'ISOLATION nono',
+          status: 'LIVE — Phase S1',
+          mechanism: 'Process-level kernel enforcement via the nono crate. Landlock on Linux (kernel ≥ 5.13), Seatbelt on macOS (sandbox_init). Fallback: seccomp-notify on pre-6.1 kernels — weaker, can stall if supervisor hangs.',
+          escape: 'Any unauthorized open()/unlink()/write() returns EACCES at the syscall layer. Works even if the agent exec()s a raw shell — Landlock/Seatbelt enforce for the process and all descendants. Must be applied before any I/O (async-signal-safe on Linux).',
+          source: 'src/kernel/sandbox.rs:1–169, apply() at 157–159',
+        },
+        {
+          tier: 'T2',
+          label: 'DOCKER',
+          directive: 'ISOLATION docker',
+          status: 'RESERVED — parsed, not wired',
+          mechanism: 'Namespace isolation (PID/mount/network/UTS) + cgroups. Shared kernel. ~500 ms boot, ~10 MiB overhead per spec.',
+          escape: 'Namespace escapes require a kernel CVE or misconfigured mount. Safer than Tier 1 for untrusted code, but still one kernel bug away from host.',
+          source: 'src/agentfile/parser.rs:77 (parsed), no spawn path',
+        },
+        {
+          tier: 'T3',
+          label: 'FIRECRACKER_MICROVM',
+          directive: 'ISOLATION firecracker',
+          status: 'DRAFT POC — parsed, reserved',
+          mechanism: 'Hardware isolation via KVM. Separate kernel per agent. Host launches a microVM (qemu-system + Alpine rootfs), virtiofs shares .ostk/, vsock ports 52 (boot) and 55 (identity) for the handshake. Linux native; macOS uses TCP emulation.',
+          escape: 'Highest bar: requires breaking the hypervisor itself. Host does not trust the guest. Guest runs PID 1 init that mounts /proc, /sys, virtiofs.',
+          source: 'src/commands/vm_init.rs:1–11, src/commands/firecracker.rs:1–100, parser.rs:65–67',
+        },
+      ].map(t => (
+        <div class="bg-surface-container-low">
+          <div class="grid grid-cols-12 gap-0">
+            <div class="md:col-span-1 bg-surface-container flex items-start justify-center pt-6">
+              <span class="serif-text text-3xl font-bold text-primary">{t.tier}</span>
+            </div>
+            <div class="md:col-span-11 p-6">
+              <div class="flex items-baseline gap-3 mb-2 flex-wrap">
+                <h3 class="font-body text-sm text-on-surface font-bold">{t.label}</h3>
+                <code class="font-body text-xs text-primary">{t.directive}</code>
+                <span class="font-label text-[10px] text-outline uppercase tracking-widest ml-auto">{t.status}</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <div class="font-label text-[10px] text-primary mb-2">MECHANISM</div>
+                  <p class="font-body text-xs text-secondary leading-relaxed">{t.mechanism}</p>
+                </div>
+                <div>
+                  <div class="font-label text-[10px] text-error mb-2">ESCAPE_SURFACE</div>
+                  <p class="font-body text-xs text-secondary leading-relaxed">{t.escape}</p>
+                </div>
+              </div>
+              <div class="font-body text-[10px] text-outline mt-4">source: <code class="text-primary">{t.source}</code></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- How nono actually works -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">How nono Actually Works</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The only tier that currently enforces anything. Mechanical steps:
+    </p>
+    <div class="space-y-px">
+      {[
+        { step: '01', action: 'Parser reads ISOLATION + TOOL + LIMIT directives from the Agentfile. Builds a CapabilitySet (sandbox.rs:72–139).' },
+        { step: '02', action: 'Universal allowlist: /usr, /lib, /lib64, /bin, /sbin, /etc, /System (read-only). Project cwd (read). /tmp, /private/tmp, /var/tmp (read-write). Phase S1 enforces this universal set; fine-grained TOOL-derived caps are deferred.' },
+        { step: '03', action: 'Kernel forks the agent subprocess.' },
+        { step: '04', action: 'Before any I/O, the child calls nono::Sandbox::apply(caps). On Linux this invokes the Landlock LSM; on macOS it calls sandbox_init.' },
+        { step: '05', action: 'Irreversible. Kernel enforces for the process and every descendant. Unauthorized syscalls return EACCES. No way to relax without killing the process.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.action}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Source: <code class="text-primary">src/kernel/sandbox.rs:1–169</code>, <code class="text-primary">src/agentfile/parser.rs:112–175</code> (build_sandbox_config). Phase S1 notes on deferred fine-grained caps: sandbox.rs:14–18.
+    </p>
+  </section>
+
+  <!-- Credential proxy note -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Not a Tier: The Credential Proxy</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        The v1 spec mentions "cognitive isolation" and "cache partition per API key" alongside the four process-level tiers. These are <span class="text-primary">not isolation tiers in the ostk code</span> — they are design patterns for credential handling at the API boundary:
+      </p>
+      <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-5">
+        <li>The agent never sees the real API key. A nono-sandboxed proxy loads it from the system keystore and injects it into outbound requests over a Unix socket.</li>
+        <li>The socket uses <code class="text-primary">SO_PEERCRED</code> verification so only the authorized agent process can speak to the proxy.</li>
+        <li>Keys are held in <code class="text-primary">Zeroizing&lt;String&gt;</code> to prevent memory leaks.</li>
+        <li>Every proxied call is written to <code class="text-primary">.ostk/audit.jsonl</code>.</li>
+      </ul>
+      <p class="font-body text-xs text-outline mt-4">
+        See <code class="text-primary">docs/spec/nono-agent-isolation.md §5</code> for the design. Implementation is split across <code class="text-primary">src/kernel/secret.rs</code> and the proxy wire-up. This is credential containment, not process containment.
+      </p>
+    </div>
+  </section>
+
+  <!-- Permission mode matrix -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">ISOLATION × PERMISSIONS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Isolation tier pairs with a permission mode from <code class="text-primary">LIMIT permissions</code>. The tier decides what the process <em>can</em> do at the OS layer; the mode decides how much human oversight each tool call gets.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary overflow-x-auto">
+      <table class="w-full font-body text-xs">
+        <thead>
+          <tr class="border-b border-surface-variant">
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-primary uppercase tracking-widest">ISOLATION</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase tracking-widest">governed (default)</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase tracking-widest">supervised</th>
+            <th class="pb-3 text-left font-label text-[10px] text-outline uppercase tracking-widest">restricted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-surface-variant/50">
+            <td class="py-3 pr-4 font-bold text-on-surface">none</td>
+            <td class="py-3 pr-4 text-secondary">Full access, POST verify only</td>
+            <td class="py-3 pr-4 text-secondary">Human approves each tool call</td>
+            <td class="py-3 text-secondary">Read-only tools</td>
+          </tr>
+          <tr class="border-b border-surface-variant/50">
+            <td class="py-3 pr-4 font-bold text-on-surface">nono</td>
+            <td class="py-3 pr-4 text-secondary">Auto-expand caps within kernel policy</td>
+            <td class="py-3 pr-4 text-secondary">Human per-call, Landlock enforced</td>
+            <td class="py-3 text-secondary">Read-only, Landlock enforced</td>
+          </tr>
+          <tr class="border-b border-surface-variant/50">
+            <td class="py-3 pr-4 font-bold text-outline">docker</td>
+            <td class="py-3 pr-4 text-outline">(reserved)</td>
+            <td class="py-3 pr-4 text-outline">(reserved)</td>
+            <td class="py-3 text-outline">(reserved)</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-4 font-bold text-outline">firecracker</td>
+            <td class="py-3 pr-4 text-outline">(draft POC)</td>
+            <td class="py-3 pr-4 text-outline">(draft POC)</td>
+            <td class="py-3 text-outline">(draft POC)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Most common real-world combo: <code class="text-primary">ISOLATION nono</code> + <code class="text-primary">LIMIT permissions governed</code> — least-privilege process sandbox, autonomous execution, kernel-enforced policy for capability expansion. Source: <code class="text-primary">src/agentfile/parser.rs:201–207, 622–626</code>.
+    </p>
+  </section>
+
+  <!-- Example -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <Terminal label="agents/lint-fix.af">
+      <pre><span class="text-primary">FROM</span> claude-sonnet-4-6
+
+<span class="text-primary">PROMPT</span> Fix all ESLint warnings in src/.
+
+<span class="text-primary">TOOL</span> shell
+<span class="text-primary">TOOL</span> file:read
+<span class="text-primary">TOOL</span> file:edit
+
+<span class="text-primary">LIMIT</span> budget_usd 2
+<span class="text-primary">LIMIT</span> permissions governed
+
+<span class="text-primary">ISOLATION</span> nono</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      The agent boots into a Landlock-sandboxed process. It can read the universal allowlist plus cwd, write to /tmp and the project tree through the file:edit kernel primitive, but any raw shell command that tries to touch <code class="text-primary">/etc/passwd</code>, <code class="text-primary">~/.ssh</code>, or the kernel state directory returns EACCES. No TOOL-level deny list required — the kernel enforces it below the tool layer.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+    <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+  </div>
+</DocsLayout>

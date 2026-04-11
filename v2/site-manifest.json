@@ -587,6 +587,23 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/isolation-tiers",
+      "file": "src/pages/docs/isolation-tiers.astro",
+      "title": "Isolation Tiers",
+      "tags": ["isolation", "sandbox", "landlock", "seatbelt", "firecracker", "security"],
+      "sources": [
+        { "path": "src/kernel/sandbox.rs" },
+        { "path": "src/agentfile/parser.rs" },
+        { "path": "src/commands/vm_init.rs" },
+        { "path": "src/commands/firecracker.rs" }
+      ],
+      "related": ["/docs/agentfile", "/docs/pins", "/docs/trust-model", "/docs/architecture"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "source+spec",
+      "verified_notes": "New page for needle →051. Four tiers cited to parser.rs:65-80 (directive parsing), parser.rs:349 (default None), sandbox.rs:1-169 (nono apply), vm_init.rs + firecracker.rs (draft POC). Status labels: T0/T1 LIVE, T2 reserved (parsed not wired), T3 draft POC. Credential proxy explicitly called out as design pattern, not isolation tier. Permission×Isolation matrix from parser.rs:201-207,622-626."
+    },
+    {
       "route": "/docs/kernel-spec",
       "file": "src/pages/docs/kernel-spec.astro",
       "title": "Kernel Specification",
@@ -864,7 +881,7 @@
           "path": "src/kernel/host_identity.rs"
         }
       ],
-      "related": ["/docs/entityfile", "/docs/primefile", "/docs/pins"],
+      "related": ["/docs/entityfile", "/docs/primefile", "/docs/pins", "/docs/isolation-tiers"],
       "status": "current",
       "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
       "verified_method": "source",
