@@ -21,10 +21,10 @@ const relatedPages = [
 
   <h2>Four trust tiers</h2>
   <ul>
-    <li><strong>T0</strong> — Dual-signed (human + kernel). Full governance. Can modify ENTITYFILE and .primefile.</li>
-    <li><strong>T1</strong> — GPG key cross-signed by a T0 holder. Write access. Cannot modify OS or governance files.</li>
-    <li><strong>T2</strong> — GPG key present, not cross-signed. Read-only.</li>
-    <li><strong>T3</strong> — No GPG key. Cannot boot.</li>
+    <li><strong>T0</strong> — Fingerprint hardcoded in <code>src/kernel/identity.rs</code> trust anchors. Full governance. Can modify ENTITYFILE and .primefile. Not reachable by ceremony — requires a kernel release that includes your key.</li>
+    <li><strong>T1</strong> — GPG key cross-signed by a T0 holder. Write access. Denied from kernel and governance paths via pin caps.</li>
+    <li><strong>T2</strong> — GPG key present, not cross-signed. Boots; read-only.</li>
+    <li><strong>T3</strong> — No GPG key. Boots; all writes denied by pin caps (policy.rs:248).</li>
   </ul>
 
   <h2>Capability pins</h2>
