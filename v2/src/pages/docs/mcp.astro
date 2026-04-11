@@ -10,28 +10,26 @@ import Terminal from '../../components/Terminal.astro';
   sectionLabel="REFERENCE // MCP_INTEGRATION"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    External tools become invisible to agents. The kernel proxies, audits, and enforces pins on every MCP call.
+    A userspace proxy for external MCP servers. Not a kernel-integrated tool layer — agents invoke it explicitly via <code>ostk mcp call</code>. Output is compressed and audited, but the kernel never touches MCP protocol bytes.
   </p>
 
   <!-- Configuration -->
   <section class="mb-16">
     <h2 class="section-label mb-4">CONFIGURATION</h2>
     <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      MCP servers are declared in <code class="text-primary">ostk.toml</code> under the <code class="text-primary">[mcp]</code> section. Environment variables prefixed with <code class="text-primary">$</code> resolve through the kernel's secret mediation.
+      MCP servers are declared in <code class="text-primary">.ostk/HUMANFILE</code> under a <code class="text-primary">mcp:</code> section (not <code class="text-primary">ostk.toml</code>). Simple key-value: name → command line.
     </p>
     <Terminal>
-      <pre><span class="text-outline"># ostk.toml</span>
+      <pre><span class="text-outline"># .ostk/HUMANFILE</span>
 
-<span class="text-primary">[mcp.github]</span>
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-github"]
-env = {'{'}  GITHUB_TOKEN = "$GITHUB_TOKEN" {'}'}
-
-<span class="text-primary">[mcp.postgres]</span>
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-postgres"]
-env = {'{'}  DATABASE_URL = "$DATABASE_URL" {'}'}</pre>
+<span class="text-primary">mcp:</span>
+  linear: npx -y @anthropic/linear-mcp-server
+  github: gh mcp-server
+  postgres: npx -y @modelcontextprotocol/server-postgres</pre>
     </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Source: <code class="text-primary">src/commands/mcp_proxy.rs</code> lines 7–11, 53, 134–147.
+    </p>
   </section>
 
   <!-- How it works -->
@@ -39,9 +37,10 @@ env = {'{'}  DATABASE_URL = "$DATABASE_URL" {'}'}</pre>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">How It Works</h2>
     <div class="space-y-px">
       {[
-        { num: '01', step: 'The kernel discovers configured servers at boot and registers their tools in the agent\'s tool list.' },
-        { num: '02', step: 'When an agent calls an MCP tool, the kernel routes the call through the audit trail and pin enforcement.' },
-        { num: '03', step: 'From the agent\'s perspective, an MCP tool is indistinguishable from a built-in tool. No agent-side configuration.' },
+        { num: '01', step: 'Operator declares servers in HUMANFILE mcp: section. No kernel registration, no boot-time discovery.' },
+        { num: '02', step: 'Agent calls shell("ostk mcp call linear list-issues"). The shell command runs as userspace subprocess.' },
+        { num: '03', step: 'ostk mcp connects to the server over stdio, sends one JSON-RPC request, reads the response, exits. Output flows through the normal compression + audit pipeline as any shell output does.' },
+        { num: '04', step: 'Compare to built-in tools (file:edit, shell, etc.) which DO route through the kernel directly. MCP is deliberately at arm\'s length — the kernel never speaks MCP protocol.' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
@@ -60,14 +59,14 @@ env = {'{'}  DATABASE_URL = "$DATABASE_URL" {'}'}</pre>
     <h2 class="section-label mb-4">EXECUTION_MODES</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
       <div class="bg-surface-container p-6">
-        <div class="font-body text-sm text-primary font-bold mb-2">PERSISTENT</div>
-        <p class="font-body text-xs text-secondary mb-2">Server process stays running. Connect once, reuse across calls.</p>
-        <div class="font-body text-[10px] text-outline">Lower latency, higher memory. Used by: FCP drivers, database servers.</div>
+        <div class="font-body text-sm text-primary font-bold mb-2">EPHEMERAL (default)</div>
+        <p class="font-body text-xs text-secondary mb-2">One subprocess per <code>ostk mcp call</code>. Connect, JSON-RPC once, exit.</p>
+        <div class="font-body text-[10px] text-outline">Higher latency per call, zero resident memory. Source: mcp_proxy.rs run_ephemeral_call (line 611).</div>
       </div>
       <div class="bg-surface-container p-6">
-        <div class="font-body text-sm text-primary font-bold mb-2">ON_DEMAND</div>
-        <p class="font-body text-xs text-secondary mb-2">Process spawned per call. Fresh environment each time.</p>
-        <div class="font-body text-[10px] text-outline">Higher latency, lower memory. Used by: npx-based servers.</div>
+        <div class="font-body text-sm text-primary font-bold mb-2">PERSISTENT (via ostk mcp serve)</div>
+        <p class="font-body text-xs text-secondary mb-2"><code>ostk mcp serve &lt;name&gt;</code> runs a long-lived driver on a Unix domain socket; subsequent calls reuse it.</p>
+        <div class="font-body text-[10px] text-outline">Lower latency, resident memory. Used when a server is called frequently. Source: mcp_proxy.rs run_serve (line 181), run_persistent_call (line 423).</div>
       </div>
     </div>
   </section>
@@ -77,8 +76,9 @@ env = {'{'}  DATABASE_URL = "$DATABASE_URL" {'}'}</pre>
     <h2 class="section-label mb-4">COMMANDS</h2>
     <div class="bg-surface-container-low p-6 border-l-2 border-primary">
       {[
-        { cmd: 'ostk mcp list', desc: 'Show all configured servers and their available tools' },
-        { cmd: 'ostk mcp call <server> <tool>', desc: 'Manually invoke an MCP tool from the CLI (for testing)' },
+        { cmd: 'ostk mcp list', desc: 'Show configured MCP servers from HUMANFILE mcp: section' },
+        { cmd: 'ostk mcp call <server> <tool> [args]', desc: 'Connect to server, send one JSON-RPC request, print response, exit' },
+        { cmd: 'ostk mcp serve <name>', desc: 'Run the named MCP subprocess on a Unix domain socket for persistent mode' },
       ].map(c => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
           <code class="text-primary w-64 shrink-0">{c.cmd}</code>

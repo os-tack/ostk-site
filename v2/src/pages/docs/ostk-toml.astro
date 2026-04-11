@@ -18,33 +18,46 @@ import Terminal from '../../components/Terminal.astro';
 
   <!-- Example -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <h2 class="section-label mb-4">EXAMPLE (real ostk-site config)</h2>
     <Terminal>
-      <pre><span class="text-primary">[version]</span>
-release = "3.0.0"
-kernel = ">=3.0.0"
+      <pre><span class="text-primary">[project]</span>
+name = "ostk-site"
+bail = "os-tack/ostk.ai"
 
-<span class="text-primary">[identity]</span>
-name = "@my-project"
-root_key = "6C31536F..."
-signed_by = ["@operator", "@project.prime"]
+kernel = ">=3.0.0, &lt;4.0.0"
+
+<span class="text-primary">[authorization]</span>
+github_gpg_required = true
+trust_tiers = ["T0:dual-signed", "T1:cross-signed", "T2:gpg-not-cross-signed", "T3:anonymous"]
+
+<span class="text-primary">[distribution]</span>
+mirrors = [
+  "https://github.com/os-tack/ostk.ai/releases",
+  "https://ostk.ai/releases"
+]
+verify_signature = true
+tarball_pattern = "ostk-{'{'}version{'}'}-{'{'}target{'}'}.tar.gz"
 
 <span class="text-primary">[kernel]</span>
 boot_mode = "embedded-first"
 daemon_lifecycle = "tui-owned"
 laws = ["invisible-write", "ephemeral", "filesystem", "OCC", "invisible-infra"]
 
+<span class="text-primary">[onboarding]</span>
+steps = ["binary-install", "environment-detect", "humanfile-create", "os-init", "import-offer"]
+
 <span class="text-primary">[pins.default]</span>
 read = [".ostk/", ".language"]
 write = [".ostk/store/default/"]
+execute = "shell(readonly)"
+deny = ["write-kernel", "modify-governance"]
 
-<span class="text-primary">[mcp.github]</span>
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-github"]
-env = {'{'}  GITHUB_TOKEN = "$GITHUB_TOKEN" {'}'}
-
-<span class="text-primary">[onboarding]</span>
-steps = ["binary-install", "environment-detect", "humanfile-create", "os-init"]</pre>
+<span class="text-primary">[features]</span>
+tui = true
+agents = true
+audit = true
+digest = true
+embeddings = false</pre>
     </Terminal>
   </section>
 
@@ -53,14 +66,14 @@ steps = ["binary-install", "environment-detect", "humanfile-create", "os-init"]<
     <h2 class="section-label mb-4">SECTIONS</h2>
     <div class="space-y-px">
       {[
-        { section: '[version]', desc: 'Release version and kernel compatibility constraint. Kernel refuses to boot if version mismatch.' },
-        { section: '[identity]', desc: 'Project name, root GPG key, CI key, signing authorities.' },
-        { section: '[authorization]', desc: 'GPG requirements, trust tier definitions.' },
-        { section: '[distribution]', desc: 'Release mirrors, signature verification, tarball pattern.' },
-        { section: '[kernel]', desc: 'Boot mode (embedded-first | daemon-first), daemon lifecycle, laws.' },
-        { section: '[pins.*]', desc: 'Named pin configurations. read/write/execute paths and deny tokens.' },
-        { section: '[mcp.*]', desc: 'MCP server declarations. Command, args, env vars.' },
-        { section: '[onboarding]', desc: 'Onboarding wizard step sequence.' },
+        { section: '[project]', desc: 'Project name and optional bail lineage (the upstream signed package this project was seeded from). Top-level kernel = ">=X.Y.Z" pin sits alongside.' },
+        { section: '[authorization]', desc: 'Declarative trust policy: github_gpg_required, trust_tiers list. Documentary — source of truth is src/kernel/identity.rs trust anchors.' },
+        { section: '[distribution]', desc: 'Release mirrors, signature verification, tarball pattern. Used by install scripts and bail fetchers, not the runtime kernel.' },
+        { section: '[kernel]', desc: 'boot_mode (embedded-first | daemon-first), daemon_lifecycle, laws. The laws array is documentary — the actual five laws are enforced in code.' },
+        { section: '[onboarding]', desc: 'install.sh ceremony steps. Documentary — consumed by the install script, not the kernel.' },
+        { section: '[pins.*]', desc: 'Named pin configurations. read/write/execute paths and deny tokens. Parsed by the pin loader at boot.' },
+        { section: '[features]', desc: 'Boolean toggles: tui, agents, audit, digest, embeddings. Read at boot to gate subsystem initialization.' },
+        { section: '[mcp.*]', desc: 'Historical. MCP servers are declared in HUMANFILE, not ostk.toml — see /docs/mcp for the real path.' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-3 bg-surface-container-low px-4 py-3">
