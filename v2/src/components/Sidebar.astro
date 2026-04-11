@@ -7,8 +7,14 @@ interface SidebarItem {
   href: string;
 }
 
-interface SidebarGroup {
+interface SidebarSection {
+  label: string;
   items: SidebarItem[];
+}
+
+interface SidebarGroup {
+  sections?: SidebarSection[];
+  items?: SidebarItem[];
   bottomItems?: SidebarItem[];
 }
 
@@ -24,6 +30,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '');
 function isActive(href: string): boolean {
   return currentPath === href || currentPath === href + '/';
 }
+
+const sections: SidebarSection[] = groups.sections
+  ?? (groups.items ? [{ label: '', items: groups.items }] : []);
 ---
 
 <!-- Mobile backdrop -->
@@ -38,20 +47,29 @@ function isActive(href: string): boolean {
   </div>
   <div class="bg-surface-container-lowest h-px w-full"></div>
   <nav class="flex-1 overflow-y-auto">
-    {groups.items.map(item => (
-      <a
-        href={item.href}
-        class:list={[
-          'flex items-center gap-3 py-3 px-4 transition-none',
-          isActive(item.href)
-            ? 'bg-surface-variant text-primary font-bold border-l-4 border-primary'
-            : 'text-secondary opacity-70 hover:bg-[#1c1a18] hover:opacity-100',
-        ]}
-        aria-current={isActive(item.href) ? 'page' : undefined}
-      >
-        <Icon name={item.icon} size="16" />
-        <span class="font-label text-[10px] uppercase tracking-widest">{item.label}</span>
-      </a>
+    {sections.map((section, idx) => (
+      <div class:list={[idx > 0 && section.label && 'mt-3']}>
+        {section.label && (
+          <div class="font-label text-[9px] uppercase tracking-widest text-outline px-4 pt-2 pb-1 opacity-60">
+            {section.label}
+          </div>
+        )}
+        {section.items.map(item => (
+          <a
+            href={item.href}
+            class:list={[
+              'flex items-center gap-3 py-2 px-4 transition-none',
+              isActive(item.href)
+                ? 'bg-surface-variant text-primary font-bold border-l-4 border-primary'
+                : 'text-secondary opacity-70 hover:bg-[#1c1a18] hover:opacity-100',
+            ]}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <Icon name={item.icon} size="16" />
+            <span class="font-label text-[10px] uppercase tracking-widest">{item.label}</span>
+          </a>
+        ))}
+      </div>
     ))}
   </nav>
   {groups.bottomItems && (

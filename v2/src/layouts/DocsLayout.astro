@@ -13,25 +13,50 @@ interface Props {
 const { title, description, sectionLabel, activeTab = 'docs' } = Astro.props;
 
 const sidebarGroups = {
-  items: [
-    { icon: 'rocket_launch', label: 'QUICK_START', href: '/docs/getting-started' },
-    { icon: 'download', label: 'DOWNLOADS', href: '/docs/downloads' },
-    { icon: 'terminal', label: 'COMMANDS', href: '/docs/commands' },
-    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
-    { icon: 'hub', label: 'SESSION_TOPOLOGY', href: '/docs/session-topology' },
-    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
-    { icon: 'compress', label: 'COMPRESSION', href: '/docs/compression' },
-    { icon: 'swap_horiz', label: 'MCP_PROXY', href: '/docs/mcp' },
-    { icon: 'tv', label: 'TUI', href: '/docs/tui' },
-    { icon: 'verified', label: 'BAIL', href: '/docs/bail' },
-    { icon: 'person', label: 'HUMANFILE', href: '/docs/humanfile' },
-    { icon: 'smart_toy', label: 'AGENTFILE', href: '/docs/agentfile' },
-    { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile' },
-    { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile' },
-    { icon: 'tune', label: 'OSTK_TOML', href: '/docs/ostk-toml' },
-    { icon: 'key', label: 'SECRETS', href: '/docs/secrets' },
-    { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  sections: [
+    {
+      label: 'GET_STARTED',
+      items: [
+        { icon: 'rocket_launch', label: 'QUICK_START', href: '/docs/getting-started' },
+        { icon: 'download', label: 'DOWNLOADS', href: '/docs/downloads' },
+      ],
+    },
+    {
+      label: 'CORE_MODEL',
+      items: [
+        { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+        { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
+        { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
+        { icon: 'hub', label: 'SESSION_TOPOLOGY', href: '/docs/session-topology' },
+        { icon: 'compress', label: 'COMPRESSION', href: '/docs/compression' },
+      ],
+    },
+    {
+      label: 'CONFIG_FILES',
+      items: [
+        { icon: 'person', label: 'HUMANFILE', href: '/docs/humanfile' },
+        { icon: 'smart_toy', label: 'AGENTFILE', href: '/docs/agentfile' },
+        { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile' },
+        { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile' },
+        { icon: 'tune', label: 'OSTK_TOML', href: '/docs/ostk-toml' },
+      ],
+    },
+    {
+      label: 'TRUST_AND_SECURITY',
+      items: [
+        { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins' },
+        { icon: 'key', label: 'SECRETS', href: '/docs/secrets' },
+        { icon: 'verified', label: 'BAIL', href: '/docs/bail' },
+      ],
+    },
+    {
+      label: 'INTERFACES',
+      items: [
+        { icon: 'terminal', label: 'COMMANDS', href: '/docs/commands' },
+        { icon: 'tv', label: 'TUI', href: '/docs/tui' },
+        { icon: 'swap_horiz', label: 'MCP_PROXY', href: '/docs/mcp' },
+      ],
+    },
   ],
   bottomItems: [
     { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
