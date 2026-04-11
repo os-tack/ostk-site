@@ -182,6 +182,28 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/bail",
+      "file": "src/pages/docs/bail.astro",
+      "title": "Bail",
+      "tags": ["bail", "signing", "ed25519", "gpg", "portable"],
+      "sources": [
+        {
+          "path": "src/commands/bail.rs"
+        },
+        {
+          "path": "src/commands/bail_merge.rs"
+        },
+        {
+          "path": "src/kernel/signing.rs"
+        }
+      ],
+      "related": ["/docs/primefile", "/docs/trust-model", "/docs/entityfile"],
+      "status": "current",
+      "verified_at": "174f33a54ccc8b33929577dfa0412ddb309d2e4d",
+      "verified_method": "runtime",
+      "verified_notes": "Claims validated by running ostk bail pack --public / --export and ostk bail verify, capturing literal CLI output. Signing behavior verified against ~/.ostk/keys/signing.key (Ed25519 for public/full, GPG for export)."
+    },
+    {
       "route": "/docs/commands",
       "file": "src/pages/docs/commands.astro",
       "title": "CRITICAL // RESOURCE_BOUNDS',",
