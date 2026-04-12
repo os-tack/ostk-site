@@ -587,6 +587,27 @@
       "status": "unverified"
     },
     {
+      "route": "/docs/models",
+      "file": "src/pages/docs/models.astro",
+      "title": "Models",
+      "tags": ["models", "providers", "anthropic", "gemini", "mistral", "openai", "ollama"],
+      "sources": [
+        { "path": "src/cpu/anthropic.rs" },
+        { "path": "src/cpu/gemini.rs" },
+        { "path": "src/cpu/mistral.rs" },
+        { "path": "src/cpu/openrouter.rs" },
+        { "path": "src/cpu/mod.rs" },
+        { "path": "src/cpu/providers.rs" },
+        { "path": "src/cpu/model_registry.rs" },
+        { "path": "src/commands/run.rs" }
+      ],
+      "related": ["/docs/getting-started", "/docs/agentfile", "/docs/humanfile", "/docs/env-vars"],
+      "status": "current",
+      "verified_at": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
+      "verified_method": "source",
+      "verified_notes": "New page. 7 providers documented with CpuDriver implementation citations: Anthropic (anthropic.rs:257-297, FULL), Gemini (gemini.rs:32-70, FULL), Mistral (mistral.rs:24-45, FULL), OpenAI (openrouter.rs shared driver, PRODUCTION), OpenRouter (openrouter.rs:12-51, GATEWAY), Ollama (mod.rs:437-454, LOCAL), Apple on-device (mod.rs:439-446, EXPERIMENTAL). FROM auto resolution chain cited to run.rs:89-197 with scoring (Opus 100, Sonnet 90, GPT-4o 60, Gemini 50, default Sonnet). OSTK_MODEL override at context.rs:116. Feature matrix built from per-driver method implementations. Model-specific notes: Gemini 3.x auto-thinking (gemini.rs:105-121), Mistral tool ID remapping (mistral.rs:191-220), Ollama colon auto-detect (model_registry.rs:251-253), OpenAI→OpenRouter fallback (providers.rs:76-81)."
+    },
+    {
       "route": "/docs/skills",
       "file": "src/pages/docs/skills.astro",
       "title": "Skills",
