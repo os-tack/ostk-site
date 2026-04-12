@@ -63,7 +63,7 @@ import Terminal from '../../components/Terminal.astro';
       ))}
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Transitions are guarded by <code class="text-primary">LifecycleState::can_transition_to()</code> at <code class="text-primary">lifecycle.rs:66–76</code>. The transition driver is <code class="text-primary">lifecycle.evaluate(context_pct)</code>, called from dispatch at <code class="text-primary">src/serve/dispatch.rs:909–913</code>.
+      Transitions are guarded by <code class="text-primary">LifecycleState::can_transition_to()</code> at <code class="text-primary">lifecycle.rs:66–76</code>. The transition driver is <code class="text-primary">lifecycle.evaluate(context_pct)</code>, called from dispatch at <code class="text-primary">src/cpu/agent_loop.rs:1839</code>.
     </p>
   </section>
 
@@ -84,7 +84,7 @@ import Terminal from '../../components/Terminal.astro';
         Context pressure triggers a <span class="text-primary">handoff</span> — a structured record the next agent inherits — not in-flight compaction. The design choice is explicit: mutating context mid-turn would defeat the prompt cache and surprise the model.
       </p>
       <p class="font-body text-[10px] text-outline mt-4">
-        Source: <code class="text-primary">src/kernel/lifecycle.rs:22–23</code> (thresholds), <code class="text-primary">src/serve/dispatch.rs:909</code> (call site), <code class="text-primary">src/kernel/lifecycle.rs:138–140</code> (skip behavior, test coverage at line 460).
+        Source: <code class="text-primary">src/kernel/lifecycle.rs:22–23</code> (thresholds), <code class="text-primary">src/cpu/agent_loop.rs:1839</code> (call site), <code class="text-primary">src/kernel/lifecycle.rs:138–140</code> (skip behavior, test coverage at line 460).
       </p>
     </div>
   </section>
@@ -143,7 +143,7 @@ import Terminal from '../../components/Terminal.astro';
   <section class="mb-16">
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
     <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      At every turn boundary (after each assistant response completes), the session hook writes a snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Wave G.3 flipped this to default ON — previously opt-in via <code class="text-primary">OSTK_DRAIN_SNAPSHOT=1</code>. Source: <code class="text-primary">src/kernel/drain.rs:102–111</code>, hook at <code class="text-primary">src/cpu/session.rs:1030</code>.
+      At every turn boundary (after each assistant response completes), the session hook writes a snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Wave G.3 flipped this to default ON — previously opt-in via <code class="text-primary">OSTK_DRAIN_SNAPSHOT=1</code>. Source: <code class="text-primary">src/kernel/drain.rs:102–111</code>, hook at <code class="text-primary">src/cpu/session.rs:1052</code>.
     </p>
     <h3 class="section-label-secondary mb-3">SNAPSHOT_V2_CONTENTS</h3>
     <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-4">
@@ -189,7 +189,7 @@ import Terminal from '../../components/Terminal.astro';
       <div class="bg-surface-container p-6">
         <div class="font-label text-[10px] text-primary mb-2">REAP (ostk kernel reap)</div>
         <ol class="font-body text-xs text-secondary list-decimal pl-4 space-y-2">
-          <li>Read <code class="text-primary">.ostk/agents.jsonl</code>, probe each "active" entry with <code class="text-primary">kill(pid, 0)</code>. reap.rs:69–128.</li>
+          <li>Read <code class="text-primary">.ostk/agents.jsonl</code>, probe each "active" entry with <code class="text-primary">kill(pid, 0)</code>. reap.rs:77–213.</li>
           <li>For entries whose process is already dead: flip status, remove from active set.</li>
           <li>Rewrite a compacted <code class="text-primary">agents.jsonl</code>.</li>
           <li>Call <code class="text-primary">cleanup_agent_state()</code> (heartbeat.rs:304) to remove per-agent files.</li>
@@ -227,7 +227,7 @@ import Terminal from '../../components/Terminal.astro';
     <div class="space-y-3">
       {[
         { claim: 'Session state MUST NOT persist across restarts', why: 'Preload context (registers, .language identity blocks) is regenerated at boot. Pinning to a pre-crash cache prefix defeats cache efficiency. drain.rs:221–224.' },
-        { claim: 'Token accounting resets on rehydrate', why: 'session_tokens are zeroed, not accumulated from disk. The new process starts its own budget. session.rs:4840.' },
+        { claim: 'Token accounting resets on rehydrate', why: 'session_tokens are zeroed, not accumulated from disk. The new process starts its own budget. session.rs:899.' },
         { claim: 'Task handles are tokio-bound', why: 'task_handle and event channels cannot be deserialized. Rehydrated sessions get fresh tokio primitives. drain.rs:85–88.' },
         { claim: 'In-flight outbox is transient', why: 'Tool results that were mid-flight when the process died are discarded. Rehydration resumes from the snapshot\'s message boundary, not mid-tool. drain.rs:82–84.' },
       ].map(e => (
