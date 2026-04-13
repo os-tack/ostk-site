@@ -34,7 +34,7 @@ import Terminal from '../../components/Terminal.astro';
         {
           num: '03',
           name: 'OUTPUT_COMPRESSION',
-          desc: 'The squash pipeline strips ANSI, classifies lines by grammar, deduplicates repetitive output, and enriches errors. Measured savings: 36% average across shell tool calls. Details at <a href="/docs/compression" class="text-primary hover:underline">Compression</a>.',
+          desc: 'The squash pipeline strips ANSI, classifies lines by grammar, deduplicates repetitive output, and enriches errors. Measured savings: 30% average across 1,499 tool calls (2.85M chars → 1.99M). Details at <a href="/docs/compression" class="text-primary hover:underline">Compression</a>.',
         },
         {
           num: '04',
@@ -96,7 +96,7 @@ import Terminal from '../../components/Terminal.astro';
       </p>
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Measured: <span class="text-primary font-bold">28% cost reduction</span> in a real Opus session (32.2% cache hit rate). See <a href="/docs/compression" class="text-primary hover:underline">Compression</a> for the full breakdown.
+      Measured: <span class="text-primary font-bold">30% output compression</span> in a real Opus session (1,499 squash events, 215k tokens saved). See <a href="/docs/compression" class="text-primary hover:underline">Compression</a> for the full breakdown.
     </p>
   </section>
 
