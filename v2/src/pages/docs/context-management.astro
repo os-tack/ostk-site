@@ -1,0 +1,231 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Context Management"
+  description="How the kernel's context mechanisms compose as a system: preload render, prompt cache, digest envelope, 304 elision, context pressure handoff, and drain snapshots."
+  sectionLabel="REFERENCE // CONTEXT_LIFECYCLE"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Six mechanisms, documented individually elsewhere, compose into a single context lifecycle. This page shows the flow: how a tool response becomes a cached prefix, how the digest prevents redundant reads, and how context pressure triggers graceful handoff instead of mid-turn compaction.
+  </p>
+
+  <!-- Turn flow -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">TURN_FLOW</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Every agent turn passes through six stages. Each stage feeds into the next. Removing any stage degrades the others.
+    </p>
+    <div class="space-y-px">
+      {[
+        {
+          num: '01',
+          name: 'PRELOAD_RENDER',
+          desc: 'The kernel assembles system blocks: base prompt, identity (.language), registers, Agentfile context. These blocks are byte-stable across turns so the prompt cache can reuse them. Volatile data (kernel digest) is placed in the final block, outside the cache prefix.',
+        },
+        {
+          num: '02',
+          name: 'TOOL_CALL',
+          desc: 'The model issues a tool call. Shell output passes through the squash pipeline (see /docs/compression) before entering context. File reads pass through elision (stage 05). The digest envelope is appended to the tool response.',
+        },
+        {
+          num: '03',
+          name: 'OUTPUT_COMPRESSION',
+          desc: 'The squash pipeline strips ANSI, classifies lines by grammar, deduplicates repetitive output, and enriches errors. Measured savings: 36% average across shell tool calls. Details at /docs/compression.',
+        },
+        {
+          num: '04',
+          name: 'DIGEST_INJECTION',
+          desc: 'A 5-line envelope appended to every tool response. Components: [procs], [presence], [files] (stale only), [loadavg], [meminfo]. The agent reads this to decide whether files need re-reading. ~5 tokens of signal replaces ~800 tokens of redundant file content.',
+        },
+        {
+          num: '05',
+          name: '304_ELISION',
+          desc: 'If the agent reads a file despite the digest showing it current, the kernel checks the gen_table. If the file has not been written since the agent last read it, the kernel returns "[304] path:gen=N (current)" (~5 tokens) instead of the full content. Two layers: digest suppresses the attempt, elision catches it if it happens anyway.',
+        },
+        {
+          num: '06',
+          name: 'DRAIN_SNAPSHOT',
+          desc: 'At the turn boundary (after the assistant response completes), the session writes messages + token state + config to .ostk/drain/<lineage_id>.json. Default ON since Wave G.3. This is crash recovery, not context management per se — but it closes the lifecycle loop.',
+        },
+      ].map(stage => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="serif-text text-lg font-bold text-primary">{stage.num}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-4">
+            <code class="font-body text-xs text-on-surface font-bold">{stage.name}</code>
+          </div>
+          <div class="md:col-span-8 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{stage.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Stages 01-03 reduce what enters context. Stages 04-05 reduce what the agent needs to re-read. Stage 06 captures state for crash recovery. Together they keep context growth sublinear relative to tool calls.
+    </p>
+  </section>
+
+  <!-- Prompt cache as distribution plane -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Prompt Cache as Distribution Plane</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-4">
+        Anthropic's prompt cache is content-addressed and per-organization. Two ostk processes with the same API key share cache entries automatically.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-4">
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">CONTENT-ADDRESSED</div>
+          <p class="font-body text-xs text-secondary">The cache key is the hash of the byte content up to each breakpoint. Two processes that send identical system blocks get a cache hit without coordination.</p>
+        </div>
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">FLEET ECONOMICS</div>
+          <p class="font-body text-xs text-secondary">Adding readers amortizes the cold-write cost. One process pays cache_create; every subsequent process with the same prefix reads at 10% of input price. Fleet cost scales sublinearly.</p>
+        </div>
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">TTL: 5 MINUTES</div>
+          <p class="font-body text-xs text-secondary">Cache entries expire after 5 minutes of inactivity. Any read resets the TTL. A fleet of agents making turns every 30-60 seconds keeps the cache perpetually warm.</p>
+        </div>
+      </div>
+      <p class="font-body text-xs text-secondary max-w-lg">
+        The kernel places up to four <code class="text-primary">cache_control</code> breakpoints per request: base system prompt, preload context blocks (identity, registers), tool schemas, and the message history watermark. Each breakpoint extends the cacheable prefix. Volatile content (the current-turn digest, the latest user message) sits after all breakpoints, so cache hits are not invalidated by turn-to-turn changes.
+      </p>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Measured: <span class="text-primary font-bold">28% cost reduction</span> in a real Opus session (32.2% cache hit rate). See <a href="/docs/compression" class="text-primary hover:underline">/docs/compression</a> for the full breakdown.
+    </p>
+  </section>
+
+  <!-- Digest envelope -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">DIGEST_ENVELOPE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A 5-line envelope appended to every tool response. The digest is the agent's peripheral vision — it tells the agent what changed without forcing a re-read of unchanged files. Full specification at <a href="/docs/coordination-primitives" class="text-primary hover:underline">/docs/coordination-primitives</a>.
+    </p>
+    <Terminal label="EXAMPLE_DIGEST">
+      <div class="text-secondary">
+        <div><span class="text-primary">[procs]</span> builder:active:2m:45% reviewer:stale:5m:78%</div>
+        <div><span class="text-primary">[presence]</span> :arrived(builder)</div>
+        <div><span class="text-primary">[files]</span> src/main.rs:gen=12:reviewer:3m</div>
+        <div><span class="text-primary">[loadavg]</span> needles=3 p0=1 fleet=2/2 nudges=0</div>
+        <div><span class="text-primary">[meminfo]</span> ctx=45% used=360k/800k buffers=2 calls=14</div>
+      </div>
+    </Terminal>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mt-6">
+      <div class="font-label text-[10px] text-primary mb-3">HOW THE AGENT USES IT</div>
+      <div class="space-y-3">
+        <div>
+          <span class="font-body text-xs text-primary font-bold">[files] absent = no stale files.</span>
+          <span class="font-body text-xs text-secondary"> If the files section is empty, every file the agent has read is still current. No reason to re-read anything.</span>
+        </div>
+        <div>
+          <span class="font-body text-xs text-primary font-bold">[files] present = specific files changed.</span>
+          <span class="font-body text-xs text-secondary"> Only the listed files are stale. The agent re-reads those, skips everything else. Format: <code class="text-primary">path:gen=N:writer:age</code>.</span>
+        </div>
+        <div>
+          <span class="font-body text-xs text-primary font-bold">[meminfo] = context budget.</span>
+          <span class="font-body text-xs text-secondary"> The agent can see its own context utilization. No surprise context exhaustion.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two-layer defense -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Two-Layer Read Defense</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Digest suppression and 304 elision are two layers of the same primitive. Both are invisible to the agent — no protocol learning required.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">LAYER 1 — DIGEST SUPPRESSION</div>
+        <p class="font-body text-xs text-secondary mb-3">Current files are absent from the <code class="text-primary">[files]</code> section. When the agent sees no stale files listed, it has no reason to issue a read. The read never happens.</p>
+        <div class="font-label text-[10px] text-outline">Cost: ~0 tokens (read prevented)</div>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">LAYER 2 — 304 ELISION</div>
+        <p class="font-body text-xs text-secondary mb-3">If the agent reads a current file anyway (verification, compacted context), the kernel checks the gen_table. No write since last read = <code class="text-primary">[304] path:gen=N (current)</code> returned instead of full content.</p>
+        <div class="font-label text-[10px] text-outline">Cost: ~5 tokens (vs ~800 for full content)</div>
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      The digest is the <span class="text-primary">observation</span>; 304 is the <span class="text-primary">response</span>. Layer 1 is advisory (the agent may still read). Layer 2 is mechanical (the kernel intercepts). Together they eliminate most redundant file content from context. See <a href="/docs/coordination-primitives" class="text-primary hover:underline">/docs/coordination-primitives</a> for the full digest specification.
+    </p>
+  </section>
+
+  <!-- Context pressure → handoff -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CONTEXT_PRESSURE_HANDOFF</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The kernel does not compress context mid-turn. Mutating context would defeat the prompt cache and surprise the model. Instead, context pressure triggers a lifecycle state transition and a structured handoff to a successor agent.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
+          <span class="text-primary font-bold md:col-span-3">70% context</span>
+          <span class="text-secondary md:col-span-9">State advances to <code class="text-primary">AGING</code>. The kernel begins preparing a handoff record. Agent continues executing normally.</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
+          <span class="text-primary font-bold md:col-span-3">90% context</span>
+          <span class="text-secondary md:col-span-9">State advances to <code class="text-primary">DYING</code>. No new tool calls beyond the finalization turn. Handoff data is finalized. A sudden jump (60% to 92%) skips AGING entirely.</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
+          <span class="text-primary font-bold md:col-span-3">Finalization</span>
+          <span class="text-secondary md:col-span-9">One last turn in <code class="text-primary">DRAINING</code> state — typically the handoff write. Then <code class="text-primary">DEAD</code>. All tool calls fenced.</span>
+        </div>
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      The design choice is explicit: generating a handoff record for a fresh successor preserves cache efficiency. A new agent starts with a clean context window, hits the warm prompt cache on its first turn, and picks up the handoff state from disk. Full state machine at <a href="/docs/agent-lifecycle" class="text-primary hover:underline">/docs/agent-lifecycle</a>.
+    </p>
+  </section>
+
+  <!-- Drain snapshots -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        At every turn boundary, the session writes a snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Contains: lineage_id, anchor_id, timestamp, model, cumulative token counts, full message history, and pruned config (tools, permissions, thinking, revival policy).
+      </p>
+      <p class="font-body text-xs text-secondary mb-3">
+        Default ON since Wave G.3. Written atomically (tmp + fsync + rename). Errors are logged and discarded — a flaky drain write must not break a working session.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        On daemon restart, orphaned lineages with a drain snapshot are rehydrated: messages and token state restored, config refreshed from the snapshot or the live Agentfile template. After successful rehydration, the snapshot is cleared. The next turn writes a fresh one.
+      </p>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Drain snapshots are the crash-recovery mechanism, not a context management tool. But they close the lifecycle loop: an agent that dies (from context pressure or process crash) leaves enough state on disk for its successor to continue. Full details at <a href="/docs/agent-lifecycle" class="text-primary hover:underline">/docs/agent-lifecycle</a>.
+    </p>
+  </section>
+
+  <!-- Why this composition -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Why This Composition</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        Each mechanism is load-bearing. Removing any one degrades the rest.
+      </p>
+      <div class="space-y-3 font-body text-xs text-secondary">
+        <p>Without <span class="text-primary font-bold">output compression</span>, tool responses bloat context, exhausting the budget faster and reducing cache hit rates (larger volatile suffixes).</p>
+        <p>Without the <span class="text-primary font-bold">digest</span>, the agent re-reads every file on every turn, flooding context with redundant content and defeating the prompt cache.</p>
+        <p>Without <span class="text-primary font-bold">304 elision</span>, the digest's advisory suppression has no mechanical backstop. Agents that ignore the digest (or lose it to compaction) pay full cost for unchanged files.</p>
+        <p>Without the <span class="text-primary font-bold">prompt cache</span>, every turn re-tokenizes the system prompt, identity blocks, tool schemas, and message history. Cost scales linearly with turn count instead of sublinearly.</p>
+        <p>Without <span class="text-primary font-bold">context pressure handoff</span>, agents hit the window limit mid-task. The only recovery is a cold restart with no state transfer.</p>
+        <p>Without <span class="text-primary font-bold">drain snapshots</span>, crashed agents cannot be revived. The daemon can detect orphans but has nothing to rehydrate from.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/compression"><Icon name="compress" size="14" class="align-middle mr-1" />COMPRESSION</a>
+    <a href="/docs/agent-lifecycle"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
+    <a href="/docs/coordination-primitives"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+    <a href="/docs/models"><Icon name="psychology" size="14" class="align-middle mr-1" />MODELS</a>
+  </div>
+</DocsLayout>

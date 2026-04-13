@@ -1,0 +1,314 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Needles"
+  description="The atomic work item in ostk: storage format, lifecycle, hay capture, compile pipeline, spheres, compounds, and dependency edges."
+  sectionLabel="REFERENCE // WORK_SYSTEM"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    A needle is the atomic unit of work. It has a title, priority, acceptance criteria, and a lifecycle that moves from open to closed. Everything else in the work system — hay, compile, spheres, compounds — exists to create, organize, and prioritize needles.
+  </p>
+
+  <!-- What a needle is -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">01 // WHAT_A_NEEDLE_IS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A needle is an atomic work item with acceptance criteria. It is the unit of planning, assignment, and completion in ostk. Every needle has a unique ID (format: <code class="text-primary">→NNN</code>), a priority tier, and a status. Needles are created explicitly via <code class="text-primary">ostk work add</code> or compiled from hay via <code class="text-primary">ostk work compile</code>.
+    </p>
+  </section>
+
+  <!-- Storage -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">02 // STORAGE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Needles are stored as JSONL (one JSON object per line) in <code class="text-primary">.ostk/needles/issues.jsonl</code>. A monotonic counter at <code class="text-primary">.ostk/needles/counter</code> is maintained as a write-through cache, but the canonical source of truth for the next ID is <code class="text-primary">max(id)</code> from the JSONL file. Atomicity is enforced by <code class="text-primary">flock(2)</code> on <code class="text-primary">.ostk/needles/issues.lock</code>.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="font-label text-[10px] text-primary mb-3">NEEDLE_FIELDS</div>
+      <div class="space-y-2">
+        {[
+          { field: 'id', desc: 'Unique identifier. Format: →NNN (e.g. →042). Allocated atomically under the issues lock.' },
+          { field: 'title', desc: 'Human-readable summary. Required in strict mode. Also used for dependency pattern discovery.' },
+          { field: 'status', desc: 'Current state: "open" or "closed". No intermediate states in storage.' },
+          { field: 'priority', desc: 'P0, P1, P2, or P3. Controls sort order in listings and weight in compound scoring.' },
+          { field: 'ac', desc: 'Acceptance criteria. A shell command run on close — exit 0 means pass, non-zero means fail.' },
+          { field: 'description', desc: 'Longer explanation. Required in strict mode (CLI and MCP entry points).' },
+          { field: 'tags', desc: 'Array of string labels (e.g. ["kernel", "ux"]). Parsed from comma-separated input.' },
+          { field: 'depends_on', desc: 'Array of needle IDs this needle depends on. Bidirectional — see Dependencies.' },
+          { field: 'blocks', desc: 'Array of needle IDs this needle blocks. Bidirectional — see Dependencies.' },
+          { field: 'created_at', desc: 'ISO 8601 timestamp. Set on creation.' },
+          { field: 'closed_at', desc: 'ISO 8601 timestamp. Set when status transitions to closed.' },
+          { field: 'close_reason', desc: 'Optional reason string provided at close time.' },
+          { field: 'commit_ref', desc: 'Git HEAD hash captured at close. Links the closure to a specific commit.' },
+        ].map(f => (
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
+            <code class="text-primary md:col-span-2">{f.field}</code>
+            <span class="text-secondary md:col-span-10">{f.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Lifecycle -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">03 // LIFECYCLE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Two states: <span class="text-primary font-bold">open</span> and <span class="text-primary font-bold">closed</span>. No draft, no in-review, no backlog. The transition is one-way.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant mb-6">
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">CREATE (ostk work add)</div>
+        <p class="font-body text-xs text-secondary mb-3">
+          In strict mode (all CLI and MCP entry points), four fields are required: title, priority, description, and acceptance criteria. Priority must be one of P0/P1/P2/P3.
+        </p>
+        <p class="font-body text-xs text-secondary">
+          ID allocation and row append happen in a single <code class="text-primary">flock</code> acquisition. The previous two-lock pattern was structurally racy — two writers could allocate the same ID.
+        </p>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">CLOSE (ostk work close)</div>
+        <p class="font-body text-xs text-secondary mb-3">
+          If the needle has acceptance criteria, the AC command is executed as a shell command. Exit 0 records <code class="text-primary">ac_result: "pass"</code>; non-zero records <code class="text-primary">"fail"</code>. The needle is closed regardless of AC outcome.
+        </p>
+        <p class="font-body text-xs text-secondary">
+          On close, <code class="text-primary">commit_ref</code> is set to the current git HEAD, <code class="text-primary">closed_at</code> is timestamped, and an optional <code class="text-primary">close_reason</code> is recorded.
+        </p>
+      </div>
+    </div>
+    <Terminal label="ostk work add">
+      <pre class="text-secondary"><span class="text-primary">$</span> ostk work add \
+    --title "Add retry logic to nudge delivery" \
+    --priority P1 \
+    --description "Nudges to dead targets are currently lost. Add a durable retry queue." \
+    --ac "cargo test --test nudge_retry"
+<span class="text-outline">added →064: Add retry logic to nudge delivery [P1]</span></pre>
+    </Terminal>
+    <div class="mt-4">
+      <Terminal label="ostk work close">
+        <pre class="text-secondary"><span class="text-primary">$</span> ostk work close →064 --reason "implemented in wave G.4"
+<span class="text-outline">AC: PASS
+closed →064</span></pre>
+      </Terminal>
+    </div>
+  </section>
+
+  <!-- Hay -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">04 // HAY</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Hay is raw intent capture — a thought, idea, or observation that isn't yet structured enough to be a needle. Filing hay is frictionless: one command, one string, no required fields.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <div class="space-y-4">
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">STORAGE</div>
+          <p class="font-body text-xs text-secondary">Hay does <span class="text-primary font-bold">not</span> have its own file. <code class="text-primary">ostk hay "thought"</code> appends a <code class="text-primary">hay.filed</code> event to <code class="text-primary">.ostk/audit.jsonl</code> with the straw (the text), source, and timestamp. The audit log is the canonical store.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">PURPOSE</div>
+          <p class="font-body text-xs text-secondary">Hay captures intent before you know the shape of the work. It accumulates until <code class="text-primary">ostk work compile</code> triages it — clustering related hay, discovering themes, and identifying which hay entries are needle candidates.</p>
+        </div>
+      </div>
+    </div>
+    <Terminal label="ostk hay">
+      <pre class="text-secondary"><span class="text-primary">$</span> ostk hay "nudge delivery should retry on dead targets"
+<span class="text-outline">hay filed</span>
+
+<span class="text-primary">$</span> ostk hay "tui overlay needs scrollback buffer"
+<span class="text-outline">hay filed</span></pre>
+    </Terminal>
+  </section>
+
+  <!-- Compile -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">05 // COMPILE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      <code class="text-primary">ostk work compile</code> triages hay into needles, discovers dependency edges from title patterns, and rebuilds the sphere model. Three phases, no LLM involved — pure pattern matching.
+    </p>
+    <div class="space-y-px mb-6">
+      {[
+        {
+          phase: '01',
+          name: 'INTELLIGENCE_CLUSTERING',
+          desc: 'Reads all hay.filed events from the audit log. Clusters hay entries by shared concept terms (a fixed vocabulary of ~80 terms like "kernel", "tui", "agent", "compile"). Uses union-find to group entries that share at least one concept term. When embeddings are available, uses cosine-similarity leader clustering instead (threshold 0.75). Each cluster gets a theme label derived from the most frequent concept term. Clusters are cross-referenced with existing needle spheres via Jaccard similarity on concept overlap.',
+        },
+        {
+          phase: '02',
+          name: 'JOINT_GRAPH_REBUILD',
+          desc: 'Discovers dependency edges from needle titles using regex patterns ("depends on →NNN", "blocks →NNN", "requires →NNN", etc.). Also discovers implicit connections: shared-reference edges (two needles both mention →NNN) and concept edges (two needles share a concept term). Persists newly discovered edges onto needle records as depends_on[] and blocks[] arrays. Rebuilds the full adjacency graph and computes spheres (connected components via DFS).',
+        },
+        {
+          phase: '03',
+          name: 'TACK_LINT',
+          desc: 'Validates each hay entry against the tack grammar. Entries that parse as valid tack commands are flagged as needle candidates. Entries with unknown verbs stay as hay. This pass bridges raw intent (hay) and structured work (needles) without requiring manual triage.',
+        },
+      ].map(p => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-5">
+            <span class="serif-text text-lg font-bold text-primary">{p.phase}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-5">
+            <div class="font-label text-[10px] text-primary mb-1">{p.name}</div>
+            <span class="font-body text-xs text-secondary">{p.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <Terminal label="ostk work compile">
+      <pre class="text-secondary"><span class="text-primary">$</span> ostk work compile
+<span class="text-outline">── intelligence: 3 clusters discovered ──
+  NUDGE (2 hay) → sphere(point=→041)
+  TUI (3 hay)
+  + 1 unclustered
+
+── edges: 12 persisted (4 new, 8 existing) ──
+
+── spheres: 5 connected, 14 isolated ──
+  sphere 1 | 23 needles | point=→041 (d8) | radius=4
+    point: Cross-host nudge delivery pipeline
+  sphere 2 | 11 needles | point=→098 (d5) | radius=3
+    point: TUI overlay rendering system</span></pre>
+    </Terminal>
+  </section>
+
+  <!-- Spheres -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Spheres</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A sphere is a connected component of the needle dependency graph. Spheres are computed by DFS over the joint adjacency map — every needle reachable from any other needle in the component belongs to the same sphere.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-4">
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">POINT</div>
+          <p class="font-body text-xs text-secondary">Each sphere has a <span class="text-primary font-bold">point</span> — the hub needle with the highest degree (most connections). Ties are broken by smallest ID for determinism. The point is the center of gravity for the sphere.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">RADIUS</div>
+          <p class="font-body text-xs text-secondary">BFS from the point computes the radius — the maximum hop distance from the point to any needle in the sphere. Needles closer to the point (lower radius) compound more because they connect to more work.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">SORTING</div>
+          <p class="font-body text-xs text-secondary">Spheres are sorted by size, largest first. Isolated needles (single-node spheres) are counted but listed separately. When picking the next needle to work on, needles with lower radius within their sphere sort higher among same-priority needles.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">JOINTS</div>
+          <p class="font-body text-xs text-secondary">The edges connecting needles within a sphere are called joints. Three types: <span class="text-primary">Explicit</span> (title patterns like "depends on →NNN"), <span class="text-primary">SharedRef</span> (two needles both mention the same →NNN), and <span class="text-primary">Concept</span> (two needles share a concept term). Only open needles participate in the graph.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compounds -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">06 // COMPOUNDS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      <code class="text-primary">ostk compounds</code> answers: "What, if completed, unblocks the most other work?" It performs BFS over the <code class="text-primary">blocks[]</code> edges to compute transitive fan-out — how many downstream needles are transitively blocked by each needle.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <div class="space-y-4">
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">GRAPH</div>
+          <p class="font-body text-xs text-secondary">Built from both structured <code class="text-primary">blocks[]</code> fields and title-parsed signals ("blocks →NNN", "unblocks →NNN", "enables →NNN"). Reverse edges from <code class="text-primary">depends_on[]</code> and title patterns ("depends on →NNN", "requires →NNN", "blocked by →NNN") are also included.</p>
+        </div>
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1">SCORING</div>
+          <p class="font-body text-xs text-secondary">Each needle's weighted score = transitive fan-out × priority weight. Priority weights: P0 = 3×, P1 = 2×, P2/P3 = 1×. Results are sorted by weighted score descending, then transitive fan-out, then ID for stability. The top 10 are displayed.</p>
+        </div>
+      </div>
+    </div>
+    <Terminal label="ostk compounds">
+      <pre class="text-secondary"><span class="text-primary">$</span> ostk compounds
+<span class="text-outline">:compounds — highest compounding work
+
+  →041   Cross-host nudge delivery pipeline          [P0]  blocks 3 (transitive: 7)
+  →098   TUI overlay rendering system                [P1]  blocks 2 (transitive: 5)
+  →112   Kernel boot sequence refactor               [P1]  blocks 1 (transitive: 3)</span></pre>
+    </Terminal>
+  </section>
+
+  <!-- Dependencies -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">07 // DEPENDENCIES</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Dependencies are bidirectional: adding <code class="text-primary">→A depends_on →B</code> also adds <code class="text-primary">→B blocks →A</code>. The <code class="text-primary">ostk work link</code> command enforces this symmetry — both sides are updated atomically under the issues lock.
+    </p>
+    <div class="space-y-px mb-6">
+      {[
+        {
+          q: 'Are dependencies enforced?',
+          a: 'No. Dependencies are advisory. Closing →A before →B is allowed. The kernel does not block or warn on out-of-order closure. Dependencies exist to inform compound scoring and sphere structure, not to gate work.',
+        },
+        {
+          q: 'How are edges discovered?',
+          a: 'Two paths: explicit (ostk work link →A blocks →B) and implicit (ostk work compile discovers patterns in titles like "depends on →NNN" and persists them as structured depends_on[]/blocks[] arrays).',
+        },
+        {
+          q: 'What about ID normalization?',
+          a: 'Needle IDs accept multiple formats: →576, ->576, 576, nd-576, bd-576. All are normalized to canonical →NNN form (zero-padded to 3 digits minimum). The normalization handles both bare numeric and prefixed inputs.',
+        },
+      ].map(n => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
+            <span class="font-body text-xs text-primary font-bold">{n.q}</span>
+          </div>
+          <div class="md:col-span-9 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{n.a}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Priority tiers -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">08 // PRIORITY_TIERS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Priorities are labels, not automation triggers. There is no auto-dispatch, no SLA enforcement, no escalation policy. Priorities affect two things: sort order and compound weight.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-px bg-surface-variant">
+      {[
+        { tier: 'P0', weight: '3×', desc: 'Sorts first in listings. Weights 3× in compound scoring. Use for work that blocks everything else.' },
+        { tier: 'P1', weight: '2×', desc: 'Sorts second. Weights 2× in compound scoring. Standard priority for planned work.' },
+        { tier: 'P2', weight: '1×', desc: 'Sorts third. Weights 1× in compound scoring. Lower urgency, still tracked.' },
+        { tier: 'P3', weight: '1×', desc: 'Sorts last. Weights 1× in compound scoring. Nice-to-have, deferred, or speculative.' },
+      ].map(t => (
+        <div class="bg-surface-container p-6">
+          <div class="font-label text-[10px] text-primary mb-2">{t.tier}</div>
+          <div class="font-body text-xs text-outline mb-2">compound weight: {t.weight}</div>
+          <p class="font-body text-xs text-secondary">{t.desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Why this design -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Why This Design</h2>
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        Needles are intentionally minimal. Two states, not five. Advisory dependencies, not enforced gates. Pattern-matched clustering, not LLM triage.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        The work system is designed for multi-agent coordination where agents come and go (Five Laws #2). An agent that crashes mid-task leaves behind needles in <code class="text-primary">issues.jsonl</code> — a successor agent can read the store, run <code class="text-primary">ostk work compile</code> to rebuild the graph, and pick the highest-compounding open needle without any context about the predecessor. The filesystem is the message bus; the needle store is the backlog; the compound score is the prioritizer. No orchestrator required.
+      </p>
+    </div>
+  </section>
+
+  <p class="font-body text-xs text-secondary mb-12 max-w-lg">
+    Needles are also the unit of measurement in <a href="https://needle-bench.cc" class="text-primary underline">needle-bench.cc</a>, the open benchmark for context injection across 26+ models — 32 bugs, each a needle with AC.
+  </p>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />COMMANDS</a>
+    <a href="/docs/coordination-primitives"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+    <a href="/docs/pull-model"><Icon name="download" size="14" class="align-middle mr-1" />PULL_MODEL</a>
+    <a href="/docs/agent-lifecycle"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
+  </div>
+</DocsLayout>

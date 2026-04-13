@@ -1,0 +1,399 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Boot Sequence"
+  description="What ostk boot does under the hood: a read-only scan of .ostk/ state that resolves identity, trust, drivers, and the operator's .language — then reports what it found."
+  sectionLabel="REFERENCE // BOOT_STAGES"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Boot is not a daemon start. It is a read-only scan that reads <code class="text-primary">.ostk/</code> state, resolves identity, and reports what is on disk. The kernel does not modify project files during boot — it observes, verifies, and tells you what it found.
+  </p>
+
+  <!-- What boot does -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What Boot Does</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        <code class="text-primary">ostk boot</code> assembles a complete picture of the current workspace from three layers:
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">LAYER 1: REPO</div>
+          <p class="font-body text-xs text-secondary">Shared project state — <code class="text-primary">.ostk/</code> directory, Agentfile, boot.md, pin caps. Committed to version control.</p>
+        </div>
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">LAYER 2: OPERATOR</div>
+          <p class="font-body text-xs text-secondary">Personal identity — <code class="text-primary">~/.HUMANFILE</code> (global) merged with <code class="text-primary">.ostk/HUMANFILE</code> (project). Never committed.</p>
+        </div>
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">LAYER 3: HARNESS</div>
+          <p class="font-body text-xs text-secondary">Runtime environment — detected from environment variables at startup. Determines tool routing policy. Ephemeral.</p>
+        </div>
+      </div>
+      <p class="font-body text-xs text-secondary mt-4">
+        The output is the merged context: <code class="text-primary">context = f(repo) + g(operator) + h(harness)</code>. The agent instance receives this at session start. It knows who it is talking to, where it is running, and what it is allowed to do — without being told.
+      </p>
+    </div>
+  </section>
+
+  <!-- The stages -->
+  <section class="mb-16">
+    <h2 class="section-label mb-6">BOOT_STAGES</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Boot executes five stages in strict sequence. Each stage depends on the output of the previous one. If a stage fails fatally, boot halts and prints a diagnostic.
+    </p>
+
+    <!-- Stage 0: Agentfile -->
+    <div class="mb-6">
+      <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+        <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+          <span class="serif-text text-2xl font-bold text-primary">0</span>
+        </div>
+        <div class="md:col-span-10 px-4 py-5">
+          <div class="font-label text-[10px] text-primary mb-2">PARSE AGENTFILE</div>
+          <p class="font-body text-xs text-secondary mb-2">
+            If the <code class="text-primary">OSTK_AGENTFILE</code> environment variable is set, boot reads and parses the Agentfile at that path. Resolves:
+          </p>
+          <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1">
+            <li><code class="text-primary">FROM &lt;model&gt;</code> — which LLM the agent targets</li>
+            <li><code class="text-primary">TOOL &lt;name&gt;</code> — tool declarations (counted, not loaded)</li>
+            <li><code class="text-primary">LIMIT</code>, <code class="text-primary">ISOLATION</code> — resource and sandbox constraints</li>
+          </ul>
+          <p class="font-body text-xs text-secondary mt-2">
+            Missing Agentfile is non-fatal — boot continues with defaults. Present-but-unreadable is an error.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 0b: HUMANFILE -->
+    <div class="mb-6">
+      <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+        <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+          <span class="serif-text text-2xl font-bold text-primary">0b</span>
+        </div>
+        <div class="md:col-span-10 px-4 py-5">
+          <div class="font-label text-[10px] text-primary mb-2">LOAD HUMANFILE</div>
+          <p class="font-body text-xs text-secondary mb-2">
+            Hierarchical resolution loads operator identity and preferences. Resolution order:
+          </p>
+          <ol class="font-body text-xs text-secondary list-decimal pl-5 space-y-1 mb-2">
+            <li><code class="text-primary">~/.HUMANFILE</code> — global identity (MODEL, SIGN, TRUST directives are immutable from this layer)</li>
+            <li><code class="text-primary">.ostk/HUMANFILE</code> — project-level config (may EXTENDS global)</li>
+            <li>Merge if both exist — project overlays global, but identity fields stay pinned to the global source</li>
+          </ol>
+          <p class="font-body text-xs text-secondary mb-2">
+            Directives resolved at this stage: <code class="text-primary">MODEL</code>, <code class="text-primary">SIGN</code>, <code class="text-primary">PREPROCESS</code>, <code class="text-primary">TRUST</code>, <code class="text-primary">SECRET</code>, <code class="text-primary">EMBED</code>, <code class="text-primary">DRIVER</code>, <code class="text-primary">VERB</code>, <code class="text-primary">BOOT</code>.
+          </p>
+          <p class="font-body text-xs text-secondary">
+            After loading, boot auto-populates the <code class="text-primary">AVAILABLE</code> model list by scanning for known API keys (<code class="text-primary">ANTHROPIC_API_KEY</code>, <code class="text-primary">GEMINI_API_KEY</code>, etc.) and initializes secret masking for any <code class="text-primary">SECRET</code> directives.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 1: Kernel init -->
+    <div class="mb-6">
+      <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+        <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+          <span class="serif-text text-2xl font-bold text-primary">1</span>
+        </div>
+        <div class="md:col-span-10 px-4 py-5">
+          <div class="font-label text-[10px] text-primary mb-2">KERNEL INIT</div>
+          <p class="font-body text-xs text-secondary mb-2">
+            The identity and capability layer. Boot determines who you are and what you can do:
+          </p>
+          <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1 mb-3">
+            <li><span class="text-primary font-bold">Trust tier</span> — GPG web-of-trust determines your tier (T0 through T3). Your GPG key is checked against the project's signing chain.</li>
+            <li><span class="text-primary font-bold">ENTITYFILE</span> — governance document loaded and GPG-verified. Invalid signatures are fatal (fail-closed). Missing ENTITYFILE is non-fatal (fresh-install path).</li>
+            <li><span class="text-primary font-bold">Pin caps</span> — capability pins loaded from <code class="text-primary">.ostk/pin.caps</code>. These constrain what tools agents can invoke.</li>
+            <li><span class="text-primary font-bold">Drivers</span> — declared drivers probed via Unix sockets. Boot never spawns drivers — it only checks what is already running. Inactive drivers are registered for demand-spawn on first use.</li>
+            <li><span class="text-primary font-bold">.language</span> — the verb registry is populated. Kernel services, MCP primitives, introspection tools, and HUMANFILE VERB directives are all registered into the <code class="text-primary">.language</code> file.</li>
+          </ul>
+          <p class="font-body text-xs text-secondary">
+            Before any of this, boot reaps dead agents from the process table and cleans up orphaned heartbeat files — housekeeping from the previous session.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 2: Preload render -->
+    <div class="mb-6">
+      <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+        <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+          <span class="serif-text text-2xl font-bold text-primary">2</span>
+        </div>
+        <div class="md:col-span-10 px-4 py-5">
+          <div class="font-label text-[10px] text-primary mb-2">PRELOAD RENDER</div>
+          <p class="font-body text-xs text-secondary mb-2">
+            Builds the context injection that every agent instance receives at session start. The preload is assembled from:
+          </p>
+          <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1 mb-3">
+            <li>Project structure scan (what files exist, language breakdown)</li>
+            <li><code class="text-primary">.language</code> register contents (all verbs, devices, services with their resolutions)</li>
+            <li><code class="text-primary">boot.md</code> swap — the compiled operator section replaces the template boot.md</li>
+            <li>Identity blocks from HUMANFILE (communication style, scheduling preferences, corrections log)</li>
+          </ul>
+          <p class="font-body text-xs text-secondary">
+            The stable portion of this preload can be rendered once and uploaded as firmware — a deployment artifact that fleet members reference by ID rather than re-rendering independently.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 3: Intent compile -->
+    <div class="mb-6">
+      <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+        <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+          <span class="serif-text text-2xl font-bold text-primary">3</span>
+        </div>
+        <div class="md:col-span-10 px-4 py-5">
+          <div class="font-label text-[10px] text-primary mb-2">INTENT COMPILE</div>
+          <p class="font-body text-xs text-secondary mb-2">
+            Resolves the tack grammar and validates the dispatch loop:
+          </p>
+          <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1 mb-3">
+            <li><span class="text-primary font-bold">Tack grammar</span> — HUMANFILE VERB definitions are validated against <code class="text-primary">.language</code>. Unresolvable verbs reduce boot confidence.</li>
+            <li><span class="text-primary font-bold">INIT validation</span> — the post-language INIT verb sequence is checked. Missing verbs in the INIT chain are flagged and penalize the boot confidence score.</li>
+            <li><span class="text-primary font-bold">Verb momentum</span> — recent tack resolution history from the audit log is loaded to seed the confidence gradient.</li>
+          </ul>
+          <p class="font-body text-xs text-secondary">
+            After this stage, the compressed register dump is printed — a one-line summary of .language state (verb count, fleet size, open needles).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 4: Execution -->
+    <div class="mb-6">
+      <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+        <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+          <span class="serif-text text-2xl font-bold text-primary">4</span>
+        </div>
+        <div class="md:col-span-10 px-4 py-5">
+          <div class="font-label text-[10px] text-primary mb-2">EXECUTION</div>
+          <p class="font-body text-xs text-secondary mb-2">
+            The agent loop begins. Boot transitions from observation to action:
+          </p>
+          <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1 mb-3">
+            <li><span class="text-primary font-bold">Harness detection</span> — environment is probed to determine tool routing (Claude Code, ostk-serve, CI, terminal). This controls whether the agent uses native tools or MCP primitives.</li>
+            <li><span class="text-primary font-bold">Checkpoint verification</span> — the most recent checkpoint's GPG signature is verified. Invalid signatures are fatal for governed agents, advisory for interactive sessions.</li>
+            <li><span class="text-primary font-bold">Version pin</span> — if <code class="text-primary">.ostk/version</code> exists, the running binary version is checked against the pin.</li>
+            <li><span class="text-primary font-bold">Continuation prompt</span> — if enabled, a dynamic prompt is generated from current workspace state and written to <code class="text-primary">.ostk/prompts/continuation.md</code>.</li>
+          </ul>
+          <p class="font-body text-xs text-secondary">
+            Tool calls from this point forward pass through the 7-step <a href="/docs/approval-chain" class="text-primary hover:underline">approval chain</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST checks -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">POST_CHECKS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Power-On Self-Test. Seven checks run during boot to verify system integrity. The <code class="text-primary">POST 7/7</code> line in boot output confirms all passed. A failed check does not necessarily halt boot — some degrade gracefully, others are fatal.
+    </p>
+    <div class="space-y-px">
+      {[
+        {
+          check: 'HUMANFILE_RESOLVE',
+          desc: 'Hierarchical HUMANFILE resolution succeeds. Global (~/.HUMANFILE) and project (.ostk/HUMANFILE) merge without conflict.',
+          fail: 'Graceful — defaults used. Warning printed.',
+        },
+        {
+          check: 'TRUST_VERIFY',
+          desc: 'GPG signature on HUMANFILE validates against the signing chain. Trust tier (T0–T3) is determined.',
+          fail: 'Bad signature is fatal (fail-closed). Missing GPG degrades to T3 (read-only).',
+        },
+        {
+          check: 'ENTITYFILE_SIGN',
+          desc: 'ENTITYFILE governance document exists and its detached GPG signature (.asc or .sigstore) is valid.',
+          fail: 'Invalid signature at primary location is fatal. Missing ENTITYFILE is non-fatal (fresh install).',
+        },
+        {
+          check: 'DRIVER_PROBE',
+          desc: 'Declared drivers are probed via Unix socket. Alive drivers registered; inactive ones marked for demand-spawn.',
+          fail: 'Graceful — inactive drivers spawn on first use. No boot failure.',
+        },
+        {
+          check: 'LANGUAGE_INIT',
+          desc: '.language registry is populated with kernel services, MCP primitives, HUMANFILE VERBs, and introspection tools.',
+          fail: 'Unresolvable VERBs reduce boot confidence score but do not halt boot.',
+        },
+        {
+          check: 'CHECKPOINT_GPG',
+          desc: 'Most recent checkpoint\'s detached GPG signature is verified against accepted key set.',
+          fail: 'Fatal for governed agents. Advisory for interactive sessions. Expired keys reduce confidence.',
+        },
+        {
+          check: 'VERSION_PIN',
+          desc: 'Running binary version matches .ostk/version pin (if present).',
+          fail: 'Warning with upgrade hint. Boot continues.',
+        },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-4 flex items-center">
+            <span class="font-body text-xs font-bold text-primary">{s.check}</span>
+          </div>
+          <div class="md:col-span-5 px-4 py-4">
+            <div class="font-label text-[10px] text-outline mb-1">CHECKS</div>
+            <span class="font-body text-xs text-secondary">{s.desc}</span>
+          </div>
+          <div class="md:col-span-4 px-4 py-4">
+            <div class="font-label text-[10px] text-outline mb-1">ON FAILURE</div>
+            <span class="font-body text-xs text-secondary">{s.fail}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Boot confidence -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Boot Confidence</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        The <code class="text-primary">boot confidence</code> score is a 0.00–1.00 value computed at the end of boot. It measures how well the system can resolve operator intent into action. Three inputs feed the score:
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-4">
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">IDENTITY COMPLETENESS</div>
+          <p class="font-body text-xs text-secondary">HUMANFILE loaded, trust tier resolved, ENTITYFILE verified. Missing identity layers drag the score toward zero.</p>
+        </div>
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">RESOLUTION QUALITY</div>
+          <p class="font-body text-xs text-secondary">Recent tack resolutions from the audit log are weighted by tier (T1 = 1.0, T2 = 0.8, T3 = 0.5). High-tier resolutions lift the score.</p>
+        </div>
+        <div class="bg-surface-container p-4">
+          <div class="font-label text-[10px] text-primary mb-1">INIT VALIDATION</div>
+          <p class="font-body text-xs text-secondary">The INIT verb sequence is checked against .language. Missing verbs in the post-language chain penalize confidence.</p>
+        </div>
+      </div>
+      <p class="font-body text-xs text-secondary mb-3">
+        The score determines the operating mode:
+      </p>
+      <div class="space-y-px">
+        {[
+          { range: '0.90 – 1.00', mode: 'FULL', icon: '◉', desc: 'All capabilities available. Normal operation.' },
+          { range: '0.50 – 0.89', mode: 'MINIMAL', icon: '◎', desc: 'Core operations available. Some advanced features may be constrained.' },
+          { range: '0.00 – 0.49', mode: 'RESTRICTED', icon: '◎', desc: 'Read-heavy mode. Write operations may require explicit confirmation. Fresh projects with no audit history start here.' },
+        ].map(s => (
+          <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+            <div class="md:col-span-3 bg-surface-container-low px-4 py-3 flex items-center gap-2">
+              <span class="text-primary">{s.icon}</span>
+              <span class="font-body text-xs font-bold text-primary">{s.mode}</span>
+            </div>
+            <div class="md:col-span-3 px-4 py-3 flex items-center">
+              <span class="font-body text-xs text-secondary">{s.range}</span>
+            </div>
+            <div class="md:col-span-6 px-4 py-3">
+              <span class="font-body text-xs text-secondary">{s.desc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p class="font-body text-xs text-secondary mt-4">
+        A fresh project with no audit history will always show <code class="text-primary">0.00 (restricted mode)</code>. This is normal — the score rises as the system accumulates successful tack resolutions. It is a measure of earned trust, not a pass/fail gate.
+      </p>
+    </div>
+  </section>
+
+  <!-- What boot prints -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">BOOT_OUTPUT</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      A typical <code class="text-primary">ostk boot</code> run on a configured workspace. Each line maps to a stage above:
+    </p>
+    <Terminal label="ostk boot">
+      <div class="space-y-1 text-secondary">
+        <p><span class="text-primary">✓</span> HUMANFILE loaded (global only)</p>
+        <p>trust: T1 (cross-signed, write access)</p>
+        <p>.language: 58 verbs | fleet: 0 alive</p>
+        <p>needles: 0 open</p>
+        <p>boot confidence: 0.00 (restricted mode)</p>
+      </div>
+    </Terminal>
+    <div class="mt-6 space-y-3">
+      {[
+        { line: '✓ HUMANFILE loaded (global only)', meaning: 'Stage 0b succeeded. Only ~/.HUMANFILE was found (no project-level HUMANFILE). Identity and preferences resolved from the global file.' },
+        { line: 'trust: T1 (cross-signed, write access)', meaning: 'Stage 1. Your GPG key is cross-signed by a T0 holder. Full write access granted.' },
+        { line: '.language: 58 verbs | fleet: 0 alive', meaning: 'Stage 2–3. The .language registry holds 58 verbs. No agents are currently running.' },
+        { line: 'needles: 0 open', meaning: 'No open work items. The needle system is idle.' },
+        { line: 'boot confidence: 0.00 (restricted mode)', meaning: 'Stage 3. No audit history yet — the confidence score starts at zero on a fresh workspace.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-5 bg-surface-container-low px-4 py-3">
+            <code class="font-body text-[11px] text-primary">{s.line}</code>
+          </div>
+          <div class="md:col-span-7 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.meaning}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Harness detection -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Harness Detection</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Boot detects the execution environment and sets tool routing policy accordingly. The agent knows how to talk to the kernel without being told.
+    </p>
+    <div class="space-y-px">
+      {[
+        { harness: 'claude-code', detect: 'OSTK_HARNESS=claude-code or TERM_PROGRAM=claude', routing: 'Native Bash / Read / Edit / Grep. Background via run_in_background.' },
+        { harness: 'ostk-serve', detect: 'OSTK_SERVE=1', routing: 'MCP shell / spawn / interact. File I/O via fs_read / edit / fs_write.' },
+        { harness: 'ci', detect: 'CI=true or GITHUB_ACTIONS=true', routing: 'Native Bash. No background, no TTY.' },
+        { harness: 'terminal', detect: 'Default fallback', routing: 'Native Bash. Background optional.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-2 bg-surface-container-low px-4 py-3 flex items-center">
+            <span class="font-body text-xs font-bold text-primary">{s.harness}</span>
+          </div>
+          <div class="md:col-span-5 px-4 py-3">
+            <div class="font-label text-[10px] text-outline mb-1">DETECTION</div>
+            <code class="font-body text-[11px] text-secondary">{s.detect}</code>
+          </div>
+          <div class="md:col-span-5 px-4 py-3">
+            <div class="font-label text-[10px] text-outline mb-1">TOOL ROUTING</div>
+            <span class="font-body text-xs text-secondary">{s.routing}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      The <code class="text-primary">OSTK_HARNESS</code> environment variable overrides all detection — it always wins.
+    </p>
+  </section>
+
+  <!-- First run -->
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">First Run</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <p class="font-body text-xs text-secondary mb-3">
+        When no <code class="text-primary">.ostk/</code> directory is found, boot does not fail — it prints a welcome message and guides you to initialization:
+      </p>
+      <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-2">
+        <li><span class="text-primary font-bold">No git repo</span> — suggests <code class="text-primary">git init</code> first. The OS requires a git repository as its substrate.</li>
+        <li><span class="text-primary font-bold">Git repo, no .ostk/</span> — prints the full welcome with <code class="text-primary">ostk init</code> and <code class="text-primary">ostk init --guided</code> options.</li>
+      </ul>
+      <p class="font-body text-xs text-secondary mt-4">
+        After running <code class="text-primary">ostk init</code>, re-run <code class="text-primary">ostk boot</code> to complete the full boot sequence. See <a href="/docs/getting-started" class="text-primary hover:underline">Quick Start</a> for the step-by-step guide.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/getting-started"><Icon name="rocket_launch" size="14" class="align-middle mr-1" />QUICK_START</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+  </div>
+</DocsLayout>

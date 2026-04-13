@@ -1,0 +1,353 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Tack Grammar"
+  description="The operator intent language for the TUI tack bar. Compressed input syntax that resolves through the kernel. What, not how."
+  sectionLabel="REFERENCE // INTENT_LANGUAGE"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Tack is the operator intent language. You type intent into the TUI tack bar. The kernel resolves it — sometimes to a command, sometimes to an LLM query, sometimes to a needle reference, sometimes to raw hay. Communication gets shorter as you work. The OS adapts to you, not the other way around.
+  </p>
+
+  <!-- Four input forms -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">INPUT_FORMS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The tack parser recognizes four prefix patterns, checked in priority order. Everything else is filed as hay.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary overflow-x-auto">
+      <table class="w-full font-body text-xs">
+        <thead>
+          <tr class="border-b border-surface-variant">
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-primary uppercase tracking-widest">PREFIX</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase tracking-widest">INTENT_TYPE</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase tracking-widest">RESOLUTION</th>
+            <th class="pb-3 text-left font-label text-[10px] text-outline uppercase tracking-widest">EXAMPLES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { prefix: ':verb', type: 'Command', resolution: 'Kernel dispatch — no LLM', examples: ':compile, :status, :reap, :close →573' },
+            { prefix: '.?', type: 'Query', resolution: 'Routes through the LLM for intent-based resolution', examples: '.? how does bail work, .? why' },
+            { prefix: '→NNN', type: 'NeedleRef', resolution: 'Opens needle detail or activates work', examples: '→573, →1245, ->437' },
+            { prefix: '::', type: 'Escalate', resolution: 'Scope targeting — agent, file, or concept', examples: ':: agent1 fix the build' },
+            { prefix: '(bare text)', type: 'Hay', resolution: 'Filed as raw unstructured intent for later compile', examples: 'need to fix the auth flow' },
+          ].map(r => (
+            <tr class="border-b border-surface-variant/50">
+              <td class="py-2 pr-4 font-bold text-on-surface"><code class="text-primary">{r.prefix}</code></td>
+              <td class="py-2 pr-4 text-secondary">{r.type}</td>
+              <td class="py-2 pr-4 text-secondary">{r.resolution}</td>
+              <td class="py-2 text-secondary"><code class="text-[11px]">{r.examples}</code></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      <code class="text-primary">→</code> and <code class="text-primary">{'->'}</code> are equivalent — the parser accepts both. Priority is always: exact match first, then pattern match, then LLM inference as last resort.
+    </p>
+  </section>
+
+  <!-- Live examples -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">TACK_EXAMPLES</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Terminal label="COMMAND DISPATCH">
+        <pre><span class="text-outline">$</span> <span class="text-primary">:status</span>
+<span class="text-secondary">→ kernel dispatch → ostk status
+   3 open needles, 2 agents alive, gen 20556</span>
+
+<span class="text-outline">$</span> <span class="text-primary">:compile</span>
+<span class="text-secondary">→ triage hay → 4 new needles filed</span>
+
+<span class="text-outline">$</span> <span class="text-primary">:close →573</span>
+<span class="text-secondary">→ needle 573 closed</span></pre>
+      </Terminal>
+      <Terminal label="QUERY + NEEDLE REF">
+        <pre><span class="text-outline">$</span> <span class="text-primary">.? how does bail work</span>
+<span class="text-secondary">→ LLM query → bail packs a signed artifact
+   with SHA-256 manifest and attestation chain</span>
+
+<span class="text-outline">$</span> <span class="text-primary">→1245</span>
+<span class="text-secondary">→ needle 1245: "verb namespace refactor"
+   status: open, priority: p1, milestone: v0.9</span></pre>
+      </Terminal>
+      <Terminal label="ESCALATE">
+        <pre><span class="text-outline">$</span> <span class="text-primary">:: agent1 fix the build</span>
+<span class="text-secondary">→ nudge agent1: "fix the build"</span></pre>
+      </Terminal>
+      <Terminal label="HAY (BARE TEXT)">
+        <pre><span class="text-outline">$</span> <span class="text-primary">need to refactor the auth module</span>
+<span class="text-secondary">→ filed as hay (raw intent)
+   compile later with :compile</span></pre>
+      </Terminal>
+    </div>
+  </section>
+
+  <!-- Resolution pipeline -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">RESOLUTION_PIPELINE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      When you type <code class="text-primary">:verb</code>, the kernel resolves it through three sources in priority order. First match wins.
+    </p>
+    <div class="space-y-px">
+      {[
+        {
+          step: '01',
+          name: '.LANGUAGE (COMPILED DIALECT)',
+          what: 'The .language file is the compiled verb registry — a pipe-delimited table loaded at boot. Verbs here override everything else. This is where momentum lives: verbs you use often are resident, low-momentum verbs are demand-spawned.',
+          confidence: '1.0',
+        },
+        {
+          step: '02',
+          name: 'HUMANFILE EXTENSIONS',
+          what: 'Custom verbs declared in the HUMANFILE via VERB or TACK directives. The operator\'s personal dialect — verbs that map to project-specific commands or workflows.',
+          confidence: '0.9',
+        },
+        {
+          step: '03',
+          name: 'STATIC VERB TABLE',
+          what: 'Hardcoded verb-to-command mappings compiled into the kernel. The baseline vocabulary. Always available even if .language and HUMANFILE are missing.',
+          confidence: '0.8',
+        },
+      ].map(s => (
+        <div class="bg-surface-container-low">
+          <div class="grid grid-cols-12 gap-0">
+            <div class="md:col-span-1 bg-surface-container flex items-start justify-center pt-6">
+              <span class="serif-text text-3xl font-bold text-primary">{s.step}</span>
+            </div>
+            <div class="md:col-span-11 p-6">
+              <h3 class="font-body text-sm text-on-surface font-bold mb-3">{s.name}</h3>
+              <p class="font-body text-xs text-secondary mb-3 leading-relaxed">{s.what}</p>
+              <div class="font-body text-[10px] text-outline">confidence: <code class="text-primary">{s.confidence}</code></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      If no source matches, the kernel returns up to 3 edit-distance suggestions (Levenshtein, threshold 3). The OS never says "unknown verb." It always tries.
+    </p>
+  </section>
+
+  <!-- Namespace layers -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">NAMESPACE_LAYERS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Beyond the resolution pipeline, verbs are dispatched through four namespace layers. Resolution walks layers in priority order — highest-priority handler wins.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-4 font-body text-xs">
+        {[
+          { ns: 'kernel::', desc: 'Internal handlers — direct Rust function calls, zero-cost. Always available.', examples: 'boot, compile, status, reap, clock' },
+          { ns: 'driver::', desc: 'Device driver tools — routed via Unix socket to alive driver processes.', examples: 'fcp-rust, fcp-web, fcp-screen' },
+          { ns: 'fleet::', desc: 'Fleet agent verbs — only available when agents are alive.', examples: 'delegate, attach, detach' },
+          { ns: 'user::', desc: 'HUMANFILE verb declarations — shell exec. Operator-defined commands.', examples: 'Custom VERB/TACK directives' },
+        ].map(l => (
+          <div class="flex gap-4 py-2 border-b border-surface-variant">
+            <code class="text-primary w-24 shrink-0 font-bold">{l.ns}</code>
+            <div>
+              <span class="text-secondary">{l.desc}</span>
+              <div class="text-outline text-[11px] mt-1">{l.examples}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Verb resolution tiers -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">VERB_TIERS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Every verb in the <code class="text-primary">.language</code> file has a tier that determines its stability and persistence.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary overflow-x-auto">
+      <table class="w-full font-body text-xs">
+        <thead>
+          <tr class="border-b border-surface-variant">
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-primary uppercase tracking-widest">TIER</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase tracking-widest">CLASS</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase tracking-widest">BEHAVIOR</th>
+            <th class="pb-3 text-left font-label text-[10px] text-outline uppercase tracking-widest">EXAMPLES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { tier: '0', cls: 'Services / Devices', behavior: 'Infrastructure. Never decay. Always resident. Approval gates, heartbeat, drivers, embeddings.', examples: 'approval, heartbeat, fcp-rust, fcp-web, embeddings' },
+            { tier: '1', cls: 'Kernel / Ceremony', behavior: 'Core operations. Stable, well-tested. Require human presence for ceremonies. Never removed.', examples: 'boot, compile, shutdown, commit, confirm, negotiate' },
+            { tier: '2', cls: 'Stable Userspace', behavior: 'Documented, production-ready verbs. High momentum keeps them resident. Low usage may demote.', examples: 'add, close, search, near, hay, status' },
+            { tier: '3', cls: 'Flexible / Ephemeral', behavior: 'Experimental or session-scoped. Demand-spawned when invoked. May decay between sessions.', examples: 'ultrathink, sign, reboot, mode, model' },
+          ].map(r => (
+            <tr class="border-b border-surface-variant/50">
+              <td class="py-2 pr-4 font-bold text-on-surface"><code class="text-primary">{r.tier}</code></td>
+              <td class="py-2 pr-4 text-secondary font-bold">{r.cls}</td>
+              <td class="py-2 pr-4 text-secondary">{r.behavior}</td>
+              <td class="py-2 text-secondary"><code class="text-[11px]">{r.examples}</code></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Internal verbs -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">INTERNALIZED_VERBS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      These 29 verbs resolve as direct function calls inside the kernel — zero-cost dispatch, no shell, no socket. The rest dispatch through <code class="text-primary">.language</code>, HUMANFILE, or shell.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 font-body text-xs">
+        {[
+          'activate', 'add', 'audit', 'boot', 'clock', 'close', 'compile', 'correct',
+          'decide', 'diff', 'draft', 'edit', 'find', 'grep', 'hay', 'idea',
+          'near', 'needle', 'nudge', 'promote', 'ps', 'reap', 'related', 'search',
+          'shelve', 'show', 'status', 'trace', 'unshelve',
+        ].map(verb => (
+          <div class="py-1 border-b border-surface-variant/30">
+            <code class="text-primary">{verb}</code>
+          </div>
+        ))}
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Verbs like <code class="text-primary">correct</code> and <code class="text-primary">nudge</code> resolve to the same handler. <code class="text-primary">add</code> and <code class="text-primary">needle</code> are equivalent. <code class="text-primary">search</code>, <code class="text-primary">find</code>, and <code class="text-primary">grep</code> all route to the same search handler.
+    </p>
+  </section>
+
+  <!-- .language file -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">THE .LANGUAGE FILE</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The verb registry. A pipe-delimited table loaded at boot. Generated by <code class="text-primary">:compile</code> from usage patterns in the audit trail.
+    </p>
+    <Terminal label=".ostk/.language (excerpt)">
+      <pre><span class="text-outline"># verb | tier | layer | last_gen | momentum | resolution | signature | doc</span>
+<span class="text-primary">:boot</span>     | 1 | kernel | 20556 | 1.00 | internal | () → (state)   | read state, report identity
+<span class="text-primary">:compile</span>  | 1 | kernel | 20556 | 1.00 | internal | () → (report)  | triage hay into needles
+<span class="text-primary">:hay</span>      | 3 | user   | 20556 | 1.00 | internal | (text) → ()    | capture raw intent
+<span class="text-primary">:shelve</span>   | 1 | user   | 20556 | 1.00 | internal | (id) → ()      | pause needle work
+<span class="text-primary">:ultrathink</span>| 3 | user  | 20554 | 0.20 | <span class="text-outline">[LLM inference]</span> | (topic) → ()   | deep reasoning</pre>
+    </Terminal>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mt-4">
+      <div class="space-y-2 font-body text-xs">
+        {[
+          { field: 'verb', desc: 'The tack verb name (with : prefix in the file, stripped at parse time)' },
+          { field: 'tier', desc: '0–3. Stability class. Determines decay behavior and boot residency.' },
+          { field: 'layer', desc: 'kernel, service, device, user, ceremony, process, state, info, resolver' },
+          { field: 'last_gen', desc: 'Generation counter at last use. Tracks recency.' },
+          { field: 'momentum', desc: '0.0–1.0. Usage frequency score. High-momentum verbs are boot-resident.' },
+          { field: 'resolution', desc: 'How the verb dispatches: "internal", a socket path, or an ostk CLI command.' },
+          { field: 'signature', desc: 'Input/output type signature. Used for schema generation.' },
+          { field: 'doc', desc: 'One-line description. Shown in help and tool listings.' },
+        ].map(f => (
+          <div class="flex gap-4 py-1 border-b border-surface-variant/30">
+            <code class="text-primary w-24 shrink-0">{f.field}</code>
+            <span class="text-secondary text-[11px]">{f.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Momentum -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">MOMENTUM</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Verbs you use often get faster. Usage frequency is tracked in the audit trail. When you run <code class="text-primary">:compile</code>, the kernel rebuilds the <code class="text-primary">.language</code> file from usage patterns and updates momentum scores.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-3 font-body text-xs text-secondary">
+        <div class="flex items-start gap-3">
+          <span class="text-primary font-bold shrink-0">HIGH (1.0)</span>
+          <span>Boot-resident. Loaded into memory at startup. Zero latency on dispatch. Kernel verbs, frequently-used commands.</span>
+        </div>
+        <div class="flex items-start gap-3 border-t border-surface-variant/30 pt-3">
+          <span class="text-primary font-bold shrink-0">MID (0.4–0.9)</span>
+          <span>Demand-spawned on first invocation. Small latency on first use, then cached for the session.</span>
+        </div>
+        <div class="flex items-start gap-3 border-t border-surface-variant/30 pt-3">
+          <span class="text-primary font-bold shrink-0">LOW (< 0.4)</span>
+          <span>Cold. Resolved through fallback paths. May decay from the table between sessions if unused.</span>
+        </div>
+      </div>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      This is not LLM-learned. It is frequency-based. The verb table evolves across sessions through audit trail analysis. Over time, your tack vocabulary converges on the commands you actually use.
+    </p>
+  </section>
+
+  <!-- Aliases -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">ALIASES</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The static verb table includes aliases that resolve to canonical verbs. You can type whichever form feels natural.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 font-body text-xs">
+        {[
+          [':showme', ':show'],
+          [':spec', ':promote'],
+          [':straw', ':hay'],
+          [':emerge', ':hay'],
+          [':proc', ':ps'],
+          [':correct', ':nudge'],
+          [':recover', ':boot'],
+          [':calibrate', ':compile'],
+          [':delegate', ':run'],
+          [':inform', ':nudge'],
+          [':ls', ':needle list'],
+          [':open', ':needle list'],
+          [':close', ':needle close'],
+          [':add', ':needle add'],
+          [':next', ':needle next'],
+          [':find', ':search'],
+          [':grep', ':search'],
+        ].map(([alias, resolves]) => (
+          <div class="flex gap-4 py-1 border-b border-surface-variant/30">
+            <code class="text-primary w-24 shrink-0">{alias}</code>
+            <span class="text-outline">→</span>
+            <code class="text-secondary">{resolves}</code>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- HUMANFILE integration -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">HUMANFILE_VERBS</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      The HUMANFILE's tack grammar section defines the operator's personal dialect. Custom verbs via <code class="text-primary">VERB</code> or <code class="text-primary">TACK</code> directives.
+    </p>
+    <Terminal label="HUMANFILE custom verbs">
+      <pre><span class="text-outline"># In .ostk/HUMANFILE:</span>
+<span class="text-primary">VERB</span> pitchfork show --semantic
+<span class="text-primary">VERB</span> discuss spawn round-table
+<span class="text-primary">TACK</span> boost priority-modifier
+
+<span class="text-outline"># Then in the tack bar:</span>
+<span class="text-outline">$</span> <span class="text-primary">:pitchfork</span>
+<span class="text-secondary">→ resolves to: ostk show --semantic</span>
+
+<span class="text-outline">$</span> <span class="text-primary">:discuss</span>
+<span class="text-secondary">→ resolves to: ostk spawn round-table</span></pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      HUMANFILE verbs sit in the <code class="text-primary">user::</code> namespace layer — lowest priority. If a kernel verb or driver verb has the same name, the kernel verb wins.
+    </p>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/features/tack"><Icon name="code" size="14" class="align-middle mr-1" />TACK_FEATURE</a>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />COMMANDS</a>
+    <a href="/docs/needles"><Icon name="push_pin" size="14" class="align-middle mr-1" />NEEDLES</a>
+    <a href="/docs/tui"><Icon name="tv" size="14" class="align-middle mr-1" />TUI</a>
+  </div>
+</DocsLayout>
