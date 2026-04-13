@@ -1,0 +1,197 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Enrichment Hooks"
+  description="Driver-mediated reads and edits. The kernel asks registered FCP drivers to annotate file content with diagnostics, symbols, and refactoring actions — so the model sees errors inline and can rename across 40 call sites in one atomic operation."
+  sectionLabel="REFERENCE // ENRICHMENT"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    The model states intent. The kernel enriches. Registered drivers annotate reads with diagnostics and symbols, re-check edits for breakage, and provide type-safe multi-file refactoring — all through a single <code>enrich</code> protocol.
+  </p>
+
+  <section class="mb-16">
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
+      <p class="font-body text-sm text-on-surface mb-3">
+        A file read returns raw bytes. An edit returns success or failure. Neither knows about the language. A model editing <code class="text-primary">src/main.rs</code> can't see compiler diagnostics, can't discover symbols, can't safely rename a function across 40 call sites.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        FCP drivers like <code class="text-primary">fcp-rust</code> wrap language servers and are registered via HUMANFILE — but without enrichment hooks, the kernel never asks them anything. The intelligence is there. The wiring is what enrichment adds.
+      </p>
+    </div>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-label mb-4">ENRICH_PROTOCOL</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Drivers expose one method: <code class="text-primary">enrich(path, content_hash?)</code>. All response fields are optional. Content hash enables caching — if the driver already indexed this version, it skips reanalysis.
+    </p>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-4">
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">EnrichResult</span>
+  <span class="text-on-surface">diagnostics</span>   <span class="text-outline">errors, warnings — inline in read response</span>
+  <span class="text-on-surface">symbols</span>       <span class="text-outline">function/struct/impl outline</span>
+  <span class="text-on-surface">annotations</span>   <span class="text-outline">arbitrary driver-specific metadata</span>
+  <span class="text-on-surface">references</span>    <span class="text-outline">who calls/uses symbols in this file</span>
+  <span class="text-on-surface">dependencies</span>  <span class="text-outline">what this file imports</span>
+  <span class="text-on-surface">dependents</span>    <span class="text-outline">what depends on this file</span></pre>
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      Drivers that wrap LSP do the translation internally. The kernel never sees LSP types — it speaks <code class="text-primary">enrich</code> only. Every language with a driver gets the same protocol.
+    </p>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-label mb-6">PROGRESSIVE_DISCLOSURE</h2>
+    <div class="space-y-px">
+      {[
+        { condition: '304 (unchanged)', enrichment: 'None. The model already saw this file.' },
+        { condition: 'First read', enrichment: 'Errors only (severity >= error). Never hints. Configurable via HUMANFILE.' },
+        { condition: 'Explicit enrich=full', enrichment: 'Diagnostics + symbols + annotations + references.' },
+        { condition: 'After an edit', enrichment: 'Always enrich. The model just changed the file and wants to know if it broke something.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
+            <span class="font-body text-xs text-primary font-bold">{s.condition}</span>
+          </div>
+          <div class="md:col-span-9 px-4 py-4">
+            <span class="font-body text-xs text-secondary">{s.enrichment}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What the Model Sees</h2>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Diagnostics are injected inline — directly into the file content. Cheaper tokens, immediately actionable. No protocol to learn.
+    </p>
+    <Terminal label="enriched read response">
+      <pre>fn main() {'{'}
+    let x = 5;  <span class="text-error">// [error] unused variable `x` (E0001)</span>
+    println!("hello");
+{'}'}</pre>
+    </Terminal>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-label mb-4">HUMANFILE_CONFIGURATION</h2>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Enrichment is <span class="text-primary font-bold">off by default</span>. The operator opts in:
+    </p>
+    <Terminal label="HUMANFILE">
+      <pre><span class="text-primary">DRIVER</span> rust fcp-rust
+<span class="text-primary">ENRICH</span> rust errors    <span class="text-outline"># severity floor: errors only</span></pre>
+    </Terminal>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mt-4">
+      {[
+        { level: 'off', desc: 'Default. No driver calls on reads or edits.' },
+        { level: 'errors', desc: 'Diagnostics with severity >= error only.' },
+        { level: 'warnings', desc: 'Diagnostics with severity >= warning.' },
+        { level: 'full', desc: 'Diagnostics + symbols + annotations + references.' },
+      ].map(l => (
+        <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
+          <code class="text-primary w-24 shrink-0">{l.level}</code>
+          <span class="text-secondary">{l.desc}</span>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Routing is capability-based. Multiple drivers can enrich the same file — fcp-typescript + fcp-css both enrich <code class="text-primary">.vue</code> files. The kernel merges results by concatenation.
+    </p>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Type-Safe Refactoring</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      With enrichment hooks, the kernel has access to the symbol graph. A <code class="text-primary">refactor</code> tool exposes type-safe multi-file operations:
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-6">
+      {[
+        { action: 'rename', desc: 'Safe rename across all call sites. The driver finds every reference. No grep-and-hope.' },
+        { action: 'extract_function', desc: 'Select a range, extract to a new function. The type system computes params, return type, and extraction boundary.' },
+        { action: 'inline', desc: 'Inline a function or variable at all call sites. The driver validates that inlining is safe.' },
+      ].map(a => (
+        <div class="bg-surface-container p-6">
+          <div class="font-label text-[10px] text-primary mb-2">{a.action.toUpperCase()}</div>
+          <p class="font-body text-xs text-secondary">{a.desc}</p>
+        </div>
+      ))}
+    </div>
+    <Terminal label="rename example">
+      <div><span class="text-outline select-none">$ </span><span class="text-primary">refactor(action="rename", symbol="dispatch_fs_write", new_name="dispatch_write")</span></div>
+      <div class="text-secondary mt-2">edits:</div>
+      <div class="text-secondary">  src/serve/dispatch.rs  "dispatch_fs_write" → "dispatch_write"</div>
+      <div class="text-secondary">  src/commands/relay.rs  "dispatch_fs_write" → "dispatch_write"</div>
+      <div class="text-secondary">  src/serve/types.rs     "dispatch_fs_write" → "dispatch_write"</div>
+      <div class="text-primary mt-2">files_affected: 3 (all edits pre-validated by type checker)</div>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Each edit goes through CAS with gen_table conflict detection. If any file was modified concurrently, the <span class="text-primary">whole batch rolls back atomically</span>. This is OCC (Law 4) applied to multi-file refactoring.
+    </p>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EMBEDDINGS_VS_DRIVERS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary overflow-x-auto">
+      <table class="w-full font-body text-xs">
+        <thead>
+          <tr class="border-b border-surface-variant">
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-primary uppercase">Signal</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase">Embeddings</th>
+            <th class="pb-3 text-left font-label text-[10px] text-outline uppercase">Driver</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { signal: 'Related function', embed: '~0.75 cosine similarity', driver: 'Exact call graph — 47 call sites' },
+            { signal: 'Relevant file', embed: 'Shares vocabulary', driver: 'Direct import dependency' },
+            { signal: 'Dead code', embed: "Can't tell", driver: 'Zero references, zero callers' },
+            { signal: 'Call chain', embed: 'Co-occurrence', driver: 'A → B → C — exact path' },
+            { signal: 'Test-only code', embed: "Can't tell", driver: 'Only referenced from test modules' },
+          ].map(r => (
+            <tr class="border-b border-surface-variant/50">
+              <td class="py-2 pr-4 font-bold text-on-surface">{r.signal}</td>
+              <td class="py-2 pr-4 text-secondary">{r.embed}</td>
+              <td class="py-2 text-secondary">{r.driver}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      The two systems compose: embeddings for breadth (prose, docs), drivers for precision (code). Instead of reading 10 files to trace a call chain (~5,000 tokens), the driver says "here are the 3 files that matter" (~1,500 tokens). <span class="text-primary font-bold">70% reduction</span> in exploration tokens for code navigation.
+    </p>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SAFETY_AND_TIMEOUTS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      {[
+        { item: 'Output sanitization', desc: 'Diagnostic messages capped at 256 chars, control characters stripped.' },
+        { item: 'Path allowlist', desc: 'Drivers run under the agent\'s authorized-path set. Responses scoped to the requested file.' },
+        { item: 'Signed registration', desc: 'HUMANFILE driver declarations validated against ENTITYFILE signatures.' },
+        { item: 'Circuit breaker', desc: '3 consecutive timeouts → driver marked failed, 5-minute cooldown.' },
+        { item: 'Warm driver timeout', desc: '100ms. Fallback: raw read, skip enrichment.' },
+        { item: 'Cold start timeout', desc: '2s. Fallback: raw read, spawn continues in background.' },
+        { item: 'Refactoring timeout', desc: '10s. Fallback: error (refactoring is explicit, not best-effort).' },
+      ].map(s => (
+        <div class="flex gap-4 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="text-primary w-44 shrink-0 font-bold">{s.item}</span>
+          <span class="text-secondary">{s.desc}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/coordination-primitives"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+    <a href="/docs/context-management"><Icon name="layers" size="14" class="align-middle mr-1" />CONTEXT_MGMT</a>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+  </div>
+</DocsLayout>
