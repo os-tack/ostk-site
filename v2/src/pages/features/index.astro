@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Sidebar from '../../components/Sidebar.astro';
+import { LATEST_TAG } from '../../site-version';
 
 const sidebarGroups = {
   items: [
@@ -54,7 +55,7 @@ const sections = [
 
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
     <div class="max-w-5xl mx-auto py-12">
-      <div class="section-label mb-4">FEATURE_INDEX // v3.0.0</div>
+      <div class="section-label mb-4">FEATURE_INDEX // {LATEST_TAG}</div>
       <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Features</h1>
       <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-16">
         ostk is an OS for AI coding agents. These are the things it does.

@@ -1,6 +1,7 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
+import { LATEST_TAG } from '../../site-version';
 
 const sections = [
   {
@@ -49,7 +50,7 @@ const sections = [
 <DocsLayout
   title="Documentation Archive"
   description="ostk documentation — reference, configuration, and governance."
-  sectionLabel="ARCHIVE_INDEX // v3.0.0"
+  sectionLabel={`ARCHIVE_INDEX // ${LATEST_TAG}`}
 >
   <p class="font-body text-sm text-secondary max-w-xl mb-12">
     Complete reference for the ostk kernel, daemon, drivers, and governance model.

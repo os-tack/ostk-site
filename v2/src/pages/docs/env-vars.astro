@@ -1,6 +1,7 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
+import { LATEST_TAG } from '../../site-version';
 
 const groups = [
   {
@@ -23,7 +24,7 @@ const groups = [
   {
     label: 'DRAIN_RECOVERY',
     vars: [
-      { name: 'OSTK_DRAIN_SNAPSHOT', desc: 'Controls drain snapshot writes. Set to 0 to disable.', default_: 'Enabled (v3.0.0+)' },
+      { name: 'OSTK_DRAIN_SNAPSHOT', desc: 'Controls drain snapshot writes. Set to 0 to disable.', default_: `Enabled (${LATEST_TAG}+)` },
     ],
   },
   {

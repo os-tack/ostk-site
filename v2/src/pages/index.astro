@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Sidebar from '../components/Sidebar.astro';
+import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
   items: [
@@ -33,7 +34,7 @@ const sidebarGroups = {
     "license": "https://ostk.ai/legal/license",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   })} />
-  <Sidebar title="OSTK" subtitle="v3.0.0 STABLE" groups={sidebarGroups} />
+  <Sidebar title="OSTK" subtitle={`${LATEST_TAG} STABLE`} groups={sidebarGroups} />
 
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
     <div class="max-w-5xl mx-auto py-12">

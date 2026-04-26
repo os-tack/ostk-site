@@ -1,6 +1,7 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
+import { LATEST_TAG } from '../../site-version';
 ---
 
 <DocsLayout
@@ -59,7 +60,7 @@ import Icon from '../../components/Icon.astro';
   <section class="mb-16">
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
     <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      At every turn boundary, each session writes a drain snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Enabled by default (v3.0.0+).
+      At every turn boundary, each session writes a drain snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Enabled by default ({LATEST_TAG}+).
     </p>
     <div class="grid grid-cols-3 gap-px bg-surface-variant mb-4">
       {[
