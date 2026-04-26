@@ -1,0 +1,143 @@
+---
+import Base from '../layouts/Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
+  ],
+};
+---
+
+<Base title="Why ostk — the three problems it solves" description="You're using AI agents to code. Three things break: they collide, they drift, they leave no trace. ostk fixes all three from underneath, without changing how you drive your agents.">
+  <Sidebar title="WHY_OSTK" subtitle="THE_PROBLEM" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-3xl mx-auto py-12">
+      <div class="section-label mb-4">DIAGNOSIS // 01</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Why ostk</h1>
+
+      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
+        You're using AI agents to code. Three things break. ostk fixes all three from underneath, without changing how you drive them.
+      </p>
+
+      <!-- Problem 1 -->
+      <section class="mb-16">
+        <div class="section-label mb-4">PROBLEM_01 // COLLISION</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">They collide.</h2>
+        <div class="max-w-xl space-y-4">
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently. The first agent's work is gone, and nothing tells you it happened.
+          </p>
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            <strong class="text-on-surface">ostk's answer:</strong> every write goes through a generation-tracked filesystem. Each file has a counter. An agent's edit must declare the counter it read; if another agent has bumped it, the second write fails — loudly, with a conflict you can resolve. No silent overwrites.
+          </p>
+          <p class="font-body text-xs text-outline">
+            Optimistic concurrency control over the filesystem itself, not a side-channel database.
+          </p>
+        </div>
+      </section>
+
+      <!-- Problem 2 -->
+      <section class="mb-16">
+        <div class="section-label mb-4">PROBLEM_02 // DRIFT</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">They drift.</h2>
+        <div class="max-w-xl space-y-4">
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            Each agent runs in its own context window. They re-discover the same things. They forget what was already decided. They don't see each other's work. You repeat yourself across sessions and across agents.
+          </p>
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            <strong class="text-on-surface">ostk's answer:</strong> a shared state directory at <code class="text-primary">.ostk/</code>. Decisions, open questions ("needles"), agent identity, audit history — all observed by every agent that boots into the project. New agents resume context. Old agents leave breadcrumbs. The project develops a memory.
+          </p>
+          <p class="font-body text-xs text-outline">
+            One observed state. The directory is the database.
+          </p>
+        </div>
+      </section>
+
+      <!-- Problem 3 -->
+      <section class="mb-16">
+        <div class="section-label mb-4">PROBLEM_03 // NO_TRACE</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">They leave no trace.</h2>
+        <div class="max-w-xl space-y-4">
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            Something went wrong. Or right, and you want to reproduce it. There's no record of which agent did what against which version of which code, signed by whom. You can't replay. You can't audit. You can't prove what shipped.
+          </p>
+          <p class="font-body text-sm text-secondary leading-relaxed">
+            <strong class="text-on-surface">ostk's answer:</strong> every action is an append-only event in <code class="text-primary">.ostk/audit.jsonl</code>, hash-chained and optionally GPG-signed. Replay it. Diff it across sessions. Sign a release against it. Capability boundaries (<a href="/docs/pins" class="text-primary hover:underline">pin caps</a>) say what each agent is allowed to touch — escapes are denied and logged.
+          </p>
+          <p class="font-body text-xs text-outline">
+            A signed trail. Bounded capability. Reproducibility from first principles.
+          </p>
+        </div>
+      </section>
+
+      <!-- The shape -->
+      <section class="mb-16">
+        <h2 class="section-label mb-4">THE_SHAPE</h2>
+        <p class="font-headline text-lg text-on-surface italic leading-relaxed max-w-xl mb-6">
+          One Rust binary, sitting underneath whatever drives your agents.
+        </p>
+        <div class="max-w-xl space-y-4 font-body text-sm text-secondary leading-relaxed">
+          <p>
+            ostk doesn't replace Claude Code, Cursor, your script, or your local Llama. It sits <em>under</em> them. They write through it. They observe through it. The agent driver doesn't change — but coordination, audit, and capability appear underneath.
+          </p>
+          <p>
+            One install per machine. <code class="text-primary">ostk init</code> per project. After that:
+          </p>
+          <ul class="space-y-2 list-none pl-0">
+            <li><span class="text-primary mr-2">→</span>Drive an agent over <a href="/start/mcp" class="text-primary hover:underline">MCP</a> — Claude Code, Cursor, anything that speaks the protocol.</li>
+            <li><span class="text-primary mr-2">→</span>Or use <a href="/start" class="text-primary hover:underline">ostk's own TUI</a> with a local model (ollama, mlx) for an offline, no-API-bill workflow.</li>
+            <li><span class="text-primary mr-2">→</span>Or run a server and hit it from CI, scripts, or a remote machine.</li>
+          </ul>
+          <p>
+            Same kernel underneath all three. Same audit. Same trust boundaries. Different first 10 minutes.
+          </p>
+        </div>
+      </section>
+
+      <!-- What you give up -->
+      <section class="mb-16">
+        <h2 class="section-label mb-4">WHAT_YOU_GIVE_UP</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+          Honest answer, since the rest of this page is the sales pitch.
+        </p>
+        <div class="bg-surface-container-low p-6 border-l-2 border-outline max-w-xl space-y-3">
+          <div class="font-body text-xs text-secondary">
+            <strong class="text-on-surface">A learning curve.</strong> The vocabulary — humanfile, agentfile, pin caps, needles, tack — takes a session or two to internalize. The five-minute Quick Start covers the floor; the kernel spec covers the ceiling.
+          </div>
+          <div class="font-body text-xs text-secondary">
+            <strong class="text-on-surface">A daemon process.</strong> ostk runs a background daemon per project. Memory cost is small (~30 MB), but it's there. <code class="text-primary">ostk daemon stop</code> kills it.
+          </div>
+          <div class="font-body text-xs text-secondary">
+            <strong class="text-on-surface">A directory you can't ignore.</strong> <code class="text-primary">.ostk/</code> is the substrate. Lose it and you lose the audit chain (the project still works — you just lose history). Back it up like you'd back up <code class="text-primary">.git/</code>.
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="mb-8">
+        <h2 class="section-label mb-4">NEXT</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
+          <a href="/start" class="bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
+            <div class="font-body text-sm text-primary font-bold mb-2">→ START_HERE</div>
+            <p class="font-body text-xs text-secondary">Pick a path. Three branches, ten to fifteen minutes each.</p>
+          </a>
+          <a href="/docs/architecture" class="bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
+            <div class="font-body text-sm text-primary font-bold mb-2">→ HOW_IT_WORKS</div>
+            <p class="font-body text-xs text-secondary">The model. Kernel, drivers, agents, the audit chain.</p>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+</Base>

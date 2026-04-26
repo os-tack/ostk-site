@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Icon from '../components/Icon.astro';
+import { LATEST_TAG } from '../site-version';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start' },
+    { icon: 'extension', label: 'MCP_BRIDGE', href: '/start/mcp' },
+    { icon: 'tv', label: 'LOCAL_TUI', href: '/start/local' },
+    { icon: 'cloud', label: 'SERVER_MODE', href: '/start/server' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
+  ],
+};
+---
+
+<Base title="Start here — pick your path" description="Three ways to use ostk: as an MCP server for an external agent driver, as a TUI for a local model, or as a network server. Pick the path that matches how you want to work.">
+  <Sidebar title="START" subtitle={LATEST_TAG} groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-3xl mx-auto py-12">
+      <div class="section-label mb-4">INITIALIZATION // PICK_PATH</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Start here.</h1>
+
+      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
+        ostk is one binary. There are three ways to drive it. Same kernel underneath; the first ten minutes differ.
+      </p>
+
+      <!-- Universal prerequisites -->
+      <section class="mb-12">
+        <h2 class="section-label mb-4">UNIVERSAL // BEFORE_YOU_PICK</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+          These two steps are identical for every path. Do them once per machine, then branch.
+        </p>
+        <div class="bg-surface-container-low p-6 max-w-2xl space-y-4">
+          <div>
+            <div class="font-label text-[10px] text-secondary mb-1">STEP_1 // INSTALL</div>
+            <code class="font-body text-sm text-primary block">curl -fsSL https://ostk.ai/install | sh</code>
+            <p class="font-body text-xs text-outline mt-2">
+              Auto-detects platform, downloads the binary, verifies the GPG signature, installs to <code class="text-primary">~/.local/bin</code>. macOS arm64/x86_64, Linux musl arm64/x86_64.
+            </p>
+          </div>
+          <div class="border-t border-surface-variant pt-4">
+            <div class="font-label text-[10px] text-secondary mb-1">STEP_2 // INITIALIZE_PROJECT</div>
+            <code class="font-body text-sm text-primary block">cd ~/projects/your-repo && ostk init</code>
+            <p class="font-body text-xs text-outline mt-2">
+              Creates <code class="text-primary">.ostk/</code> with default <a href="/docs/humanfile" class="text-primary hover:underline">HUMANFILE</a>, <a href="/docs/agentfile" class="text-primary hover:underline">Agentfile</a>, and pin caps. Use <code class="text-primary">ostk init --guided</code> for an interactive setup.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pick a path -->
+      <section class="mb-16">
+        <h2 class="section-label mb-4">PICK_A_PATH</h2>
+
+        <div class="space-y-px">
+          <!-- MCP Bridge -->
+          <a href="/start/mcp" class="block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div class="md:col-span-1 flex items-start">
+                <Icon name="extension" size="32" class="text-primary" />
+              </div>
+              <div class="md:col-span-9">
+                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">MCP_BRIDGE — drive ostk from your existing agent tool</div>
+                <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
+                  You already use Claude Code, Cursor, or another MCP-capable tool. Wire ostk in as an MCP server: your agent gets coordinated writes, audit, and capability boundaries while you keep your existing UI.
+                </p>
+                <p class="font-body text-[10px] text-outline">
+                  Best for: anyone with a working agent setup who wants ostk's substrate underneath.
+                </p>
+              </div>
+              <div class="md:col-span-2 flex md:justify-end items-start">
+                <span class="font-label text-[10px] text-secondary">~10 MIN</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Local TUI -->
+          <a href="/start/local" class="block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div class="md:col-span-1 flex items-start">
+                <Icon name="tv" size="32" class="text-primary" />
+              </div>
+              <div class="md:col-span-9">
+                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">LOCAL_TUI — chat with a local model in ostk's terminal UI</div>
+                <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
+                  Run a model on your machine via ollama or Apple's mlx. Use ostk's TUI as the chat interface. No API bill, no telemetry, full audit. Slower first response (model warm-up), but everything stays local.
+                </p>
+                <p class="font-body text-[10px] text-outline">
+                  Best for: privacy-first developers, offline work, hardware experimentation.
+                </p>
+              </div>
+              <div class="md:col-span-2 flex md:justify-end items-start">
+                <span class="font-label text-[10px] text-secondary">~15 MIN</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Server -->
+          <a href="/start/server" class="block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div class="md:col-span-1 flex items-start">
+                <Icon name="cloud" size="32" class="text-primary" />
+              </div>
+              <div class="md:col-span-9">
+                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">SERVER_MODE — run ostk as a service for CI or remote agents</div>
+                <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
+                  ostk listens on a Unix socket. Other tools — your CI runner, a remote machine over SSH-forwarded socket, a Discord bot — connect and drive agents. Same kernel, same audit; just exposed over the network.
+                </p>
+                <p class="font-body text-[10px] text-outline">
+                  Best for: CI integration, multi-developer projects, server-side agent fleets.
+                </p>
+              </div>
+              <div class="md:col-span-2 flex md:justify-end items-start">
+                <span class="font-label text-[10px] text-secondary">~10 MIN</span>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <p class="font-body text-xs text-outline mt-6 max-w-xl">
+          Picked one and changed your mind? They share the same <code class="text-primary">.ostk/</code> state. Switch any time, even mid-project — the audit and pin caps follow you.
+        </p>
+      </section>
+
+      <!-- Where to go after -->
+      <section class="mb-8">
+        <h2 class="section-label mb-4">AFTER_YOU'RE_RUNNING</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-2xl">
+          <a href="/docs/trust-model" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+            <div class="font-body text-xs text-primary font-bold mb-1">TRUST_MODEL</div>
+            <p class="font-body text-[10px] text-secondary">Tiers, GPG signing, the four-tier ladder.</p>
+          </a>
+          <a href="/docs/needles" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+            <div class="font-body text-xs text-primary font-bold mb-1">NEEDLES</div>
+            <p class="font-body text-[10px] text-secondary">Open questions and decisions across sessions.</p>
+          </a>
+          <a href="/docs/commands" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+            <div class="font-body text-xs text-primary font-bold mb-1">COMMANDS</div>
+            <p class="font-body text-[10px] text-secondary">Full CLI reference.</p>
+          </a>
+        </div>
+      </section>
+    </div>
+  </main>
+</Base>
