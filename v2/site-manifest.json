@@ -157,118 +157,19 @@
       "tags": [],
       "sources": [
         {
-          "path": "src/commands/drivers.rs"
+          "path": "docs/spec/llmos-posix-kernel.md"
         },
         {
-          "path": "src/commands/boot/drivers.rs"
+          "path": "docs/spec/llmos-observation-substrate.md"
         },
         {
-          "path": "src/kernel/drivers.rs"
+          "path": "docs/spec/llmos-application.md"
         },
         {
-          "path": "src/fcp/mod.rs"
+          "path": "src/kernel/isa/mod.rs"
         },
         {
-          "path": "src/kernel/file.rs"
-        },
-        {
-          "path": "src/serve/tools/mod.rs"
-        },
-        {
-          "path": "src/serve/tools/arrive.rs"
-        },
-        {
-          "path": "src/serve/tools/context_release.rs"
-        },
-        {
-          "path": "src/serve/tools/context_search.rs"
-        },
-        {
-          "path": "src/serve/tools/fs_ops.rs"
-        },
-        {
-          "path": "src/serve/tools/fs_read.rs"
-        },
-        {
-          "path": "src/serve/tools/recall.rs"
-        },
-        {
-          "path": "src/serve/tools/sh_interact.rs"
-        },
-        {
-          "path": "src/serve/tools/sh_lock.rs"
-        },
-        {
-          "path": "src/serve/tools/sh_run.rs"
-        },
-        {
-          "path": "src/serve/tools/sh_session.rs"
-        },
-        {
-          "path": "src/serve/tools/sh_spawn.rs"
-        },
-        {
-          "path": "src/kernel/hotpr.rs"
-        },
-        {
-          "path": "src/kernel/digest.rs"
-        },
-        {
-          "path": "src/kernel/elision.rs"
-        },
-        {
-          "path": "src/kernel/envelope.rs"
-        },
-        {
-          "path": "src/kernel/init.rs"
-        },
-        {
-          "path": "src/kernel/agent_socket.rs"
-        },
-        {
-          "path": "src/kernel/driver_manager.rs"
-        },
-        {
-          "path": "src/kernel/driver_relay.rs"
-        },
-        {
-          "path": "src/kernel/firmware.rs"
-        },
-        {
-          "path": "src/kernel/predispatch.rs"
-        },
-        {
-          "path": "src/kernel/request.rs"
-        },
-        {
-          "path": "src/kernel/schema.rs"
-        },
-        {
-          "path": "src/fcp/driver.rs"
-        },
-        {
-          "path": "src/fcp/web.rs"
-        },
-        {
-          "path": "src/util/frontmatter.rs"
-        },
-        {
-          "path": "src/util/gpg.rs"
-        },
-        {
-          "path": "src/util/index.rs"
-        },
-        {
-          "path": "src/util/mod.rs"
-        },
-        {
-          "path": "src/util/needles.rs"
-        },
-        {
-          "path": "src/util/paths.rs"
-        },
-        {
-          "path": "src/util/time.rs"
+          "path": "src/commands_use/abi.rs"
         },
         {
           "path": "src/kernel/sandbox.rs"
@@ -277,7 +178,16 @@
           "path": "src/fuse/passthrough.rs"
         },
         {
-          "path": "src/commands/mount.rs"
+          "path": "src/kernel/vfs/lifecycle.rs"
+        },
+        {
+          "path": "src/main.rs"
+        },
+        {
+          "path": "src/util/audit.rs"
+        },
+        {
+          "path": "src/kernel/signing.rs"
         }
       ],
       "related": [
@@ -287,8 +197,8 @@
         "/docs/mcp"
       ],
       "verified_at": {
-        "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
-        "timestamp": "2026-04-12T00:00:00Z"
+        "sha": "f6823b9e",
+        "timestamp": "2026-04-27T02:34:50Z"
       },
       "status": "current"
     },
@@ -1571,55 +1481,53 @@
     },
     {
       "route": "/start/local",
-      "astro_path": "src/pages/start/local.astro",
+      "file": null,
+      "title": "",
+      "tags": [],
       "sources": [
         {
-          "path": "src/cpu/providers.rs",
-          "note": "resolve_provider() prefix routing for ollama/, local/, mlx/"
+          "path": "src/cpu/providers.rs"
         },
         {
-          "path": "src/cpu/openrouter.rs",
-          "note": "OpenAI-wire client used for ollama + mlx endpoints"
+          "path": "src/cpu/openrouter.rs"
         },
         {
-          "path": "src/cpu/mlx_lifecycle.rs",
-          "note": "mlx_lm.server lifecycle integration"
+          "path": "src/cpu/mlx_lifecycle.rs"
         },
         {
-          "path": "src/commands/mlx.rs",
-          "note": "mlx-specific CLI verbs"
+          "path": "src/commands/mlx.rs"
         },
         {
-          "path": "src/commands/agent_cmd.rs",
-          "note": "ostk _agent --model dispatch"
+          "path": "src/commands/agent_cmd.rs"
         },
         {
-          "path": "src/cpu/mod.rs",
-          "note": "CpuDriverCaps + ToolCallEmissionStyle (mlx/ollama = Hybrid)"
+          "path": "src/cpu/mod.rs"
         },
         {
-          "path": "src/main.rs",
-          "note": "Commands::Tui dispatch line 822, 2273"
+          "path": "src/main.rs"
         }
-      ]
+      ],
+      "related": [],
+      "status": "unverified"
     },
     {
       "route": "/start/server",
-      "astro_path": "src/pages/start/server.astro",
+      "file": null,
+      "title": "",
+      "tags": [],
       "sources": [
         {
-          "path": "src/main.rs",
-          "note": "Commands::Listen alias + Daemon dispatch"
+          "path": "src/main.rs"
         },
         {
-          "path": "src/commands_use/listen.rs",
-          "note": "listen entry point (alias for daemon)"
+          "path": "src/commands_use/listen.rs"
         },
         {
-          "path": "src/serve/server.rs",
-          "note": "kernel daemon socket lifecycle"
+          "path": "src/serve/server.rs"
         }
-      ]
+      ],
+      "related": [],
+      "status": "unverified"
     },
     {
       "route": "/why",
