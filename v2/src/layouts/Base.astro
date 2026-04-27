@@ -40,11 +40,29 @@ const metaDescription = description || 'ostk — the operating system for AI cod
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
   <!-- Material Symbols removed — using inline SVG Icon component -->
+  <!-- Plausible Analytics — privacy-first, cookie-free. Tagged-events variant supports `plausible-event-name=...` class tags + auto outbound-link tracking + file-download tracking. -->
+  <script defer data-domain="ostk.ai" src="https://plausible.io/js/script.tagged-events.outbound-links.file-downloads.js"></script>
+  <script is:inline>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>
 </head>
 <body class="flex flex-col min-h-screen">
   <Header activeTab={activeTab} />
   <slot />
   <Footer />
   <slot name="schema" />
+  <script is:inline>
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-copy]');
+      if (!btn) return;
+      const text = btn.getAttribute('data-copy') || '';
+      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+      const prev = btn.getAttribute('data-copied-label');
+      if (!prev) {
+        btn.setAttribute('data-copied-label', '1');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span class="text-outline select-none">$ </span><span class="text-primary">copied — paste in a terminal</span>';
+        setTimeout(() => { btn.innerHTML = orig; btn.removeAttribute('data-copied-label'); }, 1400);
+      }
+    });
+  </script>
 </body>
 </html>
