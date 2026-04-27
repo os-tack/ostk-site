@@ -1604,6 +1604,40 @@
       "status": "unverified"
     },
     {
+      "route": "/start/local",
+      "astro_path": "src/pages/start/local.astro",
+      "sources": [
+        {
+          "path": "src/cpu/providers.rs",
+          "note": "resolve_provider() prefix routing for ollama/, local/, mlx/"
+        },
+        {
+          "path": "src/cpu/openrouter.rs",
+          "note": "OpenAI-wire client used for ollama + mlx endpoints"
+        },
+        {
+          "path": "src/cpu/mlx_lifecycle.rs",
+          "note": "mlx_lm.server lifecycle integration"
+        },
+        {
+          "path": "src/commands/mlx.rs",
+          "note": "mlx-specific CLI verbs"
+        },
+        {
+          "path": "src/commands/agent_cmd.rs",
+          "note": "ostk _agent --model dispatch"
+        },
+        {
+          "path": "src/cpu/mod.rs",
+          "note": "CpuDriverCaps + ToolCallEmissionStyle (mlx/ollama = Hybrid)"
+        },
+        {
+          "path": "src/main.rs",
+          "note": "Commands::Tui dispatch line 822, 2273"
+        }
+      ]
+    },
+    {
       "route": "/why",
       "file": null,
       "title": "",

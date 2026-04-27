@@ -1,0 +1,286 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+import { LATEST_TAG } from '../../site-version';
+---
+
+<DocsLayout
+  title="Start // Local Model TUI"
+  description="Run an AI coding agent on your machine using ollama or Apple's mlx, with ostk's terminal UI as the chat surface. No API bill, no telemetry, full audit."
+  sectionLabel="START_PATH // LOCAL_TUI"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    Point ostk at a model running on your machine. ostk's TUI becomes the chat surface; everything else — audit, capability bounds, secret-mediation — works the same as the hosted path.
+  </p>
+
+  <!-- What this path is -->
+  <section class="mb-12">
+    <h2 class="section-label mb-4">WHAT_YOU'LL_DO</h2>
+    <div class="space-y-px max-w-2xl">
+      {[
+        { num: '01', step: 'Verify install + run ostk init in your project (universal steps from /start).' },
+        { num: '02', step: 'Pick a backend: ollama (cross-platform, default) or mlx (Apple Silicon-only, faster on M-series).' },
+        { num: '03', step: 'Pull or load a model. Tool-capable models recommended — not every local model supports function calling.' },
+        { num: '04', step: 'Spawn an agent with the model alias. ostk routes to the local server; audit + pin caps still apply.' },
+        { num: '05', step: 'Open ostk tui to chat. First response is slower (model warm-up); subsequent calls are fast.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.num}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3">
+            <span class="font-body text-xs text-secondary">{s.step}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-[10px] text-outline mt-3 max-w-xl">
+      Total time: ~15 minutes (most of it is model download). You need ostk {LATEST_TAG}+ and either ollama or mlx_lm installed locally.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- BACKEND 01: OLLAMA -->
+  <!-- ============================================================ -->
+  <section class="mb-16">
+    <div class="border-t-2 border-primary pt-8">
+      <div class="section-label mb-4">BACKEND_01 // OLLAMA</div>
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on ollama (recommended)</h2>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+        ollama runs models on macOS, Linux, and Windows. It exposes an OpenAI-wire HTTP server at <code class="text-primary">localhost:11434</code> by default. ostk's openrouter driver speaks that wire format and routes models prefixed <code class="text-primary">ollama/</code> or <code class="text-primary">local/</code> to it.
+      </p>
+      <p class="font-body text-xs text-outline max-w-xl mb-8">
+        Source: <code class="text-primary">src/cpu/providers.rs:74</code> (Ollama prefix routing), <code class="text-primary">src/cpu/openrouter.rs</code> (OpenAI-wire client).
+      </p>
+    </div>
+
+    <!-- 01-1: install ollama -->
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="serif-text text-2xl font-bold text-primary">1.1</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Install ollama</h3>
+    </div>
+    <Terminal>
+      <pre><span class="text-outline"># macOS / Linux</span>
+<span class="text-outline">$ </span>curl -fsSL https://ollama.com/install.sh | sh
+
+<span class="text-outline"># Or via Homebrew</span>
+<span class="text-outline">$ </span>brew install ollama</pre>
+    </Terminal>
+    <p class="font-body text-xs text-outline mt-3 max-w-lg mb-6">
+      ollama auto-starts a daemon on macOS. On Linux, run <code class="text-primary">ollama serve</code> in a separate terminal.
+    </p>
+
+    <!-- 01-2: pull a model -->
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="serif-text text-2xl font-bold text-primary">1.2</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Pull a tool-capable model</h3>
+    </div>
+    <p class="font-body text-xs text-secondary mb-3 max-w-lg">
+      Not every model on ollama supports function calling — and ostk needs function calling to dispatch tool calls. Verified-capable picks:
+    </p>
+    <div class="bg-surface-container-low p-4 max-w-2xl space-y-2 font-body text-[11px]">
+      <div class="flex justify-between">
+        <code class="text-primary">qwen2.5-coder:32b</code>
+        <span class="text-secondary">strong tool support, ~20GB, recommended</span>
+      </div>
+      <div class="flex justify-between">
+        <code class="text-primary">qwen2.5-coder:7b</code>
+        <span class="text-secondary">faster, ~5GB, good for laptops</span>
+      </div>
+      <div class="flex justify-between">
+        <code class="text-primary">llama3.1:70b</code>
+        <span class="text-secondary">strong general, ~40GB, needs serious RAM</span>
+      </div>
+      <div class="flex justify-between">
+        <code class="text-primary">llama3.1:8b</code>
+        <span class="text-secondary">solid baseline, ~5GB</span>
+      </div>
+      <div class="flex justify-between text-error">
+        <code>deepseek-r1:70b</code>
+        <span>does NOT support tools — will fail</span>
+      </div>
+    </div>
+    <Terminal>
+      <pre><span class="text-outline">$ </span>ollama pull qwen2.5-coder:32b
+pulling manifest
+pulling [================] 19.8 GB
+verifying sha256
+ok</pre>
+    </Terminal>
+
+    <!-- 01-3: configure ostk -->
+    <div class="flex items-baseline gap-4 mb-4 mt-12">
+      <span class="serif-text text-2xl font-bold text-primary">1.3</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Spawn an agent with the local model</h3>
+    </div>
+    <p class="font-body text-xs text-secondary mb-3 max-w-lg">
+      Pass the model alias prefixed with <code class="text-primary">ollama/</code>:
+    </p>
+    <Terminal>
+      <pre><span class="text-outline">$ </span>cd ~/projects/your-repo
+<span class="text-outline">$ </span>ostk init  <span class="text-outline"># skip if already done</span>
+
+<span class="text-outline">$ </span>ostk _agent --name worker --model ollama/qwen2.5-coder:32b \
+  --budget 10 \
+  --task "Explain the structure of this repo"</pre>
+    </Terminal>
+    <p class="font-body text-xs text-outline mt-3 max-w-lg">
+      The <code class="text-primary">--budget</code> is in turn-units; for local models you can be generous (no per-token cost). Source: <code class="text-primary">src/commands/agent_cmd.rs</code>.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- BACKEND 02: MLX -->
+  <!-- ============================================================ -->
+  <section class="mb-16">
+    <div class="border-t-2 border-primary pt-8">
+      <div class="section-label mb-4">BACKEND_02 // MLX</div>
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on Apple mlx (M-series only)</h2>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+        Apple's mlx framework runs quantized models on M-series chips with notably lower latency than ollama for the same model size. ostk routes <code class="text-primary">mlx/</code>-prefixed models to a <code class="text-primary">mlx_lm.server</code> at <code class="text-primary">localhost:11942</code> using the same OpenAI-wire format.
+      </p>
+      <p class="font-body text-xs text-outline max-w-xl mb-8">
+        Source: <code class="text-primary">src/cpu/providers.rs:69-72</code> (MLX prefix routing), <code class="text-primary">src/cpu/mlx_lifecycle.rs</code> (server lifecycle), <code class="text-primary">src/commands/mlx.rs</code> (mlx-specific verbs).
+      </p>
+    </div>
+
+    <!-- 02-1: install mlx_lm -->
+    <div class="flex items-baseline gap-4 mb-4">
+      <span class="serif-text text-2xl font-bold text-primary">2.1</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Install mlx_lm</h3>
+    </div>
+    <Terminal>
+      <pre><span class="text-outline"># Apple Silicon Mac required</span>
+<span class="text-outline">$ </span>pip install mlx-lm</pre>
+    </Terminal>
+
+    <!-- 02-2: start server -->
+    <div class="flex items-baseline gap-4 mb-4 mt-8">
+      <span class="serif-text text-2xl font-bold text-primary">2.2</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Start mlx_lm.server</h3>
+    </div>
+    <p class="font-body text-xs text-secondary mb-3 max-w-lg">
+      ostk's MLX integration expects the server on <code class="text-primary">localhost:11942</code>. Set the model with <code class="text-primary">MLX_MODEL_ID</code>:
+    </p>
+    <Terminal>
+      <pre><span class="text-outline"># Default: prism-ml/Ternary-Bonsai-8B-mlx-2bit</span>
+<span class="text-outline">$ </span>MLX_MODEL_ID=prism-ml/Ternary-Bonsai-8B-mlx-2bit \
+  mlx_lm.server --port 11942</pre>
+    </Terminal>
+    <p class="font-body text-xs text-outline mt-3 max-w-lg">
+      The ostk alias (e.g. <code class="text-primary">mlx/ternary-bonsai-8b</code>) is remapped to the wire model-id from <code class="text-primary">MLX_MODEL_ID</code>. Source: <code class="text-primary">src/cpu/providers.rs:22-26</code>.
+    </p>
+
+    <!-- 02-3: spawn -->
+    <div class="flex items-baseline gap-4 mb-4 mt-8">
+      <span class="serif-text text-2xl font-bold text-primary">2.3</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Spawn an agent with the mlx model</h3>
+    </div>
+    <Terminal>
+      <pre><span class="text-outline">$ </span>ostk _agent --name worker --model mlx/ternary-bonsai-8b \
+  --budget 10 \
+  --task "Run cargo check and report"</pre>
+    </Terminal>
+    <p class="font-body text-xs text-outline mt-3 max-w-lg">
+      Tool calls on mlx models use the <code class="text-primary">Hybrid</code> emission style — ostk parses tool calls embedded in text output, since mlx-quantized models often skip the structured-tool-call envelope. Source: <code class="text-primary">src/cpu/mod.rs</code> ToolCallEmissionStyle.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- VERIFY IN THE TUI -->
+  <!-- ============================================================ -->
+  <section class="mb-16">
+    <div class="flex items-baseline gap-4 mb-6">
+      <span class="serif-text text-4xl font-bold text-primary">03</span>
+      <h2 class="serif-text text-2xl font-medium text-on-surface">CHAT_IN_THE_TUI</h2>
+    </div>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Open the terminal UI and confirm the agent is running on your local model:
+    </p>
+    <Terminal>
+      <pre><span class="text-outline">$ </span>ostk tui
+ostk v{LATEST_TAG.replace(/^v/, '')}
+fleet: 1 alive | worker (ollama/qwen2.5-coder:32b)
+needles: 0 open
+boot confidence: 1.00 ◉
+
+[you] _</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
+      Type at the prompt. The agent answers. Tool calls (file reads, edits, shell) flow through ostk's audit chain. Open <code class="text-primary">.ostk/audit.jsonl</code> in another window — every action lands there with <code class="text-primary">"model":"ollama/qwen2.5-coder:32b"</code> for attribution.
+    </p>
+    <p class="font-body text-xs text-outline mt-3 max-w-lg">
+      Source: <code class="text-primary">src/main.rs:822,2273</code> (Tui command + dispatch).
+    </p>
+  </section>
+
+  <!-- Caveats -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CAVEATS</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-2xl">
+      {[
+        { issue: 'Tool support is per-model', body: 'Some local models (notably reasoning-only models like deepseek-r1) cannot emit tool calls. ostk will report "API error 400: model does not support tools." Switch to a tool-capable model.' },
+        { issue: 'Latency is higher', body: 'A 32B-parameter model on a laptop is slower than Sonnet over the wire. First response includes model warm-up. Subsequent calls are fast — context stays in mlx LocalKV / ollama cache.' },
+        { issue: 'Context window is smaller', body: 'Hosted Sonnet has 200k tokens; ollama models default to 128k; mlx Bonsai is 65k declared / 8k effective. Long sessions hit context limits sooner — use ostk\'s :clear for context cycling.' },
+        { issue: 'Cache reuse is local-only', body: 'The fleet-shared prompt cache benefit only applies to hosted providers (Anthropic). Local models don\'t share cache across machines. The trade-off is privacy + zero-cost-per-token.' },
+        { issue: 'Quantization affects quality', body: 'mlx-2bit is fast but loses accuracy on coding tasks. mlx-4bit / mlx-fp16 are better. ollama defaults to Q4_K_M which is a good balance.' },
+      ].map(c => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="text-on-surface w-56 shrink-0 font-bold">{c.issue}</span>
+          <span class="text-secondary">{c.body}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">TROUBLESHOOTING</h2>
+    <div class="bg-surface-container-low p-6 border-l-2 border-error max-w-2xl">
+      {[
+        { issue: '"streaming error: request failed (localhost:11434)"', fix: 'ollama daemon is not running. macOS: open Ollama.app or run `ollama serve`. Linux: `systemctl --user start ollama` or `ollama serve` in another terminal.' },
+        { issue: '"model does not support tools"', fix: 'Your model has no function-calling. Switch: `ostk _agent ... --model ollama/qwen2.5-coder:32b`.' },
+        { issue: '"connection refused (localhost:11942)"', fix: 'mlx_lm.server is not running. Start it with `MLX_MODEL_ID=... mlx_lm.server --port 11942`.' },
+        { issue: 'Agent hallucinates tool calls but never invokes them', fix: 'mlx/ollama emit Hybrid-style tool calls (text-form). ostk parses them via extract_text_tool_calls. If the model is too small (<7B), it may emit malformed tool blocks. Try a larger model.' },
+        { issue: 'Out of memory during pull', fix: 'Disk space, not RAM. ollama models are 5–40 GB. Delete with `ollama rm <model>`.' },
+        { issue: 'Out of memory during inference', fix: 'Pick a smaller quantization (q4 instead of q8) or a smaller model (7b instead of 32b).' },
+      ].map(t => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="text-error w-56 shrink-0">{t.issue}</span>
+          <span class="text-secondary">{t.fix}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- What's next -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">WHAT'S_NEXT</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
+      <a href="/docs/models" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ MODELS</div>
+        <p class="font-body text-[10px] text-secondary">Provider support matrix, capability tiers, alias resolution.</p>
+      </a>
+      <a href="/docs/tui" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ TUI</div>
+        <p class="font-body text-[10px] text-secondary">Keybindings, panes, the tack bar, status ribbon.</p>
+      </a>
+      <a href="/docs/needles" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ NEEDLES</div>
+        <p class="font-body text-[10px] text-secondary">Cross-session memory: open questions, decisions, references.</p>
+      </a>
+      <a href="/docs/mcp" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ MCP_BRIDGE</div>
+        <p class="font-body text-[10px] text-secondary">Combine local TUI with external MCP-driven agents.</p>
+      </a>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/start"><Icon name="rocket_launch" size="14" class="align-middle mr-1" />START_HERE</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />COMMANDS</a>
+  </div>
+</DocsLayout>
