@@ -5,256 +5,180 @@ import Icon from '../../components/Icon.astro';
 
 <DocsLayout
   title="System Architecture"
-  description="ostk architecture: kernel binary law (10 invariants), the observation substrate, the daemon, the System ABI, write interception, drivers, and the application layer."
+  description="How ostk's primitives compose to solve the six problems running multiple AI agents creates: crash recovery, agent containment, verifiable history, write coordination, portable deployment, and observation without polling."
   sectionLabel="SECTION_01 // ARCHITECTURE"
   activeTab="architecture"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    A single Rust binary. Five layers from the bottom up: kernel binary law, the observation substrate, the daemon, the System ABI, and drivers — with the application layer on top. Each layer holds a contract the layer above relies on; each contract is mechanically enforceable.
+    Six problems show up the moment you put agents in front of a real codebase. ostk's architecture is the composition that solves them. Each section below names a problem, walks the composition that addresses it, and points at the primitives that compose.
   </p>
 
-  <!-- The Kernel -->
+  <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-16">
+    For the verb-by-verb surface, run <code class="text-primary">ostk help</code> or <code class="text-primary">ostk abi list</code>. For normative spec text, see <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-posix-kernel.md" class="text-primary hover:underline"><code>docs/spec/llmos-posix-kernel.md</code></a>. This page is the operator's reading guide — what composes into what.
+  </p>
+
+  <!-- Problem 01 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Kernel — Ten Invariants</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-xl">
-      Statically linked. The kernel's binary contract is a set of invariants every operation upholds — bounded waits, owned state, dead-process reaping, namespace isolation, handle uniqueness. These are not features. They are the load-bearing properties without which composition breaks. Source: <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-posix-kernel.md" class="text-primary hover:underline"><code>docs/spec/llmos-posix-kernel.md</code></a> v2.4.
+    <div class="section-label mb-4">PROBLEM_01 // DAEMON_DIES_MID_TASK</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Your daemon crashes while an agent is working. What happens to the work?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Nothing is lost. ostk writes the audit ring (<code class="text-primary">.ostk/journal.jsonl</code>) as a write-ahead log; every turn boundary writes a drain snapshot of the agent's state. When the daemon comes back up, <code class="text-primary">fold(journal.jsonl)</code> replays the log and rehydrates each session from its last drain. The client reconnects on the same socket; from the agent's perspective, the disconnect was a long pause.
     </p>
 
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8">
-      <h3 class="section-label-secondary mb-4">KERNEL_INVARIANTS_I_THROUGH_X</h3>
-      <div class="space-y-3">
-        {[
-          { num: 'I',    name: 'BOUNDED_WAIT',         desc: 'Every blocking call has a deadline. No unbounded waits anywhere — every receive, lock acquisition, syscall has a timeout. Replaces POSIX select(tv).' },
-          { num: 'II',   name: 'OWNED_STATE',          desc: 'Every kernel-visible piece of state has exactly one owner with the authority to mutate it. Reads are wide; writes are narrow.' },
-          { num: 'III',  name: 'SUBREAPER',            desc: 'Dead processes do not become zombies. The kernel reaps orphaned children on parent exit, exactly as POSIX init does. Implemented by ostk init.' },
-          { num: 'IV',   name: 'ROOT_NAMESPACE_ISOLATION', desc: 'Each project boots into an isolated kernel namespace. Tests cannot bleed audit rows into the live project; the live project cannot see test fleet state.' },
-          { num: 'V',    name: 'PATH_AND_HANDLE',      desc: 'Every resource has both a stable path AND a kernel-issued handle. Path = how operators address it; handle = how the kernel keeps two callers from colliding.' },
-          { num: 'VI',   name: 'PROCESS_IDENTITY_QUAD', desc: 'Every agent has (alias, parent, group, session) — the POSIX (pid, ppid, pgid, sid) quad reproduced at the agent layer.' },
-          { num: 'VII',  name: 'SIGNAL_TABLE_CLOSURE', desc: 'Coordination is signals from a numbered table. No ad-hoc string-named events. The signal set is closed and mechanically enumerable.' },
-          { num: 'VIII', name: 'ANCHOR_EXCLUSIVITY',   desc: 'Exactly one daemon owns the kernel socket per project. No two anchors race; the second to bind exits. Eliminates the cascade where two daemons fight for state.' },
-          { num: 'IX',   name: 'HANDLE_LIFETIME_UNIQUENESS', desc: 'A kernel handle is unique across its lifetime — a freed handle is never reused for a different resource. Stale references fail closed, never mis-match.' },
-          { num: 'X',    name: 'CONNECTION_CONTINUITY', desc: 'A client whose socket drops can re-attach without losing audit lineage. Sessions outlive transports.' },
-        ].map(inv => (
-          <div class="grid grid-cols-12 gap-4 text-xs font-body py-2 border-b border-surface-variant">
-            <span class="col-span-1 serif-text text-primary font-bold">{inv.num}</span>
-            <span class="col-span-3 text-primary">{inv.name}</span>
-            <span class="col-span-8 text-secondary">{inv.desc}</span>
-          </div>
-        ))}
-      </div>
-      <p class="font-body text-[10px] text-outline mt-4">
-        Candidate Invariant XI — CPU Output Durability — pending panel ratification (→1628). Full normative text and proof sketches: <code class="text-primary">docs/spec/llmos-posix-kernel.md</code>.
-      </p>
-    </div>
-  </section>
-
-  <!-- The Observation Substrate -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Observation Substrate</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-xl">
-      Above the kernel sits the substrate that makes its state queryable. ostk's audit ring (<code class="text-primary">.ostk/journal.jsonl</code>) is the system's write-ahead log; the observation substrate projects it onto a VFS namespace agents and operators can read directly. Source: <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-observation-substrate.md" class="text-primary hover:underline"><code>docs/spec/llmos-observation-substrate.md</code></a>.
-    </p>
-
-    <div class="bg-surface-container-low p-6 mb-6 max-w-3xl">
-      <p class="font-body text-xs text-secondary mb-4 italic">
-        Analogy: Postgres logical decoding. The kernel writes the WAL; subscribers tap it; the rest of the system queries the projections.
-      </p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-        {[
-          { label: 'WAL', desc: '.ostk/journal.jsonl — append-only, single-writer, hash-chained, Ed25519-signed in-process.' },
-          { label: 'LOGICAL_SLOT', desc: 'Each Indexer subscriber registration in dispatch::fire — taps the audit ring, never blocks the writer.' },
-          { label: 'DECODED_ROWS', desc: 'Vec<GraphOp> returned by on_audit — derived facts the substrate exposes.' },
-          { label: 'OUTPUT_VIEWS', desc: '.ostk/index/graph.edges.<class>.jsonl shard files — the queried surface.' },
-          { label: 'GEN_TABLE', desc: '.ostk/gen_table.jsonl — per-file generation counters, the OCC anchor for invisible-write tracking.' },
-          { label: 'REGISTRIES', desc: 'kernel::registry boundary (forthcoming, EPIC →1652) — typed read API for substrate consumers; cache + indexer become its private impl.' },
-        ].map(row => (
-          <div class="bg-surface-container p-4">
-            <div class="font-label text-[10px] text-primary mb-1">{row.label}</div>
-            <div class="font-body text-xs text-secondary">{row.desc}</div>
-          </div>
-        ))}
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        <code class="text-primary">.ostk/journal.jsonl</code> (WAL) · drain snapshots · Connection Continuity (invariant X) · Anchor Exclusivity (VIII).
       </div>
     </div>
-
-    <p class="font-body text-xs text-secondary max-w-xl">
-      Why this matters: agents and operators query a single derived view through a stable path. No polling, no replication, no separate truth source. Lose the daemon and the registries rebuild from journal replay; lose the registries and the kernel keeps writing. <span class="text-primary">→</span> <a href="/docs/needles" class="text-primary hover:underline">NEEDLES</a> for the cross-session memory built on top.
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/util/audit.rs</code>, <code class="text-primary">src/serve/server.rs</code>, <code class="text-primary">src/kernel/drain.rs</code>.
     </p>
   </section>
 
-  <!-- The Daemon -->
+  <!-- Problem 02 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Daemon</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-xl">
-      <code class="text-primary">ostk daemon</code> starts the kernel daemon — a long-lived anchor process holding the socket, the in-memory process table, the scheduler, and the substrate registries. <code class="text-primary">ostk listen</code> is a legacy alias for the same verb.
+    <div class="section-label mb-4">PROBLEM_02 // AGENT_TRIES_TO_ESCAPE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">An agent gets creative and writes outside its lane. Then what?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Three layers compose. <strong class="text-on-surface">Pin caps</strong> deny by default at the tool layer — every <code class="text-primary">fs_ops</code> or <code class="text-primary">bash</code> call is checked before bytes hit disk. <strong class="text-on-surface">The OS sandbox</strong> (Landlock on Linux, Seatbelt on macOS) physically blocks writes outside allowed paths regardless of how the agent tries. <strong class="text-on-surface">Bypass detection</strong> flags any file that changed outside the kernel surface on next read. Tool-layer covers the expected path; the sandbox covers the escape path; bypass detection covers the unexpected. No single layer is load-bearing.
     </p>
 
-    <div class="grid grid-cols-2 gap-6 mb-8">
-      {[
-        { title: 'SESSION_MGMT', desc: 'Agents run as managed sessions. Each carries identity, heartbeat, drain snapshot. See SESSION_TOPOLOGY.' },
-        { title: 'SCHEDULER_TICK', desc: 'Background task wakes the scheduler on a deadline (Invariant I). Inspects fleet state, dispatches work, reaps dead sessions (III).' },
-        { title: 'CRASH_RECOVERY', desc: 'Drain snapshots at every turn boundary. On daemon restart, fold(journal.jsonl) reconstructs fleet and rehydrates sessions.' },
-        { title: 'CLIENT_MULTIPLEX', desc: 'TUI, MCP clients, CLI one-shots, and IDE extensions attach/detach via the kernel socket. Sessions persist across client disconnects (X).' },
-      ].map(card => (
-        <div class="bg-surface-container p-6">
-          <h3 class="font-body text-sm text-primary font-bold mb-2">{card.title}</h3>
-          <p class="font-body text-xs text-secondary">{card.desc}</p>
-        </div>
-      ))}
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        <a href="/docs/pins" class="text-primary hover:underline">pin caps</a> · tool-layer interception · nono sandbox · bypass detection.
+      </div>
     </div>
-
-    <p class="font-body text-xs text-secondary max-w-xl">
-      The daemon is a cache, not a ledger. Source of truth is the journal + gen_table + drain snapshots on disk. <code class="text-primary">ostk daemon restart</code> swaps a rebuilt binary cleanly without losing audit lineage. <span class="text-primary">→</span> <a href="/docs/session-topology" class="text-primary hover:underline">SESSION_TOPOLOGY</a>.
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/serve/policy.rs</code>, <code class="text-primary">src/kernel/sandbox.rs</code>, <code class="text-primary">src/serve/tools/fs_ops.rs</code>.
     </p>
   </section>
 
-  <!-- The System ABI -->
+  <!-- Problem 03 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The System ABI</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-xl">
-      The kernel's syscall surface for agents. A versioned, schema'd set of verbs — currently 27 — that any LLM-driven process can call to read or mutate substrate state. Source of truth: <code class="text-primary">KERNEL_ABI_VERBS</code> in <code class="text-primary">src/kernel/isa/mod.rs</code>. EPIC →1589.
+    <div class="section-label mb-4">PROBLEM_03 // PROVE_WHAT_SHIPPED</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You need to prove what an agent did, not just trust the log.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      The audit chain isn't a log — it's the substrate's only truth. Every kernel-mediated action is an append-only event in <code class="text-primary">.ostk/journal.jsonl</code>, hash-chained against the previous row's signature. Each row is Ed25519-signed in-process at write time using the operator's identity key (no GPG subprocess, no signing latency). Replay reconstructs identical state byte-for-byte. The daemon is a cache; the journal is the ledger.
     </p>
 
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6 max-w-3xl">
-      <h3 class="section-label-secondary mb-4">ABI_INTROSPECTION</h3>
-      <div class="space-y-2 font-body text-xs">
-        <div class="flex gap-4">
-          <code class="text-primary w-48 shrink-0">ostk abi list</code>
-          <span class="text-secondary">Enumerate every System ABI verb with tier + signature.</span>
-        </div>
-        <div class="flex gap-4">
-          <code class="text-primary w-48 shrink-0">ostk abi show &lt;verb&gt;</code>
-          <span class="text-secondary">Render the full schema for one verb — args, return shape, semantics.</span>
-        </div>
-        <div class="flex gap-4">
-          <code class="text-primary w-48 shrink-0">ostk abi version</code>
-          <span class="text-secondary">Print the ABI version + sha256 hash. Today: v1.0.0.</span>
-        </div>
-        <div class="flex gap-4">
-          <code class="text-primary w-48 shrink-0">ostk abi diff &lt;ref&gt;</code>
-          <span class="text-secondary">Diff the current ABI against a git ref. Detects breaking changes.</span>
-        </div>
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        WAL append → hash chain (<code class="text-primary">prev_hash</code>) → Ed25519 sign (<code class="text-primary">sig</code>) → replay reconstructs state. Owned State (II) makes the writer unique; Anchor Exclusivity (VIII) keeps two daemons from forking the chain.
       </div>
     </div>
-
-    <p class="font-body text-xs text-secondary max-w-xl">
-      The ABI separates the agent-callable surface (stable, schema'd) from the operator-facing CLI (free to evolve). MCP clients reach the kernel through this ABI via the <a href="/docs/mcp" class="text-primary hover:underline">MCP bridge</a>. Verb names that begin with <code class="text-primary">_</code> (e.g. <code class="text-primary">_agent</code>) are kernel-internal primitives, hidden from <code class="text-primary">ostk --help</code>.
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/util/audit.rs</code>, <code class="text-primary">src/kernel/signing.rs</code>.
     </p>
   </section>
 
-  <!-- Write Interception -->
+  <!-- Problem 04 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">Write Interception</h2>
-    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-6">
-      <p class="font-body text-xs text-on-surface mb-4">
-        Default: ostk intercepts at the <span class="text-primary font-bold">tool layer</span>. Agents call kernel primitives (<code class="text-primary">fs_ops</code>, <code class="text-primary">read</code>, <code class="text-primary">bash</code>) that apply policy, gen_table tracking, and pin caps before bytes hit disk. No LD_PRELOAD, no ptrace, no kqueue observer.
-      </p>
-      <p class="font-body text-xs text-secondary mb-4">
-        Tool-layer interception has one honest limitation: an agent that escapes the tool path — by invoking a shell that writes directly — bypasses the kernel for that write. Three layers of defense:
-      </p>
-      <ol class="font-body text-xs text-secondary list-decimal pl-5 space-y-2 mb-4">
-        <li><span class="text-primary font-bold">Process sandbox (always on).</span> The <code class="text-primary">nono</code> subsystem enforces filesystem restrictions at the OS layer — Landlock on Linux, Seatbelt on macOS. Agents physically cannot write outside their allowed paths. <code class="text-primary">src/kernel/sandbox.rs</code>.</li>
-        <li><span class="text-primary font-bold">FUSE auto-mount (optional).</span> The daemon-managed FUSE mount mirrors the project tree and logs every write op through the kernel. Configurable via HUMANFILE preferences. EPIC →1641, <code class="text-primary">src/fuse/passthrough.rs</code>, <code class="text-primary">src/kernel/vfs/lifecycle.rs</code>.</li>
-        <li><span class="text-primary font-bold">Bypass detection.</span> Files modified outside the kernel surface are flagged on next read with a <code class="text-primary">[bypass]</code> envelope. Visibility, not enforcement — but loud.</li>
-      </ol>
-      <p class="font-body text-xs text-secondary">
-        Tool-layer covers the expected path; the OS sandbox covers the escape path; FUSE is the observability upgrade for operators who want every byte logged regardless of how it got written. No single layer is load-bearing on its own.
-      </p>
-    </div>
-  </section>
+    <div class="section-label mb-4">PROBLEM_04 // TWO_AGENTS_ONE_FILE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Two agents edit the same file at the same time. Who wins?</h2>
 
-  <!-- FCP Drivers -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">FCP Drivers</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-xl">
-      Drivers extend the kernel with domain capabilities via the File Context Protocol — MCP servers that let agents interact with complex file formats through a verb-based DSL. The kernel proxies them via <code class="text-primary">ostk driver</code> (formerly <code class="text-primary">ostk mcp</code>); see <a href="/docs/mcp" class="text-primary hover:underline">MCP</a> §Direction 02.
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      The second writer always sees the conflict. Every file carries a generation counter in <code class="text-primary">.ostk/gen_table.jsonl</code>. Edits are compare-and-swap: the agent declares the counter it read; if another agent has bumped it, the write fails loudly with a diff. For non-overlapping edits, Hot PR auto-merges; for overlapping edits, the second agent re-reads and re-tries. Nothing disappears between you and what your agents actually did.
     </p>
 
-    <div class="mb-8">
-      <h3 class="section-label-secondary mb-4">INTERNAL_DRIVERS</h3>
-      <div class="bg-surface-container-low p-6">
-        <div class="space-y-3">
-          {[
-            { name: 'fcp-screen', caps: '[tty]', desc: 'TUI rendering — fleet status, work queue, permission modals.' },
-            { name: 'fcp-web', caps: '[]', desc: 'Web page reading — fetch, render, extract content from URLs.' },
-            { name: 'fcp-llm', caps: '[]', desc: 'LLM inference — CpuDriver trait, provider routing (Anthropic, Gemini, Mistral, OpenRouter, ollama, mlx, apple-olleh).' },
-            { name: 'fcp-recall', caps: '[]', desc: 'Cross-project recall over decisions + needles + transcripts.' },
-            { name: 'fcp-olleh', caps: '[]', desc: 'Apple-Silicon-resident inference via the olleh server (port 11941).' },
-          ].map(driver => (
-            <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
-              <span class="text-primary w-32 shrink-0">{driver.name}</span>
-              <span class="text-outline w-16 shrink-0">{driver.caps}</span>
-              <span class="text-secondary">{driver.desc}</span>
-            </div>
-          ))}
-        </div>
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        gen_table generation counters · OCC compare-and-swap · Hot PR three-tier merge · Path AND Handle (V) makes the file uniquely addressable to both readers.
       </div>
     </div>
-
-    <div>
-      <h3 class="section-label-secondary mb-4">EXTERNAL_DRIVERS</h3>
-      <div class="bg-surface-container-low p-6">
-        <div class="space-y-3">
-          {[
-            { name: 'fcp-rust', desc: 'Rust analysis via rust-analyzer — crate graph, type resolution, diagnostics.', repo: 'os-tack/fcp-rust' },
-            { name: 'fcp-python', desc: 'Python intelligence via pylsp — query and refactor Python codebases.', repo: 'os-tack/fcp-python' },
-            { name: 'fcp-drawio', desc: 'Create and edit draw.io diagrams through intent-level commands.', repo: 'os-tack/fcp-drawio' },
-            { name: 'fcp-pdf', desc: 'Semantic PDF operations — extract, search, manipulate PDF content.', repo: 'os-tack/fcp-pdf' },
-            { name: 'fcp-sheets', desc: 'Semantic spreadsheet operations — query and edit cells, formulas, ranges.', repo: 'os-tack/fcp-sheets' },
-            { name: 'fcp-slides', desc: 'Slide deck operations for presentation file formats.', repo: 'os-tack/fcp-slides' },
-            { name: 'fcp-midi', desc: 'Semantic MIDI music composition — notes, tracks, instruments.', repo: 'os-tack/fcp-midi' },
-            { name: 'fcp-regex', desc: 'Regex construction via named fragment composition.', repo: 'os-tack/fcp-regex' },
-            { name: 'fcp-terraform', desc: 'Terraform HCL generation — modules, resources, variables.', repo: 'os-tack/fcp-terraform' },
-          ].map(driver => (
-            <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
-              <span class="text-primary w-32 shrink-0">{driver.name}</span>
-              <span class="text-secondary flex-1">{driver.desc}</span>
-              <a href={`https://github.com/${driver.repo}`} class="text-primary hover:underline shrink-0">{driver.repo}</a>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-8">
-      <h3 class="section-label-secondary mb-4">FRAMEWORK</h3>
-      <div class="bg-surface-container-low p-6">
-        <div class="space-y-3">
-          {[
-            { name: 'fcp', desc: 'File Context Protocol specification — verb-based DSL for file operations.', repo: 'os-tack/fcp' },
-            { name: 'fcp-core', desc: 'Shared framework for building FCP servers (TypeScript + Python).', repo: 'os-tack/fcp-core' },
-            { name: 'fcp-core-rust', desc: 'Shared Rust framework for building FCP servers.', repo: 'os-tack/fcp-core-rust' },
-          ].map(driver => (
-            <div class="flex gap-6 text-xs font-body py-2 border-b border-surface-variant">
-              <span class="text-primary w-32 shrink-0">{driver.name}</span>
-              <span class="text-secondary flex-1">{driver.desc}</span>
-              <a href={`https://github.com/${driver.repo}`} class="text-primary hover:underline shrink-0">{driver.repo}</a>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/kernel/cas.rs</code>, <code class="text-primary">src/kernel/hotpr.rs</code>, <code class="text-primary">src/serve/tools/fs_ops.rs</code>.
+    </p>
   </section>
 
-  <!-- The Application Layer -->
+  <!-- Problem 05 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-2">The Application Layer</h2>
-    <p class="font-body text-xs text-secondary mb-4 max-w-xl">
-      Above the daemon, the System ABI, and the drivers sits the application layer — the unit of work an operator hands to the substrate. <code class="text-primary">application/v1</code> defines a content-addressed, signed directory tree with declared capabilities, supervisor trees, and a claim-graph lifecycle. Source: <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-application.md" class="text-primary hover:underline"><code>docs/spec/llmos-application.md</code></a> v0.1 RATIFIED.
+    <div class="section-label mb-4">PROBLEM_05 // SHIP_TO_SOMEONE_ELSE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You want to hand your agent setup to a different operator and have it just run.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      <code class="text-primary">application/v1</code> packages an agent system as a content-addressed, signed directory with declared capabilities, supervisor trees, and a manifest of claims. The receiving operator runs <code class="text-primary">ostk app install</code>; the substrate validates the signature, registers the capability declarations, and the supervisor starts. The application's runtime existence IS its slice of the claim graph keyed by <code class="text-primary">(app_id, install_id, start_id)</code>. When the run finishes, the original publisher can verify what happened against the audit chain the receiving operator publishes.
     </p>
     <p class="font-body text-xs text-outline italic max-w-xl mb-4">
       "I can hand you my application as a signed file. You install it. You start it. It runs. When it finishes, I can verify what happened against the audit chain you publish." — application/v1 §1
     </p>
-    <p class="font-body text-xs text-secondary max-w-xl">
-      Lifecycle verbs (<code class="text-primary">ostk app install / start / stop / upgrade / uninstall</code>) emit nine ratified claim schemas riding <code class="text-primary">EventKind::Claim</code>. The application's runtime existence IS its claim graph slice keyed by <code class="text-primary">(app_id, install_id, start_id)</code>.
+
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        application/v1 manifest · Ed25519 attestation · claim-graph lifecycle (9 ratified schemas) · capability declarations · supervisor restart strategies.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-application.md" class="text-primary hover:underline"><code>docs/spec/llmos-application.md</code></a> v0.1, <code class="text-primary">src/commands/app/</code>.
     </p>
+  </section>
+
+  <!-- Problem 06 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_06 // SEE_EVERYTHING_WITHOUT_POLLING</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You want to see what every agent did, in real time, without writing pollers or running queries.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      The kernel writes the audit ring; indexers tap it as logical-decoding subscribers (Postgres-style); projections land at stable paths in a VFS namespace. You query a directory listing, not a log. <code class="text-primary">cat /fleet/proc</code> gives you the live process table; <code class="text-primary">ls /needles</code> gives you open work; every projection rebuilds from journal replay if it goes stale. No polling, no replication, no separate truth source.
+    </p>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        audit ring (WAL) · indexer subscribers in <code class="text-primary">dispatch::fire</code> · VFS namespace projections · forthcoming <code class="text-primary">kernel::registry</code> typed read API (EPIC →1652).
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-observation-substrate.md" class="text-primary hover:underline"><code>docs/spec/llmos-observation-substrate.md</code></a>, <code class="text-primary">src/kernel/graph/indexer/</code>, <code class="text-primary">src/kernel/vfs/namespace.rs</code>.
+    </p>
+  </section>
+
+  <!-- The composition itself -->
+  <section class="mb-16">
+    <div class="section-label mb-4">THE_COMPOSITION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Six problems, one shape.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Each answer above is two or three primitives composed against a clear failure mode. The kernel makes the composition mechanically possible — bounded waits, owned state, dead-process reaping, namespace isolation, handle uniqueness, anchor exclusivity, connection continuity, and four others (the ten invariants). The substrate makes the kernel queryable. The daemon makes it long-lived. The ABI makes it agent-callable. Drivers extend it. <code class="text-primary">application/v1</code> makes it portable.
+    </p>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      What you don't have to know: which file holds which counter, which subsystem listens on which signal, which invariant is implemented in which phase. Those live in the kernel and the spec. The architecture is the composition story above; the rest is implementation.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
+      <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-posix-kernel.md" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ KERNEL_SPEC (NORMATIVE)</div>
+        <p class="font-body text-[10px] text-secondary">The ten invariants in full normative form. RFC 2119 keywords. Phase-by-phase rollout map.</p>
+      </a>
+      <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-observation-substrate.md" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ OBSERVATION_SUBSTRATE (NORMATIVE)</div>
+        <p class="font-body text-[10px] text-secondary">Audit ring, subscriber dispatch, VFS namespace contract.</p>
+      </a>
+      <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-application.md" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ APPLICATION_V1 (NORMATIVE)</div>
+        <p class="font-body text-[10px] text-secondary">Signed manifest schema, claim graph, supervisor vocabulary, lifecycle verbs.</p>
+      </a>
+      <a href="/docs/mcp" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+        <div class="font-body text-xs text-primary font-bold mb-1">→ MCP (BOTH DIRECTIONS)</div>
+        <p class="font-body text-[10px] text-secondary">Inbound bridge for external clients; outbound proxy for ostk-driven agents.</p>
+      </a>
+    </div>
   </section>
 
   <!-- Related -->
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/kernel-spec">
-      <Icon name="memory" size="14" class="align-middle mr-1" />
-      KERNEL_SPEC
+    <a href="/why">
+      <Icon name="help_outline" size="14" class="align-middle mr-1" />
+      WHY_OSTK
     </a>
     <a href="/docs/session-topology">
       <Icon name="hub" size="14" class="align-middle mr-1" />
