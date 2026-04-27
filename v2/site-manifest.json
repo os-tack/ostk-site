@@ -245,184 +245,46 @@
           "path": "src/main.rs"
         },
         {
-          "path": "src/commands/attach.rs"
+          "path": "src/commands/init.rs"
         },
         {
-          "path": "src/commands/audit.rs"
+          "path": "src/commands_use/listen.rs"
         },
         {
-          "path": "src/commands/bail.rs"
+          "path": "src/commands/tui.rs"
         },
         {
-          "path": "src/commands/bail_merge.rs"
+          "path": "src/serve/server.rs"
         },
         {
-          "path": "src/commands/bench.rs"
-        },
-        {
-          "path": "src/commands/clock.rs"
-        },
-        {
-          "path": "src/commands/commit.rs"
-        },
-        {
-          "path": "src/commands/compounds.rs"
-        },
-        {
-          "path": "src/commands/decide.rs"
-        },
-        {
-          "path": "src/commands/decompose.rs"
-        },
-        {
-          "path": "src/commands/depends.rs"
-        },
-        {
-          "path": "src/commands/diff.rs"
-        },
-        {
-          "path": "src/commands/do_cmd.rs"
-        },
-        {
-          "path": "src/commands/draft.rs"
-        },
-        {
-          "path": "src/commands/embeddings.rs"
-        },
-        {
-          "path": "src/commands/fleet.rs"
-        },
-        {
-          "path": "src/commands/history.rs"
-        },
-        {
-          "path": "src/commands/import.rs"
-        },
-        {
-          "path": "src/commands/index.rs"
-        },
-        {
-          "path": "src/commands/learn.rs"
-        },
-        {
-          "path": "src/commands/lineage.rs"
-        },
-        {
-          "path": "src/commands/listen.rs"
-        },
-        {
-          "path": "src/commands/log.rs"
-        },
-        {
-          "path": "src/commands/merge.rs"
-        },
-        {
-          "path": "src/commands/metrics.rs"
-        },
-        {
-          "path": "src/commands/mount.rs"
-        },
-        {
-          "path": "src/commands/nudge.rs"
-        },
-        {
-          "path": "src/commands/post.rs"
-        },
-        {
-          "path": "src/commands/promote.rs"
-        },
-        {
-          "path": "src/commands/purge.rs"
-        },
-        {
-          "path": "src/commands/reap.rs"
-        },
-        {
-          "path": "src/commands/refine.rs"
-        },
-        {
-          "path": "src/commands/related.rs"
-        },
-        {
-          "path": "src/commands/relay.rs"
-        },
-        {
-          "path": "src/commands/repl.rs"
+          "path": "src/commands_use/mcp_diag.rs"
         },
         {
           "path": "src/commands/run.rs"
         },
         {
-          "path": "src/commands/scheduler.rs"
+          "path": "src/commands/agentfile_cmd.rs"
         },
         {
-          "path": "src/commands/search.rs"
+          "path": "src/commands/ps.rs"
         },
         {
-          "path": "src/commands/shelve.rs"
-        },
-        {
-          "path": "src/commands/should.rs"
+          "path": "src/commands/pstree.rs"
         },
         {
           "path": "src/commands/show.rs"
         },
         {
-          "path": "src/commands/shutdown.rs"
+          "path": "src/commands/bail.rs"
         },
         {
-          "path": "src/commands/sign.rs"
+          "path": "src/commands/os.rs"
         },
         {
-          "path": "src/commands/trace.rs"
+          "path": "src/kernel/isa/mod.rs"
         },
         {
-          "path": "src/commands/work.rs"
-        },
-        {
-          "path": "src/commands/mod.rs"
-        },
-        {
-          "path": "src/commands/helpers.rs"
-        },
-        {
-          "path": "src/commands/agent_cmd.rs"
-        },
-        {
-          "path": "src/commands/amend.rs"
-        },
-        {
-          "path": "src/commands/ask.rs"
-        },
-        {
-          "path": "src/commands/context.rs"
-        },
-        {
-          "path": "src/commands/firecracker.rs"
-        },
-        {
-          "path": "src/commands/grant.rs"
-        },
-        {
-          "path": "src/commands/issue.rs"
-        },
-        {
-          "path": "src/commands/issue_pin.rs"
-        },
-        {
-          "path": "src/commands/migrate_keys.rs"
-        },
-        {
-          "path": "src/commands/tack_test.rs"
-        },
-        {
-          "path": "src/commands/vm_init.rs"
-        },
-        {
-          "path": "src/cli/agents.rs"
-        },
-        {
-          "path": "src/cli/mod.rs"
+          "path": "src/commands_use/abi.rs"
         }
       ],
       "related": [
@@ -431,8 +293,8 @@
         "/docs/tui"
       ],
       "verified_at": {
-        "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
-        "timestamp": "2026-04-12T00:00:00Z"
+        "sha": "e870ff60",
+        "timestamp": "2026-04-27T03:07:24Z"
       },
       "status": "current"
     },
