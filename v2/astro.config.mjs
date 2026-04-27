@@ -9,7 +9,9 @@ export default defineConfig({
   build: { format: 'directory' },
   integrations: [sitemap(), tailwind()],
   redirects: {
-    '/get-started': '/docs/getting-started',
+    '/get-started': '/start',
+    '/docs/getting-started': '/start',
+    '/quick-start': '/start',
     // Renamed routes
     '/docs/osfile': '/docs/primefile',
     // Removed pages — redirect to closest match

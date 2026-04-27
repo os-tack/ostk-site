@@ -689,40 +689,6 @@
       "status": "unverified"
     },
     {
-      "route": "/docs/getting-started",
-      "file": "src/pages/docs/getting-started.astro",
-      "title": "Quick Start // System Init",
-      "tags": [],
-      "sources": [
-        {
-          "path": "src/commands/init.rs"
-        },
-        {
-          "path": "src/commands/boot/mod.rs"
-        },
-        {
-          "path": "src/commands/boot/entity.rs"
-        },
-        {
-          "path": "src/commands/boot/verify.rs"
-        },
-        {
-          "path": "src/commands/boot/drivers.rs"
-        },
-        {
-          "path": "src/commands/onboarding/guided.rs"
-        },
-        {
-          "path": "src/commands/onboarding/mod.rs"
-        },
-        {
-          "path": "src/commands/onboarding/widget.rs"
-        }
-      ],
-      "related": [],
-      "status": "unverified"
-    },
-    {
       "route": "/docs/how-to/learn-sandbox",
       "file": "src/pages/docs/how-to/learn-sandbox.astro",
       "title": "How to: Learn a Sandbox Policy",
