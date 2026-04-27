@@ -120,12 +120,12 @@ import { LATEST_TAG } from '../../site-version';
       Have the agent edit a small file. In your terminal:
     </p>
     <Terminal>
-      <pre><span class="text-outline">$ </span>tail -f .ostk/audit.jsonl
+      <pre><span class="text-outline">$ </span>tail -f .ostk/journal.jsonl
 {`{"event":"tool.fs_ops","path":"src/lib.rs","gen_before":4,"gen_after":5,"writer":"claude-code-1","ts":"2026-04-26T19:42:11Z","prev_hash":"...","sig":"..."}
 {"event":"tool.bash","cmd":"cargo check","exit_code":0,"duration_ms":2841,...}`}</pre>
     </Terminal>
     <p class="font-body text-xs text-secondary mt-3 max-w-lg">
-      Each row is hash-chained against the previous (<code class="text-primary">prev_hash</code>) and optionally GPG-signed (<code class="text-primary">sig</code>). Two agents editing the same file get a CAS conflict instead of a silent overwrite. Capability boundaries from <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code> apply uniformly.
+      Each row is hash-chained against the previous (<code class="text-primary">prev_hash</code>) and Ed25519-signed in-process (<code class="text-primary">sig</code>). Two agents editing the same file get a CAS conflict instead of a silent overwrite. Capability boundaries from <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code> apply uniformly.
     </p>
 
     <!-- Inbound troubleshooting -->
@@ -135,7 +135,7 @@ import { LATEST_TAG } from '../../site-version';
         { issue: 'Agent reports "no MCP server named ostk"', fix: 'Config file path or JSON syntax. Validate with `cat .mcp.json | jq .`. Restart the agent tool — most clients only read MCP config at startup.' },
         { issue: 'Tools listed but every call fails', fix: 'Run `ostk mcp diag` directly. If it errors, check `ostk init` ran in this project — the bridge resolves the project root by walking up from CWD looking for .ostk/.' },
         { issue: 'Writes succeed but no audit row appears', fix: 'You\'re probably writing through the agent\'s native filesystem tools, not the ostk-namespaced ones. Restrict the agent to mcp__ostk__* tools (most MCP clients have an allowlist).' },
-        { issue: 'Two daemons fight for the socket', fix: '`ostk daemon stop` then re-invoke. The bridge auto-recovers from a clean socket.' },
+        { issue: 'Two daemons fight for the socket', fix: '`ostk daemon restart` (swaps a rebuilt binary cleanly) or `pkill -f "ostk daemon"` then re-invoke. The bridge auto-recovers from a clean socket.' },
         { issue: 'Permission errors on write', fix: 'Pin caps deny by default. Check `.ostk/pins/default/pin.caps`. T3 (no GPG identity) gets read-only by design — see /docs/trust-model.' },
       ].map(t => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">

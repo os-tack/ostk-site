@@ -136,7 +136,7 @@ import Terminal from '../../components/Terminal.astro';
         <li>The agent never sees the real API key. A nono-sandboxed proxy loads it from the system keystore and injects it into outbound requests over a Unix socket.</li>
         <li>The socket uses <code class="text-primary">SO_PEERCRED</code> verification so only the authorized agent process can speak to the proxy.</li>
         <li>Keys are held in <code class="text-primary">Zeroizing&lt;String&gt;</code> to prevent memory leaks.</li>
-        <li>Every proxied call is written to <code class="text-primary">.ostk/audit.jsonl</code>.</li>
+        <li>Every proxied call is written to <code class="text-primary">.ostk/journal.jsonl</code>.</li>
       </ul>
       <p class="font-body text-xs text-outline mt-4">
         See <code class="text-primary">docs/spec/nono-agent-isolation.md §5</code> for the design. Implementation is split across <code class="text-primary">src/kernel/secret.rs</code> and the proxy wire-up. This is credential containment, not process containment.

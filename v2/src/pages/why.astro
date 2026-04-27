@@ -73,7 +73,7 @@ const sidebarGroups = {
             Something went wrong. Or right, and you want to reproduce it. There's no record of which agent did what against which version of which code, signed by whom. You can't replay. You can't audit. You can't prove what shipped.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">ostk's answer:</strong> every action is an append-only event in <code class="text-primary">.ostk/audit.jsonl</code>, hash-chained and optionally GPG-signed. Replay it. Diff it across sessions. Sign a release against it. Capability boundaries (<a href="/docs/pins" class="text-primary hover:underline">pin caps</a>) say what each agent is allowed to touch — escapes are denied and logged.
+            <strong class="text-on-surface">ostk's answer:</strong> every action is an append-only event in <code class="text-primary">.ostk/journal.jsonl</code>, hash-chained and Ed25519-signed in-process. Replay it. Diff it across sessions. Sign a release against it. Capability boundaries (<a href="/docs/pins" class="text-primary hover:underline">pin caps</a>) say what each agent is allowed to touch — escapes are denied and logged.
           </p>
           <p class="font-body text-xs text-outline">
             A signed trail. Bounded capability. Reproducibility from first principles.
@@ -116,7 +116,7 @@ const sidebarGroups = {
             <strong class="text-on-surface">A learning curve.</strong> The vocabulary — humanfile, agentfile, pin caps, needles, tack — takes a session or two to internalize. The five-minute Quick Start covers the floor; the kernel spec covers the ceiling.
           </div>
           <div class="font-body text-xs text-secondary">
-            <strong class="text-on-surface">A daemon process.</strong> ostk runs a background daemon per project. Memory cost is small (~30 MB), but it's there. <code class="text-primary">ostk daemon stop</code> kills it.
+            <strong class="text-on-surface">A daemon process.</strong> ostk runs a background daemon per project. Memory cost depends on what's loaded — a baseline daemon is tens of MB; with embeddings resident it can be hundreds. Use <code class="text-primary">ostk daemon restart</code> to swap a rebuilt binary in cleanly; <code class="text-primary">pkill -f "ostk daemon"</code> if you just want it gone.
           </div>
           <div class="font-body text-xs text-secondary">
             <strong class="text-on-surface">A directory you can't ignore.</strong> <code class="text-primary">.ostk/</code> is the substrate. Lose it and you lose the audit chain (the project still works — you just lose history). Back it up like you'd back up <code class="text-primary">.git/</code>.

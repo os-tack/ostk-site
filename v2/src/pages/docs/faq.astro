@@ -35,7 +35,7 @@ const faqs = [
   },
   {
     q: 'How do I track what changes AI agents made?',
-    a: 'Every agent action is logged to an append-only audit trail (.ostk/audit.jsonl). File edits, shell commands, tool calls, spawns, approvals — all timestamped and attributed. Run ostk os audit check to verify trail integrity. The process table is reconstructible from the audit log at any point.',
+    a: 'Every agent action is logged to an append-only audit trail (.ostk/journal.jsonl). File edits, shell commands, tool calls, spawns, approvals — all timestamped and attributed. Run ostk os audit check to verify trail integrity. The process table is reconstructible from the audit log at any point.',
     link: '/features/audit-trail',
   },
   {
@@ -45,7 +45,7 @@ const faqs = [
   },
   {
     q: 'What happens if an agent crashes?',
-    a: 'Agents are ephemeral — crashes are the expected operating condition. The kernel writes drain snapshots at every turn boundary. On daemon restart, fold(audit.jsonl) reconstructs the fleet and rehydrates sessions from snapshots. Mid-flight, the heartbeat monitor detects crashed workers and hot-rehydrates them.',
+    a: 'Agents are ephemeral — crashes are the expected operating condition. The kernel writes drain snapshots at every turn boundary. On daemon restart, fold(journal.jsonl) reconstructs the fleet and rehydrates sessions from snapshots. Mid-flight, the heartbeat monitor detects crashed workers and hot-rehydrates them.',
     link: '/docs/session-topology',
   },
   {
@@ -109,7 +109,7 @@ const faqs = [
         { term: 'Hot PR', def: 'The kernel\'s 3-tier conflict resolution system. Tier 1: auto-merge (non-overlapping). Tier 2: mechanical rebase (nearby). Tier 3: manual escalation.' },
         { term: 'generation counter', def: 'A monotonic counter incremented on every file write. Used for optimistic concurrency — if the counter changed, another agent modified the file.' },
         { term: 'bail', def: 'A portable, signed OS bundle. Named for a bail of hay — what you extract from a haystack. Contains public identity (.primefile, ENTITYFILE), boot state, and optionally encrypted internal kernel state or selective exported content. Three modes: public, full, export. See /docs/bail.' },
-        { term: 'fold(audit.jsonl)', def: 'Replaying the append-only audit log to reconstruct fleet state. The process table is a projection of the audit log — the daemon is a cache, not a ledger.' },
+        { term: 'fold(journal.jsonl)', def: 'Replaying the append-only audit log to reconstruct fleet state. The process table is a projection of the audit log — the daemon is a cache, not a ledger.' },
         { term: '.language', def: 'A pipe-delimited table of verbs, their tiers, layers, and usage momentum. The kernel loads high-momentum verbs at boot and demand-spawns the rest.' },
         { term: 'sub-stack', def: 'An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels. Created by the scheduler for multi-worker tasks.' },
         { term: 'OCC', def: 'Optimistic Concurrency Control. Agents write freely; the kernel detects conflicts via generation counters at commit time, not lock time.' },

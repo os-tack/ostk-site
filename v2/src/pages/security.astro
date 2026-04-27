@@ -68,7 +68,7 @@ const sidebarGroups = {
           {[
             { layer: 'TOOL_LAYER', desc: 'Deny-based capability pins. Every tool call checked against pin.caps deny tokens before execution.' },
             { layer: 'SYSCALL_LAYER', desc: 'Process-level sandboxing via Landlock (Linux) and Seatbelt (macOS). OS-enforced boundaries.' },
-            { layer: 'AUDIT_LAYER', desc: 'Append-only JSONL event log. Every agent action timestamped and attributed. fold(audit.jsonl) reconstructs state.' },
+            { layer: 'AUDIT_LAYER', desc: 'Append-only JSONL event log. Every agent action timestamped and attributed. fold(journal.jsonl) reconstructs state.' },
             { layer: 'SECRET_LAYER', desc: 'API keys resolved at call time from platform keychain. Values never enter LLM context. All output masked.' },
           ].map(l => (
             <div class="bg-surface-container p-6">

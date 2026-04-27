@@ -21,7 +21,7 @@ import { LATEST_TAG } from '../../site-version';
         <code class="text-primary">ostk listen</code> starts the kernel daemon — a long-lived process that holds the socket, the process table, and the scheduler.
       </p>
       <p class="font-body text-xs text-secondary">
-        The anchor is <span class="text-primary font-bold">not</span> the source of truth. The source of truth is the filesystem — <code class="text-primary">audit.jsonl</code>, <code class="text-primary">gen_table.jsonl</code>, and files on disk. The anchor holds an in-memory projection reconstructed via <code class="text-primary">fold(audit.jsonl)</code>.
+        The anchor is <span class="text-primary font-bold">not</span> the source of truth. The source of truth is the filesystem — <code class="text-primary">journal.jsonl</code>, <code class="text-primary">gen_table.jsonl</code>, and files on disk. The anchor holds an in-memory projection reconstructed via <code class="text-primary">fold(journal.jsonl)</code>.
       </p>
     </div>
   </section>
@@ -110,7 +110,7 @@ import { LATEST_TAG } from '../../site-version';
     </p>
     <div class="bg-surface-container-lowest p-4 border border-surface-variant mb-4">
       <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">.ostk/stacks/bugfix-27/</span>
-  audit.jsonl    <span class="text-outline"># scoped audit log</span>
+  journal.jsonl    <span class="text-outline"># scoped audit log</span>
   drain/         <span class="text-outline"># scoped drain snapshots</span>
   inbox/         <span class="text-outline"># commands from anchor → sub-stack</span>
   nudges/        <span class="text-outline"># reports from sub-stack → anchor</span></pre>

@@ -176,7 +176,7 @@ const capabilities = [
             {
               num: '04',
               title: 'Everything is auditable and reconstructible',
-              body: 'Aider uses git commits. Devin has cloud logs. ostk has an append-only JSONL audit trail where fold(audit.jsonl) can reconstruct the exact fleet state at any point in time. Crash recovery is built into the kernel.',
+              body: 'Aider uses git commits. Devin has cloud logs. ostk has an append-only JSONL audit trail where fold(journal.jsonl) can reconstruct the exact fleet state at any point in time. Crash recovery is built into the kernel.',
             },
           ].map(d => (
             <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 gap-0">

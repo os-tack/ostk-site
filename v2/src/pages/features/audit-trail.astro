@@ -11,17 +11,17 @@ const relatedPages = [
 <FeaturePage
   tagline="FEATURE // OBSERVABILITY"
   title="AI Agent Audit Trail"
-  description="Every edit tracked, cryptographically signed, append-only. You know who changed what and when. fold(audit.jsonl) reconstructs the fleet at any point in time."
+  description="Every edit tracked, cryptographically signed, append-only. You know who changed what and when. fold(journal.jsonl) reconstructs the fleet at any point in time."
   relatedPages={relatedPages}
 >
   <h2>What gets logged</h2>
   <p>
-    Every agent action is an append-only audit event in <code>.ostk/audit.jsonl</code>. File edits, shell commands, tool calls, agent spawns, approvals, denials, conflicts, and resolutions. Each event carries a timestamp, agent alias, action type, and target.
+    Every agent action is an append-only audit event in <code>.ostk/journal.jsonl</code>. File edits, shell commands, tool calls, agent spawns, approvals, denials, conflicts, and resolutions. Each event carries a timestamp, agent alias, action type, and target.
   </p>
 
   <h2>Reconstructible state</h2>
   <p>
-    The daemon is a cache, not a ledger. The source of truth is <code>audit.jsonl</code>. Running <code>fold(audit.jsonl)</code> replays the log and reconstructs the exact fleet state — which agents were alive, what files they touched, what their context looked like. The process table is a projection of the audit log.
+    The daemon is a cache, not a ledger. The source of truth is <code>journal.jsonl</code>. Running <code>fold(journal.jsonl)</code> replays the log and reconstructs the exact fleet state — which agents were alive, what files they touched, what their context looked like. The process table is a projection of the audit log.
   </p>
   <p>
     This means: daemon crashes lose nothing. A new daemon reads the log and rebuilds. Mid-flight crashes are detected by heartbeat and recovered from drain snapshots.

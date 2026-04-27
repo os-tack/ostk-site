@@ -136,7 +136,7 @@ import Terminal from '../../components/Terminal.astro';
         },
         {
           q: 'Persistence?',
-          a: 'Yes — the local queue is the JSONL file, truncated on pop. Cross-host nudges are recorded in .ostk/audit.jsonl as nudge.uploaded and nudge.downloaded events so rehydrating a crashed daemon can reconcile delivery state. Source: nudge.rs:83–88, 262–345.',
+          a: 'Yes — the local queue is the JSONL file, truncated on pop. Cross-host nudges are recorded in .ostk/journal.jsonl as nudge.uploaded and nudge.downloaded events so rehydrating a crashed daemon can reconcile delivery state. Source: nudge.rs:83–88, 262–345.',
         },
       ].map(n => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">

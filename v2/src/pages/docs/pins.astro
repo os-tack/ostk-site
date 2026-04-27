@@ -34,7 +34,7 @@ import Terminal from '../../components/Terminal.astro';
     <h2 class="section-label mb-4">CAPABILITY_TOKENS</h2>
     <div class="space-y-px">
       {[
-        { token: 'write-kernel', effect: 'Denies ALL writes under .ostk/', includes: 'agents.jsonl, audit.jsonl, needles/, decisions.jsonl, hay/, sessions/, store/' },
+        { token: 'write-kernel', effect: 'Denies ALL writes under .ostk/', includes: 'agents.jsonl, journal.jsonl, needles/, decisions.jsonl, hay/, sessions/, store/' },
         { token: 'modify-governance', effect: 'Denies writes to governance files', includes: '.primefile, GOVERNANCE.md, ENTITYFILE, HUMANFILE, .af files, /agents/ directory' },
         { token: 'write-src', effect: 'Denies writes to source directories', includes: 'Any path containing /src/' },
       ].map(t => (

@@ -100,7 +100,7 @@ const sidebarGroups = {
               <div><span class="text-outline select-none">$ </span><span class="text-primary">cd ~/projects/your-repo && ostk init</span></div>
             </div>
           </div>
-          <p class="font-body text-[10px] text-outline mt-2">macOS arm64/x86_64, Linux musl arm64/x86_64. <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="underline hover:text-primary">Windows ZIP from releases</a>. GPG-signed binaries. ~30 seconds.</p>
+          <p class="font-body text-[10px] text-outline mt-2">macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
         </div>
 
         <!-- Status ribbon -->
@@ -149,7 +149,7 @@ const sidebarGroups = {
             {
               num: '03',
               title: 'They leave no trace.',
-              body: 'You can\'t replay, audit, or prove what shipped. ostk records every action in a hash-chained, optionally GPG-signed audit trail. Replay any session, byte for byte.',
+              body: 'You can\'t replay, audit, or prove what shipped. ostk records every action in a hash-chained, Ed25519-signed audit trail. Replay any session, byte for byte.',
               link: '/why#trace',
               link_label: 'Read why',
             },
@@ -186,7 +186,7 @@ const sidebarGroups = {
             ['Coordination across instances', 'Bolt-on (Kubernetes, etc.)', 'Built into the kernel'],
             ['Audit of actions', 'Out of band', 'Hash-chained event log per project'],
             ['Identity & trust', 'Image signing (sigstore, etc.)', 'GPG web of trust, four signing tiers'],
-            ['Reproducibility', 'Image digest', 'audit.jsonl replay + signed claims'],
+            ['Reproducibility', 'Image digest', 'journal.jsonl replay + signed claims'],
             ['Resource bounds', 'CPU/memory limits', 'Token/turn budgets per agent'],
           ].map(row => (
             <div class="grid grid-cols-3 gap-4 font-body text-xs py-2 border-b border-surface-variant">
@@ -207,7 +207,7 @@ const sidebarGroups = {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
           {[
             { icon: 'merge', label: 'NO_LOST_WRITES', desc: 'Compare-and-swap file edits. Conflicts surface; silent overwrites don\'t happen.' },
-            { icon: 'list_alt', label: 'EVERY_ACTION_AUDITED', desc: 'Append-only events, hash-chained, optionally GPG-signed. Replay any session.' },
+            { icon: 'list_alt', label: 'EVERY_ACTION_AUDITED', desc: 'Append-only events, hash-chained, Ed25519-signed. Replay any session.' },
             { icon: 'shield', label: 'CAPABILITY_BOUNDS', desc: 'Capability pins deny by default. Agents that try to escape get a hard no, logged.' },
             { icon: 'key', label: 'NO_KEYS_IN_CONTEXT', desc: 'API keys resolved from keychain at call time. Never in the agent\'s prompt.' },
             { icon: 'compress', label: 'SHARED_CACHE', desc: 'Prompt cache shared across the fleet. One fetch, many agents.' },
