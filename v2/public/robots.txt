@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
 Sitemap: https://ostk.ai/sitemap-index.xml
+
+# LLM-friendly mirror: /llms.txt and /llms-full.txt (https://llmstxt.org)

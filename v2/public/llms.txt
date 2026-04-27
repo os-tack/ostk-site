@@ -1,0 +1,73 @@
+# ostk
+
+> Local-first kernel for AI coding agents. Run multiple agents (Claude, Cursor, local models) on the same codebase without write collisions, with capability bounds and a hash-chained, Ed25519-signed audit trail. One Rust binary, no runtime dependencies, ~30 second install.
+
+ostk treats AI coding agents like containers — packaging, isolation, and coordination — plus the kernel underneath that signs the audit chain. It composes with any MCP-capable tool (Claude Code, Cursor, etc.) while keeping every action local, signed, and replayable. Three problems break the moment you run more than one agent: they collide (last-write-wins on shared files), they drift (each agent re-discovers the same context), they leave no trace. ostk fixes all three at the kernel layer without changing how you drive your agents.
+
+## Start here
+
+- [Home](https://ostk.ai/): one-page overview — like containers, for AI agents, plus the kernel underneath
+- [Why ostk](https://ostk.ai/why/): the three things that break with multi-agent (collide, drift, leave no trace) and how ostk fixes them
+- [Start — pick your path](https://ostk.ai/start/): three ways to use ostk — MCP server, local model TUI, or daemon mode
+- [Local model TUI](https://ostk.ai/start/local/): run an agent on your machine via ollama or Apple mlx, with ostk's terminal UI as the chat surface
+- [Server mode](https://ostk.ai/start/server/): run ostk as a daemon for CI runners, remote machines, and bots
+- [Install](https://ostk.ai/install.sh): one-shot curl installer for macOS / Linux
+
+## Docs
+
+- [Documentation index](https://ostk.ai/docs/): full archive of operator and reference docs
+- [System architecture](https://ostk.ai/docs/architecture/): how ostk's primitives compose to solve crash recovery, agent containment, write coordination, verifiable history, portable deployment, and observation
+- [Five Laws](https://ostk.ai/docs/five-laws/): the load-bearing constraints — invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infra
+- [Kernel specification](https://ostk.ai/docs/kernel-spec/): canonical kernel architecture — six Unix syscalls, seven primitives, LLM memory hierarchy, dual-CPU scheduler
+- [Commands](https://ostk.ai/docs/commands/): every CLI verb — stable agent-callable System ABI plus the operator overlay, with worked examples
+- [MCP integration](https://ostk.ai/docs/mcp/): bidirectional MCP — inbound (your agent drives ostk) and outbound (ostk-driven agents call external MCP services)
+- [Trust model](https://ostk.ai/docs/trust-model/): GPG identity tiers, capability pins, and Ed25519-signed audit composed into the trust model
+- [Pin caps](https://ostk.ai/docs/pins/): how pin caps bound what an agent can touch — tier sets the floor, pin profiles add ceilings
+- [Approval chain](https://ostk.ai/docs/approval-chain/): seven-step policy chain every tool call passes through (pin deny, destructive check, kernel-read, permission mode, session allow-list, Agentfile, user prompt)
+- [Isolation tiers](https://ostk.ai/docs/isolation-tiers/): four isolation levels — unsandboxed, nono (Landlock/Seatbelt), Docker, Firecracker microVM
+- [Agentfile](https://ostk.ai/docs/agentfile/): a Dockerfile for agents — declarative spec the kernel can audit, supervise, and verify
+- [HUMANFILE](https://ostk.ai/docs/humanfile/): operator identity document — who you are, what models to use, calibration
+- [.primefile](https://ostk.ai/docs/primefile/): dual-signed root of trust — kernel + operator GPG keys anchor the identity chain
+- [ENTITYFILE](https://ostk.ai/docs/entityfile/): trust constitution of an OS instance — identity chains, trust tiers, governance ceremonies
+- [ostk.toml](https://ostk.ai/docs/ostk-toml/): project config — version constraints, identity, kernel settings, MCP servers, pins, onboarding
+- [Secrets](https://ostk.ai/docs/secrets/): API key management — keychain storage, BYO secret manager, resolution order, output masking, zero-context-leak
+- [Bail (signed bundles)](https://ostk.ai/docs/bail/): signed, portable OS bundles — three modes (public, full, export), Ed25519 manifests with GPG cross-compat
+- [Session topology](https://ostk.ai/docs/session-topology/): anchor + lineage + drain snapshots + sub-stacks for crash recovery and isolation
+- [Agent lifecycle](https://ostk.ai/docs/agent-lifecycle/): five states, context-pressure thresholds, drain snapshots, graceful-then-forced kill, ephemeral-by-design
+- [Coordination primitives](https://ostk.ai/docs/coordination-primitives/): four primitives that let multiple agents share a codebase without a message bus
+- [Context management](https://ostk.ai/docs/context-management/): preload render, prompt cache, digest envelope, 304 elision, context pressure handoff, drain snapshots
+- [Compression](https://ostk.ai/docs/compression/): output compression pipeline — ANSI stripping, grammar classification, semantic dedup before context entry
+- [Boot sequence](https://ostk.ai/docs/boot-sequence/): what `ostk boot` does — read-only scan that resolves identity, trust, drivers, and operator language
+- [Enrichment hooks](https://ostk.ai/docs/enrichment/): driver-mediated reads and edits — diagnostics, symbols, refactoring annotations injected inline
+- [Pull model](https://ostk.ai/docs/pull-model/): WORK directive — affinity filters that declare which needles an agent can execute
+- [Tack grammar](https://ostk.ai/docs/tack-grammar/): operator intent language for the TUI tack bar — compressed input that resolves through the kernel
+- [Models](https://ostk.ai/docs/models/): supported LLM providers, driver feature exposure, model selection (HUMANFILE, FROM auto, OSTK_MODEL)
+- [Skills](https://ostk.ai/docs/skills/): SKILL directive and skill bundles — Agentfiles declare reusable capability groups by name
+- [Needles](https://ostk.ai/docs/needles/): the atomic work item — storage format, lifecycle, hay capture, compile pipeline, spheres, compounds, dependency edges
+- [Sphere navigator](https://ostk.ai/docs/sphere-navigator/): TUI overlay for the needle dependency graph — four view levels from Galaxy to NeedleDetail
+- [TUI](https://ostk.ai/docs/tui/): terminal interface guide — panes, keyboard shortcuts, tack grammar, approval modals, capture
+- [Environment variables](https://ostk.ai/docs/env-vars/): runtime configuration — agent identity, scheduler, drain, secrets, diagnostics
+- [Downloads](https://ostk.ai/docs/downloads/): signed binaries for macOS and Linux (arm64 + x86_64), curl install with GPG verify, or cargo from source
+- [How-to: Learn a sandbox policy](https://ostk.ai/docs/how-to/learn-sandbox/): use `ostk learn` to observe agent filesystem access and auto-generate LIMIT sandbox directives
+- [FAQ](https://ostk.ai/docs/faq/): frequently asked questions — coordination, install, trust tiers, secrets, crash recovery
+
+## Features (deep-dive pages)
+
+- [Features index](https://ostk.ai/features/): overview of what ostk does — coordination, write tracking, audit trails, governance, compression, secrets, model switching
+- [Coordination](https://ostk.ai/features/coordination/): run multiple AI agents on the same codebase — the OS resolves file conflicts at write time, no locks or message buses
+- [Invisible writes](https://ostk.ai/features/invisible-writes/): agents edit files with their normal tools — the OS intercepts every write, coordinates, and tracks
+- [Audit trail](https://ostk.ai/features/audit-trail/): every edit cryptographically signed, append-only — `fold(journal.jsonl)` reconstructs the fleet at any point in time
+- [Context injection](https://ostk.ai/features/context-injection/): agents skip exploration — the OS front-loads project structure, recent changes, active needles, and governance
+- [Local-first](https://ostk.ai/features/local-first/): no cloud, no telemetry — single Rust binary; agent coordination through local files
+- [Governance](https://ostk.ai/features/governance/): GPG web of trust, four signing tiers, capability pins — identity is cryptographic, no admin panels
+- [Tack language](https://ostk.ai/features/tack/): compressed intent language — the OS learns your vocabulary over time, communication shortens with use
+- [Model switching](https://ostk.ai/features/model-switching/): switch models mid-session, context survives the handoff — Anthropic, Google, Mistral, OpenRouter
+- [Secret management](https://ostk.ai/features/secret-management/): API keys never enter LLM context, audit logs, or shell history — keychain at call time, output masked
+- [TUI](https://ostk.ai/features/tui/): terminal interface showing the OS in real time — agents, permissions, edits, costs all visible
+- [Comparison](https://ostk.ai/features/comparison/): how ostk compares with Cursor, Devin, Aider, and SWE-agent — coordination, trust, audit, crash recovery
+
+## Optional
+
+- [About](https://ostk.ai/about/): project background — distributed OS for AI coding agents, Unix-inspired, local-first, invisible by design
+- [Security](https://ostk.ai/security/): security posture — GPG-signed binaries, 4-tier trust chain, deny-based pins, append-only audit, keychain mediation
+- [llms-full.txt](https://ostk.ai/llms-full.txt): the full text of every page above concatenated, designed for LLM context windows
