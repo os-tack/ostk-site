@@ -42,7 +42,7 @@ const sidebarGroups = {
             <div class="font-label text-[10px] text-secondary mb-1">STEP_1 // INSTALL</div>
             <code class="font-body text-sm text-primary block">curl -fsSL https://ostk.ai/install.sh | sh</code>
             <p class="font-body text-xs text-outline mt-2">
-              Auto-detects platform, downloads the binary, verifies the GPG signature, installs to <code class="text-primary">~/.local/bin</code>. macOS arm64/x86_64, Linux musl arm64/x86_64.
+              Auto-detects platform, downloads the binary, verifies the GPG signature against the operator's <a href="/security" class="text-primary hover:underline">release key</a>, installs to <code class="text-primary">~/.local/bin</code>. macOS (universal), Linux musl arm64/x86_64, Windows x86_64 zip.
             </p>
           </div>
           <div class="border-t border-surface-variant pt-4">
@@ -90,7 +90,7 @@ const sidebarGroups = {
               <div class="md:col-span-9">
                 <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">LOCAL_TUI — chat with a local model in ostk's terminal UI</div>
                 <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-                  Run a model on your machine via ollama or Apple's mlx. Use ostk's TUI as the chat interface. No API bill, no telemetry, full audit. Slower first response (model warm-up), but everything stays local.
+                  Run a model on your machine via ollama or Apple's mlx. Use ostk's TUI as the chat interface. No API bill, no third-party model traffic. Slower first response (model warm-up), but everything stays local.
                 </p>
                 <p class="font-body text-[10px] text-outline">
                   Best for: local-first developers, offline work, hardware experimentation.

@@ -39,10 +39,10 @@ const sidebarGroups = {
             Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently. The first agent's work is gone, and nothing tells you it happened.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">ostk's answer:</strong> every write goes through a generation-tracked filesystem. Each file has a counter. An agent's edit must declare the counter it read; if another agent has bumped it, the second write fails — loudly, with a conflict you can resolve. No silent overwrites.
+            <strong class="text-on-surface">ostk's answer:</strong> the second writer always sees the conflict. Whichever agent edits stale gets a loud failure with a diff, not a silent loss. Nothing disappears between you and what your agents actually did.
           </p>
           <p class="font-body text-xs text-outline">
-            Optimistic concurrency control over the filesystem itself, not a side-channel database.
+            How: optimistic concurrency at the filesystem layer (<a href="/docs/architecture" class="text-primary hover:underline">architecture</a>).
           </p>
         </div>
       </section>
@@ -109,11 +109,11 @@ const sidebarGroups = {
       <section class="mb-16">
         <h2 class="section-label mb-4">WHAT_YOU_GIVE_UP</h2>
         <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-          Honest answer, since the rest of this page is the sales pitch.
+          The trade-offs the rest of the page didn't lead with.
         </p>
         <div class="bg-surface-container-low p-6 border-l-2 border-outline max-w-xl space-y-3">
           <div class="font-body text-xs text-secondary">
-            <strong class="text-on-surface">A learning curve.</strong> The vocabulary — humanfile, agentfile, pin caps, needles, tack — takes a session or two to internalize. The five-minute Quick Start covers the floor; the kernel spec covers the ceiling.
+            <strong class="text-on-surface">A learning curve.</strong> The vocabulary — <a href="/docs/humanfile" class="text-primary hover:underline">humanfile</a>, <a href="/docs/agentfile" class="text-primary hover:underline">agentfile</a>, <a href="/docs/pins" class="text-primary hover:underline">pin caps</a>, <a href="/docs/needles" class="text-primary hover:underline">needles</a>, <a href="/docs/tack-grammar" class="text-primary hover:underline">tack</a> — takes a session or two to internalize. The <a href="/start" class="text-primary hover:underline">five-minute start</a> covers the floor; the <a href="/docs/kernel-spec" class="text-primary hover:underline">kernel spec</a> covers the ceiling.
           </div>
           <div class="font-body text-xs text-secondary">
             <strong class="text-on-surface">A daemon process.</strong> ostk runs a background daemon per project. Memory cost depends on what's loaded — a baseline daemon is tens of MB; with embeddings resident it can be hundreds. Use <code class="text-primary">ostk daemon restart</code> to swap a rebuilt binary in cleanly; <code class="text-primary">pkill -f "ostk daemon"</code> if you just want it gone.
