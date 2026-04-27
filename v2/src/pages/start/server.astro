@@ -1,0 +1,116 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+import { LATEST_TAG } from '../../site-version';
+---
+
+<DocsLayout
+  title="Start // Server Mode"
+  description="Run ostk as a daemon for CI runners, remote machines, and bots. Page in progress — here are the building blocks and the canonical commands."
+  sectionLabel="START_PATH // SERVER_MODE"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    The kernel daemon listens on a local Unix socket. Drive it from CI, a remote shell over SSH, or an external bot. Same audit chain, same capability bounds; just exposed across machine boundaries.
+  </p>
+
+  <!-- Status -->
+  <section class="mb-12">
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-2xl">
+      <div class="font-label text-[10px] text-primary mb-2">DOCUMENTATION_STATUS</div>
+      <p class="font-body text-sm text-on-surface mb-3">
+        This walkthrough is in progress. The pieces below are real and shipped at {LATEST_TAG}; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
+      </p>
+      <p class="font-body text-xs text-secondary">
+        If you've wired ostk into CI or a Discord bot already and have notes that would help others, send them to <a href="https://github.com/os-tack/ostk-site/issues" class="text-primary hover:underline">os-tack/ostk-site issues</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Building blocks -->
+  <section class="mb-12">
+    <h2 class="section-label mb-4">BUILDING_BLOCKS</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      The pieces that make server-mode real today.
+    </p>
+
+    <div class="space-y-px max-w-2xl">
+      <div class="bg-surface-container p-5">
+        <div class="flex items-baseline gap-3 mb-2">
+          <code class="text-primary font-bold">ostk daemon</code>
+          <span class="font-body text-[10px] text-outline">canonical command</span>
+        </div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Starts the kernel daemon. Holds the socket at <code class="text-primary">.ostk/ostk.sock</code>, the process table, and the scheduler. Survives client disconnects. Run it on the host where the project lives. (<code class="text-primary">ostk listen</code> is a legacy alias.)
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="flex items-baseline gap-3 mb-2">
+          <code class="text-primary font-bold">ostk mcp</code>
+          <span class="font-body text-[10px] text-outline">stdio bridge</span>
+        </div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          The MCP stdio bridge any external client can launch as a subprocess. Forwards to the running daemon. See <a href="/docs/mcp" class="text-primary hover:underline">/docs/mcp</a> for the inbound protocol and configuration.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="flex items-baseline gap-3 mb-2">
+          <code class="text-primary font-bold">SSH socket-forward</code>
+          <span class="font-body text-[10px] text-outline">remote driving</span>
+        </div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Drive a remote daemon by forwarding its Unix socket over SSH. Pattern: run <code class="text-primary">ostk daemon</code> on the server, then on your laptop:
+        </p>
+        <Terminal>
+          <pre><span class="text-outline">$ </span>ssh -L /tmp/remote-ostk.sock:.ostk/ostk.sock user@server</pre>
+        </Terminal>
+        <p class="font-body text-xs text-outline mt-3">
+          Then point your local <code class="text-primary">OSTK_SOCKET</code> at <code class="text-primary">/tmp/remote-ostk.sock</code>. Audit lands on the server's <code class="text-primary">.ostk/audit.jsonl</code>; your laptop is just a thin client.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="flex items-baseline gap-3 mb-2">
+          <code class="text-primary font-bold">ostk.ai.discord pattern</code>
+          <span class="font-body text-[10px] text-outline">bot integration</span>
+        </div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          The reference Discord-bot integration shows the bot-driving-daemon shape: bot connects to <code class="text-primary">.ostk/ostk.sock</code> over the MCP wire, dispatches user-typed commands as agents, posts back to the channel. Source: <a href="https://github.com/os-tack/ostk.ai.discord" class="text-primary hover:underline">os-tack/ostk.ai.discord</a>.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="flex items-baseline gap-3 mb-2">
+          <code class="text-primary font-bold">CI runner</code>
+          <span class="font-body text-[10px] text-outline">in-process</span>
+        </div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          For CI, the simplest pattern is in-process: the runner clones a repo with a populated <code class="text-primary">.ostk/</code>, calls <code class="text-primary">ostk init</code> if needed, and dispatches an Agentfile via <code class="text-primary">ostk run</code>. The daemon is local to the CI job; audit lands in the workspace and gets uploaded as a build artifact.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- What's missing -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">WHAT_THIS_PAGE_NEEDS</h2>
+    <ul class="font-body text-xs text-secondary space-y-2 max-w-xl list-none pl-0">
+      <li><span class="text-outline mr-2">·</span>End-to-end CI walkthrough (GitHub Actions example).</li>
+      <li><span class="text-outline mr-2">·</span>SSH socket-forward worked example with full env wiring.</li>
+      <li><span class="text-outline mr-2">·</span>Multi-operator wiring (federation across machines, claim graph).</li>
+      <li><span class="text-outline mr-2">·</span>Authentication / capability-pin model for remote callers.</li>
+      <li><span class="text-outline mr-2">·</span>Discord-bot quickstart pulled out of the reference repo.</li>
+    </ul>
+  </section>
+
+  <!-- Related -->
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/start"><Icon name="rocket_launch" size="14" class="align-middle mr-1" />START_HERE</a>
+    <a href="/docs/mcp"><Icon name="extension" size="14" class="align-middle mr-1" />MCP_BRIDGE</a>
+    <a href="/docs/session-topology"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+  </div>
+</DocsLayout>

@@ -1638,6 +1638,24 @@
       ]
     },
     {
+      "route": "/start/server",
+      "astro_path": "src/pages/start/server.astro",
+      "sources": [
+        {
+          "path": "src/main.rs",
+          "note": "Commands::Listen alias + Daemon dispatch"
+        },
+        {
+          "path": "src/commands_use/listen.rs",
+          "note": "listen entry point (alias for daemon)"
+        },
+        {
+          "path": "src/serve/server.rs",
+          "note": "kernel daemon socket lifecycle"
+        }
+      ]
+    },
+    {
       "route": "/why",
       "file": null,
       "title": "",

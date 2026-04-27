@@ -111,7 +111,7 @@ const sidebarGroups = {
               <div class="md:col-span-9">
                 <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">SERVER_MODE — run ostk as a service for CI or remote agents</div>
                 <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-                  ostk listens on a Unix socket. Other tools — your CI runner, a remote machine over SSH-forwarded socket, a Discord bot — connect and drive agents. Same kernel, same audit; just exposed over the network.
+                  Run <code>ostk daemon</code> on the host. Other tools — your CI runner, a remote machine over SSH-forwarded socket, a Discord bot — connect to the same Unix socket and drive agents. Same kernel, same audit; just exposed across machine boundaries.
                 </p>
                 <p class="font-body text-[10px] text-outline">
                   Best for: CI integration, multi-developer projects, server-side agent fleets.
