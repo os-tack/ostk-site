@@ -2,22 +2,169 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Terminal from '../../components/Terminal.astro';
+import { LATEST_TAG } from '../../site-version';
 ---
 
 <DocsLayout
-  title="MCP Proxy"
-  description="Connect external MCP servers through the kernel. Proxy, audit, and pin-enforce every tool call."
-  sectionLabel="REFERENCE // MCP_INTEGRATION"
+  title="MCP — both directions"
+  description="ostk speaks MCP in both directions: inbound (your agent tool drives ostk) and outbound (ostk-driven agents call external MCP services). One bridge, one proxy, one configuration model."
+  sectionLabel="REFERENCE // MCP"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    A userspace proxy for external MCP servers. Not a kernel-integrated tool layer — agents invoke it explicitly via <code>ostk mcp call</code>. Output is compressed and audited, but the kernel never touches MCP protocol bytes.
+    ostk speaks MCP in both directions. <strong class="text-on-surface">Inbound</strong>: an external client (Claude Code, Cursor, anything) drives ostk as an MCP server. <strong class="text-on-surface">Outbound</strong>: ostk-driven agents call external MCP services (linear, github, postgres, etc.) via a userspace proxy.
   </p>
 
-  <!-- Configuration -->
+  <!-- Quick reference -->
+  <section class="mb-12">
+    <h2 class="section-label mb-4">QUICK_REFERENCE</h2>
+    <div class="bg-surface-container-low p-6 max-w-2xl">
+      <div class="space-y-3 font-body text-xs">
+        <div class="flex gap-4">
+          <code class="text-primary w-40 shrink-0">ostk mcp</code>
+          <span class="text-secondary">Run the stdio MCP bridge. Invoked by external MCP clients as a subprocess. Forwards to a running daemon, falls back to in-process serve.</span>
+        </div>
+        <div class="flex gap-4">
+          <code class="text-primary w-40 shrink-0">ostk mcp diag</code>
+          <span class="text-secondary">Reconcile the kernel's MCP tool surface against <code>CORE_SEED_LANGUAGE</code>. Exits 1 on drift.</span>
+        </div>
+        <div class="flex gap-4 pt-3 border-t border-surface-variant">
+          <code class="text-primary w-40 shrink-0">ostk driver list</code>
+          <span class="text-secondary">List configured outbound MCP servers from <code>HUMANFILE</code>'s <code>mcp:</code> section.</span>
+        </div>
+        <div class="flex gap-4">
+          <code class="text-primary w-40 shrink-0">ostk driver call &lt;name&gt; &lt;tool&gt;</code>
+          <span class="text-secondary">Invoke a tool on a configured outbound MCP server (ephemeral subprocess).</span>
+        </div>
+        <div class="flex gap-4">
+          <code class="text-primary w-40 shrink-0">ostk driver serve &lt;name&gt;</code>
+          <span class="text-secondary">Run an outbound MCP subprocess persistently on a Unix domain socket.</span>
+        </div>
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline mt-3 max-w-xl">
+      The outbound verbs were renamed from <code class="text-primary">ostk mcp {`{list,call,serve}`}</code> to <code class="text-primary">ostk driver {`{list,call,serve}`}</code> when <code class="text-primary">ostk mcp</code> (no subcommand) was reclaimed for the inbound bridge. Legacy <code class="text-primary">ostk mcp ...</code> still routes to the new <code class="text-primary">ostk driver ...</code> via <code class="text-primary">McpLegacy</code> dispatch in <code class="text-primary">src/main.rs</code>.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- INBOUND BRIDGE -->
+  <!-- ============================================================ -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">CONFIGURATION</h2>
+    <div class="border-t-2 border-primary pt-8">
+      <div class="section-label mb-4">DIRECTION_01 // INBOUND_BRIDGE</div>
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drive ostk from an external MCP client</h2>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+        Your agent tool (Claude Code, Cursor, your own client) launches <code class="text-primary">ostk mcp</code> as a subprocess and speaks the MCP JSON-RPC protocol over stdio. The bridge translates that into kernel calls. Your agent gets gen-tracked writes, hash-chained audit, and pin-cap enforcement without changing its UI.
+      </p>
+      <p class="font-body text-xs text-outline max-w-xl mb-8">
+        Source: <code class="text-primary">src/main.rs</code> (<code>Commands::Mcp {`{ command: None }`}</code> branch — runs <code>run_mcp_bridge</code>), <code class="text-primary">src/serve/server.rs</code> (<code>run_mcp_bridge</code>, <code>bridge_stdio_to_daemon</code>). The bridge resolved the "two isolated kernels" problem (→1309 Phase 2B) — the Claude Code MCP process and <code>ostk daemon</code> used to have separate <code>ServerState</code>s that couldn't see each other's work.
+      </p>
+    </div>
+
+    <!-- Configuration -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">Configuration</h3>
     <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      MCP servers are declared in <code class="text-primary">.ostk/HUMANFILE</code> under a <code class="text-primary">mcp:</code> section (not <code class="text-primary">ostk.toml</code>). Simple key-value: name → command line.
+      Most MCP clients use the same <code class="text-primary">mcpServers</code> shape. Add this entry to your client's MCP config:
+    </p>
+    <Terminal>
+      <pre>{`{
+  "mcpServers": {
+    "ostk": {
+      "command": "ostk",
+      "args": ["mcp"]
+    }
+  }
+}`}</pre>
+    </Terminal>
+    <div class="bg-surface-container-low p-4 max-w-2xl mt-4 space-y-2 font-body text-[11px]">
+      <div class="flex justify-between">
+        <span class="text-secondary">Claude Code (project-scoped)</span>
+        <code class="text-primary">.mcp.json</code>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-secondary">Claude Code (global)</span>
+        <code class="text-primary">~/.claude/settings.json</code>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-secondary">Cursor</span>
+        <code class="text-primary">~/.cursor/mcp.json</code>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-secondary">Other clients</span>
+        <span class="text-outline">consult their MCP docs — schema is consistent</span>
+      </div>
+    </div>
+
+    <!-- Verify -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mt-12 mb-3">Verify the surface</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Restart the client. Ask the agent to list its tools. You should see ostk-namespaced tools appear:
+    </p>
+    <div class="bg-surface-container-low p-4 max-w-2xl">
+      <div class="font-label text-[10px] text-secondary mb-3">EXPECTED_TOOLS (subset)</div>
+      <div class="font-body text-[11px] text-secondary space-y-1">
+        <div><code class="text-primary">mcp__ostk__bash</code> — kernel-mediated shell with audit + compression</div>
+        <div><code class="text-primary">mcp__ostk__read</code> — file read with gen_table tracking</div>
+        <div><code class="text-primary">mcp__ostk__fs_ops</code> — file mutation with OCC conflict detection</div>
+        <div><code class="text-primary">mcp__ostk__search</code> — unified code/files/needles/decisions search</div>
+        <div><code class="text-primary">mcp__ostk__lock</code>, <code class="text-primary">spawn</code>, <code class="text-primary">interact</code>, <code class="text-primary">session</code>, <code class="text-primary">tack</code>, <code class="text-primary">help</code> — coordination primitives</div>
+      </div>
+    </div>
+    <p class="font-body text-xs text-outline mt-3 max-w-lg">
+      The authoritative list is <code class="text-primary">ostk mcp diag</code>. Tool count varies by kernel version. Names are namespaced as <code class="text-primary">mcp__&lt;server&gt;__&lt;tool&gt;</code> by the MCP client — so <code class="text-primary">mcp__ostk__bash</code> is the bash verb routed through your <code class="text-primary">ostk</code> server entry.
+    </p>
+
+    <!-- First write -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mt-12 mb-3">First write — see the audit chain</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Have the agent edit a small file. In your terminal:
+    </p>
+    <Terminal>
+      <pre><span class="text-outline">$ </span>tail -f .ostk/audit.jsonl
+{`{"event":"tool.fs_ops","path":"src/lib.rs","gen_before":4,"gen_after":5,"writer":"claude-code-1","ts":"2026-04-26T19:42:11Z","prev_hash":"...","sig":"..."}
+{"event":"tool.bash","cmd":"cargo check","exit_code":0,"duration_ms":2841,...}`}</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-3 max-w-lg">
+      Each row is hash-chained against the previous (<code class="text-primary">prev_hash</code>) and optionally GPG-signed (<code class="text-primary">sig</code>). Two agents editing the same file get a CAS conflict instead of a silent overwrite. Capability boundaries from <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code> apply uniformly.
+    </p>
+
+    <!-- Inbound troubleshooting -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mt-12 mb-3">Inbound troubleshooting</h3>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-2xl">
+      {[
+        { issue: 'Agent reports "no MCP server named ostk"', fix: 'Config file path or JSON syntax. Validate with `cat .mcp.json | jq .`. Restart the agent tool — most clients only read MCP config at startup.' },
+        { issue: 'Tools listed but every call fails', fix: 'Run `ostk mcp diag` directly. If it errors, check `ostk init` ran in this project — the bridge resolves the project root by walking up from CWD looking for .ostk/.' },
+        { issue: 'Writes succeed but no audit row appears', fix: 'You\'re probably writing through the agent\'s native filesystem tools, not the ostk-namespaced ones. Restrict the agent to mcp__ostk__* tools (most MCP clients have an allowlist).' },
+        { issue: 'Two daemons fight for the socket', fix: '`ostk daemon stop` then re-invoke. The bridge auto-recovers from a clean socket.' },
+        { issue: 'Permission errors on write', fix: 'Pin caps deny by default. Check `.ostk/pins/default/pin.caps`. T3 (no GPG identity) gets read-only by design — see /docs/trust-model.' },
+      ].map(t => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="text-error w-56 shrink-0">{t.issue}</span>
+          <span class="text-secondary">{t.fix}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- OUTBOUND PROXY -->
+  <!-- ============================================================ -->
+  <section class="mb-16">
+    <div class="border-t-2 border-primary pt-8">
+      <div class="section-label mb-4">DIRECTION_02 // OUTBOUND_PROXY</div>
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Call external MCP services from ostk-driven agents</h2>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+        Your ostk-driven agent needs to talk to Linear, GitHub, Postgres, or any other MCP-speaking service. ostk's <code class="text-primary">driver</code> subcommand is a userspace proxy — agents invoke <code class="text-primary">ostk driver call &lt;name&gt; &lt;tool&gt;</code> and the proxy connects, sends one JSON-RPC request, prints the response, exits.
+      </p>
+      <p class="font-body text-xs text-outline max-w-xl mb-8">
+        Deliberately at arm's length: the kernel never speaks MCP protocol bytes. Output flows through the same compression + audit pipeline as any shell output. Source: <code class="text-primary">src/commands/mcp_proxy.rs</code> (<code>run_list</code>, <code>run_call</code>, <code>run_serve</code>, <code>run_persistent_call</code>, <code>run_ephemeral_call</code>, <code>run_jsonrpc_session</code>).
+      </p>
+    </div>
+
+    <!-- Configuration -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">Configuration</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Outbound MCP servers are declared in <code class="text-primary">.ostk/HUMANFILE</code> under an <code class="text-primary">mcp:</code> section (not <code class="text-primary">ostk.toml</code>). Simple key-value: name → command line.
     </p>
     <Terminal>
       <pre><span class="text-outline"># .ostk/HUMANFILE</span>
@@ -27,20 +174,33 @@ import Terminal from '../../components/Terminal.astro';
   github: gh mcp-server
   postgres: npx -y @modelcontextprotocol/server-postgres</pre>
     </Terminal>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Source: <code class="text-primary">src/commands/mcp_proxy.rs</code> lines 7–11, 53, 134–147.
+    <p class="font-body text-xs text-outline mt-3 max-w-lg">
+      Source: <code class="text-primary">src/commands/mcp_proxy.rs</code> lines 7–11, 53, 134–147 (HUMANFILE parsing).
     </p>
-  </section>
 
-  <!-- How it works -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">How It Works</h2>
-    <div class="space-y-px">
+    <!-- Execution modes -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mt-12 mb-3">Execution modes</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
+      <div class="bg-surface-container p-6">
+        <div class="font-body text-sm text-primary font-bold mb-2">EPHEMERAL (default)</div>
+        <p class="font-body text-xs text-secondary mb-2">One subprocess per <code>ostk driver call</code>. Connect, JSON-RPC once, exit.</p>
+        <div class="font-body text-[10px] text-outline">Higher latency per call, zero resident memory. Source: <code>mcp_proxy.rs</code> <code>run_ephemeral_call</code>.</div>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-body text-sm text-primary font-bold mb-2">PERSISTENT</div>
+        <p class="font-body text-xs text-secondary mb-2"><code>ostk driver serve &lt;name&gt;</code> runs a long-lived subprocess on a Unix domain socket; subsequent calls reuse it.</p>
+        <div class="font-body text-[10px] text-outline">Lower latency, resident memory. Source: <code>mcp_proxy.rs</code> <code>run_serve</code>, <code>run_persistent_call</code>.</div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <h3 class="serif-text text-xl font-medium text-on-surface mt-12 mb-3">How it works</h3>
+    <div class="space-y-px max-w-2xl">
       {[
         { num: '01', step: 'Operator declares servers in HUMANFILE mcp: section. No kernel registration, no boot-time discovery.' },
-        { num: '02', step: 'Agent calls shell("ostk mcp call linear list-issues"). The shell command runs as userspace subprocess.' },
-        { num: '03', step: 'ostk mcp connects to the server over stdio, sends one JSON-RPC request, reads the response, exits. Output flows through the normal compression + audit pipeline as any shell output does.' },
-        { num: '04', step: 'Compare to built-in tools (file:edit, shell, etc.) which DO route through the kernel directly. MCP is deliberately at arm\'s length — the kernel never speaks MCP protocol.' },
+        { num: '02', step: 'Agent calls shell("ostk driver call linear list-issues"). The shell command runs as userspace subprocess.' },
+        { num: '03', step: 'ostk driver connects to the server over stdio, sends one JSON-RPC request, reads the response, exits. Output flows through the normal compression + audit pipeline as any shell output does.' },
+        { num: '04', step: 'Compare to built-in tools (file:edit, shell, etc.) which DO route through the kernel directly. Outbound MCP is deliberately at arm\'s length.' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
@@ -54,43 +214,39 @@ import Terminal from '../../components/Terminal.astro';
     </div>
   </section>
 
-  <!-- Execution modes -->
+  <!-- Comparison table -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">EXECUTION_MODES</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-      <div class="bg-surface-container p-6">
-        <div class="font-body text-sm text-primary font-bold mb-2">EPHEMERAL (default)</div>
-        <p class="font-body text-xs text-secondary mb-2">One subprocess per <code>ostk mcp call</code>. Connect, JSON-RPC once, exit.</p>
-        <div class="font-body text-[10px] text-outline">Higher latency per call, zero resident memory. Source: mcp_proxy.rs run_ephemeral_call (line 611).</div>
+    <h2 class="section-label mb-4">DIRECTIONS_AT_A_GLANCE</h2>
+    <div class="bg-surface-container-low p-6 max-w-3xl">
+      <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-3 mb-3">
+        <div class="font-label text-[10px] text-secondary">ASPECT</div>
+        <div class="font-label text-[10px] text-primary">INBOUND (ostk mcp)</div>
+        <div class="font-label text-[10px] text-primary">OUTBOUND (ostk driver)</div>
       </div>
-      <div class="bg-surface-container p-6">
-        <div class="font-body text-sm text-primary font-bold mb-2">PERSISTENT (via ostk mcp serve)</div>
-        <p class="font-body text-xs text-secondary mb-2"><code>ostk mcp serve &lt;name&gt;</code> runs a long-lived driver on a Unix domain socket; subsequent calls reuse it.</p>
-        <div class="font-body text-[10px] text-outline">Lower latency, resident memory. Used when a server is called frequently. Source: mcp_proxy.rs run_serve (line 181), run_persistent_call (line 423).</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Commands -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">COMMANDS</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
       {[
-        { cmd: 'ostk mcp list', desc: 'Show configured MCP servers from HUMANFILE mcp: section' },
-        { cmd: 'ostk mcp call <server> <tool> [args]', desc: 'Connect to server, send one JSON-RPC request, print response, exit' },
-        { cmd: 'ostk mcp serve <name>', desc: 'Run the named MCP subprocess on a Unix domain socket for persistent mode' },
-      ].map(c => (
-        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
-          <code class="text-primary w-64 shrink-0">{c.cmd}</code>
-          <span class="text-secondary">{c.desc}</span>
+        ['Direction', 'External client → ostk', 'Ostk-driven agent → external service'],
+        ['Transport', 'stdio (subprocess)', 'stdio (subprocess) or unix socket (persistent)'],
+        ['Tool scope', 'Kernel verbs (bash, fs_ops, read, search, ...)', 'Whatever the external server exposes'],
+        ['Audit path', 'Kernel-direct (every call → audit row)', 'Shell wrapper (call appears as bash row + nested response)'],
+        ['Pin cap enforcement', 'Yes (kernel-mediated)', 'No (the proxy does not impose ostk policy on the remote server)'],
+        ['Compression', 'Yes (uniform)', 'Yes (output passes through shell compressor)'],
+        ['Configuration', 'Client\'s MCP config (mcpServers)', '.ostk/HUMANFILE mcp: section'],
+      ].map(row => (
+        <div class="grid grid-cols-3 gap-4 font-body text-xs py-2 border-b border-surface-variant">
+          <div class="text-secondary">{row[0]}</div>
+          <div class="text-on-surface">{row[1]}</div>
+          <div class="text-on-surface">{row[2]}</div>
         </div>
       ))}
     </div>
   </section>
 
+  <!-- Related -->
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/ostk-toml"><Icon name="tune" size="14" class="align-middle mr-1" />OSTK_TOML</a>
+    <a href="/start"><Icon name="rocket_launch" size="14" class="align-middle mr-1" />START_HERE</a>
+    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+    <a href="/docs/pins"><Icon name="shield" size="14" class="align-middle mr-1" />PIN_CAPS</a>
     <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
     <a href="/docs/secrets"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
   </div>

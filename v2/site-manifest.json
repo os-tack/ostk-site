@@ -84,13 +84,11 @@
         "/docs/kernel-spec",
         "/docs/agentfile"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192052. REVERIFIED 2026-04-12 at HEAD 71460be. Five-state machine (Healthy/Aging/Dying/Draining/Dead) cited to lifecycle.rs:56-76 with thresholds at lifecycle.rs:22-23 (file stable). Spawn protocol to agent_cmd.rs:33-46,88-96 (file stable). Heartbeat thresholds to heartbeat.rs:47-54 (file stable). Drain snapshot V2 schema to drain.rs:192-221 with exclusions at drain.rs:81-88 (file stable). TurnComplete drain hook MOVED: was session.rs:1030, now session.rs:1052 (shift from Phase B event streaming 543e4c0). reap_dead_agents function MOVED: was reap.rs:69-128, now reap.rs:77-213 after PR-C-003 atomic compaction fix in 791d295. Kill/reap distinction at session_proctable.rs:161-179 (file stable) vs reap.rs:77-213. Ephemeral-by-design cited to presence.rs:30-35 (file stable). Honest recovery caveat: snapshot-to-restart-point only, not full audit replay."
+      "status": "current"
     },
     {
       "route": "/docs/agentfile",
@@ -142,13 +140,11 @@
         "/docs/agentfile",
         "/docs/isolation-tiers"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192058. All 7 steps cited to agent_loop.rs line ranges. REVERIFIED 2026-04-12 at HEAD 71460be \u2014 line numbers shifted ~+30 after Phase B event streaming (543e4c0): Step 1 pin.caps at 1504-1564 with fail-closed at 1529 (PinCapsResult::Error \u2192 true), Step 2 destructive at 1565-1592, Step 3 KernelRead auto at 1593-1595, Step 4 mode gate at 1596-1636, Step 5 session allow-list at 1637-1642, Step 6 Agentfile patterns at 1643-1690, Step 7 user prompt at 1705+. PermissionMode enum (Plan/Governed/Auto/Autonomous) at cpu/mod.rs:517-527. CapabilityClass (11 variants) at cpu/mod.rs:557-696. Decision flow match block transcribed from agent_loop.rs:1691-1703 (byte-identical to prior capture). Note: a simplified secondary approval gate exists at agent_loop.rs:6781 inside run_loop_with_approval_inner \u2014 nested dispatch path, not the canonical chain."
+      "status": "current"
     },
     {
       "route": "/docs/architecture",
@@ -286,13 +282,11 @@
         "/docs/compression",
         "/docs/mcp"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "Write Interception section rewritten to honestly disclose the full stack: tool-layer interception is default; nono process sandbox (Landlock on Linux, Seatbelt on macOS via kernel/sandbox.rs) blocks escape writes at OS layer; optional FUSE passthrough (fuse/passthrough.rs, built with --features fuse, invoked via ostk mount) mirrors the tree for full write observability. Previous version claimed No FUSE/LD_PRELOAD/ptrace as absolutes, which was wrong \u2014 FUSE IS an optional feature."
+      "status": "current"
     },
     {
       "route": "/docs/bail",
@@ -321,13 +315,11 @@
         "/docs/trust-model",
         "/docs/entityfile"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "runtime",
-      "verified_notes": "REVERIFIED 2026-04-12 at HEAD 71460be after Option C two-tier trust landed in bf69847. Unpack path now branches on manifest.mode field at bail.rs:277-283: mode==full \u2192 strict fail-closed verification (missing .asc, missing gpg binary, unknown Ed25519 key all refuse), mode==public/export \u2192 advisory. Bad signatures are fatal regardless of mode (bail.rs:304-312, 344-349). Pack-time fallback (full \u2192 public when .primefile lacks a 40-char recipient fingerprint) now prints a warning instead of being silent: 'warning: os.bin skipped \u2014 no valid 40-char fingerprint found in .primefile'. Short key IDs rejected per PR-T-003. Page VERIFY section terminal block reverified against live 'ostk bail verify' output: Ed25519 VERIFIED (inline) and GPG: no manifest.json.asc in bail lines unchanged. Page FULL_MODE card and Receive-and-Unpack section updated to reflect Option C (commit TBD alongside this stamp refresh)."
+      "status": "current"
     },
     {
       "route": "/docs/commands",
@@ -524,13 +516,11 @@
         "/docs/kernel-spec",
         "/docs/tui"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "spot-check",
-      "verified_notes": "Fixed QUICK_REFERENCE inconsistencies: ostk needle add \u2192 ostk work add (needle is not a top-level subcommand); removed ostk verify (only exists as ostk bail verify); os metrics / os history properly namespaced. Fixed tack jargon on tui description. Partial status: detailed command sections not fully cross-referenced against ostk --help output \u2014 missing commands (doc, embeddings, thread, grant, ask, tack, guide, hs, do, drivers, revoke, migrate-keys, mount, bench) should be added in a follow-up pass."
+      "status": "current"
     },
     {
       "route": "/docs/compression",
@@ -633,13 +623,11 @@
         "/features/coordination",
         "/docs/compression"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192053. REVERIFIED 2026-04-12 at HEAD 71460be. OCC (gen_table.rs:16-35, 151-177, 601-648 \u2014 file stable), Hot PR (hotpr.rs:22, 26, 30 \u2014 file stable), Digest (digest.rs:10-24, 97-256 \u2014 file stable), Nudges (nudge.rs:17-39, 46-51, 129-135, 225-345 \u2014 file stable). Note: PR-C-005 (elision.rs TOCTOU) was closed by 791d295 \u2014 the double-read pattern is gone. Page does not reference the specific TOCTOU fix so no content change needed, but the elision.rs layout has shifted. read_file_with_elision still at elision.rs:100."
+      "status": "current"
     },
     {
       "route": "/docs/downloads",
@@ -751,13 +739,11 @@
         "/docs/agentfile",
         "/docs/approval-chain"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192055. Six-step walkthrough cited to learn.rs specific lines: feature gate at 16-25, run path at 30-90, nono subprocess at 121-134, 164-171, 173-183, dedup at 75-78, audit events at 48-56 and 80-87. Caveats section discloses observation-coverage, non-zero exit passthrough, sensitive-path exposure, exact-path dedup. Sample session shows realistic output format (r/rw prefix \u2192 LIMIT sandbox.read/readwrite)."
+      "status": "current"
     },
     {
       "route": "/docs/humanfile",
@@ -813,13 +799,11 @@
         "/docs/trust-model",
         "/docs/architecture"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source+spec",
-      "verified_notes": "New page for needle \u2192051. Four tiers cited to parser.rs:65-80 (directive parsing), parser.rs:349 (default None), sandbox.rs:1-169 (nono apply), vm_init.rs + firecracker.rs (draft POC). Status labels: T0/T1 LIVE, T2 reserved (parsed not wired), T3 draft POC. Credential proxy explicitly called out as design pattern, not isolation tier. Permission\u00d7Isolation matrix from parser.rs:201-207,622-626."
+      "status": "current"
     },
     {
       "route": "/docs/kernel-spec",
@@ -934,17 +918,24 @@
       "tags": [],
       "sources": [
         {
-          "path": "src/kernel/mcp.rs"
+          "path": "src/main.rs"
         },
         {
-          "path": "src/serve/dispatch.rs"
+          "path": "src/serve/server.rs"
+        },
+        {
+          "path": "src/commands_use/mcp_diag.rs"
         },
         {
           "path": "src/commands/mcp_proxy.rs"
         }
       ],
       "related": [],
-      "status": "unverified"
+      "verified_at": {
+        "sha": "5e2d45d3",
+        "timestamp": "2026-04-27T00:03:15Z"
+      },
+      "status": "current"
     },
     {
       "route": "/docs/models",
@@ -991,13 +982,11 @@
         "/docs/humanfile",
         "/docs/env-vars"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page. 7 providers documented with CpuDriver implementation citations: Anthropic (anthropic.rs:257-297, FULL), Gemini (gemini.rs:32-70, FULL), Mistral (mistral.rs:24-45, FULL), OpenAI (openrouter.rs shared driver, PRODUCTION), OpenRouter (openrouter.rs:12-51, GATEWAY), Ollama (mod.rs:437-454, LOCAL), Apple on-device (mod.rs:439-446, EXPERIMENTAL). FROM auto resolution chain cited to run.rs:89-197 with scoring (Opus 100, Sonnet 90, GPT-4o 60, Gemini 50, default Sonnet). OSTK_MODEL override at context.rs:116. Feature matrix built from per-driver method implementations. Model-specific notes: Gemini 3.x auto-thinking (gemini.rs:105-121), Mistral tool ID remapping (mistral.rs:191-220), Ollama colon auto-detect (model_registry.rs:251-253), OpenAI\u2192OpenRouter fallback (providers.rs:76-81)."
+      "status": "current"
     },
     {
       "route": "/docs/ostk-toml",
@@ -1064,13 +1053,11 @@
         "/docs/agent-lifecycle",
         "/docs/session-topology"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192057. WORK directive docs cited to parser.rs:19-27 (WorkFilter struct), 190-191 (Agentfile field), 238/271/1188 (multiple-WORK error), 502-506 (dispatch). Expression syntax built from actual test cases at parser.rs:1353-1373. 'Affinity mask, not a todo list' quoted from parser.rs:19-21 docstring."
+      "status": "current"
     },
     {
       "route": "/docs/secrets",
@@ -1167,13 +1154,11 @@
         "/docs/agentfile",
         "/docs/humanfile"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192056. SKILL directive form and parser behavior cited to parser.rs:186-187 (skills field), 464-468 (dispatch), 796 (example), 933-939 (missing arg test). Honest framing: parser stores skill names as Vec<String>; the resolver that turns a name into bundled content is part of the spawn path, not the Agentfile spec."
+      "status": "current"
     },
     {
       "route": "/docs/sphere-navigator",
@@ -1201,13 +1186,11 @@
         "/docs/commands",
         "/docs/coordination-primitives"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "New page for needle \u2192054. Four ViewLevel variants cited to sphere_nav.rs:32-40 (enum), 234 (default Galaxy), 252-303 (SphereDetail loader), 307-382 (NeedleDetail loader), 506-508 (cursor count per level). Keybindings cited to action.rs:214 (g), :229 (Option+G), app.rs:1086-1160 (handler block). Joint mechanic cited to sphere_nav.rs:57 (pending_joint) + app.rs:1133-1160."
+      "status": "current"
     },
     {
       "route": "/docs/trust-model",
@@ -1246,13 +1229,11 @@
         "/docs/pins",
         "/docs/isolation-tiers"
       ],
-      "status": "current",
       "verified_at": {
         "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
         "timestamp": "2026-04-12T00:00:00Z"
       },
-      "verified_method": "source",
-      "verified_notes": "Tier enum, T0_TRUST_ANCHORS, determine_trust_tier, capability pin tokens, and approval chain order verified against identity.rs, policy.rs, approval.rs. T3 'cannot boot' was rhetorical \u2014 corrected to 'read-only gated by pin.caps'. T1\u2192T0 escalation path removed \u2014 T0 is hardcoded. Ed25519 noted as additive, GPG canonical for tier determination."
+      "status": "current"
     },
     {
       "route": "/docs/tui",
@@ -1607,40 +1588,25 @@
     },
     {
       "route": "/start",
-      "astro_path": "src/pages/start.astro",
+      "file": null,
+      "title": "",
+      "tags": [],
       "sources": [
         {
-          "path": "src/commands/onboarding/guided.rs",
-          "note": "init + guided init flow referenced in step 2"
+          "path": "src/commands/onboarding/guided.rs"
         }
-      ]
-    },
-    {
-      "route": "/start/mcp",
-      "astro_path": "src/pages/start/mcp.astro",
-      "sources": [
-        {
-          "path": "src/main.rs",
-          "note": "Commands::Mcp dispatch (None branch -> run_mcp_bridge)"
-        },
-        {
-          "path": "src/serve/server.rs",
-          "note": "run_mcp_bridge + bridge_stdio_to_daemon"
-        },
-        {
-          "path": "src/commands_use/mcp_diag.rs",
-          "note": "ostk mcp diag implementation"
-        },
-        {
-          "path": "src/commands/mcp_proxy.rs",
-          "note": "shared MCP infrastructure (legacy outbound proxy lives here too)"
-        }
-      ]
+      ],
+      "related": [],
+      "status": "unverified"
     },
     {
       "route": "/why",
-      "astro_path": "src/pages/why.astro",
-      "sources": []
+      "file": null,
+      "title": "",
+      "tags": [],
+      "sources": [],
+      "related": [],
+      "status": "unverified"
     }
   ]
 }
