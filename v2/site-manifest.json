@@ -921,28 +921,28 @@
       "tags": [],
       "sources": [
         {
-          "path": "src/cpu/approval.rs"
-        },
-        {
-          "path": "src/fcp_screen/components/approval.rs"
-        },
-        {
-          "path": "src/kernel/approval.rs"
-        },
-        {
           "path": "src/kernel/identity.rs"
         },
         {
-          "path": "src/kernel/policy.rs"
+          "path": "src/commands/trust.rs"
+        },
+        {
+          "path": "src/serve/policy.rs"
+        },
+        {
+          "path": "src/util/audit.rs"
         },
         {
           "path": "src/kernel/signing.rs"
         },
         {
-          "path": "src/kernel/revocation.rs"
+          "path": "src/commands/bail.rs"
         },
         {
-          "path": "src/kernel/host_identity.rs"
+          "path": "src/commands/os.rs"
+        },
+        {
+          "path": "docs/spec/llmos-posix-kernel.md"
         }
       ],
       "related": [
@@ -952,8 +952,8 @@
         "/docs/isolation-tiers"
       ],
       "verified_at": {
-        "sha": "71460bee14fc84e299310101aa8c758aaa6f2bc8",
-        "timestamp": "2026-04-12T00:00:00Z"
+        "sha": "e870ff60",
+        "timestamp": "2026-04-27T03:09:56Z"
       },
       "status": "current"
     },

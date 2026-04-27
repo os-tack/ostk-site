@@ -1,201 +1,195 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
 ---
 
 <DocsLayout
   title="Trust Model"
-  description="Four trust tiers, GPG web of trust, capability pins, and the approval chain that governs every agent action."
-  sectionLabel="GOVERNANCE // TRUST_CHAIN"
+  description="How GPG identity tiers, capability pins, and Ed25519-signed audit compose into the trust model. Four problems an operator has — what can I do, how do I graduate, how do I verify a release, how do I revoke a compromised key — and the compositions that solve them."
+  sectionLabel="REFERENCE // TRUST"
 >
-  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    GPG cross-signatures determine trust, not harness identity. The web of trust anchors at the @ostk.ai root key and T0 holder keys. Ed25519 is additive — used for per-file signing and agent certificates — but GPG remains canonical for tier determination.
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-8">
+    Trust composes from three layers: GPG-rooted identity tiers (who you are), capability pins (what you can touch), and Ed25519-signed audit (what you actually did). Below: four problems, four compositions, then the model.
   </p>
 
-  <!-- Tier Overview -->
+  <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-12">
+    The kernel determines your tier at boot — no UI, no flags, just GPG state. T0 anchors are hardcoded in the binary (ceremony cannot reach T0). T1 is cross-signed write access; T2 is GPG-without-cross-sign; T3 is anonymous. Source: <code class="text-primary">src/kernel/identity.rs</code>.
+  </p>
+
+  <!-- Problem 01 -->
   <section class="mb-16">
-    <h2 class="section-label mb-6">TRUST_TIERS</h2>
-    <div class="space-y-px">
-      {[
-        {
-          tier: 'T0', label: 'FULL_GOVERNANCE',
-          who: 'Human operator',
-          proof: 'GPG key in T0_TRUST_ANCHORS, dual-signed .primefile',
-          can: ['Unrestricted write access', 'Modify ENTITYFILE, .primefile, GOVERNANCE.md', 'Revoke T1 CI keys', 'Approve GPG cross-signatures', 'Skip approval chain entirely'],
-          deny: [],
-        },
-        {
-          tier: 'T1', label: 'WRITE_ACCESS',
-          who: 'Verified agent or CI',
-          proof: 'GPG key cross-signed by a T0 holder',
-          can: ['Write source code', 'Run agents, delegate needles', 'Execute within mode gate + patterns'],
-          deny: ['write-kernel', 'modify-governance'],
-        },
-        {
-          tier: 'T2', label: 'READ_ONLY',
-          who: 'GPG key present, not cross-signed',
-          proof: 'GPG key exists but check_gpg_cross_signature() returns None',
-          can: ['Boot and explore', 'Read all files', 'Write to non-src paths outside .ostk/ and governance files'],
-          deny: ['write-kernel', 'modify-governance', 'write-src'],
-        },
-        {
-          tier: 'T3', label: 'ANONYMOUS',
-          who: 'No GPG key',
-          proof: 'host_identity::discover() returns no gpg_key',
-          can: ['Boot and read everything', 'Run kernel verbs', 'Explore, query, audit'],
-          deny: ['ALL WRITES (allows_write=false in policy.rs:248)', 'Cannot modify any file'],
-        },
-      ].map(t => (
-        <div class="bg-surface-container-low mb-px">
-          <div class="grid grid-cols-12 gap-0">
-            <div class="md:col-span-1 bg-surface-container flex items-start justify-center pt-6">
-              <span class="serif-text text-3xl font-bold text-primary">{t.tier}</span>
-            </div>
-            <div class="md:col-span-11 p-6">
-              <div class="flex items-baseline gap-3 mb-3">
-                <h3 class="font-body text-sm text-on-surface font-bold">{t.label}</h3>
-                <span class="font-body text-xs text-outline">— {t.who}</span>
-              </div>
-              <div class="font-body text-[10px] text-outline mb-4">{t.proof}</div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div class="font-label text-[10px] text-primary mb-2">ALLOWED</div>
-                  {t.can.map(c => (
-                    <div class="font-body text-xs text-secondary py-1">{c}</div>
-                  ))}
-                </div>
-                {t.deny.length > 0 && (
-                  <div>
-                    <div class="font-label text-[10px] text-error mb-2">DENIED</div>
-                    {t.deny.map(d => (
-                      <div class="font-body text-xs text-error/70 py-1">{d}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
+    <div class="section-label mb-4">PROBLEM_01 // WHAT_CAN_I_DO_AS_INSTALLED</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I just installed ostk. What's the default?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      <strong class="text-on-surface">T3 — anonymous, read-everything, write-blocked.</strong> Without a GPG key you can boot, observe the fleet, run commands that don't mutate, and read every file in <code class="text-primary">.ostk/</code>. Writes through kernel verbs (<code class="text-primary">fs_ops</code>, <code class="text-primary">bash</code> with redirect, <code class="text-primary">run</code>) are denied by the deny-all default in pin caps. The kernel announces your tier on every <code class="text-primary">ostk boot</code> — no ambiguity about what you have.
+    </p>
+
+    <Terminal>
+      <pre><span class="text-outline">$ </span>ostk boot
+trust: <span class="text-primary">T3</span> (anonymous, read-only)
+HUMANFILE: not found
+boot confidence: 0.30 (restricted mode)</pre>
+    </Terminal>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Tier resolver (no GPG → T3) · pin caps with <code class="text-primary">deny write-everything</code> default · Owned State (invariant II) — there's no UI override for tier; the kernel decides.
+      </div>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/kernel/identity.rs</code> (tier resolver), <code class="text-primary">src/serve/policy.rs</code> (pin cap evaluation).
+    </p>
   </section>
 
-  <!-- Determination Algorithm -->
+  <!-- Problem 02 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">How the Kernel Determines Trust</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      At boot, <code class="text-primary">determine_trust_tier()</code> runs this decision tree.
+    <div class="section-label mb-4">PROBLEM_02 // GRADUATE_TO_WRITE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I want to graduate from anonymous to write-capable on a project.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Two-step ceremony. First, generate a GPG key — that gets you to <strong class="text-on-surface">T2</strong> (GPG present but uncrossed; reads everything, narrow write exceptions per pin caps). Second, get someone at T1 or T0 to cross-sign your key — that gets you to <strong class="text-on-surface">T1</strong> (write access on the project they cross-signed for). The cross-signature is checked at boot via <code class="text-primary">gpg --check-sigs</code>; if it's there, the kernel reads your tier as T1.
     </p>
-    <div class="space-y-px">
-      {[
-        { step: '01', check: 'Read HUMANFILE SIGN directive', result: 'If key matches a T0_TRUST_ANCHOR → T0 (identity.rs:136)' },
-        { step: '02', check: 'host_identity::discover() for user GPG key', result: 'If no GPG secret key → T3 (anonymous, read-only)' },
-        { step: '03', check: 'Check if key fingerprint is in T0_TRUST_ANCHORS', result: 'Hardcoded 5 anchors in identity.rs:39–45 → T0' },
-        { step: '04', check: 'gpg --check-sigs for sig! from a T0 anchor', result: 'Cross-signature found → T1 (write access)' },
-        { step: '05', check: 'GPG key present, no cross-signature', result: '→ T2 (read-only with narrow write exceptions)' },
-      ].map(s => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
-            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
-          </div>
-          <div class="md:col-span-5 px-4 py-3">
-            <span class="font-body text-xs text-on-surface">{s.check}</span>
-          </div>
-          <div class="md:col-span-6 px-4 py-3">
-            <span class="font-body text-xs text-secondary">{s.result}</span>
-          </div>
-        </div>
-      ))}
+
+    <Terminal>
+      <pre><span class="text-outline"># T3 → T2: generate a GPG key</span>
+<span class="text-outline">$ </span>gpg --full-generate-key
+<span class="text-outline">$ </span>ostk boot
+trust: <span class="text-primary">T2</span> (read + narrow exceptions)
+
+<span class="text-outline"># T2 → T1: have a T0 or T1 holder cross-sign your key</span>
+<span class="text-outline">$ </span>ostk trust sign &lt;your-fingerprint&gt;     <span class="text-outline"># run by the cross-signer</span>
+<span class="text-outline">$ </span>ostk boot
+trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
+    </Terminal>
+
+    <p class="font-body text-xs text-secondary max-w-xl mb-4">
+      <strong class="text-on-surface">T0 is unreachable by ceremony.</strong> T0 fingerprints are hardcoded in <code class="text-primary">src/kernel/identity.rs</code> and shipped with the binary. To gain T0 your fingerprint has to land in a kernel release — that's the substrate's anchor of last resort.
+    </p>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        GPG key generation · cross-signature ceremony · <code class="text-primary">ostk trust sign</code> verb · kernel boot-time tier resolution · T0 hardcoded anchor list (5 fingerprints in v4.4.x).
+      </div>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/trust.rs</code> (sign / rotate / revoke), <code class="text-primary">src/kernel/identity.rs</code> (T0_TRUST_ANCHORS, <code>check_gpg_cross_signature</code>).
+    </p>
   </section>
 
-  <!-- Capability Pins -->
+  <!-- Problem 03 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Capability Pins</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Pins restrict what agents can write. Trust tier is a <span class="text-primary font-bold">floor</span> — an explicit pin can only add restrictions, never remove tier defaults.
-    </p>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
-      <h3 class="section-label-secondary mb-4">CAPABILITY_TOKENS</h3>
-      {[
-        { token: 'write-kernel', effect: 'Denies ALL writes under .ostk/' },
-        { token: 'modify-governance', effect: 'Denies writes to .primefile, GOVERNANCE.md, ENTITYFILE, HUMANFILE, .af files, /agents/' },
-        { token: 'write-src', effect: 'Denies writes to paths containing /src/' },
-      ].map(t => (
-        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
-          <code class="text-error w-40 shrink-0">{t.token}</code>
-          <span class="text-secondary">{t.effect}</span>
-        </div>
-      ))}
-    </div>
+    <div class="section-label mb-4">PROBLEM_03 // VERIFY_BEFORE_INSTALL</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I want to verify what I'm about to install.</h2>
 
-    <h3 class="section-label-secondary mb-4">PIN.CAPS_FORMAT</h3>
-    <div class="bg-surface-container-lowest p-4 border border-surface-variant">
-      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">read:</span> .ostk/ .language
-<span class="text-primary">write:</span> .ostk/store/{'{name}'}/ .ostk/needles/ .ostk/hay/
-<span class="text-primary">execute:</span> shell(readonly)
-<span class="text-error">deny:</span> write-kernel modify-governance
-<span class="text-error">deny-verb:</span> :shutdown
-<span class="text-error">deny-verb:</span> bail pack --private</pre>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Three layers compose. <strong class="text-on-surface">Binary signatures</strong> — every released tarball ships with an <code class="text-primary">.asc</code> GPG signature against the operator's release key, the install script verifies before extracting. <strong class="text-on-surface">Bail packages</strong> — <code class="text-primary">ostk bail verify</code> walks the embedded audit chain, checks every prev_hash and Ed25519 row signature, confirms the package contents match what was signed. <strong class="text-on-surface">Local audit</strong> — once installed, <code class="text-primary">ostk os audit</code> verifies your local journal end-to-end at any time. The verification path doesn't rely on trusting ostk; it relies on the math.
+    </p>
+
+    <Terminal>
+      <pre><span class="text-outline"># Binary install: signature checked automatically by install.sh</span>
+<span class="text-outline">$ </span>curl -fsSL https://ostk.ai/install.sh | sh
+verifying GPG signature... ok
+
+<span class="text-outline"># Verify a bail package someone sent you</span>
+<span class="text-outline">$ </span>ostk bail verify ./incoming.bail
+chain: 412 rows, prev_hash continuous, sig verified, T0 anchor matches
+
+<span class="text-outline"># Verify your own journal</span>
+<span class="text-outline">$ </span>ostk os audit
+audit: 18,442 rows, hash chain ok, signatures verified</pre>
+    </Terminal>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Release-asset GPG signatures (.asc) · bail's embedded chain + Ed25519 row signatures · <code class="text-primary">os audit</code> replay · T0 anchor list as the verification root. No external CA, no network call.
+      </div>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/bail.rs</code>, <code class="text-primary">src/commands/os.rs</code> (audit subcommand), <code class="text-primary">src/util/audit.rs</code> (hash chain), <code class="text-primary">src/kernel/signing.rs</code> (Ed25519 in-process).
+    </p>
   </section>
 
-  <!-- Approval Chain -->
+  <!-- Problem 04 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Approval Chain</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Every tool call passes through this chain. First match wins.
+    <div class="section-label mb-4">PROBLEM_04 // REVOKE_A_COMPROMISED_KEY</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">My private key leaked. How do I revoke it without losing history?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      The audit chain stays intact; what changes is what the substrate trusts going forward. <code class="text-primary">ostk trust revoke</code> records a revocation event in the journal — keyed by content hash and fingerprint, signed by an authority key (T0 if you can reach one, T1 with cross-sign capability otherwise). The kernel reads the revocation list at boot; rows signed before revocation remain valid (they were valid at write time) but the revoked key can no longer sign new rows. Generate a fresh key, get it cross-signed, you're back to T1 under a new identity.
     </p>
-    <div class="space-y-px">
-      {[
-        { step: '1', name: 'HARD_DENY', desc: 'pin.caps deny tokens → auto-deny. Parse error → fail-closed.' },
-        { step: '2', name: 'DESTRUCTIVE_CHECK', desc: 'rm -rf, git push --force, etc. Always prompts. Never bypassed.' },
-        { step: '3', name: 'KERNEL_TOOLS', desc: 'kernel:read → allow. kernel:write → continue. kernel:spawn → continue.' },
-        { step: '4', name: 'PERMISSION_MODE', desc: 'Autonomous → allow all. Auto → allow reads. Governed → continue. Plan → deny.' },
-        { step: '5', name: 'SESSION_ALLOW_LIST', desc: 'Runtime-persisted class approvals. Revocable mid-session.' },
-        { step: '6', name: 'AGENTFILE_PATTERNS', desc: 'TOOL directives with trust resolution. Signed Agentfile may be required.' },
-        { step: '7', name: 'USER_PROMPT', desc: 'Modal: Y (approve), N (deny), A (approve all for this class).' },
-      ].map(s => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
-            <span class="font-body text-sm font-bold text-primary">{s.step}</span>
-          </div>
-          <div class="md:col-span-3 px-4 py-3">
-            <span class="font-body text-xs text-on-surface font-bold">{s.name}</span>
-          </div>
-          <div class="md:col-span-8 px-4 py-3">
-            <span class="font-body text-xs text-secondary">{s.desc}</span>
-          </div>
-        </div>
-      ))}
+
+    <Terminal>
+      <pre><span class="text-outline"># Record the revocation</span>
+<span class="text-outline">$ </span>ostk trust revoke &lt;compromised-fingerprint&gt; --reason "leak 2026-04-26"
+
+<span class="text-outline"># Cut a fresh key, restart the ceremony</span>
+<span class="text-outline">$ </span>gpg --full-generate-key
+<span class="text-outline">$ </span>ostk trust sign &lt;new-fingerprint&gt;       <span class="text-outline"># run by a T0/T1 holder</span></pre>
+    </Terminal>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Revocation event in the journal (content-hash + fingerprint) · authority signature on the revocation · kernel boot-time revocation list check · audit chain unchanged (history is what it was, signed at write time).
+      </div>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/trust.rs</code> (revoke subcommand), <code class="text-primary">src/kernel/identity.rs</code> (revocation list), <code class="text-primary">docs/spec/llmos-posix-kernel.md</code> Invariant III on the unchangedness of past audit rows.
+    </p>
   </section>
 
-  <!-- Escalation -->
+  <!-- The composition -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Tier Escalation</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      T0 is not a user-reachable tier via ceremony — its fingerprints are hardcoded in <code class="text-primary">src/kernel/identity.rs</code> and shipped with the binary. Escalation to T0 requires a kernel release that includes your fingerprint. Everyone else escalates via GPG ceremony.
+    <div class="section-label mb-4">THE_COMPOSITION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Three layers compose into the trust model.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Every problem above composes the same three layers. Identity says <strong class="text-on-surface">who you are</strong>; capability pins say <strong class="text-on-surface">what you can touch</strong>; the audit chain says <strong class="text-on-surface">what you actually did</strong>. The kernel doesn't ask you to trust it — it gives you the math to verify each layer.
     </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-      {[
-        { from: 'T3 → T2', action: 'Generate a GPG key. You can now boot and read everything; writes still blocked.', cmd: 'gpg --full-generate-key' },
-        { from: 'T2 → T1', action: 'Get cross-signed by a T0 holder. Unlocks write access, bounded by pin.caps deny tokens.', cmd: 'gpg --local-user T0_KEY --sign-key YOUR_KEY' },
-      ].map(e => (
-        <div class="bg-surface-container p-6">
-          <div class="font-body text-sm text-primary font-bold mb-2">{e.from}</div>
-          <p class="font-body text-xs text-secondary mb-3">{e.action}</p>
-          <code class="font-body text-[10px] text-outline">{e.cmd}</code>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-3xl mb-6">
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-2">IDENTITY</div>
+        <p class="font-body text-xs text-secondary mb-3">Four GPG-rooted tiers. T0 hardcoded; T1 cross-signed; T2 GPG-without-cross-sign; T3 anonymous.</p>
+        <div class="font-body text-[11px] text-outline">
+          <code class="text-primary">src/kernel/identity.rs</code>
         </div>
-      ))}
+      </div>
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-2">CAPABILITY</div>
+        <p class="font-body text-xs text-secondary mb-3">Pin caps deny by default. Tier sets the floor; <a href="/docs/pins" class="text-primary hover:underline">pin caps</a> set the ceiling.</p>
+        <div class="font-body text-[11px] text-outline">
+          <code class="text-primary">src/serve/policy.rs</code>
+        </div>
+      </div>
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-2">AUDIT</div>
+        <p class="font-body text-xs text-secondary mb-3">Every action hash-chained, Ed25519-signed in-process. Replay with <code class="text-primary">ostk os audit</code>.</p>
+        <div class="font-body text-[11px] text-outline">
+          <code class="text-primary">src/util/audit.rs</code>
+        </div>
+      </div>
     </div>
+
+    <p class="font-body text-xs text-secondary max-w-xl mb-4">
+      Why three? Because each layer fails differently, and a security model that conflates them is brittle. Identity tells you who's at the keyboard; pins tell you what they can do <em>at this moment</em>; audit tells you what they actually did. Identity can be revoked without invalidating history. Pins can change per project without changing identity. Audit is append-only and signed at write time — yesterday's truth doesn't change because today's keys did.
+    </p>
+
+    <p class="font-body text-xs text-outline italic max-w-xl">
+      One historical note: GPG remains canonical for tier determination; Ed25519 is for per-action audit signing. The rationale: GPG carries cross-signing semantics (web of trust) that Ed25519 doesn't, and the operator's GPG keyring is the system the operator already trusts. Source: <code class="text-primary">src/kernel/identity.rs</code> doc-comment.
+    </p>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/entityfile"><Icon name="groups" size="14" class="align-middle mr-1" />ENTITYFILE</a>
-    <a href="/docs/primefile"><Icon name="settings" size="14" class="align-middle mr-1" />PRIMEFILE</a>
-    <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
-    <a href="/docs/five-laws"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
+    <a href="/docs/pins"><Icon name="shield" size="14" class="align-middle mr-1" />PIN_CAPS</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/bail"><Icon name="verified" size="14" class="align-middle mr-1" />BAIL</a>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />CLI</a>
   </div>
 </DocsLayout>
