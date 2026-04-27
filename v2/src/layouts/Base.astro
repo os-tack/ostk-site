@@ -6,7 +6,7 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
-  activeTab?: 'docs' | 'architecture' | 'commands' | 'trust';
+  activeTab?: 'why' | 'start' | 'docs' | 'features' | 'architecture' | 'commands' | 'trust';
 }
 
 const { title, description, activeTab } = Astro.props;
@@ -25,16 +25,22 @@ const metaDescription = description || 'ostk — the operating system for AI cod
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="sitemap" href="/sitemap-index.xml" />
   <!-- Open Graph -->
+  <meta property="og:site_name" content="ostk" />
   <meta property="og:title" content={pageTitle} />
   <meta property="og:description" content={metaDescription} />
   <meta property="og:image" content="https://ostk.ai/og-image.png" />
+  <meta property="og:image:alt" content="ostk — like containers, for AI agents" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
   <meta property="og:type" content="website" />
   <!-- Twitter/X -->
   <meta name="twitter:card" content="summary_large_image" />
+  {/* TODO: confirm @ostkai twitter/X handle exists; add `<meta name="twitter:site" content="@ostkai" />` when confirmed. */}
   <meta name="twitter:title" content={pageTitle} />
   <meta name="twitter:description" content={metaDescription} />
   <meta name="twitter:image" content="https://ostk.ai/og-image.png" />
+  <meta name="twitter:image:alt" content="ostk — like containers, for AI agents" />
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

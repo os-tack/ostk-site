@@ -23,16 +23,47 @@ const sidebarGroups = {
 <Base title="ostk — like containers, for AI agents" description="Run multiple AI coding agents on your codebase. ostk coordinates their writes, bounds what they can touch, and signs the audit trail. One Rust binary, local-first, zero dependencies.">
   <script slot="schema" type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "ostk",
-    "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "macOS, Linux",
-    "description": "A local-first kernel for AI coding agents. Coordinates writes, bounds capability, signs audit trails. Like containers, for agents.",
-    "url": "https://ostk.ai",
-    "downloadUrl": "https://ostk.ai/install.sh",
-    "softwareVersion": LATEST_TAG.replace(/^v/, ''),
-    "license": "https://ostk.ai/legal/license",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://ostk.ai/#organization",
+        "name": "ostk",
+        "url": "https://ostk.ai",
+        "logo": "https://ostk.ai/og-image.png",
+        "sameAs": [
+          "https://github.com/os-tack",
+          "https://discord.gg/MdRNs4CC"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://ostk.ai/#website",
+        "name": "ostk",
+        "url": "https://ostk.ai",
+        "publisher": { "@id": "https://ostk.ai/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://ostk.ai/?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "ostk",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "macOS, Linux",
+        "description": "A local-first kernel for AI coding agents. Coordinates writes, bounds capability, signs audit trails. Like containers, for agents.",
+        "url": "https://ostk.ai",
+        "downloadUrl": "https://ostk.ai/install.sh",
+        "softwareVersion": LATEST_TAG.replace(/^v/, ''),
+        "license": "https://ostk.ai/legal/license",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "publisher": { "@id": "https://ostk.ai/#organization" }
+      }
+    ]
   })} />
   <Sidebar title="OSTK" subtitle={`${LATEST_TAG} STABLE`} groups={sidebarGroups} />
 

@@ -15,6 +15,7 @@ const sidebarGroups = {
     { icon: 'swap_horiz', label: 'MODEL_SWITCHING', href: '/features/model-switching/' },
     { icon: 'key', label: 'SECRET_MGMT', href: '/features/secret-management/' },
     { icon: 'tv', label: 'TUI', href: '/features/tui/' },
+    { icon: 'compare_arrows', label: 'COMPARISON', href: '/features/comparison/' },
   ],
   bottomItems: [
     { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
@@ -45,6 +46,12 @@ const sections = [
       { num: '08', title: 'Model Switching', desc: 'Switch models mid-session. Context survives the handoff across vendors.', href: '/features/model-switching/' },
       { num: '09', title: 'API Key Security', desc: 'API keys never enter LLM context. Platform keychain integration.', href: '/features/secret-management/' },
       { num: '10', title: 'Terminal Dashboard', desc: 'Terminal interface showing the OS in real time. Agents, permissions, edits, costs.', href: '/features/tui/' },
+    ],
+  },
+  {
+    label: 'COMPARE',
+    features: [
+      { num: '11', title: 'Comparison', desc: 'How ostk differs from Claude Code, Cursor, Aider, and other agent harnesses.', href: '/features/comparison/' },
     ],
   },
 ];

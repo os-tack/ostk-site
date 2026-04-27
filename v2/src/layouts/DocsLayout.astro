@@ -8,10 +8,36 @@ interface Props {
   title: string;
   description?: string;
   sectionLabel?: string;
-  activeTab?: 'docs' | 'architecture' | 'commands' | 'trust';
+  activeTab?: 'why' | 'start' | 'docs' | 'features' | 'architecture' | 'commands' | 'trust';
 }
 
 const { title, description, sectionLabel, activeTab = 'docs' } = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, 'https://ostk.ai').href;
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ostk.ai/" },
+    { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://ostk.ai/docs/" },
+    { "@type": "ListItem", "position": 3, "name": title, "item": canonicalUrl },
+  ],
+};
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": title,
+  "description": description,
+  "image": "https://ostk.ai/og-image.png",
+  "author": { "@type": "Organization", "name": "ostk", "url": "https://ostk.ai" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ostk",
+    "url": "https://ostk.ai",
+    "logo": { "@type": "ImageObject", "url": "https://ostk.ai/og-image.png" },
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
+};
 
 const sidebarGroups = {
   sections: [
@@ -21,6 +47,7 @@ const sidebarGroups = {
         { icon: 'rocket_launch', label: 'QUICK_START', href: '/start/' },
         { icon: 'download', label: 'DOWNLOADS', href: '/docs/downloads/' },
         { icon: 'psychology', label: 'MODELS', href: '/docs/models/' },
+        { icon: 'school', label: 'LEARN_SANDBOX', href: '/docs/how-to/learn-sandbox/' },
       ],
     },
     {
@@ -37,6 +64,9 @@ const sidebarGroups = {
         { icon: 'compress', label: 'COMPRESSION', href: '/docs/compression/' },
         { icon: 'layers', label: 'CONTEXT_MGMT', href: '/docs/context-management/' },
         { icon: 'auto_fix_high', label: 'ENRICHMENT', href: '/docs/enrichment/' },
+        { icon: 'extension', label: 'SKILLS', href: '/docs/skills/' },
+        { icon: 'explore', label: 'SPHERE_NAVIGATOR', href: '/docs/sphere-navigator/' },
+        { icon: 'cloud_download', label: 'PULL_MODEL', href: '/docs/pull-model/' },
       ],
     },
     {
@@ -47,6 +77,7 @@ const sidebarGroups = {
         { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile/' },
         { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile/' },
         { icon: 'tune', label: 'OSTK_TOML', href: '/docs/ostk-toml/' },
+        { icon: 'list_alt', label: 'ENV_VARS', href: '/docs/env-vars/' },
       ],
     },
     {
@@ -78,6 +109,8 @@ const sidebarGroups = {
 ---
 
 <Base title={title} description={description} activeTab={activeTab}>
+  <script slot="schema" type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script slot="schema" type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
   <Sidebar title="DOCUMENTATION" subtitle={`${LATEST_TAG} STABLE`} groups={sidebarGroups} />
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
     <div class="max-w-4xl mx-auto py-12">

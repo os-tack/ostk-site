@@ -31,6 +31,15 @@ function isActive(href: string): boolean {
   return currentPath === href || currentPath === href + '/';
 }
 
+// Top-level site nav — always present at the top of every sidebar so the
+// mobile drawer surfaces the 4 primary entries. Mirrors Header.astro.
+const primaryNav: SidebarItem[] = [
+  { icon: 'lightbulb', label: 'WHY', href: '/why/' },
+  { icon: 'rocket_launch', label: 'START', href: '/start/' },
+  { icon: 'menu_book', label: 'DOCS', href: '/docs/' },
+  { icon: 'star', label: 'FEATURES', href: '/features/' },
+];
+
 const sections: SidebarSection[] = groups.sections
   ?? (groups.items ? [{ label: '', items: groups.items }] : []);
 ---
@@ -47,6 +56,28 @@ const sections: SidebarSection[] = groups.sections
   </div>
   <div class="bg-surface-container-lowest h-px w-full"></div>
   <nav class="flex-1 overflow-y-auto">
+    {/* Mobile-only top-level nav — mirrors Header tabs so the drawer surfaces the 4 primary entries */}
+    <div class="md:hidden">
+      <div class="font-label text-[9px] uppercase tracking-widest text-outline px-4 pt-2 pb-1 opacity-60">
+        PRIMARY
+      </div>
+      {primaryNav.map(item => (
+        <a
+          href={item.href}
+          class:list={[
+            'flex items-center gap-3 py-2 px-4 transition-none',
+            isActive(item.href)
+              ? 'bg-surface-variant text-primary font-bold border-l-4 border-primary'
+              : 'text-secondary opacity-70 hover:bg-[#1c1a18] hover:opacity-100',
+          ]}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+        >
+          <Icon name={item.icon} size="16" />
+          <span class="font-label text-[10px] uppercase tracking-widest">{item.label}</span>
+        </a>
+      ))}
+      <div class="bg-surface-container-lowest h-px w-full mt-2"></div>
+    </div>
     {sections.map((section, idx) => (
       <div class:list={[idx > 0 && section.label && 'mt-3']}>
         {section.label && (

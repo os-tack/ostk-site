@@ -2,15 +2,15 @@
 import Icon from './Icon.astro';
 
 interface Props {
-  activeTab?: 'docs' | 'architecture' | 'commands' | 'trust';
+  activeTab?: 'why' | 'start' | 'docs' | 'features' | 'architecture' | 'commands' | 'trust';
 }
 const { activeTab } = Astro.props;
 
 const tabs = [
+  { id: 'why', label: 'WHY', href: '/why/' },
+  { id: 'start', label: 'START', href: '/start/' },
   { id: 'docs', label: 'DOCS', href: '/docs/' },
-  { id: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
-  { id: 'commands', label: 'COMMANDS', href: '/docs/commands/' },
-  { id: 'trust', label: 'TRUST', href: '/docs/trust-model/' },
+  { id: 'features', label: 'FEATURES', href: '/features/' },
 ];
 ---
 

@@ -7,7 +7,7 @@ export default defineConfig({
   output: 'static',
   outDir: '../dist',
   build: { format: 'directory' },
-  integrations: [sitemap(), tailwind()],
+  integrations: [sitemap({ lastmod: new Date() }), tailwind()],
   redirects: {
     '/get-started': '/start/',
     '/docs/getting-started': '/start/',

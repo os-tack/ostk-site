@@ -19,6 +19,32 @@ interface Props {
 
 const { tagline, title, description, relatedPages = [] } = Astro.props;
 
+const canonicalUrl = new URL(Astro.url.pathname, 'https://ostk.ai').href;
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ostk.ai/" },
+    { "@type": "ListItem", "position": 2, "name": "Features", "item": "https://ostk.ai/features/" },
+    { "@type": "ListItem", "position": 3, "name": title, "item": canonicalUrl },
+  ],
+};
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description,
+  "image": "https://ostk.ai/og-image.png",
+  "author": { "@type": "Organization", "name": "ostk", "url": "https://ostk.ai" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ostk",
+    "url": "https://ostk.ai",
+    "logo": { "@type": "ImageObject", "url": "https://ostk.ai/og-image.png" },
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
+};
+
 const sidebarGroups = {
   items: [
     { icon: 'auto_fix_high', label: 'CONTEXT_INJECTION', href: '/features/context-injection/' },
@@ -40,6 +66,8 @@ const sidebarGroups = {
 ---
 
 <Base title={title} description={description}>
+  <script slot="schema" type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script slot="schema" type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
   <Sidebar title="FEATURES" subtitle="CAPABILITIES" groups={sidebarGroups} />
 
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
