@@ -5,112 +5,185 @@ import Terminal from '../../components/Terminal.astro';
 ---
 
 <DocsLayout
-  title="Capability Pins"
-  description="Deny-based agent permission boundaries. Trust tier is a floor — pins can only add restrictions."
-  sectionLabel="CONFIGURATION // POLICY_ENFORCEMENT"
+  title="Pin Caps"
+  description="Pin caps bound what an agent can touch. Tier sets the floor; pin profiles add ceilings. Four operator problems and the compositions that solve them."
 >
-  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-4">
-    Pins restrict what agents can write. The trust tier sets a floor. An explicit pin can only add restrictions, never remove tier defaults.
-  </p>
-  <p class="font-body text-xs text-outline mb-12">
-    Location: <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-8">
+    Pin caps are the policy layer between identity and audit. Tier sets the floor (you can't write past it); custom pin profiles add ceilings on top. The merge is union of denies — pins never relax tier defaults.
   </p>
 
-  <!-- pin.caps format -->
+  <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-12">
+    Pin caps are evaluated at every write through the tool layer. They live at <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code>; the active profile is selected by <code class="text-primary">OSTK_PIN</code> env var, or falls back to the tier-default. Source: <code class="text-primary">src/serve/policy.rs</code>, <code class="text-primary">src/kernel/file.rs</code>.
+  </p>
+
+  <!-- Problem 01 -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">PIN.CAPS_FORMAT</h2>
-    <Terminal label="EXAMPLE">
-      <pre><span class="text-primary">read:</span> .ostk/ .language
-<span class="text-primary">write:</span> .ostk/store/{'{name}'}/ .ostk/needles/ .ostk/hay/
-<span class="text-primary">execute:</span> shell(readonly)
+    <div class="section-label mb-4">PROBLEM_01 // DEFAULT_BY_TIER</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I haven't written any pin caps. What does an agent get by default?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Whatever your tier-default pin allows. The kernel resolves your trust tier at boot (T0/T1/T2/T3 — see <a href="/docs/trust-model" class="text-primary hover:underline">trust model</a>) and applies the matching default profile. T0 is unrestricted; T1 denies <code class="text-primary">write-kernel</code> and <code class="text-primary">modify-governance</code>; T2 also denies <code class="text-primary">write-src</code>; T3 denies all writes. You start safe, then opt into more permissive pins as needed.
+    </p>
+
+    <div class="bg-surface-container-low p-6 max-w-2xl mb-3">
+      <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-2 mb-3">
+        <div class="font-label text-[10px] text-secondary">TIER</div>
+        <div class="font-label text-[10px] text-secondary">WRITES_ALLOWED</div>
+        <div class="font-label text-[10px] text-primary">DEFAULT_DENIES</div>
+      </div>
+      {[
+        { tier: 'T0', write: 'unrestricted', denies: '(none — full governance)' },
+        { tier: 'T1', write: 'project source', denies: 'write-kernel, modify-governance' },
+        { tier: 'T2', write: 'narrow', denies: 'write-kernel, modify-governance, write-src' },
+        { tier: 'T3', write: 'none', denies: 'ALL writes (allows_write=false)' },
+      ].map(row => (
+        <div class="grid grid-cols-3 gap-4 font-body text-xs py-2 border-b border-surface-variant">
+          <div class="text-on-surface font-bold">{row.tier}</div>
+          <div class="text-secondary">{row.write}</div>
+          <div class="text-secondary">{row.denies}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Tier resolver (boot-time GPG check) · tier-default pin profile · pin caps evaluator at every write · Owned State (invariant II) — the kernel decides, no operator override.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/kernel/identity.rs</code> (tier resolver), <code class="text-primary">src/serve/policy.rs</code> (pin caps evaluator), <code class="text-primary">src/kernel/file.rs</code> (write-time enforcement).
+    </p>
+  </section>
+
+  <!-- Problem 02 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_02 // BOUND_A_WORKER</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I want a fix-bug worker to touch <code>src/</code> but not <code>infra/</code> or <code>secrets/</code>.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Three steps. <code class="text-primary">ostk issue_pin fix-bug</code> creates a profile at <code class="text-primary">.ostk/pins/fix-bug/pin.caps</code> and a tack-script at <code class="text-primary">pin.boot</code>. Edit the caps file: list the deny tokens (path-scoped) and any deny-verb lines. Reference the profile from the worker — set <code class="text-primary">OSTK_PIN=fix-bug</code> in the Agentfile or env. Every write through the kernel checks the active profile before bytes hit disk.
+    </p>
+
+    <Terminal>
+      <pre><span class="text-outline">$ </span>ostk issue_pin fix-bug
+created: .ostk/pins/fix-bug/pin.caps
+created: .ostk/pins/fix-bug/pin.boot
+
+<span class="text-outline">$ </span>cat .ostk/pins/fix-bug/pin.caps
 <span class="text-error">deny:</span> write-kernel modify-governance
+<span class="text-error">deny-path:</span> infra/ secrets/ .env*
 <span class="text-error">deny-verb:</span> :shutdown
-<span class="text-error">deny-verb:</span> bail pack --private</pre>
+<span class="text-error">deny-verb:</span> bail pack --private
+
+<span class="text-outline"># Apply to the worker:</span>
+<span class="text-outline">$ </span>OSTK_PIN=fix-bug ostk run .ostk/agents/fix-bug-27.toml</pre>
     </Terminal>
-  </section>
 
-  <!-- Capability tokens -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">CAPABILITY_TOKENS</h2>
-    <div class="space-y-px">
-      {[
-        { token: 'write-kernel', effect: 'Denies ALL writes under .ostk/', includes: 'agents.jsonl, journal.jsonl, needles/, decisions.jsonl, hay/, sessions/, store/' },
-        { token: 'modify-governance', effect: 'Denies writes to governance files', includes: '.primefile, GOVERNANCE.md, ENTITYFILE, HUMANFILE, .af files, /agents/ directory' },
-        { token: 'write-src', effect: 'Denies writes to source directories', includes: 'Any path containing /src/' },
-      ].map(t => (
-        <div class="bg-surface-container p-5">
-          <div class="flex items-baseline gap-3 mb-2">
-            <code class="font-body text-sm text-error font-bold">{t.token}</code>
-            <span class="font-body text-xs text-secondary">{t.effect}</span>
-          </div>
-          <div class="font-body text-[10px] text-outline">Includes: {t.includes}</div>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- Verb denial -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">VERB_DENIAL</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
-      <p class="font-body text-xs text-secondary mb-4">
-        <code class="text-error">deny-verb:</code> lines block specific kernel commands. Exact match or prefix match at word boundary.
-      </p>
-      <div class="space-y-2 font-body text-xs">
-        <div class="flex gap-4">
-          <code class="text-error w-48">deny-verb: :shutdown</code>
-          <span class="text-secondary">Blocks "shutdown" exactly</span>
-        </div>
-        <div class="flex gap-4">
-          <code class="text-error w-48">deny-verb: bail pack --private</code>
-          <span class="text-secondary">Blocks "bail pack --private ..." but not "bail pack" alone</span>
-        </div>
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        <code class="text-primary">issue_pin</code> command · pin.caps file format (deny tokens, deny-path, deny-verb) · <code class="text-primary">OSTK_PIN</code> env var selects active profile · merge with tier-default at evaluator time.
       </div>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/issue_pin.rs</code>, <code class="text-primary">src/serve/policy.rs</code>.
+    </p>
   </section>
 
-  <!-- Tier defaults -->
+  <!-- Problem 03 -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">TIER_DEFAULT_CAPS</h2>
-    <div class="space-y-px">
-      {[
-        { tier: 'T0', write: true, tokens: 'None (unrestricted)', bg: 'text-primary' },
-        { tier: 'T1', write: true, tokens: 'write-kernel, modify-governance', bg: 'text-on-surface' },
-        { tier: 'T2', write: true, tokens: 'write-kernel, modify-governance, write-src', bg: 'text-secondary' },
-        { tier: 'T3', write: false, tokens: 'ALL (allows_write=false)', bg: 'text-error' },
-      ].map(t => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
-            <span class={`font-body text-sm font-bold ${t.bg}`}>{t.tier}</span>
-          </div>
-          <div class="md:col-span-2 px-4 py-3">
-            <span class={`font-body text-xs ${t.write ? 'text-primary' : 'text-error'}`}>{t.write ? 'WRITE: YES' : 'WRITE: NO'}</span>
-          </div>
-          <div class="md:col-span-9 px-4 py-3">
-            <span class="font-body text-xs text-secondary">deny: {t.tokens}</span>
-          </div>
-        </div>
-      ))}
+    <div class="section-label mb-4">PROBLEM_03 // MERGE_ORDER</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">My pin tries to permit <code>write-src</code> but the agent still gets denied. Why?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Pin caps are <strong class="text-on-surface">attenuation only</strong>. The kernel takes the union of deny tokens — your tier-default's denies plus your custom profile's denies. A pin can <em>add</em> restrictions but cannot <em>remove</em> them. A T2 user setting <code class="text-primary">OSTK_PIN=permissive</code> still gets <code class="text-primary">write-src</code> denied because T2's tier-default contains it. Tier is the floor; pins are extra ceiling.
+    </p>
+
+    <div class="bg-surface-container-low p-6 max-w-2xl mb-3 font-body text-xs leading-relaxed">
+      <div class="text-secondary mb-3">Worked example for a T2 operator with custom pin <code class="text-primary">"infra-eng"</code>:</div>
+      <pre class="text-outline mb-3"><span class="text-secondary">tier-default (T2):</span> deny: write-kernel modify-governance write-src
+<span class="text-secondary">infra-eng pin:</span>     deny: write-kernel deny-path: secrets/
+                          (no allow lines — pins can't have them)
+<span class="text-secondary">union (effective):</span> deny: write-kernel modify-governance write-src
+                          deny-path: secrets/</pre>
+      <div class="text-secondary">The agent gets <strong class="text-on-surface">strictly more</strong> restrictive — write-src denied (from tier) plus secrets/ denied (from pin). To unlock write-src, the operator has to graduate to T1 — that's the whole point of the trust ladder.</div>
     </div>
-  </section>
 
-  <!-- Security invariant -->
-  <section class="mb-16">
-    <div class="bg-error/5 border border-error/20 p-6">
-      <div class="font-label text-[10px] uppercase tracking-widest text-error mb-2 flex items-center gap-1">
-        <Icon name="warning" size="14" class="text-xs" />
-        SECURITY_INVARIANT
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Tier-default (floor) + custom pin (ceiling) → union of denies → final cap set. Attenuation-only merge semantics; pins never relax tier defaults.
       </div>
-      <p class="font-body text-xs text-on-surface">
-        Tier is a FLOOR, not an override. A T3 user setting <code class="text-error">OSTK_PIN=permissive</code> still gets deny-all. A T2 user with a custom pin still gets <code class="text-error">write-src</code> denied. The merge takes the union of deny tokens.
-      </p>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/serve/attenuation.rs</code>, <code class="text-primary">src/serve/policy.rs</code>.
+    </p>
+  </section>
+
+  <!-- Problem 04 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_04 // DISCOVER_THE_RIGHT_PINS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I don't know what paths my worker actually needs. How do I find the minimal pin?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      <code class="text-primary">ostk learn</code> runs the worker in observation mode — it watches every filesystem call the agent makes and emits the minimal set of <code class="text-primary">LIMIT</code> directives that would have permitted that run. You read the directives, decide what to keep, drop into the Agentfile or pin.caps. Empirical bounding instead of guesswork. The technique generalizes: run learn over your representative tasks; compare the union of paths; pin accordingly.
+    </p>
+
+    <Terminal>
+      <pre><span class="text-outline"># Run the worker under observation (60s default, --duration overrides)</span>
+<span class="text-outline">$ </span>ostk learn .ostk/agents/fix-bug-27.toml --duration 120
+
+<span class="text-outline"># Output: minimal LIMIT directives the agent actually needed</span>
+<span class="text-secondary">LIMIT</span> read-path src/ tests/ Cargo.toml
+<span class="text-secondary">LIMIT</span> write-path src/ tests/ target/
+<span class="text-secondary">LIMIT</span> verb cargo build cargo test
+
+<span class="text-outline"># --apply writes them back into the Agentfile directly</span>
+<span class="text-outline">$ </span>ostk learn .ostk/agents/fix-bug-27.toml --apply</pre>
+    </Terminal>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Observe mode (nono sandbox in passthrough-with-logging) · path-set extraction from observed syscalls · <code class="text-primary">LIMIT</code> directive emission · optional <code class="text-primary">--apply</code> to write back to the Agentfile.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/learn.rs</code>, <code class="text-primary">src/kernel/sandbox.rs</code> (observation mode).
+    </p>
+  </section>
+
+  <!-- The composition -->
+  <section class="mb-16">
+    <div class="section-label mb-4">THE_COMPOSITION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Tier sets the floor. Pins add ceilings. The kernel evaluates.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Three primitives compose into the answer for "what can this agent actually do?" — your tier-default pin from the GPG trust check (the floor; can't relax), your custom pin profile selected by <code class="text-primary">OSTK_PIN</code> (the ceiling; only adds restrictions), and the evaluator that checks every write at the tool layer before bytes hit disk. Combined with the OS-level sandbox covered in <a href="/docs/architecture#problem_02_agent_tries_to_escape" class="text-primary hover:underline">architecture problem 02</a>, that's three layers of defense for every kernel-mediated action.
+    </p>
+
+    <div class="bg-surface-container-lowest p-4 border border-surface-variant max-w-2xl mb-4 font-body text-xs">
+      <div class="font-label text-[10px] text-primary mb-2">CAPABILITY_TOKENS_REFERENCE</div>
+      <div class="space-y-1 text-secondary">
+        <div><code class="text-error">deny: write-kernel</code> &mdash; all writes under <code class="text-primary">.ostk/</code></div>
+        <div><code class="text-error">deny: modify-governance</code> &mdash; <code class="text-primary">.primefile</code>, <code class="text-primary">GOVERNANCE.md</code>, <code class="text-primary">ENTITYFILE</code>, HUMANFILE, Agentfiles</div>
+        <div><code class="text-error">deny: write-src</code> &mdash; project source files</div>
+        <div><code class="text-error">deny-path: &lt;path&gt;</code> &mdash; literal or prefix-match path block</div>
+        <div><code class="text-error">deny-verb: &lt;cmd&gt;</code> &mdash; exact or prefix-match command block</div>
+      </div>
+    </div>
+
+    <p class="font-body text-xs text-outline max-w-xl">
+      Pin profiles are the per-worker knob. Tier defaults are the per-operator floor. The trust model determines tier; the operator authors profiles; the evaluator merges and enforces. None of the three is load-bearing on its own.
+    </p>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
     <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
     <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
-    <a href="/docs/entityfile"><Icon name="groups" size="14" class="align-middle mr-1" />ENTITYFILE</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />CLI</a>
   </div>
 </DocsLayout>

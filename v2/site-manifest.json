@@ -750,14 +750,33 @@
       "tags": [],
       "sources": [
         {
-          "path": "src/kernel/policy.rs"
+          "path": "src/serve/policy.rs"
+        },
+        {
+          "path": "src/serve/attenuation.rs"
+        },
+        {
+          "path": "src/kernel/file.rs"
+        },
+        {
+          "path": "src/kernel/identity.rs"
+        },
+        {
+          "path": "src/commands/issue_pin.rs"
+        },
+        {
+          "path": "src/commands/learn.rs"
         },
         {
           "path": "src/kernel/sandbox.rs"
         }
       ],
       "related": [],
-      "status": "unverified"
+      "verified_at": {
+        "sha": "e870ff60",
+        "timestamp": "2026-04-27T03:13:10Z"
+      },
+      "status": "current"
     },
     {
       "route": "/docs/primefile",
