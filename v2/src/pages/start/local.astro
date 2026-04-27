@@ -11,7 +11,7 @@ import { LATEST_TAG } from '../../site-version';
   sectionLabel="START_PATH // LOCAL_TUI"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Point ostk at a model running on your machine. ostk's TUI becomes the chat surface; everything else — audit, capability bounds, secret-mediation — works the same as the hosted path.
+    Point ostk at a model running on your machine. ostk's TUI becomes the chat surface; everything else — audit, capability bounds, secret handling — works the same as the hosted path.
   </p>
 
   <!-- What this path is -->
@@ -19,7 +19,7 @@ import { LATEST_TAG } from '../../site-version';
     <h2 class="section-label mb-4">WHAT_YOU'LL_DO</h2>
     <div class="space-y-px max-w-2xl">
       {[
-        { num: '01', step: 'Verify install + run ostk init in your project (universal steps from /start).' },
+        { num: '01', step: 'Verify install and run ostk init in your project (universal steps from /start).' },
         { num: '02', step: 'Pick a backend: ollama (cross-platform, default) or mlx (Apple Silicon-only, faster on M-series).' },
         { num: '03', step: 'Pull or load a model. Tool-capable models recommended — not every local model supports function calling.' },
         { num: '04', step: 'Spawn an agent with the model alias. ostk routes to the local server; audit + pin caps still apply.' },
@@ -46,9 +46,9 @@ import { LATEST_TAG } from '../../site-version';
   <section class="mb-16">
     <div class="border-t-2 border-primary pt-8">
       <div class="section-label mb-4">BACKEND_01 // OLLAMA</div>
-      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on ollama (recommended)</h2>
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on ollama (default path)</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-        ollama runs models on macOS, Linux, and Windows. It exposes an OpenAI-wire HTTP server at <code class="text-primary">localhost:11434</code> by default. ostk's openrouter driver speaks that wire format and routes models prefixed <code class="text-primary">ollama/</code> or <code class="text-primary">local/</code> to it.
+        ollama runs models on macOS, Linux, and Windows. It exposes an OpenAI-wire HTTP server at <code class="text-primary">localhost:11434</code> by default. ostk's OpenAI-wire driver routes models prefixed <code class="text-primary">ollama/</code> or <code class="text-primary">local/</code> to that endpoint.
       </p>
       <p class="font-body text-xs text-outline max-w-xl mb-8">
         Source: <code class="text-primary">src/cpu/providers.rs:74</code> (Ollama prefix routing), <code class="text-primary">src/cpu/openrouter.rs</code> (OpenAI-wire client).
@@ -82,25 +82,28 @@ import { LATEST_TAG } from '../../site-version';
     <div class="bg-surface-container-low p-4 max-w-2xl space-y-2 font-body text-[11px]">
       <div class="flex justify-between">
         <code class="text-primary">qwen2.5-coder:32b</code>
-        <span class="text-secondary">strong tool support, ~20GB, recommended</span>
+        <span class="text-secondary">strong tool support, ~20GB on disk, ~32GB RAM at runtime</span>
       </div>
       <div class="flex justify-between">
         <code class="text-primary">qwen2.5-coder:7b</code>
-        <span class="text-secondary">faster, ~5GB, good for laptops</span>
+        <span class="text-secondary">~5GB on disk, fits on 16GB-RAM laptops, weaker tool reasoning</span>
       </div>
       <div class="flex justify-between">
         <code class="text-primary">llama3.1:70b</code>
-        <span class="text-secondary">strong general, ~40GB, needs serious RAM</span>
+        <span class="text-secondary">strong general, ~40GB on disk, needs ~64GB RAM</span>
       </div>
       <div class="flex justify-between">
         <code class="text-primary">llama3.1:8b</code>
-        <span class="text-secondary">solid baseline, ~5GB</span>
+        <span class="text-secondary">solid baseline, ~5GB on disk, fits on 16GB-RAM laptops</span>
       </div>
       <div class="flex justify-between text-error">
         <code>deepseek-r1:70b</code>
         <span>does NOT support tools — will fail</span>
       </div>
     </div>
+    <p class="font-body text-[10px] text-outline mt-3 max-w-lg">
+      Tool support is per-model and per-build. Verified 2026-04. Check <code class="text-primary">ollama list --json | jq '.models[].capabilities'</code> for the current state on your machine.
+    </p>
     <Terminal>
       <pre><span class="text-outline">$ </span>ollama pull qwen2.5-coder:32b
 pulling manifest
@@ -126,7 +129,7 @@ ok</pre>
   --task "Explain the structure of this repo"</pre>
     </Terminal>
     <p class="font-body text-xs text-outline mt-3 max-w-lg">
-      The <code class="text-primary">--budget</code> is in turn-units; for local models you can be generous (no per-token cost). Source: <code class="text-primary">src/commands/agent_cmd.rs</code>.
+      The <code class="text-primary">--budget</code> is a USD cap (<code class="text-primary">10</code> means $10). For local models the dollar bound is symbolic — there's no per-token cost — but the field is required and <code>0</code> / <code>unlimited</code> / negative are rejected at parse time. <code class="text-primary">_agent</code> is the lowest-level spawn primitive (hidden in <code>--help</code>); most users go through <code>ostk tui</code> or an Agentfile via <code>ostk run</code>. Source: <code class="text-primary">src/main.rs:1057-1073</code>, <code class="text-primary">src/commands/agent_cmd.rs:239</code>.
     </p>
   </section>
 
@@ -136,9 +139,9 @@ ok</pre>
   <section class="mb-16">
     <div class="border-t-2 border-primary pt-8">
       <div class="section-label mb-4">BACKEND_02 // MLX</div>
-      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on Apple mlx (M-series only)</h2>
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on Apple mlx (Apple Silicon only)</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-        Apple's mlx framework runs quantized models on M-series chips with notably lower latency than ollama for the same model size. ostk routes <code class="text-primary">mlx/</code>-prefixed models to a <code class="text-primary">mlx_lm.server</code> at <code class="text-primary">localhost:11942</code> using the same OpenAI-wire format.
+        Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size; pick mlx if you have the chip. ostk routes <code class="text-primary">mlx/</code>-prefixed models to a <code class="text-primary">mlx_lm.server</code> at <code class="text-primary">localhost:11942</code> using the same OpenAI-wire format.
       </p>
       <p class="font-body text-xs text-outline max-w-xl mb-8">
         Source: <code class="text-primary">src/cpu/providers.rs:69-72</code> (MLX prefix routing), <code class="text-primary">src/cpu/mlx_lifecycle.rs</code> (server lifecycle), <code class="text-primary">src/commands/mlx.rs</code> (mlx-specific verbs).
@@ -165,11 +168,12 @@ ok</pre>
     </p>
     <Terminal>
       <pre><span class="text-outline"># Default: prism-ml/Ternary-Bonsai-8B-mlx-2bit</span>
-<span class="text-outline">$ </span>MLX_MODEL_ID=prism-ml/Ternary-Bonsai-8B-mlx-2bit \
+<span class="text-outline"># 4-bit recommended for coding (2-bit is faster but loses accuracy — see Caveats)</span>
+<span class="text-outline">$ </span>MLX_MODEL_ID=mlx-community/Qwen2.5-Coder-32B-Instruct-4bit \
   mlx_lm.server --port 11942</pre>
     </Terminal>
     <p class="font-body text-xs text-outline mt-3 max-w-lg">
-      The ostk alias (e.g. <code class="text-primary">mlx/ternary-bonsai-8b</code>) is remapped to the wire model-id from <code class="text-primary">MLX_MODEL_ID</code>. Source: <code class="text-primary">src/cpu/providers.rs:22-26</code>.
+      ostk remaps the alias (e.g. <code class="text-primary">mlx/ternary-bonsai-8b</code>) to the wire model-id from <code class="text-primary">MLX_MODEL_ID</code>. Port 11942 is the ostk default for mlx (see <a href="/docs/env-vars" class="text-primary hover:underline">env-vars</a>). Source: <code class="text-primary">src/cpu/providers.rs:22-26</code>.
     </p>
 
     <!-- 02-3: spawn -->
@@ -183,7 +187,7 @@ ok</pre>
   --task "Run cargo check and report"</pre>
     </Terminal>
     <p class="font-body text-xs text-outline mt-3 max-w-lg">
-      Tool calls on mlx models use the <code class="text-primary">Hybrid</code> emission style — ostk parses tool calls embedded in text output, since mlx-quantized models often skip the structured-tool-call envelope. Source: <code class="text-primary">src/cpu/mod.rs</code> ToolCallEmissionStyle.
+      Tool calls on mlx models come back inside the text output, not as a separate structured field — quantized models often skip the structured envelope. ostk extracts them either way. Same <code class="text-primary">--budget</code> semantics as the ollama path (USD cap; symbolic for local models). Source: <code class="text-primary">src/cpu/mod.rs:466</code> (enum), <code class="text-primary">:765</code> (mlx), <code class="text-primary">:789</code> (ollama).
     </p>
   </section>
 
@@ -221,8 +225,8 @@ boot confidence: 1.00 ◉
     <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-2xl">
       {[
         { issue: 'Tool support is per-model', body: 'Some local models (notably reasoning-only models like deepseek-r1) cannot emit tool calls. ostk will report "API error 400: model does not support tools." Switch to a tool-capable model.' },
-        { issue: 'Latency is higher', body: 'A 32B-parameter model on a laptop is slower than Sonnet over the wire. First response includes model warm-up. Subsequent calls are fast — context stays in mlx LocalKV / ollama cache.' },
-        { issue: 'Context window is smaller', body: 'Hosted Sonnet has 200k tokens; ollama models default to 128k; mlx Bonsai is 65k declared / 8k effective. Long sessions hit context limits sooner — use ostk\'s :clear for context cycling.' },
+        { issue: 'Latency is higher', body: 'A 32B-parameter model on a laptop is slower than Sonnet over the wire. First response includes model warm-up. Subsequent calls are fast — mlx tracks a LocalKV prompt cache; ollama relies on its own server-side warmth.' },
+        { issue: 'Context window is smaller', body: 'Hosted Sonnet has 200k tokens; ollama models default to 128k (ostk\'s per-driver declared window — effective context depends on model + quantization); mlx Bonsai is 65k declared but lower in practice (see /docs/models). Long sessions hit context limits sooner — type :clear in the TUI to cycle context (tack verbs are TUI commands prefixed with a colon; see /docs/tack-grammar).' },
         { issue: 'Cache reuse is local-only', body: 'The fleet-shared prompt cache benefit only applies to hosted providers (Anthropic). Local models don\'t share cache across machines. The trade-off is privacy + zero-cost-per-token.' },
         { issue: 'Quantization affects quality', body: 'mlx-2bit is fast but loses accuracy on coding tasks. mlx-4bit / mlx-fp16 are better. ollama defaults to Q4_K_M which is a good balance.' },
       ].map(c => (
@@ -244,7 +248,8 @@ boot confidence: 1.00 ◉
         { issue: '"connection refused (localhost:11942)"', fix: 'mlx_lm.server is not running. Start it with `MLX_MODEL_ID=... mlx_lm.server --port 11942`.' },
         { issue: 'Agent hallucinates tool calls but never invokes them', fix: 'mlx/ollama emit Hybrid-style tool calls (text-form). ostk parses them via extract_text_tool_calls. If the model is too small (<7B), it may emit malformed tool blocks. Try a larger model.' },
         { issue: 'Out of memory during pull', fix: 'Disk space, not RAM. ollama models are 5–40 GB. Delete with `ollama rm <model>`.' },
-        { issue: 'Out of memory during inference', fix: 'Pick a smaller quantization (q4 instead of q8) or a smaller model (7b instead of 32b).' },
+        { issue: 'Out of memory during inference', fix: 'Pick a smaller quantization (q4 instead of q8) or a smaller model (7b instead of 32b). Quality drops with quantization (see Caveats); 4-bit is the usual sweet spot.' },
+        { issue: 'ollama or olleh on a non-default port', fix: 'Set OLLAMA_HOST=http://localhost:NNNN (or OLLEH_HOST) before invoking ostk; the kernel reads these at driver-construction time. Source: src/cpu/mod.rs:834,988,996.' },
       ].map(t => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
           <span class="text-error w-56 shrink-0">{t.issue}</span>
