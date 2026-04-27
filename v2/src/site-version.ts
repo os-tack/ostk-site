@@ -5,6 +5,6 @@
 // https://github.com/os-tack/ostk.ai/releases (a binary, not just
 // a haystack source tag — those move ahead of shipped binaries).
 
-export const LATEST_VERSION = "4.3.2";
+export const LATEST_VERSION = "4.4.2";
 export const LATEST_TAG = `v${LATEST_VERSION}`;
 export const RELEASE_URL = `https://github.com/os-tack/ostk.ai/releases/tag/${LATEST_TAG}`;

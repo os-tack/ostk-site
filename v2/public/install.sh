@@ -1,11 +1,11 @@
 #!/bin/sh
 # ostk installer — downloads the latest binary
-# Usage: curl -fsSL https://ostk.ai/install | sh
+# Usage: curl -fsSL https://ostk.ai/install.sh | sh
 #
 # After install, run: ostk init (in a git repo)
 #
 # Env overrides:
-#   OSTK_VERSION=2.2.0    pin a version
+#   OSTK_VERSION=4.4.2    pin a version
 #   OSTK_INSTALL_DIR=...  install somewhere else
 set -e
 
@@ -54,7 +54,7 @@ fi
 
 # ── Download ──────────────────────────────────────────────────────────────────
 
-TARBALL="ostk-v${VERSION}-${TARGET}.tar.gz"
+TARBALL="ostk-${VERSION}-${TARGET}.tar.gz"
 ASC="${TARBALL}.asc"
 BASE_URL="https://github.com/$REPO/releases/download/v$VERSION"
 

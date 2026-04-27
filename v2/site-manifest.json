@@ -12,7 +12,11 @@
       "tags": [],
       "sources": [],
       "related": [],
-      "status": "unverified"
+      "verified_at": {
+        "sha": "2b8bca92",
+        "timestamp": "2026-04-27T00:32:46Z"
+      },
+      "status": "current"
     },
     {
       "route": "/404",

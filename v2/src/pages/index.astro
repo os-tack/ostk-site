@@ -6,9 +6,9 @@ import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
   items: [
-    { icon: 'rocket_launch', label: 'QUICK_START', href: '/docs/getting-started' },
-    { icon: 'terminal', label: 'COMMANDS', href: '/docs/commands' },
-    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start' },
+    { icon: 'extension', label: 'MCP', href: '/docs/mcp' },
     { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
     { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
     { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
@@ -20,17 +20,17 @@ const sidebarGroups = {
 };
 ---
 
-<Base title="ostk — The Operating System for AI Coding Agents" description="ostk is a local-first operating system for coordinating multiple AI coding agents on a shared codebase. Invisible write tracking, optimistic concurrency, GPG trust tiers, and audit trails — all from a single Rust binary with zero dependencies.">
+<Base title="ostk — like containers, for AI agents" description="Run multiple AI coding agents on your codebase. ostk coordinates their writes, bounds what they can touch, and signs the audit trail. One Rust binary, local-first, zero dependencies.">
   <script slot="schema" type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "ostk",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "macOS, Linux",
-    "description": "A local-first operating system for coordinating multiple AI coding agents on shared codebases. Invisible write tracking, optimistic concurrency, GPG trust tiers, and audit trails.",
+    "description": "A local-first kernel for AI coding agents. Coordinates writes, bounds capability, signs audit trails. Like containers, for agents.",
     "url": "https://ostk.ai",
-    "downloadUrl": "https://ostk.ai/install",
-    "softwareVersion": "3.0.0",
+    "downloadUrl": "https://ostk.ai/install.sh",
+    "softwareVersion": LATEST_TAG.replace(/^v/, ''),
     "license": "https://ostk.ai/legal/license",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   })} />
@@ -39,21 +39,55 @@ const sidebarGroups = {
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
     <div class="max-w-5xl mx-auto py-12">
 
-      <!-- Hero: What ostk is -->
+      <!-- Hero: containers, for agents -->
       <section class="mb-20">
         <div class="section-label mb-4">SYSTEM_MANIFEST // OSTK</div>
         <h1 class="serif-text text-7xl font-bold tracking-tighter text-on-surface mb-6">
-          The operating system<br/>for AI agents.
+          Like containers,<br/>for AI agents.
         </h1>
         <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
-          Invisible coordination through the filesystem, built from Unix primitives. Agents don't know it's there. You see everything.
+          Plus the kernel underneath.
+        </p>
+        <p class="font-body text-base text-secondary max-w-2xl mb-4">
+          Containers gave processes isolation, packaging, and reproducibility. ostk gives those to AI coding agents — and ships the kernel that coordinates the agents, audits their work, and signs the record.
+        </p>
+        <p class="font-body text-base text-on-surface max-w-2xl mb-3">
+          Run Claude, Cursor, your own scripts, or a local model on the same codebase. They don't collide. They leave a signed trail. You stay in control.
         </p>
         <p class="font-body text-sm text-secondary max-w-2xl mb-8">
-          ostk is a local-first operating system for coordinating multiple AI coding agents on a shared codebase. It intercepts file writes at the tool layer, resolves conflicts through optimistic concurrency, and enforces trust boundaries via GPG-based capability pins — all without requiring agents to learn new APIs or coordination protocols.
+          Even with one agent, you get a signed audit trail and capability bounds. With two, you get the rest.
         </p>
 
-        <!-- Install block -->
-        <div class="max-w-lg mb-8">
+        <!-- Three persona CTAs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-8 max-w-3xl">
+          <a href="/docs/mcp" class="bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
+            <div class="flex items-start gap-3 mb-2">
+              <Icon name="extension" size="18" class="text-primary" />
+              <div class="font-body text-sm text-primary font-bold">DRIVE_YOUR_AGENT</div>
+            </div>
+            <p class="font-body text-xs text-secondary mb-2">Wire ostk into Claude Code, Cursor, or any MCP-capable tool. Keep your UI; gain coordination.</p>
+            <div class="font-label text-[10px] text-outline">~10 MIN</div>
+          </a>
+          <a href="/start" class="bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
+            <div class="flex items-start gap-3 mb-2">
+              <Icon name="tv" size="18" class="text-primary" />
+              <div class="font-body text-sm text-primary font-bold">RUN_A_LOCAL_MODEL</div>
+            </div>
+            <p class="font-body text-xs text-secondary mb-2">Run a local model through ollama or mlx, with ostk's terminal UI as the chat surface. No API bill. Everything stays local.</p>
+            <div class="font-label text-[10px] text-outline">~15 MIN</div>
+          </a>
+          <a href="/start" class="bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
+            <div class="flex items-start gap-3 mb-2">
+              <Icon name="cloud" size="18" class="text-primary" />
+              <div class="font-body text-sm text-primary font-bold">SERVER_MODE</div>
+            </div>
+            <p class="font-body text-xs text-secondary mb-2">Run ostk as a server on a Unix socket. CI runners, remote machines, and Discord bots connect and drive agents.</p>
+            <div class="font-label text-[10px] text-outline">~10 MIN</div>
+          </a>
+        </div>
+
+        <!-- Or just install -->
+        <div class="max-w-lg mb-6">
           <div class="bg-surface-container-lowest border border-surface-variant">
             <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
               <div class="w-2 h-2 rounded-full bg-error-container"></div>
@@ -62,53 +96,62 @@ const sidebarGroups = {
               <span class="ml-auto font-label text-[9px] text-outline">TERMINAL</span>
             </div>
             <div class="px-4 py-3 font-body text-sm">
-              <div><span class="text-outline select-none">$ </span><span class="text-primary">curl -fsSL https://ostk.ai/install | sh</span></div>
-              <div><span class="text-outline select-none">$ </span><span class="text-primary">ostk init</span></div>
-              <div><span class="text-outline select-none">$ </span><span class="text-primary">ostk listen</span></div>
+              <div><span class="text-outline select-none">$ </span><span class="text-primary">curl -fsSL https://ostk.ai/install.sh | sh</span></div>
+              <div><span class="text-outline select-none">$ </span><span class="text-primary">cd ~/projects/your-repo && ostk init</span></div>
             </div>
           </div>
+          <p class="font-body text-[10px] text-outline mt-2">macOS arm64/x86_64, Linux musl arm64/x86_64. <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="underline hover:text-primary">Windows ZIP from releases</a>. GPG-signed binaries. ~30 seconds.</p>
         </div>
 
         <!-- Status ribbon -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-y border-surface-variant text-xs">
           <div class="flex gap-2">
             <span class="font-label text-[10px] text-secondary">BINARY:</span>
-            <span class="font-label text-[10px] text-on-surface">SINGLE RUST</span>
+            <span class="font-label text-[10px] text-on-surface">ONE_RUST_EXECUTABLE</span>
           </div>
           <div class="flex gap-2 md:border-l md:border-surface-variant md:pl-4">
             <span class="font-label text-[10px] text-secondary">DEPS:</span>
-            <span class="font-label text-[10px] text-on-surface">ZERO</span>
+            <span class="font-label text-[10px] text-on-surface">NONE_AT_RUNTIME</span>
           </div>
           <div class="flex gap-2 md:border-l md:border-surface-variant md:pl-4">
-            <span class="font-label text-[10px] text-secondary">INSTALL:</span>
-            <span class="font-label text-[10px] text-on-surface">~30s</span>
+            <span class="font-label text-[10px] text-secondary">RUNTIME:</span>
+            <span class="font-label text-[10px] text-on-surface">LOCAL_ONLY</span>
           </div>
           <div class="flex gap-2 md:border-l md:border-surface-variant md:pl-4">
             <span class="font-label text-[10px] text-secondary">TRUST:</span>
-            <span class="font-label text-[10px] text-primary">GPG CHAIN</span>
+            <span class="font-label text-[10px] text-primary">GPG_SIGNED</span>
           </div>
         </div>
       </section>
 
-      <!-- Three problems it solves -->
+      <!-- Three problems -->
       <section class="mb-20">
-        <div class="section-label mb-8">WHAT_IT_SOLVES</div>
+        <div class="section-label mb-4">WHAT_AGENTS_BREAK</div>
+        <p class="font-body text-sm text-secondary max-w-2xl mb-8">
+          Three things break the moment you run more than one agent. ostk fixes all three at the kernel layer, without changing how you drive your agents.
+        </p>
         <div class="space-y-px">
           {[
             {
               num: '01',
-              title: 'Agents collide on shared files',
-              body: 'Multiple agents editing the same codebase means race conditions, conflicts, and lost writes. ostk intercepts str_replace as a compare-and-swap. No locking, no message queues. Conflicts resolve after the fact.',
+              title: 'They collide.',
+              body: 'Two agents edit the same file. Last write wins. Silently. ostk catches every conflict before it lands. Nothing disappears; the second writer sees a clean error.',
+              link: '/why#collision',
+              link_label: 'Read why',
             },
             {
               num: '02',
-              title: 'Agent state scatters on crash',
-              body: 'After a crash, you lose context, audit trail, and recovery checkpoints. ostk maintains a durable kernel (.ostk/) tracking agent lifecycle, file generations, and signed checkpoints. Every state transition is logged. Boot from verified state.',
+              title: 'They drift.',
+              body: 'Each agent has its own context. They re-discover the same things. They forget what was decided. ostk gives every agent a shared state directory to read from — the project develops a memory.',
+              link: '/why#drift',
+              link_label: 'Read why',
             },
             {
               num: '03',
-              title: 'Running agents in production means risk',
-              body: 'Which Agentfile was executed? Did the code change after signing? ostk enforces trust layers: GPG-sign Agentfiles, bind to HUMANFILE identity, record revocations by content hash. Attestation chains prove what ran.',
+              title: 'They leave no trace.',
+              body: 'You can\'t replay, audit, or prove what shipped. ostk records every action in a hash-chained, optionally GPG-signed audit trail. Replay any session, byte for byte.',
+              link: '/why#trace',
+              link_label: 'Read why',
             },
           ].map(problem => (
             <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 gap-0">
@@ -117,59 +160,65 @@ const sidebarGroups = {
               </div>
               <div class="md:col-span-11 p-6">
                 <h3 class="serif-text text-xl font-medium text-on-surface mb-2">{problem.title}</h3>
-                <p class="font-body text-xs text-secondary leading-relaxed max-w-xl">{problem.body}</p>
+                <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-2">{problem.body}</p>
+                <a href={problem.link} class="font-body text-[11px] text-primary hover:underline">→ {problem.link_label}</a>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <!-- Memory Hierarchy -->
+      <!-- Why containers comparison -->
       <section class="mb-20">
-        <div class="section-label mb-4">MEMORY_HIERARCHY</div>
-        <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-          Classical computer memory mapped to LLM inference primitives. Adding agents decreases per-agent cost.
+        <div class="section-label mb-4">CONTAINERS_VS_OSTK</div>
+        <p class="font-body text-sm text-secondary max-w-2xl mb-6">
+          Containers gave processes isolation. They didn't ship coordination. ostk does.
         </p>
-        <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+        <div class="bg-surface-container-low p-6 max-w-3xl">
+          <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-3 mb-3">
+            <div class="font-label text-[10px] text-secondary">PROBLEM</div>
+            <div class="font-label text-[10px] text-secondary">CONTAINERS</div>
+            <div class="font-label text-[10px] text-primary">OSTK</div>
+          </div>
           {[
-            { label: 'REGISTERS', desc: 'CONTEXT_WINDOW', latency: '0ms', width: '94%' },
-            { label: 'L1_CACHE', desc: 'PROMPT_CACHE', latency: '~0ms', width: '82%' },
-            { label: 'L1.5', desc: 'FILES_API', latency: '50ms', width: '65%' },
-            { label: 'RAM', desc: 'POSIX_FILES', latency: '1ms', width: '40%' },
-            { label: 'DISK', desc: 'GIT_ARTIFACTS', latency: '10ms', width: '22%' },
-            { label: 'SWAP', desc: 'AUDIT_LOGS', latency: '100ms', width: '8%' },
-          ].map(tier => (
-            <div class="flex items-center mb-2">
-              <div class="w-24 font-label text-[10px] text-secondary shrink-0">{tier.label}</div>
-              <div class="flex-1 h-10 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
-                <div class="absolute left-0 top-0 h-full bg-primary opacity-10" style={`width: ${tier.width}`}></div>
-                <div class="flex justify-between w-full z-10">
-                  <span class="font-body text-xs">{tier.desc}</span>
-                  <span class="font-body text-xs text-primary">{tier.latency}</span>
-                </div>
-              </div>
+            ['Isolation', 'cgroups + namespaces', 'Capability pins + scoped agent stacks'],
+            ['Packaging', 'OCI image', 'Agentfile + signed release package'],
+            ['Coordination across instances', 'Bolt-on (Kubernetes, etc.)', 'Built into the kernel'],
+            ['Audit of actions', 'Out of band', 'Hash-chained event log per project'],
+            ['Identity & trust', 'Image signing (sigstore, etc.)', 'GPG web of trust, four signing tiers'],
+            ['Reproducibility', 'Image digest', 'audit.jsonl replay + signed claims'],
+            ['Resource bounds', 'CPU/memory limits', 'Token/turn budgets per agent'],
+          ].map(row => (
+            <div class="grid grid-cols-3 gap-4 font-body text-xs py-2 border-b border-surface-variant">
+              <div class="text-secondary">{row[0]}</div>
+              <div class="text-on-surface">{row[1]}</div>
+              <div class="text-on-surface">{row[2]}</div>
             </div>
           ))}
         </div>
+        <p class="font-body text-[11px] text-outline mt-3 max-w-xl">
+          Not a wrapper around containers. Containers contain processes; ostk contains agents.
+        </p>
       </section>
 
-      <!-- What the OS handles -->
+      <!-- What you get -->
       <section class="mb-20">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+        <div class="section-label mb-4">WHAT_YOU_GET</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
           {[
-            { icon: 'edit', label: 'WRITE_TRACKING', desc: 'Every file write intercepted, assigned a generation counter via optimistic concurrency' },
-            { icon: 'merge', label: 'CONFLICT_RESOLUTION', desc: 'Hot PR — auto-merge, mechanical rebase, or manual. Three tiers.' },
-            { icon: 'compress', label: 'COST_REDUCTION', desc: '28% measured cost reduction via prompt cache reuse + shell output dedup' },
-            { icon: 'shield', label: 'TRUST_ENFORCEMENT', desc: 'T0-T3 trust tiers, GPG web of trust, deny-based capability pins' },
-            { icon: 'list_alt', label: 'AUDIT_TRAIL', desc: 'Append-only events. fold(audit.jsonl) reconstructs the fleet at any point' },
-            { icon: 'key', label: 'SECRET_MEDIATION', desc: 'API keys resolved from keychain at call time. Never in agent context.' },
+            { icon: 'merge', label: 'NO_LOST_WRITES', desc: 'Compare-and-swap file edits. Conflicts surface; silent overwrites don\'t happen.' },
+            { icon: 'list_alt', label: 'EVERY_ACTION_AUDITED', desc: 'Append-only events, hash-chained, optionally GPG-signed. Replay any session.' },
+            { icon: 'shield', label: 'CAPABILITY_BOUNDS', desc: 'Capability pins deny by default. Agents that try to escape get a hard no, logged.' },
+            { icon: 'key', label: 'NO_KEYS_IN_CONTEXT', desc: 'API keys resolved from keychain at call time. Never in the agent\'s prompt.' },
+            { icon: 'compress', label: 'SHARED_CACHE', desc: 'Prompt cache shared across the fleet. One fetch, many agents.' },
+            { icon: 'home', label: 'LOCAL_FIRST', desc: 'No cloud sync, no telemetry. Works offline. Your code stays on your machine.' },
           ].map(feature => (
-            <div class="bg-surface p-6">
+            <div class="bg-surface p-5">
               <div class="flex items-start gap-3">
                 <Icon name={feature.icon} size="14" class="text-outline mt-0.5" />
                 <div>
                   <div class="font-label text-[10px] text-primary mb-1">{feature.label}</div>
-                  <div class="font-body text-xs text-secondary">{feature.desc}</div>
+                  <div class="font-body text-xs text-secondary leading-relaxed">{feature.desc}</div>
                 </div>
               </div>
             </div>
@@ -180,13 +229,9 @@ const sidebarGroups = {
       <!-- CTA -->
       <section>
         <div class="flex flex-col sm:flex-row gap-4">
-          <a href="/docs/getting-started" class="bg-primary text-on-primary font-body text-sm py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
-            <Icon name="terminal" size="14" />
-            QUICK_START
-          </a>
-          <a href="/docs" class="bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
-            <Icon name="menu_book" size="14" />
-            DOCUMENTATION
+          <a href="/start" class="bg-primary text-on-primary font-body text-sm py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
+            <Icon name="rocket_launch" size="14" />
+            START_HERE
           </a>
           <a href="https://github.com/os-tack/ostk.ai" class="bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
             <Icon name="code" size="14" />
