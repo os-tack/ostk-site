@@ -2,145 +2,185 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Terminal from '../../components/Terminal.astro';
-
-const directives = [
-  { name: 'FROM', req: true, desc: 'Model name. Exactly one required.', example: 'FROM claude-sonnet-4-6' },
-  { name: 'PROMPT', req: true, desc: 'System prompt. Inline quoted, unquoted multi-line, file:// reference, or heredoc.', example: 'PROMPT "You are a bug fixer."' },
-  { name: 'TOOL', req: false, desc: 'MCP tool name or capability pattern. Aliases: shell, bash → shell; file:read, fs_read → file:read.', example: 'TOOL shell:write(src/)' },
-  { name: 'SKILL', req: false, desc: 'Skill bundle name.', example: 'SKILL tdd' },
-  { name: 'LIMIT', req: false, desc: 'Key-value resource constraint. Budget, tokens, turns, wall clock, sandbox, permissions.', example: 'LIMIT budget_usd 5' },
-  { name: 'WORK', req: false, desc: 'Needle pull-filter expression. At most one. Defines which needles this agent can execute.', example: 'WORK tags=rust,bugfix priority>=P1' },
-  { name: 'INTERRUPT', req: false, desc: 'Event-driven wake trigger. Format: file:<path> or event:<name>.', example: 'INTERRUPT event:hay.filed' },
-  { name: 'BOOT', req: false, desc: 'Kernel command to run before PROMPT loads. Supports heredoc.', example: 'BOOT ostk boot' },
-  { name: 'PIN', req: false, desc: 'Capability pin name. Activates pin.caps policy checks.', example: 'PIN default' },
-  { name: 'ISOLATION', req: false, desc: 'Sandbox tier: none (default), nono (Landlock/Seatbelt), docker, firecracker.', example: 'ISOLATION nono' },
-  { name: 'ATTEST', req: false, desc: 'Signing mode: self (Ed25519, default), gpg, sigstore, both.', example: 'ATTEST gpg' },
-  { name: 'BETA', req: false, desc: 'Beta feature flag. Valid: context-management, fast-mode, token-counting, code-execution, files-api, extended-cache-ttl, output-128k, context-1m.', example: 'BETA files-api' },
-];
-
-const limits = [
-  { key: 'budget_usd', desc: 'Spending cap in USD' },
-  { key: 'tokens', desc: 'Maximum token count' },
-  { key: 'turns', desc: 'Maximum conversation turns' },
-  { key: 'wall_clock', desc: 'Timeout in seconds' },
-  { key: 'context_pct', desc: 'Context window usage percentage cap' },
-  { key: 'permissions', desc: 'governed | supervised | restricted' },
-  { key: 'revival_policy', desc: 'revive (default) | reap | ask' },
-  { key: 'destructive_ops', desc: 'confirm | deny | allow' },
-];
 ---
 
 <DocsLayout
   title="Agentfile"
-  description="The agent process descriptor. Defines model, prompt, tools, limits, isolation, and attestation for each agent."
-  sectionLabel="CONFIGURATION // AGENT_DESCRIPTOR"
+  description="An Agentfile is a Dockerfile for agents — a declarative spec the kernel can audit, supervise, and verify. Four operator problems and the compositions that solve them."
 >
-  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-4">
-    The container format for agent definitions. Like a Dockerfile for AI agents.
-  </p>
-  <p class="font-body text-xs text-outline mb-12">
-    Location: <code class="text-primary">./Agentfile</code> (default) or <code class="text-primary">./agents/&lt;name&gt;.af</code> (named)
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-8">
+    An Agentfile is a Dockerfile for agents. Plain-text directives in a stable order; the kernel reads it once, signs it, and supervises everything that follows. Below: four problems an operator has when authoring one, and the compositions that answer them.
   </p>
 
-  <!-- Example -->
+  <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-12">
+    Agentfiles live at <code class="text-primary">.ostk/agents/&lt;name&gt;.Agentfile</code> (per-project workers) or <code class="text-primary">.ostk/profiles/&lt;name&gt;.Agentfile</code> (reusable templates). The lifecycle verbs are <code class="text-primary">ostk agentfile new / list / show / lint / validate</code>. Run with <code class="text-primary">ostk run &lt;path&gt;</code>. Source: <code class="text-primary">src/commands/agentfile_cmd.rs</code>, <code class="text-primary">src/commands/run.rs</code>.
+  </p>
+
+  <!-- Problem 01 -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">EXAMPLE</h2>
+    <div class="section-label mb-4">PROBLEM_01 // WRITE_YOUR_FIRST</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I want to spawn a worker for one task. Where do I start?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      <code class="text-primary">ostk agentfile new fix-bug-27</code> scaffolds a starter Agentfile from a profile template. Edit two things: the <code class="text-primary">FROM</code> directive (which model — anthropic, openrouter, ollama/, mlx/) and the <code class="text-primary">TASK</code> directive (the prompt that defines the work). Optional: tighten <code class="text-primary">LIMIT budget_usd</code> and <code class="text-primary">LIMIT turns</code>. Then <code class="text-primary">ostk run</code> spawns the worker.
+    </p>
+
     <Terminal>
-      <pre><span class="text-outline"># agents/lint-fix.af</span>
+      <pre><span class="text-outline">$ </span>ostk agentfile new fix-bug-27
+created: .ostk/agents/fix-bug-27.Agentfile
 
+<span class="text-outline">$ </span>cat .ostk/agents/fix-bug-27.Agentfile
 <span class="text-primary">FROM</span> claude-sonnet-4-6
-
-<span class="text-primary">PROMPT</span> You are a code quality agent.
-Fix all ESLint warnings in the src/ directory.
-Run the linter after each fix to verify.
-
-<span class="text-primary">TOOL</span> shell
-<span class="text-primary">TOOL</span> file:read
-<span class="text-primary">TOOL</span> file:edit
-
 <span class="text-primary">LIMIT</span> budget_usd 2
 <span class="text-primary">LIMIT</span> turns 30
 <span class="text-primary">LIMIT</span> wall_clock 600
+<span class="text-primary">TASK</span> Fix the bug described in needle →27.
+     Write a regression test, run cargo check, commit when green.
 
-<span class="text-primary">PIN</span> default
-<span class="text-primary">ISOLATION</span> nono
-<span class="text-primary">ATTEST</span> self</pre>
+<span class="text-outline">$ </span>ostk run .ostk/agents/fix-bug-27.Agentfile</pre>
     </Terminal>
-  </section>
 
-  <!-- Directives -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">DIRECTIVES</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
-      {directives.map(d => (
-        <div class="flex gap-4 text-xs font-body py-3 border-b border-surface-variant">
-          <code class="text-primary w-24 shrink-0">{d.name}</code>
-          <span class={`w-8 shrink-0 ${d.req ? 'text-primary' : 'text-outline'}`}>{d.req ? 'REQ' : '—'}</span>
-          <span class="text-secondary flex-1">{d.desc}</span>
-          <code class="text-outline shrink-0">{d.example}</code>
-        </div>
-      ))}
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        <code class="text-primary">agentfile new</code> (scaffolder) · the FROM/LIMIT/TASK directives (the spec) · <code class="text-primary">run</code> (spawns the agent loop) · pin caps from <code class="text-primary">OSTK_PIN</code> or tier-default · drain snapshots at every turn.
+      </div>
     </div>
-  </section>
-
-  <!-- LIMIT keys -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">LIMIT_KEYS</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-      {limits.map(l => (
-        <div class="bg-surface-container p-4">
-          <code class="font-body text-xs text-primary">{l.key}</code>
-          <div class="font-body text-xs text-secondary mt-1">{l.desc}</div>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- File resolution -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">FILE_RESOLUTION</h2>
-    <p class="font-body text-xs text-secondary mb-4">
-      The kernel resolves Agentfiles in this order. First match wins.
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/agentfile_cmd.rs</code> (<code>new</code> subcommand), <code class="text-primary">src/commands/run.rs</code>.
     </p>
-    <div class="space-y-px">
-      {[
-        { label: 'Default', paths: ['./Agentfile', '.ostk/scheduler.af (legacy)'] },
-        { label: 'Named', paths: ['./agents/<name>.af', './<name>.af', './<name>', '.ostk/<name> (legacy)'] },
-      ].map(r => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-2 bg-surface-container-low px-4 py-3 font-label text-[10px] text-primary">{r.label}</div>
-          <div class="md:col-span-10 px-4 py-3">
-            {r.paths.map(p => (
-              <div class="font-body text-xs text-secondary py-0.5"><code class="text-on-surface">{p}</code></div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
   </section>
 
-  <!-- PROMPT formats -->
+  <!-- Problem 02 -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">PROMPT_FORMATS</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-      {[
-        { format: 'Inline quoted', example: 'PROMPT "You are a helper."' },
-        { format: 'Inline multi-line', example: 'PROMPT You are a helper.\nAlways check tests.' },
-        { format: 'File reference', example: 'PROMPT file://prompts/system.md' },
-        { format: 'Heredoc', example: 'PROMPT<<EOF\n...\nEOF' },
-      ].map(f => (
-        <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">{f.format}</div>
-          <code class="font-body text-xs text-secondary">{f.example}</code>
-        </div>
-      ))}
+    <div class="section-label mb-4">PROBLEM_02 // DECLARE_THE_FULL_SPEC</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What can I actually declare? Beyond model + task.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Six directive families compose. Each one corresponds to a substrate concept the kernel will enforce — they're not hints, they're contracts. Most workers need only FROM + LIMIT + TASK; the rest are for fleet workers, supervisor trees, and reusable profiles.
+    </p>
+
+    <div class="bg-surface-container-low p-6 max-w-2xl mb-4">
+      <div class="space-y-4">
+        {[
+          { name: 'FROM', req: 'required', desc: 'Which model. anthropic prefixes (claude-sonnet-4-6), openrouter prefixes, ollama/, mlx/, or a profile reference (FROM-PROFILE base-coder).' },
+          { name: 'LIMIT', req: 'optional', desc: 'Resource bounds. budget_usd (rejected at parse time if 0/unlimited/negative), turns (agent-loop iterations), wall_clock (seconds), tokens (cumulative).' },
+          { name: 'TASK', req: 'required', desc: 'The prompt that defines the work. Multi-line via continuation. The agent loop sees this as its initial user message.' },
+          { name: 'PIN', req: 'optional', desc: 'Active pin profile name. Equivalent to setting OSTK_PIN=<name> at spawn. Resolves to .ostk/pins/<name>/pin.caps.' },
+          { name: 'RESTART', req: 'optional', desc: 'Supervisor restart strategy: one_for_one, one_for_all, rest_for_one, simple_one_for_one. Used by the application/v1 supervisor when this agent is part of a tree.' },
+          { name: 'HEALTHCHECK', req: 'optional', desc: 'Liveness probe. Cross-validates with RESTART and LIFETIME. The lint pass catches incompatible combinations.' },
+        ].map(d => (
+          <div class="grid grid-cols-12 gap-4 text-xs font-body py-1 border-b border-surface-variant">
+            <span class="col-span-2 text-primary font-bold">{d.name}</span>
+            <span class="col-span-2 text-outline italic">{d.req}</span>
+            <span class="col-span-8 text-secondary leading-relaxed">{d.desc}</span>
+          </div>
+        ))}
+      </div>
     </div>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-3 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Directive parser · per-directive validators (e.g. <code class="text-primary">parse_budget_usd</code> rejects 0/unlimited/negative) · cross-directive linter (RESTART/LIFETIME/HEALTHCHECK consistency) · the kernel's runtime contract for each declared field.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/agentfile_cmd.rs</code> (lifecycle), <code class="text-primary">src/serve/attenuation.rs</code> (LIMIT parsing), <code class="text-primary">src/cpu/agent_loop.rs</code> (runtime enforcement).
+    </p>
+  </section>
+
+  <!-- Problem 03 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_03 // SHARE_ACROSS_PROJECTS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I keep retyping the same scaffolding. How do I share it?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Profiles. <code class="text-primary">.ostk/profiles/&lt;name&gt;.Agentfile</code> is a reusable template. Any per-project Agentfile can <code class="text-primary">FROM-PROFILE base-coder</code> to inherit its directives. The receiving Agentfile can override or extend; conflicts go to the layered-spec resolver. Profiles can be machine-wide (under <code class="text-primary">~/.local/share/ostk/profiles/</code>) for cross-project reuse, or shipped as part of a signed bail.
+    </p>
+
+    <Terminal>
+      <pre><span class="text-outline"># Create a reusable profile</span>
+<span class="text-outline">$ </span>cat .ostk/profiles/base-coder.Agentfile
+<span class="text-primary">FROM</span> claude-sonnet-4-6
+<span class="text-primary">LIMIT</span> budget_usd 5
+<span class="text-primary">LIMIT</span> turns 50
+<span class="text-primary">PIN</span> default
+
+<span class="text-outline"># Inherit from it in a per-task worker</span>
+<span class="text-outline">$ </span>cat .ostk/agents/fix-bug-27.Agentfile
+<span class="text-primary">FROM-PROFILE</span> base-coder
+<span class="text-primary">LIMIT</span> budget_usd 2          <span class="text-outline"># override: tighter for this one</span>
+<span class="text-primary">TASK</span> Fix bug →27 ...</pre>
+    </Terminal>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Profile directory layout · <code class="text-primary">FROM-PROFILE</code> directive · layered-spec resolver (per-task overrides profile; profile overrides built-in defaults) · profile signing for cross-machine portability.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/agentfile_cmd.rs</code> (FROM-PROFILE resolution), <code class="text-primary">src/commands/migrate.rs</code> (legacy FROM-PROFILE migration, →1422).
+    </p>
+  </section>
+
+  <!-- Problem 04 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_04 // VERIFY_BEFORE_RUN</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I want to know my Agentfile is valid before I burn an LLM call on it.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Three layers of pre-flight. <code class="text-primary">ostk agentfile show</code> renders the parsed result with the signature status — fast sanity check. <code class="text-primary">ostk agentfile lint</code> runs cross-directive rules: RESTART without LIFETIME, HEALTHCHECK against an unreachable verb, FROM-PROFILE that points at a non-existent profile, LIMIT keys with malformed values. <code class="text-primary">ostk agentfile validate</code> is the full pre-flight: parse + sign-verify + lint, returns an OAE.4-style outcome envelope you can pipe into a CI gate.
+    </p>
+
+    <Terminal>
+      <pre><span class="text-outline">$ </span>ostk agentfile show .ostk/agents/fix-bug-27.Agentfile
+parsed: 5 directives, 0 unknown
+signature: not signed (T2 author)
+profile chain: base-coder → built-in defaults
+
+<span class="text-outline">$ </span>ostk agentfile lint .ostk/agents/fix-bug-27.Agentfile
+ok: 5 directives, 0 lint failures
+
+<span class="text-outline">$ </span>ostk agentfile validate .ostk/agents/fix-bug-27.Agentfile
+{`{"verdict":"pass","parse":"ok","sign":"unsigned-ok","lint":"ok"}`}</pre>
+    </Terminal>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Parser (directive grammar) · signer (Ed25519 in-process) · cross-directive linter · OAE.4 outcome envelope for machine-readable verdicts. Same machinery <code class="text-primary">ostk run --dry-run</code> uses.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/commands/agentfile_cmd.rs</code> (show / lint / validate subcommands), <code class="text-primary">src/util/oae.rs</code> (outcome envelope format).
+    </p>
+  </section>
+
+  <!-- The composition -->
+  <section class="mb-16">
+    <div class="section-label mb-4">THE_COMPOSITION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">A Dockerfile for agents.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Plain-text directives, ordered, parsed, signed, supervised. The Dockerfile analogy holds at every layer. <code class="text-primary">FROM</code> picks your base. <code class="text-primary">LIMIT</code> is your resource cap. <code class="text-primary">FROM-PROFILE</code> is your <code class="text-primary">FROM &lt;image&gt;</code> for templating. The lint pass is your build-time validation. The kernel signing is your image-digest equivalent. <code class="text-primary">ostk run</code> is your <code class="text-primary">docker run</code>.
+    </p>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Where the analogy diverges: Agentfiles aren't built into immutable artifacts at author time. They're parsed and signed at <em>spawn</em> time — the kernel reads the file, hashes its content, signs the hash with the operator's identity key, records the signed hash in the journal. Two spawns of the same Agentfile produce two distinct claim-graph entries with the same content hash. The audit chain is what makes the agent's runtime existence verifiable; the file is just the seed.
+    </p>
+
+    <p class="font-body text-xs text-outline italic max-w-xl">
+      <code class="text-primary">application/v1</code> generalizes Agentfiles into supervisor trees — multi-worker setups with restart strategies and shared budgets. Spec ratified at <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-application.md" class="text-primary hover:underline"><code>docs/spec/llmos-application.md</code></a>; the application/v1 lifecycle verbs (<code class="text-primary">ostk app *</code>) land in a future release.
+    </p>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
-    <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
     <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/pins"><Icon name="lock" size="14" class="align-middle mr-1" />PIN_CAPS</a>
+    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />CLI</a>
+    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
   </div>
 </DocsLayout>

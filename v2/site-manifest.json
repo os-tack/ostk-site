@@ -101,14 +101,36 @@
       "tags": [],
       "sources": [
         {
-          "path": "src/agentfile/mod.rs"
+          "path": "src/commands/agentfile_cmd.rs"
         },
         {
-          "path": "src/agentfile/parser.rs"
+          "path": "src/commands/run.rs"
+        },
+        {
+          "path": "src/serve/attenuation.rs"
+        },
+        {
+          "path": "src/cpu/agent_loop.rs"
+        },
+        {
+          "path": "src/commands/migrate.rs"
+        },
+        {
+          "path": "src/util/oae.rs"
+        },
+        {
+          "path": "src/kernel/signing.rs"
+        },
+        {
+          "path": "docs/spec/llmos-application.md"
         }
       ],
       "related": [],
-      "status": "unverified"
+      "verified_at": {
+        "sha": "e870ff60",
+        "timestamp": "2026-04-27T03:15:28Z"
+      },
+      "status": "current"
     },
     {
       "route": "/docs/approval-chain",
