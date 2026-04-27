@@ -6,135 +6,115 @@ import { LATEST_TAG } from '../../site-version';
 
 <DocsLayout
   title="Session Topology"
-  description="How ostk manages agent lifecycles: anchors, lineages, drain snapshots, crash recovery, and sub-stacks."
+  description="How ostk's anchor + lineage + drain snapshots + sub-stacks compose to give you crash recovery, work isolation, transient-client lifecycle, and mid-flight hot-rehydrate."
   sectionLabel="SECTION_03 // SESSION_MGMT"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    The daemon is an anchor. Clients are transient. Sub-stacks are isolation boundaries. Sessions survive everything.
+    Sessions outlive everything that drives them — clients disconnect, daemons crash, workers hang. Four problems, four compositions, one shape: the daemon is a cache, not a ledger; the journal is the truth.
   </p>
 
-  <!-- The Anchor -->
+  <!-- Problem 01 -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Anchor</h2>
-    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-4">
-      <p class="font-body text-sm text-on-surface mb-3">
-        <code class="text-primary">ostk listen</code> starts the kernel daemon — a long-lived process that holds the socket, the process table, and the scheduler.
-      </p>
-      <p class="font-body text-xs text-secondary">
-        The anchor is <span class="text-primary font-bold">not</span> the source of truth. The source of truth is the filesystem — <code class="text-primary">journal.jsonl</code>, <code class="text-primary">gen_table.jsonl</code>, and files on disk. The anchor holds an in-memory projection reconstructed via <code class="text-primary">fold(journal.jsonl)</code>.
-      </p>
-    </div>
-  </section>
+    <div class="section-label mb-4">PROBLEM_01 // DAEMON_CRASHED_DURING_WORK</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">My agent was 12 turns into a task. The daemon crashed. What now?</h2>
 
-  <!-- Session Lineage -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Session Lineage</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      A lineage is a stable identity for ongoing work: <code class="text-primary">scheduler</code>, <code class="text-primary">worker-a</code>. It outlives both the client that spawned it and the anchor that ran it.
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Nothing is lost. Every turn boundary writes a drain snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code> — full message history, token accounting, model + tools + permissions config. When the daemon restarts, it acquires the anchor lock, marks stale sessions <code class="text-primary">Orphaned</code>, then <code class="text-primary">rehydrate_revivable_orphans</code> reads the drain snapshots and rebuilds each session from its last turn. The agent picks up at turn 13 with full context.
     </p>
 
-    {/* State machine */}
-    <div class="flex items-center gap-0 mb-8">
-      {['Active', 'Orphaned', 'Reaped'].map((state, i) => (
-        <>
-          <div class={`px-6 py-3 font-body text-xs font-bold ${i === 0 ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
-            {state}
-          </div>
-          {i < 2 && <div class="px-2 text-outline">→</div>}
-        </>
-      ))}
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Drain snapshots at every turn boundary · lineage state machine (<code class="text-primary">Active → Orphaned → Reaped</code>) · revival policy (<code class="text-primary">revive</code> default, <code class="text-primary">reap</code>, or <code class="text-primary">ask</code>) · Anchor Exclusivity (invariant VIII) keeps two daemons from forking lineages.
+      </div>
     </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/kernel/drain.rs</code>, <code class="text-primary">src/kernel/anchor.rs</code> (<code>orphan_previous_lineages</code> + <code>rehydrate_revivable_orphans</code> + <code>reap_unmanaged_orphans</code>).
+    </p>
+  </section>
 
-    <h3 class="section-label-secondary mb-4">REVIVAL_POLICY</h3>
-    <div class="bg-surface-container-lowest p-4 border border-surface-variant mb-4">
-      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">LIMIT</span> revival_policy revive   <span class="text-outline"># auto-recover from drain snapshot (default)</span>
+  <!-- Problem 02 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_02 // ISOLATE_BLAST_RADIUS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I want to spawn a fleet for one task without it seeing the rest of the project.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Sub-stacks isolate work by scope. <code class="text-primary">.ostk/stacks/&lt;name&gt;/</code> contains its own journal, its own drain directory, its own inbox, and its own nudges. Agents inside the sub-stack see only that scope; the parent anchor sees only the inbox/nudge channel. Token budgets, capability pins, and audit lineage all stay scoped. When the sub-stack seals, the journal collapses into the parent as a single attestation.
+    </p>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Scoped journal + scoped drain + inbox/nudge IPC channels · Root Namespace Isolation (invariant IV) · sub-stack state machine (<code class="text-primary">Spawning → Active → Sealed → Reaped</code>, or <code class="text-primary">Failed</code>).
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/kernel/sub_stack.rs</code>, <code class="text-primary">src/kernel/sandbox.rs</code>.
+    </p>
+  </section>
+
+  <!-- Problem 03 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_03 // CLIENT_DISCONNECTED</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">My TUI lost the socket. Is the agent still running?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Yes. Clients are transient by design — TUI, MCP bridges, CLI one-shots, IDE extensions all attach and detach without affecting the underlying session. The anchor holds session state in memory; clients are subscribers. Reattach over the kernel socket with <code class="text-primary">client/attach</code> and pick up the live event stream from where you left off. The anchor's lifecycle is decoupled from any client's.
+    </p>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Anchor as long-lived process · transient-client JSON-RPC protocol (<code class="text-primary">client/attach</code>, <code class="text-primary">client/detach</code>, <code class="text-primary">client/subscribe</code>) · Connection Continuity (invariant X) makes reattach lossless.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/serve/server.rs</code>, <code class="text-primary">src/serve/client.rs</code>, <code class="text-primary">src/kernel/anchor.rs</code>.
+    </p>
+  </section>
+
+  <!-- Problem 04 -->
+  <section class="mb-16">
+    <div class="section-label mb-4">PROBLEM_04 // WORKER_HUNG_MID_FLIGHT</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">A worker stopped responding. Do I wait for a daemon restart?</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      No — recovery happens in-process. Each session writes a heartbeat at every kernel-mediated step. The scheduler's tick loop watches the heartbeat table; when it expires past threshold, the worker is marked crashed, reaped, and hot-rehydrated from its last drain snapshot — all without restarting the daemon. The heartbeat is the timeout mechanism Bounded Wait (invariant I) requires; the rehydrate path is the same one crash recovery uses.
+    </p>
+
+    <div class="bg-surface-container-low p-5 max-w-xl mb-3">
+      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
+      <div class="font-body text-xs text-secondary leading-relaxed">
+        Heartbeat at every kernel call · scheduler tick loop · drain-snapshot rehydrate · Bounded Wait (I) gives the heartbeat its deadline · Subreaper (III) reaps the dead worker process.
+      </div>
+    </div>
+    <p class="font-body text-[10px] text-outline max-w-xl">
+      Source: <code class="text-primary">src/kernel/scheduler.rs</code>, <code class="text-primary">src/kernel/heartbeat.rs</code>.
+    </p>
+  </section>
+
+  <!-- The composition -->
+  <section class="mb-16">
+    <div class="section-label mb-4">THE_COMPOSITION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Four problems, one shape.</h2>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Every answer above composes the same four primitives: <strong class="text-on-surface">the anchor</strong> (long-lived daemon process holding the socket and the in-memory projection), <strong class="text-on-surface">the lineage</strong> (stable identity for ongoing work — <code class="text-primary">scheduler</code>, <code class="text-primary">worker-a</code> — outliving both client and anchor), <strong class="text-on-surface">the drain snapshot</strong> (reconstructable state at every turn boundary), and <strong class="text-on-surface">the sub-stack</strong> (isolation boundary for scoped work).
+    </p>
+
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      What stays true across all four: the anchor is a cache, not a ledger. The journal + drain snapshots on disk are the truth. <code class="text-primary">ostk daemon restart</code> swaps a rebuilt binary cleanly without losing audit lineage. Reset the anchor and the registries rebuild from journal replay; reset the registries and the kernel keeps writing.
+    </p>
+
+    <div class="bg-surface-container-low p-6 max-w-2xl">
+      <div class="font-label text-[10px] text-primary mb-3">REVIVAL_POLICY</div>
+      <pre class="font-body text-xs text-secondary leading-relaxed mb-3"><span class="text-primary">LIMIT</span> revival_policy revive   <span class="text-outline"># auto-recover from drain snapshot (default)</span>
 <span class="text-primary">LIMIT</span> revival_policy reap     <span class="text-outline"># drop on orphan — don't recover</span>
 <span class="text-primary">LIMIT</span> revival_policy ask      <span class="text-outline"># leave orphaned, operator decides</span></pre>
+      <p class="font-body text-[11px] text-outline">
+        Set in the Agentfile per worker. Ask-pending lineages: <code class="text-primary">ostk lineage resolve &lt;id&gt; --revive</code> or <code class="text-primary">--reap</code>.
+      </p>
     </div>
-    <p class="font-body text-xs text-secondary">
-      Ask-pending lineages: <code class="text-primary">ostk lineage resolve &lt;id&gt; --revive</code> or <code class="text-primary">--reap</code>
-    </p>
-  </section>
-
-  <!-- Drain Snapshots -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
-    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      At every turn boundary, each session writes a drain snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Enabled by default ({LATEST_TAG}+).
-    </p>
-    <div class="grid grid-cols-3 gap-px bg-surface-variant mb-4">
-      {[
-        { label: 'MESSAGES', desc: 'Full conversation history' },
-        { label: 'TOKEN_ACCOUNTING', desc: 'Cumulative token counts' },
-        { label: 'LOOP_CONFIG', desc: 'Model, tools, permissions, quota cap' },
-      ].map(field => (
-        <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">{field.label}</div>
-          <div class="font-body text-xs text-secondary">{field.desc}</div>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- Crash Recovery -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Crash Recovery</h2>
-    <div class="space-y-px">
-      {[
-        { step: '01', action: 'Daemon crashes. Flock released. Drain snapshots remain on disk.' },
-        { step: '02', action: 'New daemon starts. anchor::start acquires lock, writes anchor.started.' },
-        { step: '03', action: 'orphan_previous_lineages marks stale sessions as Orphaned.' },
-        { step: '04', action: 'rehydrate_revivable_orphans reads drain snapshots, rebuilds sessions.' },
-        { step: '05', action: 'reap_unmanaged_orphans handles anything that couldn\'t recover.' },
-      ].map(s => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
-            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
-          </div>
-          <div class="md:col-span-11 px-4 py-3 flex items-center">
-            <span class="font-body text-xs text-secondary">{s.action}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Mid-flight: the scheduler's tick loop detects crashed workers via heartbeat and hot-rehydrates without a daemon restart.
-    </p>
-  </section>
-
-  <!-- Sub-stacks -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Sub-stacks</h2>
-    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels.
-    </p>
-    <div class="bg-surface-container-lowest p-4 border border-surface-variant mb-4">
-      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">.ostk/stacks/bugfix-27/</span>
-  journal.jsonl    <span class="text-outline"># scoped audit log</span>
-  drain/         <span class="text-outline"># scoped drain snapshots</span>
-  inbox/         <span class="text-outline"># commands from anchor → sub-stack</span>
-  nudges/        <span class="text-outline"># reports from sub-stack → anchor</span></pre>
-    </div>
-    <div class="flex items-center gap-0">
-      {['Spawning', 'Active', 'Sealed', 'Reaped'].map((state, i) => (
-        <>
-          <div class={`px-4 py-2 font-body text-[10px] font-bold ${state === 'Active' ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
-            {state}
-          </div>
-          {i < 3 && <div class="px-1 text-outline text-xs">→</div>}
-        </>
-      ))}
-      <div class="px-1 text-outline text-xs ml-2">or</div>
-      <div class="px-4 py-2 font-body text-[10px] font-bold bg-error/10 text-error">Failed</div>
-    </div>
-  </section>
-
-  <!-- Transient Clients -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Transient Clients</h2>
-    <p class="font-body text-xs text-secondary max-w-lg">
-      TUI, MCP clients, CLI one-shots, IDE extensions — all attach and detach freely. Agent sessions continue running regardless of client lifecycle. Protocol: <code class="text-primary">client/attach</code>, <code class="text-primary">client/detach</code>, <code class="text-primary">client/subscribe</code> over JSON-RPC on the kernel socket.
-    </p>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">

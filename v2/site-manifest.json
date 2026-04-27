@@ -198,7 +198,7 @@
       ],
       "verified_at": {
         "sha": "f6823b9e",
-        "timestamp": "2026-04-27T02:34:50Z"
+        "timestamp": "2026-04-27T02:47:46Z"
       },
       "status": "current"
     },
@@ -965,56 +965,36 @@
       "tags": [],
       "sources": [
         {
-          "path": "src/fcp_screen/components/session.rs"
-        },
-        {
-          "path": "src/commands/lineage.rs"
-        },
-        {
-          "path": "src/kernel/recovery.rs"
+          "path": "src/kernel/drain.rs"
         },
         {
           "path": "src/kernel/anchor.rs"
         },
         {
-          "path": "src/kernel/drain.rs"
+          "path": "src/kernel/sub_stack.rs"
         },
         {
-          "path": "src/cpu/session.rs"
+          "path": "src/kernel/scheduler.rs"
         },
         {
-          "path": "src/serve/mod.rs"
+          "path": "src/kernel/heartbeat.rs"
         },
         {
           "path": "src/serve/server.rs"
         },
         {
-          "path": "src/serve/socket.rs"
-        },
-        {
           "path": "src/serve/client.rs"
         },
         {
-          "path": "src/serve/client_handle.rs"
-        },
-        {
-          "path": "src/serve/transport.rs"
-        },
-        {
-          "path": "src/serve/types.rs"
-        },
-        {
-          "path": "src/serve/state.rs"
-        },
-        {
-          "path": "src/kernel/session_proctable.rs"
-        },
-        {
-          "path": "src/kernel/substack.rs"
+          "path": "docs/spec/llmos-posix-kernel.md"
         }
       ],
       "related": [],
-      "status": "unverified"
+      "verified_at": {
+        "sha": "e870ff60",
+        "timestamp": "2026-04-27T02:54:49Z"
+      },
+      "status": "current"
     },
     {
       "route": "/docs/skills",
