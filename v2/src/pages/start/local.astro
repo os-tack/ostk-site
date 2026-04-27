@@ -141,7 +141,7 @@ ok</pre>
       <div class="section-label mb-4">BACKEND_02 // MLX</div>
       <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on Apple mlx (Apple Silicon only)</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-        Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size; pick mlx if you have the chip. ostk routes <code class="text-primary">mlx/</code>-prefixed models to a <code class="text-primary">mlx_lm.server</code> at <code class="text-primary">localhost:11942</code> using the same OpenAI-wire format.
+        Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size; pick mlx if you have the chip. ostk's primary mlx model is <a href="https://prismml.com/news/ternary-bonsai" class="text-primary hover:underline">Ternary-Bonsai-8B</a>, a ternary-quantized model purpose-built for low-latency local inference — it ships as the kernel default. ostk routes <code class="text-primary">mlx/</code>-prefixed models to a <code class="text-primary">mlx_lm.server</code> at <code class="text-primary">localhost:11942</code> using the same OpenAI-wire format.
       </p>
       <p class="font-body text-xs text-outline max-w-xl mb-8">
         Source: <code class="text-primary">src/cpu/providers.rs:69-72</code> (MLX prefix routing), <code class="text-primary">src/cpu/mlx_lifecycle.rs</code> (server lifecycle), <code class="text-primary">src/commands/mlx.rs</code> (mlx-specific verbs).
@@ -167,8 +167,11 @@ ok</pre>
       ostk's MLX integration expects the server on <code class="text-primary">localhost:11942</code>. Set the model with <code class="text-primary">MLX_MODEL_ID</code>:
     </p>
     <Terminal>
-      <pre><span class="text-outline"># Default: prism-ml/Ternary-Bonsai-8B-mlx-2bit</span>
-<span class="text-outline"># 4-bit recommended for coding (2-bit is faster but loses accuracy — see Caveats)</span>
+      <pre><span class="text-outline"># Primary: Ternary-Bonsai-8B (the kernel default)</span>
+<span class="text-outline">$ </span>MLX_MODEL_ID=prism-ml/Ternary-Bonsai-8B-mlx-2bit \
+  mlx_lm.server --port 11942
+
+<span class="text-outline"># Or a community 4-bit Coder model if you want a larger context</span>
 <span class="text-outline">$ </span>MLX_MODEL_ID=mlx-community/Qwen2.5-Coder-32B-Instruct-4bit \
   mlx_lm.server --port 11942</pre>
     </Terminal>
@@ -228,7 +231,7 @@ boot confidence: 1.00 ◉
         { issue: 'Latency is higher', body: 'A 32B-parameter model on a laptop is slower than Sonnet over the wire. First response includes model warm-up. Subsequent calls are fast — mlx tracks a LocalKV prompt cache; ollama relies on its own server-side warmth.' },
         { issue: 'Context window is smaller', body: 'Hosted Sonnet has 200k tokens; ollama models default to 128k (ostk\'s per-driver declared window — effective context depends on model + quantization); mlx Bonsai is 65k declared but lower in practice (see /docs/models). Long sessions hit context limits sooner — type :clear in the TUI to cycle context (tack verbs are TUI commands prefixed with a colon; see /docs/tack-grammar).' },
         { issue: 'Cache reuse is local-only', body: 'The fleet-shared prompt cache benefit only applies to hosted providers (Anthropic). Local models don\'t share cache across machines. The trade-off is privacy + zero-cost-per-token.' },
-        { issue: 'Quantization affects quality', body: 'mlx-2bit is fast but loses accuracy on coding tasks. mlx-4bit / mlx-fp16 are better. ollama defaults to Q4_K_M which is a good balance.' },
+        { issue: 'Quantization affects quality', body: 'Generic mlx-2bit quants of full-precision models lose accuracy on coding tasks; prefer mlx-4bit or mlx-fp16 for those. Ternary-Bonsai is different — it is quantization-aware ternary, designed to run at low precision; the 2-bit variant is the intended deployment. ollama defaults to Q4_K_M which is a good general balance.' },
       ].map(c => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
           <span class="text-on-surface w-56 shrink-0 font-bold">{c.issue}</span>
