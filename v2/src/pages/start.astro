@@ -35,7 +35,7 @@ const sidebarGroups = {
       <section class="mb-12">
         <h2 class="section-label mb-4">UNIVERSAL // BEFORE_YOU_PICK</h2>
         <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-          These two steps are identical for every path. Do them once per machine, then branch.
+          These two steps are identical for every path. Do them once per machine, then branch. <span class="text-outline">If you already ran them from the homepage, skip to <a href="#pick-a-path" class="text-primary hover:underline">PICK_A_PATH</a>.</span>
         </p>
         <div class="bg-surface-container-low p-6 max-w-2xl space-y-4">
           <div>
@@ -57,7 +57,7 @@ const sidebarGroups = {
 
       <!-- Pick a path -->
       <section class="mb-16">
-        <h2 class="section-label mb-4">PICK_A_PATH</h2>
+        <h2 id="pick-a-path" class="section-label mb-4 scroll-mt-24">PICK_A_PATH</h2>
 
         <div class="space-y-px">
           <!-- MCP Bridge -->
@@ -67,9 +67,9 @@ const sidebarGroups = {
                 <Icon name="extension" size="32" class="text-primary" />
               </div>
               <div class="md:col-span-9">
-                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">MCP_BRIDGE — drive ostk from your existing agent tool</div>
+                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">MCP_BRIDGE — drive ostk from your existing agent tool <span class="text-outline font-normal">(recommended)</span></div>
                 <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-                  You already use Claude Code, Cursor, or another MCP-capable tool. Wire ostk in as an MCP server: your agent gets coordinated writes, audit, and capability boundaries while you keep your existing UI.
+                  You already use Claude Code, Cursor, or another MCP-capable tool. Wire ostk in as an MCP server: your agent gets coordinated writes, audit, and capability boundaries while you keep your existing UI. Requires an MCP-capable agent driver.
                 </p>
                 <p class="font-body text-[10px] text-outline">
                   Best for: anyone with a working agent setup who wants ostk's substrate underneath.

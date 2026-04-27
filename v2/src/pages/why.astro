@@ -26,8 +26,11 @@ const sidebarGroups = {
       <div class="section-label mb-4">DIAGNOSIS // 01</div>
       <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Why ostk</h1>
 
-      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
-        You're using AI agents to code. Three things break. ostk fixes all three from underneath, without changing how you drive them.
+      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
+        ostk is a Rust binary that sits underneath whatever drives your agents. Three things break without it.
+      </p>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-16">
+        You're using AI agents to code. ostk fixes the three things below without changing how you drive them.
       </p>
 
       <!-- Problem 1 -->
@@ -120,6 +123,9 @@ const sidebarGroups = {
           </div>
           <div class="font-body text-xs text-secondary">
             <strong class="text-on-surface">A directory you can't ignore.</strong> <code class="text-primary">.ostk/</code> is the substrate. Lose it and you lose the audit chain (the project still works — you just lose history). Back it up like you'd back up <code class="text-primary">.git/</code>.
+          </div>
+          <div class="font-body text-xs text-secondary">
+            <strong class="text-on-surface">A small state footprint.</strong> Per-project state in <code class="text-primary">.ostk/</code>; per-machine state in <code class="text-primary">~/.local/share/ostk/</code> and <code class="text-primary">~/.cache/ostk/</code>. Nothing else.
           </div>
         </div>
       </section>
