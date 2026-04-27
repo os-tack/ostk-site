@@ -22,7 +22,7 @@ import Terminal from '../../components/Terminal.astro';
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">I haven't written any pin caps. What does an agent get by default?</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      Whatever your tier-default pin allows. The kernel resolves your trust tier at boot (T0/T1/T2/T3 — see <a href="/docs/trust-model" class="text-primary hover:underline">trust model</a>) and applies the matching default profile. T0 is unrestricted; T1 denies <code class="text-primary">write-kernel</code> and <code class="text-primary">modify-governance</code>; T2 also denies <code class="text-primary">write-src</code>; T3 denies all writes. You start safe, then opt into more permissive pins as needed.
+      Whatever your tier-default pin allows. The kernel resolves your trust tier at boot (T0/T1/T2/T3 — see <a href="/docs/trust-model/" class="text-primary hover:underline">trust model</a>) and applies the matching default profile. T0 is unrestricted; T1 denies <code class="text-primary">write-kernel</code> and <code class="text-primary">modify-governance</code>; T2 also denies <code class="text-primary">write-src</code>; T3 denies all writes. You start safe, then opt into more permissive pins as needed.
     </p>
 
     <div class="bg-surface-container-low p-6 max-w-2xl mb-3">
@@ -160,7 +160,7 @@ created: .ostk/pins/fix-bug/pin.boot
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Tier sets the floor. Pins add ceilings. The kernel evaluates.</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Three primitives compose into the answer for "what can this agent actually do?" — your tier-default pin from the GPG trust check (the floor; can't relax), your custom pin profile selected by <code class="text-primary">OSTK_PIN</code> (the ceiling; only adds restrictions), and the evaluator that checks every write at the tool layer before bytes hit disk. Combined with the OS-level sandbox covered in <a href="/docs/architecture#problem_02_agent_tries_to_escape" class="text-primary hover:underline">architecture problem 02</a>, that's three layers of defense for every kernel-mediated action.
+      Three primitives compose into the answer for "what can this agent actually do?" — your tier-default pin from the GPG trust check (the floor; can't relax), your custom pin profile selected by <code class="text-primary">OSTK_PIN</code> (the ceiling; only adds restrictions), and the evaluator that checks every write at the tool layer before bytes hit disk. Combined with the OS-level sandbox covered in <a href="/docs/architecture/#problem_02_agent_tries_to_escape" class="text-primary hover:underline">architecture problem 02</a>, that's three layers of defense for every kernel-mediated action.
     </p>
 
     <div class="bg-surface-container-lowest p-4 border border-surface-variant max-w-2xl mb-4 font-body text-xs">
@@ -181,9 +181,9 @@ created: .ostk/pins/fix-bug/pin.boot
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
-    <a href="/docs/agentfile"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
-    <a href="/docs/architecture"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
-    <a href="/docs/commands"><Icon name="terminal" size="14" class="align-middle mr-1" />CLI</a>
+    <a href="/docs/trust-model/"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/agentfile/"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/commands/"><Icon name="terminal" size="14" class="align-middle mr-1" />CLI</a>
   </div>
 </DocsLayout>

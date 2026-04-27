@@ -6,14 +6,14 @@ import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
   items: [
-    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why' },
-    { icon: 'rocket_launch', label: 'START_HERE', href: '/start' },
-    { icon: 'extension', label: 'MCP_BRIDGE', href: '/docs/mcp' },
-    { icon: 'tv', label: 'LOCAL_TUI', href: '/start/local' },
-    { icon: 'cloud', label: 'SERVER_MODE', href: '/start/server' },
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+    { icon: 'extension', label: 'MCP_BRIDGE', href: '/docs/mcp/' },
+    { icon: 'tv', label: 'LOCAL_TUI', href: '/start/local/' },
+    { icon: 'cloud', label: 'SERVER_MODE', href: '/start/server/' },
   ],
   bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
     { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
   ],
 };
@@ -40,16 +40,16 @@ const sidebarGroups = {
         <div class="bg-surface-container-low p-6 max-w-2xl space-y-4">
           <div>
             <div class="font-label text-[10px] text-secondary mb-1">STEP_1 // INSTALL</div>
-            <code class="font-body text-sm text-primary block">curl -fsSL https://ostk.ai/install.sh | sh</code>
+            <button type="button" data-copy="curl -fsSL https://ostk.ai/install.sh | sh" class="plausible-event-name=Install+Copied plausible-event-source=start w-full text-left font-body text-sm text-primary block hover:bg-surface-container transition-colors cursor-pointer">curl -fsSL https://ostk.ai/install.sh | sh</button>
             <p class="font-body text-xs text-outline mt-2">
-              Auto-detects platform, downloads the binary, verifies the GPG signature against the operator's <a href="/security" class="text-primary hover:underline">release key</a>, installs to <code class="text-primary">~/.local/bin</code>. macOS (universal), Linux musl arm64/x86_64, Windows x86_64 zip.
+              Auto-detects platform, downloads the binary, verifies the GPG signature against the operator's <a href="/security/" class="text-primary hover:underline">release key</a>, installs to <code class="text-primary">~/.local/bin</code>. macOS (universal), Linux musl arm64/x86_64, Windows x86_64 zip.
             </p>
           </div>
           <div class="border-t border-surface-variant pt-4">
             <div class="font-label text-[10px] text-secondary mb-1">STEP_2 // INITIALIZE_PROJECT</div>
             <code class="font-body text-sm text-primary block">cd ~/projects/your-repo && ostk init</code>
             <p class="font-body text-xs text-outline mt-2">
-              Creates <code class="text-primary">.ostk/</code> with default <a href="/docs/humanfile" class="text-primary hover:underline">HUMANFILE</a>, <a href="/docs/agentfile" class="text-primary hover:underline">Agentfile</a>, and pin caps. Use <code class="text-primary">ostk init --guided</code> for an interactive setup.
+              Creates <code class="text-primary">.ostk/</code> with default <a href="/docs/humanfile/" class="text-primary hover:underline">HUMANFILE</a>, <a href="/docs/agentfile/" class="text-primary hover:underline">Agentfile</a>, and pin caps. Use <code class="text-primary">ostk init --guided</code> for an interactive setup.
             </p>
           </div>
         </div>
@@ -61,7 +61,7 @@ const sidebarGroups = {
 
         <div class="space-y-px">
           <!-- MCP Bridge -->
-          <a href="/docs/mcp" class="block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
+          <a href="/docs/mcp/" class="plausible-event-name=Path+Picked plausible-event-path=mcp block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div class="md:col-span-1 flex items-start">
                 <Icon name="extension" size="32" class="text-primary" />
@@ -82,7 +82,7 @@ const sidebarGroups = {
           </a>
 
           <!-- Local TUI -->
-          <a href="/start/local" class="block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
+          <a href="/start/local/" class="plausible-event-name=Path+Picked plausible-event-path=local block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div class="md:col-span-1 flex items-start">
                 <Icon name="tv" size="32" class="text-primary" />
@@ -103,7 +103,7 @@ const sidebarGroups = {
           </a>
 
           <!-- Server -->
-          <a href="/start/server" class="block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
+          <a href="/start/server/" class="plausible-event-name=Path+Picked plausible-event-path=server block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div class="md:col-span-1 flex items-start">
                 <Icon name="cloud" size="32" class="text-primary" />
@@ -133,15 +133,15 @@ const sidebarGroups = {
       <section class="mb-8">
         <h2 class="section-label mb-4">AFTER_YOU'RE_RUNNING</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-2xl">
-          <a href="/docs/trust-model" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+          <a href="/docs/trust-model/" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
             <div class="font-body text-xs text-primary font-bold mb-1">TRUST_MODEL</div>
             <p class="font-body text-[10px] text-secondary">Tiers, GPG signing, the four-tier ladder.</p>
           </a>
-          <a href="/docs/needles" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+          <a href="/docs/needles/" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
             <div class="font-body text-xs text-primary font-bold mb-1">NEEDLES</div>
             <p class="font-body text-[10px] text-secondary">Open questions and decisions across sessions.</p>
           </a>
-          <a href="/docs/commands" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
+          <a href="/docs/commands/" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
             <div class="font-body text-xs text-primary font-bold mb-1">COMMANDS</div>
             <p class="font-body text-[10px] text-secondary">Full CLI reference.</p>
           </a>

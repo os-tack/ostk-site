@@ -5,19 +5,19 @@ import { LATEST_TAG } from '../../site-version';
 
 const sidebarGroups = {
   items: [
-    { icon: 'auto_fix_high', label: 'CONTEXT_INJECTION', href: '/features/context-injection' },
-    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination' },
-    { icon: 'edit_off', label: 'INVISIBLE_WRITES', href: '/features/invisible-writes' },
-    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail' },
-    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first' },
-    { icon: 'translate', label: 'TACK', href: '/features/tack' },
-    { icon: 'shield', label: 'GOVERNANCE', href: '/features/governance' },
-    { icon: 'swap_horiz', label: 'MODEL_SWITCHING', href: '/features/model-switching' },
-    { icon: 'key', label: 'SECRET_MGMT', href: '/features/secret-management' },
-    { icon: 'tv', label: 'TUI', href: '/features/tui' },
+    { icon: 'auto_fix_high', label: 'CONTEXT_INJECTION', href: '/features/context-injection/' },
+    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination/' },
+    { icon: 'edit_off', label: 'INVISIBLE_WRITES', href: '/features/invisible-writes/' },
+    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail/' },
+    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first/' },
+    { icon: 'translate', label: 'TACK', href: '/features/tack/' },
+    { icon: 'shield', label: 'GOVERNANCE', href: '/features/governance/' },
+    { icon: 'swap_horiz', label: 'MODEL_SWITCHING', href: '/features/model-switching/' },
+    { icon: 'key', label: 'SECRET_MGMT', href: '/features/secret-management/' },
+    { icon: 'tv', label: 'TUI', href: '/features/tui/' },
   ],
   bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
   ],
 };
 
@@ -25,26 +25,26 @@ const sections = [
   {
     label: 'CORE',
     features: [
-      { num: '01', title: 'Context Management', desc: 'Agents skip exploration. The OS front-loads project context so the first turn is productive.', href: '/features/context-injection' },
-      { num: '02', title: 'Agent Coordination', desc: 'Multiple agents, one codebase. Conflicts resolved at write time without locks or message buses.', href: '/features/coordination' },
-      { num: '03', title: 'File Write Tracking', desc: 'Agents edit files normally. The OS intercepts, coordinates, and audits underneath.', href: '/features/invisible-writes' },
-      { num: '04', title: 'Audit Trail', desc: 'Every edit tracked, cryptographically signed, append-only.', href: '/features/audit-trail' },
+      { num: '01', title: 'Context Management', desc: 'Agents skip exploration. The OS front-loads project context so the first turn is productive.', href: '/features/context-injection/' },
+      { num: '02', title: 'Agent Coordination', desc: 'Multiple agents, one codebase. Conflicts resolved at write time without locks or message buses.', href: '/features/coordination/' },
+      { num: '03', title: 'File Write Tracking', desc: 'Agents edit files normally. The OS intercepts, coordinates, and audits underneath.', href: '/features/invisible-writes/' },
+      { num: '04', title: 'Audit Trail', desc: 'Every edit tracked, cryptographically signed, append-only.', href: '/features/audit-trail/' },
     ],
   },
   {
     label: 'OPERATIONS',
     features: [
-      { num: '05', title: 'Local-First', desc: 'No cloud, no telemetry. A single Rust binary on your machine.', href: '/features/local-first' },
-      { num: '06', title: 'Tack Language', desc: 'Compressed intent language. The OS learns your vocabulary over time.', href: '/features/tack' },
-      { num: '07', title: 'Trust & Security', desc: 'GPG web of trust. Capability pins enforce invisible boundaries.', href: '/features/governance' },
+      { num: '05', title: 'Local-First', desc: 'No cloud, no telemetry. A single Rust binary on your machine.', href: '/features/local-first/' },
+      { num: '06', title: 'Tack Language', desc: 'Compressed intent language. The OS learns your vocabulary over time.', href: '/features/tack/' },
+      { num: '07', title: 'Trust & Security', desc: 'GPG web of trust. Capability pins enforce invisible boundaries.', href: '/features/governance/' },
     ],
   },
   {
     label: 'TOOLS',
     features: [
-      { num: '08', title: 'Model Switching', desc: 'Switch models mid-session. Context survives the handoff across vendors.', href: '/features/model-switching' },
-      { num: '09', title: 'API Key Security', desc: 'API keys never enter LLM context. Platform keychain integration.', href: '/features/secret-management' },
-      { num: '10', title: 'Terminal Dashboard', desc: 'Terminal interface showing the OS in real time. Agents, permissions, edits, costs.', href: '/features/tui' },
+      { num: '08', title: 'Model Switching', desc: 'Switch models mid-session. Context survives the handoff across vendors.', href: '/features/model-switching/' },
+      { num: '09', title: 'API Key Security', desc: 'API keys never enter LLM context. Platform keychain integration.', href: '/features/secret-management/' },
+      { num: '10', title: 'Terminal Dashboard', desc: 'Terminal interface showing the OS in real time. Agents, permissions, edits, costs.', href: '/features/tui/' },
     ],
   },
 ];

@@ -6,16 +6,16 @@ import Breadcrumb from '../../components/Breadcrumb.astro';
 
 const sidebarGroups = {
   items: [
-    { icon: 'auto_fix_high', label: 'CONTEXT_MGMT', href: '/features/context-injection' },
-    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination' },
-    { icon: 'edit_off', label: 'WRITE_TRACKING', href: '/features/invisible-writes' },
-    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail' },
-    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first' },
-    { icon: 'shield', label: 'TRUST', href: '/features/governance' },
+    { icon: 'auto_fix_high', label: 'CONTEXT_MGMT', href: '/features/context-injection/' },
+    { icon: 'hub', label: 'COORDINATION', href: '/features/coordination/' },
+    { icon: 'edit_off', label: 'WRITE_TRACKING', href: '/features/invisible-writes/' },
+    { icon: 'list_alt', label: 'AUDIT_TRAIL', href: '/features/audit-trail/' },
+    { icon: 'home', label: 'LOCAL_FIRST', href: '/features/local-first/' },
+    { icon: 'shield', label: 'TRUST', href: '/features/governance/' },
   ],
   bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
-    { icon: 'apps', label: 'ALL_FEATURES', href: '/features' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
+    { icon: 'apps', label: 'ALL_FEATURES', href: '/features/' },
   ],
 };
 
@@ -110,7 +110,7 @@ const capabilities = [
     <div class="max-w-6xl mx-auto py-12">
       <Breadcrumb crumbs={[
         { label: 'OSTK', href: '/' },
-        { label: 'FEATURES', href: '/features' },
+        { label: 'FEATURES', href: '/features/' },
         { label: 'Comparison' },
       ]} />
 
@@ -221,11 +221,11 @@ const capabilities = [
 
       <!-- CTA -->
       <div class="flex gap-4">
-        <a href="/start" class="bg-primary text-on-primary font-body text-xs py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
+        <a href="/start/" class="bg-primary text-on-primary font-body text-xs py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
           <Icon name="terminal" size="14" />
           GET_STARTED
         </a>
-        <a href="/features" class="bg-surface-variant text-primary font-body text-xs py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
+        <a href="/features/" class="bg-surface-variant text-primary font-body text-xs py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
           <Icon name="apps" size="14" />
           ALL_FEATURES
         </a>

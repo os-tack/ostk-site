@@ -9,18 +9,21 @@ export default defineConfig({
   build: { format: 'directory' },
   integrations: [sitemap(), tailwind()],
   redirects: {
-    '/get-started': '/start',
-    '/docs/getting-started': '/start',
-    '/quick-start': '/start',
+    '/get-started': '/start/',
+    '/docs/getting-started': '/start/',
+    '/quick-start': '/start/',
     // Renamed routes
-    '/docs/osfile': '/docs/primefile',
+    '/docs/osfile': '/docs/primefile/',
     // Removed pages — redirect to closest match
-    '/bench': '/features/comparison',
-    '/insights': '/docs',
-    '/insights/claude-code-source': '/about',
-    '/insights/compounding': '/features/coordination',
-    '/insights/context-injection': '/features/context-injection',
-    '/insights/local-first': '/features/local-first',
-    '/insights/model-switch-handoff': '/features/model-switching',
+    '/bench': '/features/comparison/',
+    '/insights': '/docs/',
+    '/insights/claude-code-source': '/about/',
+    '/insights/compounding': '/features/coordination/',
+    '/insights/context-injection': '/features/context-injection/',
+    '/insights/local-first': '/features/local-first/',
+    '/insights/model-switch-handoff': '/features/model-switching/',
+    // Convenience aliases
+    '/install': '/install.sh',
+    '/nofollow': '/',
   },
 });

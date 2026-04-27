@@ -7,10 +7,10 @@ interface Props {
 const { activeTab } = Astro.props;
 
 const tabs = [
-  { id: 'docs', label: 'DOCS', href: '/docs' },
-  { id: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
-  { id: 'commands', label: 'COMMANDS', href: '/docs/commands' },
-  { id: 'trust', label: 'TRUST', href: '/docs/trust-model' },
+  { id: 'docs', label: 'DOCS', href: '/docs/' },
+  { id: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
+  { id: 'commands', label: 'COMMANDS', href: '/docs/commands/' },
+  { id: 'trust', label: 'TRUST', href: '/docs/trust-model/' },
 ];
 ---
 
@@ -51,7 +51,7 @@ const tabs = [
       ))}
     </nav>
     <div class="flex items-center gap-2 md:gap-4">
-      <a href="/start" class="text-primary hover:bg-surface-variant p-2 transition-none" aria-label="Quick Start">
+      <a href="/start/" class="text-primary hover:bg-surface-variant p-2 transition-none" aria-label="Quick Start">
         <Icon name="terminal" size="16" />
       </a>
       <a href="https://github.com/os-tack/ostk.ai" class="text-primary hover:bg-surface-variant p-2 transition-none" aria-label="View source on GitHub">

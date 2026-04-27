@@ -29,12 +29,12 @@ import Terminal from '../../components/Terminal.astro';
         {
           num: '02',
           name: 'TOOL_CALL',
-          desc: 'The model issues a tool call. Shell output passes through the squash pipeline (see <a href="/docs/compression" class="text-primary hover:underline">Compression</a>) before entering context. File reads pass through elision (stage 05). The digest envelope is appended to the tool response.',
+          desc: 'The model issues a tool call. Shell output passes through the squash pipeline (see <a href="/docs/compression/" class="text-primary hover:underline">Compression</a>) before entering context. File reads pass through elision (stage 05). The digest envelope is appended to the tool response.',
         },
         {
           num: '03',
           name: 'OUTPUT_COMPRESSION',
-          desc: 'The squash pipeline strips ANSI, classifies lines by grammar, deduplicates repetitive output, and enriches errors. Measured savings: 30% average across 1,499 tool calls (2.85M chars → 1.99M). Details at <a href="/docs/compression" class="text-primary hover:underline">Compression</a>.',
+          desc: 'The squash pipeline strips ANSI, classifies lines by grammar, deduplicates repetitive output, and enriches errors. Measured savings: 30% average across 1,499 tool calls (2.85M chars → 1.99M). Details at <a href="/docs/compression/" class="text-primary hover:underline">Compression</a>.',
         },
         {
           num: '04',
@@ -96,7 +96,7 @@ import Terminal from '../../components/Terminal.astro';
       </p>
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Measured: <span class="text-primary font-bold">30% output compression</span> in a real Opus session (1,499 squash events, 215k tokens saved). See <a href="/docs/compression" class="text-primary hover:underline">Compression</a> for the full breakdown.
+      Measured: <span class="text-primary font-bold">30% output compression</span> in a real Opus session (1,499 squash events, 215k tokens saved). See <a href="/docs/compression/" class="text-primary hover:underline">Compression</a> for the full breakdown.
     </p>
   </section>
 
@@ -104,7 +104,7 @@ import Terminal from '../../components/Terminal.astro';
   <section class="mb-16">
     <h2 class="section-label mb-4">DIGEST_ENVELOPE</h2>
     <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      A 5-line envelope appended to every tool response. The digest is the agent's peripheral vision — it tells the agent what changed without forcing a re-read of unchanged files. Full specification at <a href="/docs/coordination-primitives" class="text-primary hover:underline">Coordination Primitives</a>.
+      A 5-line envelope appended to every tool response. The digest is the agent's peripheral vision — it tells the agent what changed without forcing a re-read of unchanged files. Full specification at <a href="/docs/coordination-primitives/" class="text-primary hover:underline">Coordination Primitives</a>.
     </p>
     <Terminal label="EXAMPLE_DIGEST">
       <div class="text-secondary">
@@ -153,7 +153,7 @@ import Terminal from '../../components/Terminal.astro';
       </div>
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      The digest is the <span class="text-primary">observation</span>; 304 is the <span class="text-primary">response</span>. Layer 1 is advisory (the agent may still read). Layer 2 is mechanical (the kernel intercepts). Together they eliminate most redundant file content from context. See <a href="/docs/coordination-primitives" class="text-primary hover:underline">Coordination Primitives</a> for the full digest specification.
+      The digest is the <span class="text-primary">observation</span>; 304 is the <span class="text-primary">response</span>. Layer 1 is advisory (the agent may still read). Layer 2 is mechanical (the kernel intercepts). Together they eliminate most redundant file content from context. See <a href="/docs/coordination-primitives/" class="text-primary hover:underline">Coordination Primitives</a> for the full digest specification.
     </p>
   </section>
 
@@ -180,7 +180,7 @@ import Terminal from '../../components/Terminal.astro';
       </div>
     </div>
     <p class="font-body text-xs text-secondary max-w-lg">
-      The design choice is explicit: generating a handoff record for a fresh successor preserves cache efficiency. A new agent starts with a clean context window, hits the warm prompt cache on its first turn, and picks up the handoff state from disk. Full state machine at <a href="/docs/agent-lifecycle" class="text-primary hover:underline">Agent Lifecycle</a>.
+      The design choice is explicit: generating a handoff record for a fresh successor preserves cache efficiency. A new agent starts with a clean context window, hits the warm prompt cache on its first turn, and picks up the handoff state from disk. Full state machine at <a href="/docs/agent-lifecycle/" class="text-primary hover:underline">Agent Lifecycle</a>.
     </p>
   </section>
 
@@ -199,7 +199,7 @@ import Terminal from '../../components/Terminal.astro';
       </p>
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Drain snapshots are the crash-recovery mechanism, not a context management tool. But they close the lifecycle loop: an agent that dies (from context pressure or process crash) leaves enough state on disk for its successor to continue. Full details at <a href="/docs/agent-lifecycle" class="text-primary hover:underline">Agent Lifecycle</a>.
+      Drain snapshots are the crash-recovery mechanism, not a context management tool. But they close the lifecycle loop: an agent that dies (from context pressure or process crash) leaves enough state on disk for its successor to continue. Full details at <a href="/docs/agent-lifecycle/" class="text-primary hover:underline">Agent Lifecycle</a>.
     </p>
   </section>
 
@@ -223,9 +223,9 @@ import Terminal from '../../components/Terminal.astro';
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/compression"><Icon name="compress" size="14" class="align-middle mr-1" />COMPRESSION</a>
-    <a href="/docs/agent-lifecycle"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
-    <a href="/docs/coordination-primitives"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
-    <a href="/docs/models"><Icon name="psychology" size="14" class="align-middle mr-1" />MODELS</a>
+    <a href="/docs/compression/"><Icon name="compress" size="14" class="align-middle mr-1" />COMPRESSION</a>
+    <a href="/docs/agent-lifecycle/"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
+    <a href="/docs/coordination-primitives/"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+    <a href="/docs/models/"><Icon name="psychology" size="14" class="align-middle mr-1" />MODELS</a>
   </div>
 </DocsLayout>

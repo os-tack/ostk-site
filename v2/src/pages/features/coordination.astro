@@ -2,9 +2,9 @@
 import FeaturePage from '../../layouts/FeaturePage.astro';
 
 const relatedPages = [
-  { title: "Audit Trail", description: "Every edit tracked, signed, and queryable", href: "/features/audit-trail" },
-  { title: "Invisible Writes", description: "Agents write files normally. The OS handles the rest.", href: "/features/invisible-writes" },
-  { title: "Session Topology", description: "Anchors, lineages, crash recovery", href: "/docs/session-topology" },
+  { title: "Audit Trail", description: "Every edit tracked, signed, and queryable", href: "/features/audit-trail/" },
+  { title: "Invisible Writes", description: "Agents write files normally. The OS handles the rest.", href: "/features/invisible-writes/" },
+  { title: "Session Topology", description: "Anchors, lineages, crash recovery", href: "/docs/session-topology/" },
 ];
 ---
 
@@ -24,7 +24,7 @@ const relatedPages = [
 
   <h2>How it works</h2>
   <p>
-    The daemon (<code>ostk listen</code>) is the <a href="/docs/session-topology">anchor</a>. Agents run as managed sessions with heartbeat monitoring, <a href="/docs/session-topology">drain snapshots</a>, and crash recovery. The operator spawns workers directly:
+    The daemon (<code>ostk listen</code>) is the <a href="/docs/session-topology/">anchor</a>. Agents run as managed sessions with heartbeat monitoring, <a href="/docs/session-topology/">drain snapshots</a>, and crash recovery. The operator spawns workers directly:
   </p>
   <p>
     <code>ostk kernel spawn auth-refactor --model sonnet --budget 2 "Refactor auth to JWT"</code>
@@ -35,7 +35,7 @@ const relatedPages = [
 
   <h2>Conflict resolution tiers</h2>
   <p>
-    Every <code>file:edit()</code> is a compare-and-swap: the agent sends the <code>old_str</code> it expects to find and the <code>new_str</code> to replace it with. If <code>old_str</code> no longer matches — another agent modified it — the resolution tiers engage. No LLM is called. This is mechanical text diffing, implemented in <code>src/kernel/hotpr.rs</code>. Every conflict is recorded in the <a href="/features/audit-trail">audit trail</a>.
+    Every <code>file:edit()</code> is a compare-and-swap: the agent sends the <code>old_str</code> it expects to find and the <code>new_str</code> to replace it with. If <code>old_str</code> no longer matches — another agent modified it — the resolution tiers engage. No LLM is called. This is mechanical text diffing, implemented in <code>src/kernel/hotpr.rs</code>. Every conflict is recorded in the <a href="/features/audit-trail/">audit trail</a>.
   </p>
   <ul>
     <li><strong>Tier 1 — Auto-merge.</strong> The agent's intended edit and the other agent's changes are more than <code>PROXIMITY_LINES = 3</code> lines apart. Both changes apply silently. Neither agent is interrupted.</li>

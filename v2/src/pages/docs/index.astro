@@ -7,41 +7,41 @@ const sections = [
   {
     label: 'ONBOARDING',
     items: [
-      { title: 'Quick Start', desc: 'Zero to running agents in 5 minutes', href: '/start', icon: 'rocket_launch' },
-      { title: 'Downloads', desc: 'Binary releases and install script', href: '/docs/downloads', icon: 'download' },
+      { title: 'Quick Start', desc: 'Zero to running agents in 5 minutes', href: '/start/', icon: 'rocket_launch' },
+      { title: 'Downloads', desc: 'Binary releases and install script', href: '/docs/downloads/', icon: 'download' },
     ],
   },
   {
     label: 'REFERENCE',
     items: [
-      { title: 'Commands', desc: 'Full command reference', href: '/docs/commands', icon: 'terminal' },
-      { title: 'Kernel Specification', desc: 'Seven primitives, Five Laws', href: '/docs/kernel-spec', icon: 'memory' },
-      { title: 'Architecture', desc: 'Kernel, daemon, and driver layers', href: '/docs/architecture', icon: 'architecture' },
-      { title: 'Session Topology', desc: 'Daemon sessions and client multiplexing', href: '/docs/session-topology', icon: 'hub' },
-      { title: 'TUI', desc: 'Terminal interface operator guide', href: '/docs/tui', icon: 'tv' },
-      { title: 'MCP Proxy', desc: 'External tool server integration', href: '/docs/mcp', icon: 'swap_horiz' },
-      { title: 'Compression', desc: 'Output compression pipeline', href: '/docs/compression', icon: 'compress' },
-      { title: 'Bail', desc: 'Signed, portable OS packages', href: '/docs/bail', icon: 'verified' },
+      { title: 'Commands', desc: 'Full command reference', href: '/docs/commands/', icon: 'terminal' },
+      { title: 'Kernel Specification', desc: 'Seven primitives, Five Laws', href: '/docs/kernel-spec/', icon: 'memory' },
+      { title: 'Architecture', desc: 'Kernel, daemon, and driver layers', href: '/docs/architecture/', icon: 'architecture' },
+      { title: 'Session Topology', desc: 'Daemon sessions and client multiplexing', href: '/docs/session-topology/', icon: 'hub' },
+      { title: 'TUI', desc: 'Terminal interface operator guide', href: '/docs/tui/', icon: 'tv' },
+      { title: 'MCP Proxy', desc: 'External tool server integration', href: '/docs/mcp/', icon: 'swap_horiz' },
+      { title: 'Compression', desc: 'Output compression pipeline', href: '/docs/compression/', icon: 'compress' },
+      { title: 'Bail', desc: 'Signed, portable OS packages', href: '/docs/bail/', icon: 'verified' },
     ],
   },
   {
     label: 'CONFIGURATION',
     items: [
-      { title: 'HUMANFILE', desc: 'Operator identity and preferences', href: '/docs/humanfile', icon: 'person' },
-      { title: 'Agentfile', desc: 'Agent process descriptor', href: '/docs/agentfile', icon: 'smart_toy' },
-      { title: 'ENTITYFILE', desc: 'Governance and authority chains', href: '/docs/entityfile', icon: 'groups' },
-      { title: '.primefile', desc: 'Root trust configuration', href: '/docs/primefile', icon: 'settings' },
-      { title: 'ostk.toml', desc: 'Project configuration', href: '/docs/ostk-toml', icon: 'tune' },
-      { title: 'Secrets', desc: 'API key management', href: '/docs/secrets', icon: 'key' },
-      { title: 'Capability Pins', desc: 'Agent permission boundaries', href: '/docs/pins', icon: 'pin_drop' },
+      { title: 'HUMANFILE', desc: 'Operator identity and preferences', href: '/docs/humanfile/', icon: 'person' },
+      { title: 'Agentfile', desc: 'Agent process descriptor', href: '/docs/agentfile/', icon: 'smart_toy' },
+      { title: 'ENTITYFILE', desc: 'Governance and authority chains', href: '/docs/entityfile/', icon: 'groups' },
+      { title: '.primefile', desc: 'Root trust configuration', href: '/docs/primefile/', icon: 'settings' },
+      { title: 'ostk.toml', desc: 'Project configuration', href: '/docs/ostk-toml/', icon: 'tune' },
+      { title: 'Secrets', desc: 'API key management', href: '/docs/secrets/', icon: 'key' },
+      { title: 'Capability Pins', desc: 'Agent permission boundaries', href: '/docs/pins/', icon: 'pin_drop' },
     ],
   },
   {
     label: 'GOVERNANCE',
     items: [
-      { title: 'Five Laws', desc: 'Foundational governance principles', href: '/docs/five-laws', icon: 'gavel' },
-      { title: 'Trust Model', desc: 'T0-T3 trust tiers and capability chains', href: '/docs/trust-model', icon: 'shield' },
-      { title: 'FAQ', desc: 'Common questions from developers', href: '/docs/faq', icon: 'help' },
+      { title: 'Five Laws', desc: 'Foundational governance principles', href: '/docs/five-laws/', icon: 'gavel' },
+      { title: 'Trust Model', desc: 'T0-T3 trust tiers and capability chains', href: '/docs/trust-model/', icon: 'shield' },
+      { title: 'FAQ', desc: 'Common questions from developers', href: '/docs/faq/', icon: 'help' },
     ],
   },
 ];
@@ -49,7 +49,7 @@ const sections = [
 
 <DocsLayout
   title="Documentation Archive"
-  description="ostk documentation — reference, configuration, and governance."
+  description="Complete reference for the ostk kernel, daemon, and drivers — onboarding, commands, configuration files, trust model, Five Laws, and FAQ."
   sectionLabel={`ARCHIVE_INDEX // ${LATEST_TAG}`}
 >
   <p class="font-body text-sm text-secondary max-w-xl mb-12">

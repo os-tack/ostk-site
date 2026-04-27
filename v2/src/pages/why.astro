@@ -4,15 +4,15 @@ import Sidebar from '../components/Sidebar.astro';
 
 const sidebarGroups = {
   items: [
-    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why' },
-    { icon: 'rocket_launch', label: 'START_HERE', href: '/start' },
-    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture' },
-    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
-    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model/' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
   ],
   bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
     { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
   ],
 };
@@ -45,7 +45,7 @@ const sidebarGroups = {
             <strong class="text-on-surface">ostk's answer:</strong> the second writer always sees the conflict. Whichever agent edits stale gets a loud failure with a diff, not a silent loss. Nothing disappears between you and what your agents actually did.
           </p>
           <p class="font-body text-xs text-outline">
-            How: optimistic concurrency at the filesystem layer (<a href="/docs/architecture" class="text-primary hover:underline">architecture</a>).
+            How: optimistic concurrency at the filesystem layer (<a href="/docs/architecture/" class="text-primary hover:underline">architecture</a>).
           </p>
         </div>
       </section>
@@ -76,7 +76,7 @@ const sidebarGroups = {
             Something went wrong. Or right, and you want to reproduce it. There's no record of which agent did what against which version of which code, signed by whom. You can't replay. You can't audit. You can't prove what shipped.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">ostk's answer:</strong> every action is an append-only event in <code class="text-primary">.ostk/journal.jsonl</code>, hash-chained and Ed25519-signed in-process. Replay it. Diff it across sessions. Sign a release against it. Capability boundaries (<a href="/docs/pins" class="text-primary hover:underline">pin caps</a>) say what each agent is allowed to touch — escapes are denied and logged.
+            <strong class="text-on-surface">ostk's answer:</strong> every action is an append-only event in <code class="text-primary">.ostk/journal.jsonl</code>, hash-chained and Ed25519-signed in-process. Replay it. Diff it across sessions. Sign a release against it. Capability boundaries (<a href="/docs/pins/" class="text-primary hover:underline">pin caps</a>) say what each agent is allowed to touch — escapes are denied and logged.
           </p>
           <p class="font-body text-xs text-outline">
             A signed trail. Bounded capability. Reproducibility from first principles.
@@ -98,8 +98,8 @@ const sidebarGroups = {
             One install per machine. <code class="text-primary">ostk init</code> per project. After that:
           </p>
           <ul class="space-y-2 list-none pl-0">
-            <li><span class="text-primary mr-2">→</span>Drive an agent over <a href="/docs/mcp" class="text-primary hover:underline">MCP</a> — Claude Code, Cursor, anything that speaks the protocol.</li>
-            <li><span class="text-primary mr-2">→</span>Or use <a href="/start" class="text-primary hover:underline">ostk's own TUI</a> with a local model (ollama, mlx) for an offline, no-API-bill workflow.</li>
+            <li><span class="text-primary mr-2">→</span>Drive an agent over <a href="/docs/mcp/" class="text-primary hover:underline">MCP</a> — Claude Code, Cursor, anything that speaks the protocol.</li>
+            <li><span class="text-primary mr-2">→</span>Or use <a href="/start/" class="text-primary hover:underline">ostk's own TUI</a> with a local model (ollama, mlx) for an offline, no-API-bill workflow.</li>
             <li><span class="text-primary mr-2">→</span>Or run a server and hit it from CI, scripts, or a remote machine.</li>
           </ul>
           <p>
@@ -116,7 +116,7 @@ const sidebarGroups = {
         </p>
         <div class="bg-surface-container-low p-6 border-l-2 border-outline max-w-xl space-y-3">
           <div class="font-body text-xs text-secondary">
-            <strong class="text-on-surface">A learning curve.</strong> The vocabulary — <a href="/docs/humanfile" class="text-primary hover:underline">humanfile</a>, <a href="/docs/agentfile" class="text-primary hover:underline">agentfile</a>, <a href="/docs/pins" class="text-primary hover:underline">pin caps</a>, <a href="/docs/needles" class="text-primary hover:underline">needles</a>, <a href="/docs/tack-grammar" class="text-primary hover:underline">tack</a> — takes a session or two to internalize. The <a href="/start" class="text-primary hover:underline">five-minute start</a> covers the floor; the <a href="/docs/kernel-spec" class="text-primary hover:underline">kernel spec</a> covers the ceiling.
+            <strong class="text-on-surface">A learning curve.</strong> The vocabulary — <a href="/docs/humanfile/" class="text-primary hover:underline">humanfile</a>, <a href="/docs/agentfile/" class="text-primary hover:underline">agentfile</a>, <a href="/docs/pins/" class="text-primary hover:underline">pin caps</a>, <a href="/docs/needles/" class="text-primary hover:underline">needles</a>, <a href="/docs/tack-grammar/" class="text-primary hover:underline">tack</a> — takes a session or two to internalize. The <a href="/start/" class="text-primary hover:underline">five-minute start</a> covers the floor; the <a href="/docs/kernel-spec/" class="text-primary hover:underline">kernel spec</a> covers the ceiling.
           </div>
           <div class="font-body text-xs text-secondary">
             <strong class="text-on-surface">A daemon process.</strong> ostk runs a background daemon per project. Memory cost depends on what's loaded — a baseline daemon is tens of MB; with embeddings resident it can be hundreds. Use <code class="text-primary">ostk daemon restart</code> to swap a rebuilt binary in cleanly; <code class="text-primary">pkill -f "ostk daemon"</code> if you just want it gone.
@@ -134,11 +134,11 @@ const sidebarGroups = {
       <section class="mb-8">
         <h2 class="section-label mb-4">NEXT</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
-          <a href="/start" class="bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
+          <a href="/start/" class="plausible-event-name=Why+to+Start bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
             <div class="font-body text-sm text-primary font-bold mb-2">→ START_HERE</div>
             <p class="font-body text-xs text-secondary">Pick a path. Three branches, ten to fifteen minutes each.</p>
           </a>
-          <a href="/docs/architecture" class="bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
+          <a href="/docs/architecture/" class="plausible-event-name=Docs+Deep+Dive plausible-event-page=architecture bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
             <div class="font-body text-sm text-primary font-bold mb-2">→ HOW_IT_WORKS</div>
             <p class="font-body text-xs text-secondary">The model. Kernel, drivers, agents, the audit chain.</p>
           </a>

@@ -6,15 +6,15 @@ import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
   items: [
-    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why' },
-    { icon: 'rocket_launch', label: 'START_HERE', href: '/start' },
-    { icon: 'extension', label: 'MCP', href: '/docs/mcp' },
-    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec' },
-    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+    { icon: 'extension', label: 'MCP', href: '/docs/mcp/' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model/' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
   ],
   bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
     { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
   ],
 };
@@ -60,7 +60,7 @@ const sidebarGroups = {
 
         <!-- Three persona CTAs -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-8 max-w-3xl">
-          <a href="/docs/mcp" class="bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
+          <a href="/docs/mcp/" class="plausible-event-name=Persona+CTA plausible-event-persona=mcp bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
             <div class="flex items-start gap-3 mb-2">
               <Icon name="extension" size="18" class="text-primary" />
               <div class="font-body text-sm text-primary font-bold">DRIVE_YOUR_AGENT</div>
@@ -68,7 +68,7 @@ const sidebarGroups = {
             <p class="font-body text-xs text-secondary mb-2">Wire ostk into Claude Code, Cursor, or any MCP-capable tool. Keep your UI; gain coordination.</p>
             <div class="font-label text-[10px] text-outline">~10 MIN</div>
           </a>
-          <a href="/start" class="bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
+          <a href="/start/local/" class="plausible-event-name=Persona+CTA plausible-event-persona=local bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
             <div class="flex items-start gap-3 mb-2">
               <Icon name="tv" size="18" class="text-primary" />
               <div class="font-body text-sm text-primary font-bold">RUN_A_LOCAL_MODEL</div>
@@ -76,7 +76,7 @@ const sidebarGroups = {
             <p class="font-body text-xs text-secondary mb-2">Run a local model through ollama or mlx, with ostk's terminal UI as the chat surface. No API bill. Everything stays local.</p>
             <div class="font-label text-[10px] text-outline">~15 MIN</div>
           </a>
-          <a href="/start" class="bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
+          <a href="/start/server/" class="plausible-event-name=Persona+CTA plausible-event-persona=server bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
             <div class="flex items-start gap-3 mb-2">
               <Icon name="cloud" size="18" class="text-primary" />
               <div class="font-body text-sm text-primary font-bold">SERVER_MODE</div>
@@ -96,11 +96,13 @@ const sidebarGroups = {
               <span class="ml-auto font-label text-[9px] text-outline">TERMINAL</span>
             </div>
             <div class="px-4 py-3 font-body text-sm">
-              <div><span class="text-outline select-none">$ </span><span class="text-primary">curl -fsSL https://ostk.ai/install.sh | sh</span></div>
+              <button type="button" data-copy="curl -fsSL https://ostk.ai/install.sh | sh" class="plausible-event-name=Install+Copied plausible-event-source=hero w-full text-left hover:bg-surface-container-low transition-colors cursor-pointer">
+                <span class="text-outline select-none">$ </span><span class="text-primary">curl -fsSL https://ostk.ai/install.sh | sh</span>
+              </button>
               <div><span class="text-outline select-none">$ </span><span class="text-primary">cd ~/projects/your-repo && ostk init</span></div>
             </div>
           </div>
-          <p class="font-body text-[10px] text-outline mt-2">macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
+          <p class="font-body text-[10px] text-outline mt-2">macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
         </div>
 
         <!-- Status ribbon -->
@@ -229,11 +231,11 @@ const sidebarGroups = {
       <!-- CTA -->
       <section>
         <div class="flex flex-col sm:flex-row gap-4">
-          <a href="/start" class="bg-primary text-on-primary font-body text-sm py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
+          <a href="/start/" class="plausible-event-name=Start+Here plausible-event-source=footer-cta bg-primary text-on-primary font-body text-sm py-3 px-6 transition-none hover:bg-primary-container flex items-center gap-2">
             <Icon name="rocket_launch" size="14" />
             START_HERE
           </a>
-          <a href="https://github.com/os-tack/ostk.ai" class="bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
+          <a href="https://github.com/os-tack/ostk.ai" class="plausible-event-name=Source+View bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center gap-2">
             <Icon name="code" size="14" />
             VIEW_SOURCE
           </a>

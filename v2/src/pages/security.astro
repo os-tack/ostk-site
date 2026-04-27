@@ -5,15 +5,15 @@ import Sidebar from '../components/Sidebar.astro';
 
 const sidebarGroups = {
   items: [
-    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model' },
-    { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins' },
-    { icon: 'key', label: 'SECRETS', href: '/docs/secrets' },
-    { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile' },
-    { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws' },
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model/' },
+    { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins/' },
+    { icon: 'key', label: 'SECRETS', href: '/docs/secrets/' },
+    { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile/' },
+    { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile/' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
   ],
   bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs' },
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
   ],
 };
 ---
@@ -57,7 +57,7 @@ const sidebarGroups = {
           ))}
         </div>
         <p class="font-body text-xs text-secondary mt-4">
-          Full details: <a href="/docs/trust-model" class="text-primary hover:underline">Trust Model</a>
+          Full details: <a href="/docs/trust-model/" class="text-primary hover:underline">Trust Model</a>
         </p>
       </section>
 
@@ -99,9 +99,9 @@ const sidebarGroups = {
 
       <div class="metadata-ribbon border-t border-surface-variant">
         <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-        <a href="/docs/trust-model"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
-        <a href="/docs/pins"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
-        <a href="/docs/secrets"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
+        <a href="/docs/trust-model/"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+        <a href="/docs/pins/"><Icon name="pin_drop" size="14" class="align-middle mr-1" />CAPABILITY_PINS</a>
+        <a href="/docs/secrets/"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
       </div>
     </div>
   </main>
