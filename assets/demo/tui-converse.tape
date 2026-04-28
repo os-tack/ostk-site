@@ -31,7 +31,13 @@ Show
 Sleep 600ms
 
 # Type a prompt in the TUI's tack input box.
-Type `Explain ostk in one sentence.`
+# Prompt the model can actually answer correctly (asking a model to
+# explain a private project it has never seen produces hallucination
+# from both Opus and local Ternary-Bonsai). This prompt demonstrates
+# the conversation surface itself — typing in the TUI, real model
+# response landing — without making a knowledge claim the model
+# cannot back.
+Type `Write a unix one-liner that tails a log and only shows ERROR lines.`
 Enter
 
 # Generous Sleep so we definitely capture the full response. The

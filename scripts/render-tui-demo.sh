@@ -51,11 +51,14 @@ if [[ "$WARM" == "1" ]]; then
     sleep 1
   done
 
-  # Pin local mlx model so prompts in the TUI route to ternary-bonsai
-  # (Anthropic API is rate-limited; Ollama isn't running). The kernel
-  # resolution chain is staging/preferred_model -> OSTK_MODEL -> cloud.
-  mkdir -p .ostk/staging
-  printf 'mlx/ternary-bonsai-8b' > .ostk/staging/preferred_model
+  # Default to Anthropic Claude Opus for the hero capture (local model
+  # responses on a small 8B can hallucinate the project framing).
+  # Override via OSTK_DEMO_MODEL env to pin a specific model:
+  #   OSTK_DEMO_MODEL=mlx/ternary-bonsai-8b scripts/render-tui-demo.sh ...
+  if [[ -n "${OSTK_DEMO_MODEL:-}" ]]; then
+    mkdir -p .ostk/staging
+    printf '%s' "$OSTK_DEMO_MODEL" > .ostk/staging/preferred_model
+  fi
 
   # Seed a few session turns so the [ctx] peek shows something interesting.
   ostk decide "demo: project initialized" >/dev/null 2>&1 || true
@@ -63,9 +66,8 @@ if [[ "$WARM" == "1" ]]; then
   ostk tack ':needle 1' --json >/dev/null 2>&1 || true
   ostk tack ':status' --json >/dev/null 2>&1 || true
 
-  # Pre-warm the mlx_lm.server so the TUI's first prompt skips the
-  # cold-spawn cost (~6s) and the response actually fits inside the
-  # tape's recorded window. Tiny prompt; we throw the response away.
+  # Pre-warm the model provider (mlx_lm.server cold-spawn or
+  # Anthropic auth handshake). Tiny prompt; throw response away.
   ostk tack --llm 'hi' --max-tokens 8 >/dev/null 2>&1 || true
 
   echo "[render-tui-demo] warm session ready (PID $DAEMON_PID)"
@@ -91,21 +93,11 @@ VHS_EXIT=$?
 # no idle terminal at the end.
 base_name=$(grep -oE 'Output "[^"]*\.mp4"' "$SITE_ROOT/$TAPE" | head -1 | sed 's/Output "//; s/\.mp4"//')
 if [[ -n "$base_name" && -f "$base_name.mp4" ]]; then
-  # Step 1: mpdecimate drops near-duplicate frames (kills inference-
-  # thinking gaps, cursor-only frames, idle tail). setpts re-times the
-  # surviving frames so they play at the source's nominal frame rate
-  # — no slow-mo, no time-warp, just static gaps removed.
-  # Thresholds (hi=64*12:lo=64*5) are the ffmpeg-recipe defaults that
-  # drop obvious duplicates while preserving typing-token motion.
-  ffmpeg -y -i "$base_name.mp4" \
-    -vf "mpdecimate=hi=64*12:lo=64*5:frac=0.05,setpts=N/FRAME_RATE/TB" \
-    -c:v libx264 -preset slow -crf 23 -pix_fmt yuv420p \
-    -movflags +faststart \
-    "$base_name.decimated.mp4" 2>/dev/null
-  mv "$base_name.decimated.mp4" "$base_name.mp4"
-
-  # Step 2: trim any trailing static dwell that survived mpdecimate
-  # (usually 0.3–1.0s of leftover idle).
+  # mpdecimate over-decimated text-heavy demos (the response itself is
+  # stable text after it lands, so decimate drops the very frames we
+  # want to show). Skip decimate; trail-trim does the dead-tail
+  # removal, with a generous DWELL_BUFFER so the final state holds
+  # long enough to read.
   LAST_T=$(
     ffmpeg -i "$base_name.mp4" \
       -vf "select='gt(scene,0.005)',showinfo" \
@@ -115,9 +107,11 @@ if [[ -n "$base_name" && -f "$base_name.mp4" ]]; then
     | cut -d: -f2
   )
   if [[ -n "$LAST_T" ]]; then
-    DWELL_BUFFER=1.0
+    # 3s dwell on the final frame — the published artifact ends with
+    # a held read-the-response beat before looping.
+    DWELL_BUFFER=3.0
     TRIM_T=$(awk -v a="$LAST_T" -v b="$DWELL_BUFFER" 'BEGIN { printf "%.2f", a + b }')
-    echo "[render-tui-demo] decimated; last motion at ${LAST_T}s; trimming to ${TRIM_T}s"
+    echo "[render-tui-demo] last motion at ${LAST_T}s; trimming to ${TRIM_T}s (3s dwell)"
     ffmpeg -y -i "$base_name.mp4" -t "$TRIM_T" \
       -c:v libx264 -preset slow -crf 23 -pix_fmt yuv420p \
       -movflags +faststart \
