@@ -5862,7 +5862,7 @@ The binary is free for personal and internal commercial use. Governance document
 
 Built by agents running on ostk. Maintained by humans who speak tack.
 
-contact@ostk.ai (mailto:contact@ostk.ai) Discord (https://discord.gg/MdRNs4CC) GitHub (https://github.com/os-tack)
+contact@ostk.ai (mailto:contact@ostk.ai) Discord (https://discord.gg/ZP6zRp2eF4) GitHub (https://github.com/os-tack)
 
 ---
 
