@@ -137,52 +137,9 @@ const sidebarGroups = {
         </Terminal>
       </section>
 
-      <!-- Three persona CTAs -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-8 max-w-3xl">
-          <a href="/docs/mcp/" class="plausible-event-name=Persona+CTA plausible-event-persona=mcp bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
-            <div class="flex items-start gap-3 mb-2">
-              <Icon name="extension" size="18" class="text-primary" />
-              <div class="font-body text-sm text-primary font-bold">DRIVE_YOUR_AGENT</div>
-            </div>
-            <p class="font-body text-xs text-secondary mb-2">Wire ostk into Claude Code, Cursor, or any MCP-capable tool. Keep your UI; gain coordination.</p>
-            <div class="font-label text-[10px] text-outline">~10 MIN</div>
-          </a>
-          <a href="/start/local/" class="plausible-event-name=Persona+CTA plausible-event-persona=local bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
-            <div class="flex items-start gap-3 mb-2">
-              <Icon name="tv" size="18" class="text-primary" />
-              <div class="font-body text-sm text-primary font-bold">RUN_A_LOCAL_MODEL</div>
-            </div>
-            <p class="font-body text-xs text-secondary mb-2">Run a local model through ollama or mlx, with ostk's terminal UI as the chat surface. No API bill. Everything stays local.</p>
-            <div class="font-label text-[10px] text-outline">~15 MIN</div>
-          </a>
-          <a href="/start/server/" class="plausible-event-name=Persona+CTA plausible-event-persona=server bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
-            <div class="flex items-start gap-3 mb-2">
-              <Icon name="cloud" size="18" class="text-primary" />
-              <div class="font-body text-sm text-primary font-bold">SERVER_MODE</div>
-            </div>
-            <p class="font-body text-xs text-secondary mb-2">Run <code>ostk daemon</code> on the host. CI runners, remote machines, and Discord bots connect on the Unix socket and drive agents.</p>
-            <div class="font-label text-[10px] text-outline">~10 MIN</div>
-          </a>
-        </div>
-
-        <!-- Or just install -->
-        <div class="max-w-lg mb-6">
-          <div class="bg-surface-container-lowest border border-surface-variant">
-            <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
-              <div class="w-2 h-2 rounded-full bg-error-container"></div>
-              <div class="w-2 h-2 rounded-full bg-primary-container"></div>
-              <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
-              <span class="ml-auto font-label text-[9px] text-outline">TERMINAL</span>
-            </div>
-            <div class="px-4 py-3 font-body text-sm">
-              <button type="button" data-copy="curl -fsSL https://ostk.ai/install.sh | sh" class="plausible-event-name=Install+Copied plausible-event-source=hero w-full text-left hover:bg-surface-container-low transition-colors cursor-pointer">
-                <span class="text-outline select-none">$ </span><span class="text-primary">curl -fsSL https://ostk.ai/install.sh | sh</span>
-              </button>
-              <div><span class="text-outline select-none">$ </span><span class="text-primary">cd ~/projects/your-repo && ostk init</span></div>
-            </div>
-          </div>
-          <p class="font-body text-[10px] text-outline mt-2">macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
-        </div>
+      <!-- Platform availability + status ribbon (kept; the hero terminal doesn't show this) -->
+      <section class="mb-12">
+        <p class="font-body text-[10px] text-outline mb-3 max-w-2xl">macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
 
         <!-- Status ribbon -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-y border-surface-variant text-xs">
@@ -205,33 +162,33 @@ const sidebarGroups = {
         </div>
       </section>
 
-      <!-- Three problems -->
+      <!-- Three failure modes the kernel addresses -->
       <section class="mb-20">
-        <div class="section-label mb-4">WHAT_AGENTS_BREAK</div>
+        <div class="section-label mb-4">HOW_THE_KERNEL_KEEPS_THE_FRAME</div>
         <p class="font-body text-sm text-secondary max-w-2xl mb-8">
-          Three things break the moment you run more than one agent. ostk fixes all three at the kernel layer, without changing how you drive your agents.
+          Three failure modes show up the moment LLM agents touch real codebases. ostk addresses each one structurally — at the kernel layer, in the envelope you saw above — not as application-layer hacks bolted onto a chat loop.
         </p>
         <div class="space-y-px">
           {[
             {
               num: '01',
               title: 'They collide.',
-              body: 'Two agents edit the same file. Last write wins. Silently. ostk catches every conflict before it lands. Nothing disappears; the second writer sees a clean error.',
-              link: '/why#collision',
+              body: 'Two agents edit the same file. Last write wins. Silently. Kernel-mediated CAS writes catch every conflict before it lands. Nothing disappears; the second writer sees a clean error.',
+              link: '/why/#collision',
               link_label: 'Read why',
             },
             {
               num: '02',
               title: 'They drift.',
-              body: 'Each agent has its own context. They re-discover the same things. They forget what was decided. ostk gives every agent a shared state directory to read from — the project develops a memory.',
-              link: '/why#drift',
+              body: 'Each agent has its own context. They re-discover the same things. They forget what was decided. Every syscall returns the working state envelope, so the agent re-grounds each turn — the project develops a memory the fleet shares.',
+              link: '/why/#drift',
               link_label: 'Read why',
             },
             {
               num: '03',
               title: 'They leave no trace.',
-              body: 'You can\'t replay, audit, or prove what shipped. ostk records every action in a hash-chained, Ed25519-signed audit trail. Replay any session, byte for byte.',
-              link: '/why#trace',
+              body: 'You can\'t replay, audit, or prove what shipped. The kernel records every action in an append-only, hash-chained, Ed25519-signed audit trail. Replay any session, byte for byte.',
+              link: '/why/#trace',
               link_label: 'Read why',
             },
           ].map(problem => (
