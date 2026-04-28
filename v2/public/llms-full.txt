@@ -376,7 +376,7 @@ Spawn an agent with the model alias. ostk routes to the local server; audit + pi
 
 Open ostk tui to chat. First response is slower (model warm-up); subsequent calls are fast.
 
-Total time: ~15 minutes (most of it is model download). You need ostk v4.6.0+ and either ollama or mlx_lm installed locally.
+Total time: ~15 minutes (most of it is model download). You need ostk v4.6.1+ and either ollama or mlx_lm installed locally.
 
 ## WHAT_STEP_05_LOOKS_LIKE
 
@@ -574,7 +574,7 @@ The kernel daemon listens on a local Unix socket. Drive it from CI, a remote she
 
 DOCUMENTATION_STATUS
 
-This walkthrough is in progress. The pieces below are real and shipped at v4.6.0; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
+This walkthrough is in progress. The pieces below are real and shipped at v4.6.1; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
 
 If you've wired ostk into CI or a Discord bot already and have notes that would help others, send them to os-tack/ostk-site issues (https://github.com/os-tack/ostk-site/issues).
 
@@ -626,7 +626,7 @@ RELATED: START_HERE (/start/) MCP_BRIDGE (/docs/mcp/) SESSION_TOPOLOGY (/docs/se
 
 URL: https://ostk.ai/docs/
 
-ARCHIVE_INDEX // v4.6.0
+ARCHIVE_INDEX // v4.6.1
 
 # Documentation Archive
 
@@ -5097,7 +5097,7 @@ Runtime configuration that doesn't belong in files. Most are optional — the ke
 
 ## DRAIN_RECOVERY
 
-`OSTK_DRAIN_SNAPSHOT` Controls drain snapshot writes. Set to 0 to disable. Enabled (v4.6.0+)
+`OSTK_DRAIN_SNAPSHOT` Controls drain snapshot writes. Set to 0 to disable. Enabled (v4.6.1+)
 
 04
 
@@ -5398,7 +5398,7 @@ Key terms used throughout the documentation.
 
 URL: https://ostk.ai/features/
 
-FEATURE_INDEX // v4.6.0
+FEATURE_INDEX // v4.6.1
 
 # Features
 
