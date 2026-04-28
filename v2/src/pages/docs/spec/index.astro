@@ -1,11 +1,13 @@
 ---
 import DocsLayout from '../../../layouts/DocsLayout.astro';
 
+type Maturity = 'STABLE' | 'DRAFT' | 'HORIZON';
+
 interface SpecEntry {
   title: string;
   description: string;
   href?: string;
-  comingSoon?: boolean;
+  maturity: Maturity;
 }
 
 interface SpecGroup {
@@ -21,16 +23,19 @@ const groups: SpecGroup[] = [
         title: 'Kernel Specification',
         description: 'Canonical ostk kernel architecture: six Unix syscalls, seven primitives, the LLM memory hierarchy, and the dual-CPU scheduler binding humans + LLMs.',
         href: '/docs/kernel-spec/',
+        maturity: 'STABLE',
       },
       {
         title: 'Five Laws',
         description: 'The five load-bearing constraints behind ostk: invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infra.',
         href: '/docs/five-laws/',
+        maturity: 'STABLE',
       },
       {
         title: 'POSIX Kernel Spec',
-        description: 'Merged POSIX kernel spec — the substrate doctrine in formal form.',
-        comingSoon: true,
+        description: 'RFC-style specification of the POSIX-shaped invariants the ostk kernel enforces today: bounded waits, owned state, dead-owner reaping, namespace isolation, the signal table, anchor exclusivity, handle generations.',
+        href: '/docs/spec/posix-kernel/',
+        maturity: 'STABLE',
       },
     ],
   },
@@ -41,21 +46,25 @@ const groups: SpecGroup[] = [
         title: 'Trust Model',
         description: 'How GPG identity tiers, capability pins, and Ed25519-signed audit compose into the trust model. Four problems an operator has — what can I do, how do I graduate, how do I verify a release, how do I revoke a compromised key — and the compositions that solve them.',
         href: '/docs/trust-model/',
+        maturity: 'STABLE',
       },
       {
         title: 'HUMANFILE',
         description: 'Operator identity document. Tells the OS who you are, what models to use, and how to calibrate.',
         href: '/docs/humanfile/',
+        maturity: 'STABLE',
       },
       {
         title: '.primefile',
         description: 'The .primefile is ostk’s dual-signed root of trust — kernel + operator GPG keys anchor the identity chain. Auto-managed, never edit by hand.',
         href: '/docs/primefile/',
+        maturity: 'STABLE',
       },
       {
         title: 'ENTITYFILE',
         description: 'The trust constitution of your OS instance. Identity chains, trust tiers, and governance ceremonies.',
         href: '/docs/entityfile/',
+        maturity: 'STABLE',
       },
     ],
   },
@@ -66,11 +75,17 @@ const groups: SpecGroup[] = [
         title: 'Coordination Primitives',
         description: 'Four primitives that let multiple agents share a codebase without a message bus: optimistic concurrency, Hot PR conflict resolution, digest injection, and nudges.',
         href: '/docs/coordination-primitives/',
+        maturity: 'STABLE',
       },
       {
         title: 'Observation Substrate',
-        description: 'Audit-row dispatch, projection lattice, and the observation substrate over the VFS namespace.',
-        comingSoon: true,
+        description: 'A live, read-only projection of the kernel’s audit ring onto a VFS namespace — subscriber dispatch, projection lattice, and stable paths the rest of the system queries without polling.',
+        maturity: 'HORIZON',
+      },
+      {
+        title: 'Sovereign Substrate',
+        description: 'The federation layer that lets builders, registrars, and operators verify each other across hosts without a single trust issuer in the middle. No single third party can stop the operator from shipping.',
+        maturity: 'HORIZON',
       },
     ],
   },
@@ -81,20 +96,28 @@ const groups: SpecGroup[] = [
         title: 'Agentfile',
         description: 'An Agentfile is a Dockerfile for agents — a declarative spec the kernel can audit, supervise, and verify. Four operator problems and the compositions that solve them.',
         href: '/docs/agentfile/',
+        maturity: 'STABLE',
       },
       {
         title: 'Tack Grammar',
         description: 'The operator intent language for the TUI tack bar. Compressed input syntax that resolves through the kernel. What, not how.',
         href: '/docs/tack-grammar/',
+        maturity: 'STABLE',
       },
       {
         title: 'Application v1',
-        description: 'Application-layer protocol for agent lifecycle, sub-agent spawning, and journal recovery.',
-        comingSoon: true,
+        description: 'A content-addressed, signed directory tree with a manifest, supervisor tree, and policy declaration that one operator can install on another and have it just run — the application unit above the kernel.',
+        maturity: 'HORIZON',
       },
     ],
   },
 ];
+
+const maturityClasses: Record<Maturity, string> = {
+  STABLE: 'bg-surface-container-low text-primary border border-primary/40',
+  DRAFT: 'bg-surface-container-low text-on-surface border border-outline',
+  HORIZON: 'bg-transparent text-outline border border-outline/60',
+};
 ---
 
 <DocsLayout
@@ -102,34 +125,62 @@ const groups: SpecGroup[] = [
   description="The substrate ostk is built on: kernel spec, five laws, trust model, audit format. Read before you trust your codebase to it."
   sectionLabel="REFERENCE // SPECIFICATIONS"
 >
+  <!-- Doctrine pointer banner -->
+  <div class="bg-surface-container-low border-l-2 border-primary p-4 mb-8 max-w-2xl">
+    <p class="font-body text-xs text-secondary leading-relaxed">
+      Specs here are normative. For project doctrine and direction, see <a href="/doctrine/" class="text-primary hover:underline">/doctrine/</a>.
+    </p>
+  </div>
+
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-6">
     The substrate underneath ostk. Kernel doctrine, trust model, audit format, application layer.
   </p>
-  <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-12">
-    These are the canonical public specifications. If you’re going to trust your codebase to a kernel, this is what you should read first. Specifications marked <em class="text-outline not-italic">specification draft — public version forthcoming</em> are tracked under active work; the public-version page goes up when it’s frozen.
+  <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-6">
+    These are the canonical public specifications. If you’re going to trust your codebase to a kernel, this is what you should read first.
   </p>
+
+  <!-- Maturity legend -->
+  <div class="flex flex-wrap gap-x-6 gap-y-2 mb-12 max-w-2xl">
+    <span class="font-body text-[10px] text-secondary"><span class="inline-block px-2 py-[2px] mr-2 font-label tracking-widest text-primary bg-surface-container-low border border-primary/40">STABLE</span> shipped, normative, public</span>
+    <span class="font-body text-[10px] text-secondary"><span class="inline-block px-2 py-[2px] mr-2 font-label tracking-widest text-on-surface bg-surface-container-low border border-outline">DRAFT</span> in flight, public, not frozen</span>
+    <span class="font-body text-[10px] text-secondary"><span class="inline-block px-2 py-[2px] mr-2 font-label tracking-widest text-outline bg-transparent border border-outline/60">HORIZON</span> direction, no public spec yet</span>
+  </div>
 
   {groups.map(group => (
     <section class="mb-14">
       <h2 class="serif-text text-2xl font-medium text-on-surface mb-6">{group.heading}</h2>
       <div class="space-y-px">
-        {group.entries.map(entry => (
-          entry.comingSoon ? (
-            <div class="bg-surface-container-low p-5 opacity-60">
-              <div class="font-body text-sm text-outline mb-1">{entry.title}</div>
-              <div class="font-body text-xs text-outline italic mb-1">(specification draft — public version forthcoming)</div>
-              <div class="font-body text-xs text-outline leading-relaxed max-w-xl">{entry.description}</div>
-            </div>
-          ) : (
+        {group.entries.map(entry => {
+          const badge = (
+            <span class:list={[
+              'inline-block px-2 py-[2px] font-label text-[9px] tracking-widest shrink-0',
+              maturityClasses[entry.maturity],
+            ]}>{entry.maturity}</span>
+          );
+          if (entry.maturity === 'HORIZON') {
+            return (
+              <div class="bg-surface-container-low p-5">
+                <div class="flex items-center justify-between gap-4 mb-2">
+                  <div class="font-body text-sm text-outline">{entry.title}</div>
+                  {badge}
+                </div>
+                <div class="font-body text-xs text-outline leading-relaxed max-w-xl">{entry.description}</div>
+              </div>
+            );
+          }
+          return (
             <a href={entry.href} class="bg-surface-container p-5 block hover:bg-surface-container-high transition-none group">
-              <div class="font-body text-sm text-primary group-hover:underline mb-1">
-                {entry.title}
-                <span class="text-outline ml-2 text-xs font-normal">{entry.href}</span>
+              <div class="flex items-center justify-between gap-4 mb-1">
+                <div class="font-body text-sm text-primary group-hover:underline">
+                  {entry.title}
+                  <span class="text-outline ml-2 text-xs font-normal">{entry.href}</span>
+                </div>
+                {badge}
               </div>
               <div class="font-body text-xs text-secondary leading-relaxed max-w-xl">{entry.description}</div>
             </a>
-          )
-        ))}
+          );
+        })}
       </div>
     </section>
   ))}

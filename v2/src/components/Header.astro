@@ -2,7 +2,7 @@
 import Icon from './Icon.astro';
 
 interface Props {
-  activeTab?: 'why' | 'start' | 'docs' | 'features' | 'architecture' | 'commands' | 'trust';
+  activeTab?: 'why' | 'start' | 'docs' | 'features' | 'architecture' | 'commands' | 'trust' | 'doctrine';
 }
 const { activeTab } = Astro.props;
 
@@ -11,6 +11,7 @@ const tabs = [
   { id: 'start', label: 'START', href: '/start/' },
   { id: 'docs', label: 'DOCS', href: '/docs/' },
   { id: 'features', label: 'FEATURES', href: '/features/' },
+  { id: 'doctrine', label: 'DOCTRINE', href: '/doctrine/' },
 ];
 ---
 

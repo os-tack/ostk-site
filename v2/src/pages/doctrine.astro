@@ -1,0 +1,288 @@
+---
+import Base from '../layouts/Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'auto_stories', label: 'DOCTRINE', href: '/doctrine/' },
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+    { icon: 'description', label: 'SPECIFICATIONS', href: '/docs/spec/' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
+    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
+  ],
+};
+
+const pageTitle = 'Doctrine — ostk';
+const pageDescription = 'Project doctrine: the position ostk takes, the priors it inherits, the non-goals it refuses, and the trajectory ahead. Essay, not specification.';
+const canonicalUrl = new URL(Astro.url.pathname, 'https://ostk.ai').href;
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  'headline': 'Doctrine — ostk',
+  'description': pageDescription,
+  'image': 'https://ostk.ai/og-image.png',
+  'datePublished': '2026-04-27',
+  'dateModified': '2026-04-27',
+  'author': { '@type': 'Organization', 'name': 'ostk', 'url': 'https://ostk.ai' },
+  'publisher': {
+    '@type': 'Organization',
+    'name': 'ostk',
+    'url': 'https://ostk.ai',
+    'logo': { '@type': 'ImageObject', 'url': 'https://ostk.ai/og-image.png' },
+  },
+  'mainEntityOfPage': { '@type': 'WebPage', '@id': canonicalUrl },
+};
+
+const nonGoals = [
+  {
+    label: 'NOT_A_MODEL',
+    body: 'ostk does not train, fine-tune, or host language models. It composes with whichever one you run — a frontier endpoint, a local Llama, an in-house fork. The kernel cares about agent identity, file generation, and the audit chain. Which weights answer the prompt is a driver concern, swappable.',
+  },
+  {
+    label: 'NOT_AN_EDITOR',
+    body: 'ostk does not replace Cursor, Claude Code, Zed, or your terminal. It sits underneath them. The agent surface stays where you like it; the substrate underneath gains coordination, audit, and capability boundaries. If your editor speaks MCP, it composes; if it does not, ostk has a TUI of its own.',
+  },
+  {
+    label: 'NOT_A_SAAS',
+    body: 'There is no ostk cloud. The kernel is local-first by construction: state lives in .ostk/ on the same disk as the code, not in a vendor account. The only network calls the kernel itself initiates are to your model provider, your registrar, and the update server you point it at. Telemetry is opt-in and off by default.',
+  },
+  {
+    label: 'NOT_A_CHAT_WRAPPER',
+    body: 'The kernel sits below the agent surface, not on top of it. ostk does not put a chat panel in front of a model and call that a product. The kernel intercepts file writes, observes audit rows, and coordinates concurrent agents — work the chat layer above could not do even if it tried. Whatever surface the operator prefers stays the surface; the kernel is invisible.',
+  },
+  {
+    label: 'NOT_A_BENCHMARK',
+    body: 'ostk does not score models, does not publish leaderboards, and does not include an evaluation harness. Models are commodities; the substrate is what we build. If a benchmark is the artifact you want, ostk’s audit chain is a substrate for one, but ostk itself is not it.',
+  },
+  {
+    label: 'NOT_A_DEPLOYMENT_PLATFORM',
+    body: 'ostk is not Heroku for agents. It coordinates work on a codebase you already own; it does not run that code in a vendor-managed runtime, scale it across regions, or terminate your TLS. Deployment is downstream of the artifact ostk helps you produce.',
+  },
+  {
+    label: 'NOT_A_GIT_REPLACEMENT',
+    body: 'ostk’s journal is git’s sibling, not its successor. Git tracks the artifact — the source tree as the human chose to commit it. The kernel’s audit chain tracks the process — every agent action, every concurrent edit, every refused write. Both are content-addressed, both are append-only, both compose. ostk does not ask you to give up git; it gives you the second ledger you did not have.',
+  },
+  {
+    label: 'NOT_A_FRAMEWORK',
+    body: 'There is no SDK to import, no class to subclass, no decorator to apply. Agents do not learn an ostk API — they write files. The kernel observes the writes. “Invisible writes” is the foundational invariant; if a feature requires the agent to call into ostk, the design is wrong.',
+  },
+];
+
+const heritage = [
+  {
+    name: 'Plan 9',
+    took: 'namespaces as protocol — if the resource is a path, every tool that reads paths can observe it.',
+    didnt: 'distribute the file servers across the network. ostk’s namespace is local first; cross-host federation is a separate spec, not a foundational assumption.',
+  },
+  {
+    name: 'POSIX',
+    took: 'the process identity quad — PID, PPID, PGID, SID — as the model for agent supervision. The shape that survived Unix’s second decade is the shape we wanted for ours.',
+    didnt: 'inherit the syscall surface area. ostk speaks a kernel ABI of its own. The model is POSIX; the bytes on the wire are not.',
+  },
+  {
+    name: 'Erlang and OTP',
+    took: 'supervision trees, let-it-crash discipline, and the assumption that processes die routinely. Agents are ephemeral by construction; supervisors restart them; state lives outside the process.',
+    didnt: 'switch languages. The kernel is Rust because the kernel is a single binary that has to start fast, run safe, and be auditable in one read. We took the discipline; we kept the toolchain.',
+  },
+  {
+    name: 'sigstore',
+    took: 'the doctrine that artifacts should be signed by default, and that verification should be cheap enough to do every time.',
+    didnt: 'adopt the certificate-issuer chain. The kernel uses Ed25519 keys directly, signs in-process at write time, and verifies inline. No subprocess fork; no out-of-band CA to trust.',
+  },
+  {
+    name: 'Capability-based security',
+    took: 'deny by default, and the principle that authority is a token an agent holds, not an identity it claims. Pin caps are deny tokens scoped to an agent; an action without the right cap is refused at the tool layer before it reaches disk.',
+    didnt: 'reach for an object-capability language. The kernel is Rust; capabilities live in policy data, not in the type system. The principle composes; the implementation is conventional.',
+  },
+  {
+    name: 'Postgres logical replication',
+    took: 'the publish-subscribe shape. The audit ring is a write-ahead log; subscribers tap it as logical-decoding listeners; projections land at stable paths in the namespace. The substrate is observable without polling and queryable without a separate truth source.',
+    didnt: 'sit on a relational core. The audit ring is JSONL on disk; the projections are files; the query layer is path-shaped. Postgres taught us the topology, not the storage engine.',
+  },
+  {
+    name: 'BSD',
+    took: 'single-binary discipline. One install, one binary, one boot. No Python, no Node, no runtime to install before the install. The kernel is a Rust binary that runs on the platform it ships for.',
+    didnt: 'fork the userland. ostk is a substrate, not a distribution; the userland on top is yours.',
+  },
+  {
+    name: 'git',
+    took: 'content-addressed history. Hashes are identity. The chain of commits cannot be silently rewritten without breaking every downstream reference. The audit ring inherits this property: every row carries the previous row’s signature; replay reconstructs identical state byte-for-byte.',
+    didnt: 'replace the index. ostk’s journal records what agents did; git’s log records what humans committed. The journal is git’s sibling, not its replacement.',
+  },
+];
+
+const trajectory = [
+  {
+    title: 'Observation substrate',
+    label: 'IN PROGRESS',
+    body: 'The audit ring is shipped at v4.5.0. Subscriber dispatch is shipped. The VFS namespace registers atom-, object-, and lattice-level projections of audit rows at stable paths, so an agent reads the live process table by listing a directory and the open work queue by catting a file. The shape is in place; specific projections continue to land. The spec is at docs/spec/llmos-observation-substrate.md inside the kernel repo; the public mirror is in development.',
+  },
+  {
+    title: 'Sovereign substrate',
+    label: 'IN PROGRESS',
+    body: 'The federation layer that lets builders, registrars, and operators verify each other across hosts without a single trust issuer in the middle. The v0.1 specification has been ratified by an internal panel; the public version is in development. Build claims, check claims, layered resolver, and signed manifests are the substrate-level objects. The exit criterion is concrete: no single third party can stop the operator from shipping.',
+  },
+  {
+    title: 'Application v1',
+    label: 'IN PROGRESS',
+    body: 'The unit above the kernel — a content-addressed, signed directory tree with a manifest, supervisor tree, and policy declaration that one operator can install on another operator’s machine and have it just run. The v0.1 specification has been ratified internally; the public version is in development. Lifecycle claims ride the universal claim event; status is a projection over the claim graph rather than a separate state machine.',
+  },
+  {
+    title: 'Distributed coordination',
+    label: 'HORIZON',
+    body: 'Cross-host kernel coordination — multiple operators, multiple machines, the same audit chain semantics across the boundary. The single-host kernel ships ten invariants; the question is which of them survive across hosts unchanged, which require new primitives, and which are redefined. The network model exists in private as a draft, not an implementation. Direction is clear; substance is not yet shipped.',
+  },
+  {
+    title: 'Sovereign CI',
+    label: 'HORIZON',
+    body: 'A logical consequence of the sovereign substrate: continuous integration as a federation of signed builders, each producing claims that any peer can verify independently. The motivating incident is concrete — a single vendor’s billing failure should not be able to stop a release of bytes that already exist. The substrate primitives are designed against that failure mode; the build verb and builder federation that close the loop are open work.',
+  },
+];
+---
+
+<Base title={pageTitle} description={pageDescription}>
+  <script slot="schema" type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <Sidebar title="DOCTRINE" subtitle="POSITION_AND_DIRECTION" groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-3xl mx-auto py-12">
+      <div class="section-label mb-4">DOCTRINE // POSITION</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Doctrine</h1>
+
+      <!-- Triangulation banner -->
+      <div class="bg-surface-container-low border-l-2 border-primary p-4 mb-12 max-w-2xl">
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          This is project doctrine — position, heritage, and direction. For implementation specifications, see <a href="/docs/spec/" class="text-primary hover:underline">/docs/spec/</a>. For the immediate problem ostk solves, see <a href="/why/" class="text-primary hover:underline">/why/</a>.
+        </p>
+      </div>
+
+      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
+        An essay on what we are arguing for, what we are not building, what we inherited, and where we are going. Read in any order.
+      </p>
+
+      <!-- §1 Thesis -->
+      <section id="thesis" class="mb-20 scroll-mt-24">
+        <div class="section-label mb-4">SECTION_01 // THESIS</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Agents are users of the runtime.</h2>
+
+        <div class="max-w-2xl space-y-5 font-body text-sm text-secondary leading-relaxed">
+          <p>
+            The load-bearing assumption underneath ostk is small and easy to miss: <strong class="text-on-surface">AI coding agents are first-class users of the runtime, and the runtime should treat them as such</strong>. Not user-facing simulations of users, not subroutines of a chat session, not customers of an API. Users — the way a person at a terminal is a user, the way a daemon at boot is a user. They have identities. They open files. They write to disk. They survive their own crashes through state the system, not the user, holds for them.
+          </p>
+          <p>
+            This is a position with consequences. If agents are users, the operating system underneath them owes them what an operating system owes any user: a stable namespace, a predictable concurrency model, an audit trail that records what they did, and capability boundaries that say what they may and may not touch. None of these are agent-specific concepts. We did not invent them; we inherited them from a half-century of systems work and applied them where they had not yet been applied.
+          </p>
+          <p>
+            The competing position — the one ostk is arguing against — is that an agent is a feature inside an editor, or a wrapper around a model, or a new kind of API client whose lifecycle ends with the HTTP response. That framing produces tools that are easy to ship and hard to reason about. The concrete failure modes — the ones an operator running a fleet of agents actually hits — are catalogued on <a href="/why/" class="text-primary hover:underline">/why/</a>. Each is a symptom of the same misframing: treating the agent as an ephemeral feature rather than a process the system is responsible for.
+          </p>
+          <p>
+            ostk takes the opposite turn. We treat the agent as a process, give it an identity, and build the substrate that everything above it composes through. The kernel does not care which model is answering or which editor is driving — it cares about who wrote, what changed, when, and against which version. Once that floor exists, the surface above it can be whatever the operator likes. The substrate is the part we build; the surface is the part we let the rest of the world build, on top of us, without us in the way.
+          </p>
+          <p>
+            Everything else in this document follows from that single move.
+          </p>
+        </div>
+      </section>
+
+      <!-- §2 Non-goals -->
+      <section id="not" class="mb-20 scroll-mt-24">
+        <div class="section-label mb-4">SECTION_02 // WHAT_OSTK_IS_NOT</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">What ostk is not.</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-10">
+          A surface as large as “the operating system for AI coding agents” invites being mistaken for several things at once. The fastest way to describe what something is, when it sits in a crowded category, is to draw the boundary against what it is not.
+        </p>
+
+        <div class="space-y-px">
+          {nonGoals.map(g => (
+            <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+              <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
+                <code class="font-body text-xs text-primary">{g.label}</code>
+              </div>
+              <div class="md:col-span-9 px-5 py-4">
+                <p class="font-body text-xs text-secondary leading-relaxed">{g.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- §3 Heritage -->
+      <section id="heritage" class="mb-20 scroll-mt-24">
+        <div class="section-label mb-4">SECTION_03 // HERITAGE</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Heritage.</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-10">
+          ostk is not without ancestors. Most of what looks novel about the kernel is a recombination of priors that were already in the literature, applied to a domain — language-model agents — that did not exist when the priors were written. Each entry below names a debt, what we took, and where we declined to follow.
+        </p>
+
+        <div class="space-y-6">
+          {heritage.map(h => (
+            <div class="bg-surface-container-low p-5 max-w-2xl border-l-2 border-outline">
+              <div class="font-body text-sm text-on-surface font-bold mb-2">{h.name}</div>
+              <p class="font-body text-xs text-secondary leading-relaxed mb-2">
+                <span class="text-primary font-bold">Took:</span> {h.took}
+              </p>
+              <p class="font-body text-xs text-secondary leading-relaxed">
+                <span class="text-outline font-bold">Declined:</span> {h.didnt}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- §4 Trajectory -->
+      <section id="trajectory" class="mb-20 scroll-mt-24">
+        <div class="section-label mb-4">SECTION_04 // TRAJECTORY</div>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Trajectory.</h2>
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-6">
+          Direction the project is moving. Each thread carries an explicit maturity label so the reader can tell what is shipped from what is on the horizon.
+        </p>
+        <div class="font-body text-[10px] text-outline mb-10 max-w-2xl flex flex-wrap gap-x-6 gap-y-2">
+          <span><span class="text-primary font-bold">DONE</span> — shipped and verified in the current release.</span>
+          <span><span class="text-primary font-bold">IN PROGRESS</span> — partial implementation, named subsystem, ratified internally.</span>
+          <span><span class="text-primary font-bold">HORIZON</span> — vision target with a coherent direction; no shipped implementation yet.</span>
+        </div>
+
+        <div class="space-y-5">
+          {trajectory.map(t => (
+            <div class="bg-surface-container p-5 max-w-2xl">
+              <div class="flex items-baseline justify-between gap-4 mb-2">
+                <h3 class="serif-text text-xl font-medium text-on-surface">{t.title}</h3>
+                <code class={`font-body text-[10px] tracking-widest shrink-0 ${
+                  t.label === 'DONE'
+                    ? 'text-primary'
+                    : t.label === 'IN PROGRESS'
+                      ? 'text-on-surface'
+                      : 'text-outline'
+                }`}>{t.label}</code>
+              </div>
+              <p class="font-body text-xs text-secondary leading-relaxed">{t.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="mt-10 max-w-2xl">
+          <p class="font-body text-xs text-outline italic leading-relaxed">
+            The map is not the territory. Labels above describe the project as of the current release; specific subsystems advance and retreat between releases. The canonical maturity record lives in the <a href="/changelog/" class="text-primary hover:underline">changelog</a> and the spec index at <a href="/docs/spec/" class="text-primary hover:underline">/docs/spec/</a>.
+          </p>
+        </div>
+      </section>
+
+      <!-- Closing -->
+      <section class="mb-12 max-w-2xl">
+        <div class="section-label mb-4">CODA</div>
+        <p class="font-body text-sm text-secondary leading-relaxed mb-4">
+          The doctrine is short on purpose. The longer documents are downstream of these four claims: that agents are users, that ostk has a clear set of things it is not, that its design borrows openly and declines deliberately, and that what is shipped and what is on the horizon should be readable in the same paragraph without the two getting confused.
+        </p>
+        <p class="font-body text-sm text-secondary leading-relaxed">
+          For the immediate operator problems the kernel solves, see <a href="/why/" class="text-primary hover:underline">/why/</a>. For the implementation contracts the kernel makes, see <a href="/docs/spec/" class="text-primary hover:underline">/docs/spec/</a>. The three pages — doctrine, why, spec — form a triangle. Each links to the other two; each speaks in its own register.
+        </p>
+      </section>
+    </div>
+  </main>
+</Base>

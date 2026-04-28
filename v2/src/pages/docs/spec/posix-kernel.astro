@@ -1,0 +1,706 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import Terminal from '../../../components/Terminal.astro';
+
+const title = "POSIX Kernel Specification";
+const description = "RFC-style specification of the ostk POSIX kernel: bounded waits, owned state, dead-owner reaping, namespace isolation, the signal table, anchor exclusivity, and handle generations.";
+---
+
+<DocsLayout
+  title={title}
+  description={description}
+  sectionLabel="REFERENCE // POSIX_KERNEL_SPEC"
+>
+  <!--
+    Implementation traceability for this document lives in HTML comments
+    next to each normative claim, citing the file in the haystack tree
+    that enforces the requirement. These comments do not render.
+
+    Source draft: docs/spec/llmos-posix-kernel.md (in the haystack repo).
+    The published version below is conservative: anything not currently
+    enforced by code is moved to Appendix A and explicitly marked as
+    non-normative future work.
+  -->
+
+  <!-- Title block -->
+  <div class="font-body text-sm text-secondary mb-1">
+    ostk Project &middot; Specification &middot; ostk POSIX Kernel
+  </div>
+  <div class="font-body text-sm text-secondary mb-1">
+    Document: <code class="text-primary">spec/posix-kernel</code> &middot; Version 1.0 &middot; Targets ostk 4.5.0
+  </div>
+  <div class="font-body text-sm text-secondary mb-12">
+    Category: Standards Track &middot; ISSN: n/a
+  </div>
+
+  <!-- Abstract -->
+  <section class="mb-10">
+    <h2 id="abstract" class="serif-text text-2xl font-medium text-on-surface mb-4">Abstract</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      This document specifies the POSIX-shaped semantics of the ostk kernel: a userspace coordination kernel whose on-disk surface (<code class="text-primary">.ostk/</code>) and process model are direct analogs of POSIX primitives. It defines the deadline contract on every blocking operation, the ownership record carried by every persistent artifact, the subreaper and supervisor lifecycle, the canonical signal table for cross-process coordination, the anchor-exclusivity invariant, and the handle-generation discipline that makes reused identifiers safe. The document is normative for the implementations of these properties shipped in ostk 4.5.0; properties not yet enforced by the implementation are listed separately in Appendix A as future work.
+    </p>
+  </section>
+
+  <!-- Status of This Memo -->
+  <section class="mb-10">
+    <h2 id="status-of-this-memo" class="serif-text text-2xl font-medium text-on-surface mb-4">Status of This Memo</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      This document specifies behaviors that the ostk 4.5.0 reference implementation enforces today. It is a stable specification: revisions follow the procedure described in Section 10. Each normative requirement names an implementation site or test in the ostk source tree; readers verifying conformance can locate enforcement directly.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Properties that the implementation does not yet enforce, or enforces only partially, are listed in Appendix A and are explicitly non-normative. A future version of this document may promote those properties to normative status when the implementation catches up; conformance to this document does not require them.
+    </p>
+  </section>
+
+  <!-- Copyright -->
+  <section class="mb-12">
+    <h2 id="copyright-notice" class="serif-text text-2xl font-medium text-on-surface mb-4">Copyright Notice</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Copyright (c) 2026 the ostk project. Distributed under the same terms as ostk itself. This specification may be reproduced and distributed in full, with copyright notice and disclaimer preserved.
+    </p>
+  </section>
+
+  <!-- Table of Contents -->
+  <section class="mb-16">
+    <h2 id="table-of-contents" class="serif-text text-2xl font-medium text-on-surface mb-4">Table of Contents</h2>
+    <ul class="font-body text-sm text-secondary leading-relaxed max-w-2xl space-y-1">
+      <li><a href="#sec-1" class="text-primary hover:underline">1. Introduction</a>
+        <ul class="pl-6 space-y-1 mt-1">
+          <li><a href="#sec-1-1" class="text-primary hover:underline">1.1. Requirements Language</a></li>
+          <li><a href="#sec-1-2" class="text-primary hover:underline">1.2. Terminology</a></li>
+          <li><a href="#sec-1-3" class="text-primary hover:underline">1.3. Document Structure</a></li>
+        </ul>
+      </li>
+      <li><a href="#sec-2" class="text-primary hover:underline">2. Architecture Overview</a></li>
+      <li><a href="#sec-3" class="text-primary hover:underline">3. Process Model</a>
+        <ul class="pl-6 space-y-1 mt-1">
+          <li><a href="#sec-3-1" class="text-primary hover:underline">3.1. Anchors and Agents</a></li>
+          <li><a href="#sec-3-2" class="text-primary hover:underline">3.2. Lifecycle</a></li>
+          <li><a href="#sec-3-3" class="text-primary hover:underline">3.3. Process Identity</a></li>
+        </ul>
+      </li>
+      <li><a href="#sec-4" class="text-primary hover:underline">4. Invariants</a>
+        <ul class="pl-6 space-y-1 mt-1">
+          <li><a href="#sec-4-1" class="text-primary hover:underline">4.1. Invariant I: Bounded Wait</a></li>
+          <li><a href="#sec-4-2" class="text-primary hover:underline">4.2. Invariant II: Owned State</a></li>
+          <li><a href="#sec-4-3" class="text-primary hover:underline">4.3. Invariant III: Subreaper</a></li>
+          <li><a href="#sec-4-4" class="text-primary hover:underline">4.4. Invariant IV: Root Namespace Isolation</a></li>
+          <li><a href="#sec-4-5" class="text-primary hover:underline">4.5. Invariant V: Signal Table Closure</a></li>
+          <li><a href="#sec-4-6" class="text-primary hover:underline">4.6. Invariant VI: Anchor Exclusivity</a></li>
+          <li><a href="#sec-4-7" class="text-primary hover:underline">4.7. Invariant VII: Handle Lifetime Uniqueness</a></li>
+        </ul>
+      </li>
+      <li><a href="#sec-5" class="text-primary hover:underline">5. Syscall Surface</a></li>
+      <li><a href="#sec-6" class="text-primary hover:underline">6. Examples</a></li>
+      <li><a href="#sec-7" class="text-primary hover:underline">7. Conformance</a></li>
+      <li><a href="#sec-8" class="text-primary hover:underline">8. Security Considerations</a></li>
+      <li><a href="#sec-9" class="text-primary hover:underline">9. References</a>
+        <ul class="pl-6 space-y-1 mt-1">
+          <li><a href="#sec-9-1" class="text-primary hover:underline">9.1. Normative References</a></li>
+          <li><a href="#sec-9-2" class="text-primary hover:underline">9.2. Informative References</a></li>
+        </ul>
+      </li>
+      <li><a href="#sec-10" class="text-primary hover:underline">10. Revision Procedure</a></li>
+      <li><a href="#appendix-a" class="text-primary hover:underline">Appendix A. Non-Normative Notes (Future Work)</a></li>
+    </ul>
+  </section>
+
+  <!-- 1. Introduction -->
+  <section class="mb-12">
+    <h2 id="sec-1" class="serif-text text-2xl font-medium text-on-surface mb-4">1. Introduction</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      ostk is a userspace coordination kernel for fleets of LLM agents sharing a working filesystem. It re-implements many POSIX primitives under different names: an agent is a process, an alias is a pid, an audit row is a syscall trace, an event channel is a pipe, <code class="text-primary">anchor.lock</code> is a flock, an Agentfile is an exec image, dispatch is read/write, a session is a controlling terminal.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      What ostk inherits from POSIX in name, it MUST also inherit in guarantee. POSIX delivers two cooperating layers below userspace: a correctness substrate (bounded waits, owned state, dead-process reaping, namespace isolation under test) and a composability layer (every resource has a path and a handle, every process has identity, every coordination is a numbered signal, every error is structured). Userspace inherits none of these by default.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      This document specifies the invariants ostk imposes to obtain those layers, the supporting mechanisms that implement them, and the conformance criteria by which an implementation may be tested.
+    </p>
+
+    <!-- 1.1 Requirements Language -->
+    <h3 id="sec-1-1" class="serif-text text-xl font-medium text-on-surface mt-8 mb-3">1.1. Requirements Language</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Throughout this document, "the kernel" refers to the ostk kernel substrate (the in-process library and the supervising daemon), and "an implementation" refers to a build of the ostk source tree claiming conformance to this document. Statements without RFC 2119 keywords are descriptive.
+    </p>
+
+    <!-- 1.2 Terminology -->
+    <h3 id="sec-1-2" class="serif-text text-xl font-medium text-on-surface mt-8 mb-3">1.2. Terminology</h3>
+    <dl class="font-body text-sm text-secondary leading-relaxed max-w-2xl space-y-3">
+      <div>
+        <dt class="text-on-surface font-bold inline">Owner.</dt>
+        <dd class="inline"> The process &mdash; identified by <code class="text-primary">(pid, started_at, build_id, host)</code> &mdash; that wrote a piece of <code class="text-primary">.ostk/</code> state.</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Reap.</dt>
+        <dd class="inline"> Atomic removal of state whose owner is dead, via <code class="text-primary">rename(2)</code> into the graveyard followed by deferred unlink.</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Anchor.</dt>
+        <dd class="inline"> The single per-project-root ostk daemon process holding <code class="text-primary">.ostk/anchor.lock</code>.</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Supervisor.</dt>
+        <dd class="inline"> A process (<code class="text-primary">ostk init</code>, launchd, or systemd) that owns a listening socket and is responsible for orphan reaping and anchor fencing.</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Kernel RPC.</dt>
+        <dd class="inline"> Any call into the ostk kernel from a client (CLI, MCP server, embedded agent loop, TUI).</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Signal.</dt>
+        <dd class="inline"> A numbered coordination primitive from the closed table defined in Section 4.5. ostk signals are NOT OS signals; they are envelope-level coordination delivered over the kernel UDS.</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Handle generation.</dt>
+        <dd class="inline"> A monotonic counter (<code class="text-primary">gen</code>) appended to every reusable handle ID such that <code class="text-primary">(id, gen)</code> uniquely identifies a resource instance across its entire lifetime.</dd>
+      </div>
+      <div>
+        <dt class="text-on-surface font-bold inline">Fencing token.</dt>
+        <dd class="inline"> Monotonic token returned by the anchor on handle acquisition; subsequent operations that present a stale token are rejected.</dd>
+      </div>
+    </dl>
+
+    <!-- 1.3 Document Structure -->
+    <h3 id="sec-1-3" class="serif-text text-xl font-medium text-on-surface mt-8 mb-3">1.3. Document Structure</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Section 2 sketches the architecture. Section 3 defines the process model. Section 4 enumerates seven normative invariants. Section 5 specifies the syscall-shaped surface. Section 6 contains worked examples. Section 7 defines conformance. Section 8 lists security considerations. Section 9 collects references. Section 10 describes the revision procedure. Appendix A captures non-normative notes and future work.
+    </p>
+  </section>
+
+  <!-- 2. Architecture Overview -->
+  <section class="mb-12">
+    <h2 id="sec-2" class="serif-text text-2xl font-medium text-on-surface mb-4">2. Architecture Overview</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      An ostk deployment on a single host consists of:
+    </p>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-2 max-w-2xl mb-3">
+      <li>A <strong class="text-on-surface">project root</strong> &mdash; a directory containing a <code class="text-primary">.ostk/</code> subdirectory, which holds all kernel state.</li>
+      <li>An <strong class="text-on-surface">anchor</strong> &mdash; the single ostk daemon process per project root, holding <code class="text-primary">.ostk/anchor.lock</code> and serving kernel RPCs over a Unix domain socket.</li>
+      <li>Zero or more <strong class="text-on-surface">agents</strong> &mdash; processes spawned under the anchor that perform work and write state.</li>
+      <li>An optional <strong class="text-on-surface">supervisor</strong> (<code class="text-primary">ostk init</code>) &mdash; a long-running process that runs the subreaper loop, fences anchor-lock losers, and adopts orphaned agents. The subreaper role is also the boot-time scope of the anchor itself when no supervisor is present.</li>
+    </ul>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      All kernel state is path-addressable under <code class="text-primary">.ostk/</code>. All cross-process coordination crosses one of two boundaries: the anchor's UDS (for kernel RPCs) or the journal (an append-only audit chain at <code class="text-primary">.ostk/journal.jsonl</code>). The kernel is auditable with <code class="text-primary">jq</code>, <code class="text-primary">grep</code>, and <code class="text-primary">git</code>; this is a design constraint, not an accident.
+    </p>
+  </section>
+
+  <!-- 3. Process Model -->
+  <section class="mb-12">
+    <h2 id="sec-3" class="serif-text text-2xl font-medium text-on-surface mb-4">3. Process Model</h2>
+
+    <h3 id="sec-3-1" class="serif-text text-xl font-medium text-on-surface mb-3">3.1. Anchors and Agents</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      An implementation SHALL ensure that at most one anchor process holds <code class="text-primary">.ostk/anchor.lock</code> at any time per project root. Anchor lock acquisition is non-blocking (<code class="text-primary">flock(LOCK_EX | LOCK_NB)</code>); a process that observes the lock held SHALL either fail with a structured error or, where a supervisor is running, be fenced by the supervisor. Section 4.6 (Invariant VI) makes this normative.
+      <!-- impl: src/kernel/anchor.rs L343-L500 (lock_path = ostk_dir.join("anchor.lock"); flock acquisition) -->
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Agents are spawned by the anchor and recorded in <code class="text-primary">.ostk/fleet/</code>. Each spawned agent has a unique alias and an <code class="text-primary">AgentHandle</code> carrying its identity. The relationship between alias, handle, and the underlying process is governed by Invariants II and VII.
+    </p>
+
+    <h3 id="sec-3-2" class="serif-text text-xl font-medium text-on-surface mt-8 mb-3">3.2. Lifecycle</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      Each agent passes through a documented lifecycle. An implementation SHALL emit an audit row at each transition:
+    </p>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-1 max-w-2xl mb-3">
+      <li><code class="text-primary">spawning</code> &rarr; <code class="text-primary">spawned</code> &rarr; <code class="text-primary">running</code></li>
+      <li><code class="text-primary">running</code> &harr; <code class="text-primary">frozen</code> (entered on <code class="text-primary">SIGFREEZE</code>; exited on <code class="text-primary">SIGRESUME</code>)</li>
+      <li><code class="text-primary">running</code> &rarr; <code class="text-primary">exiting</code> &rarr; <code class="text-primary">reaped</code></li>
+    </ul>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Signals delivered to an agent in state <code class="text-primary">spawning</code> SHALL be queued and dispatched on the transition to <code class="text-primary">spawned</code>. Signals delivered to an agent in state <code class="text-primary">exiting</code> or <code class="text-primary">reaped</code> SHALL return <code class="text-primary">SignalTargetGone</code>. <code class="text-primary">SIGRESUME</code> SHALL be dispatched immediately to an agent in state <code class="text-primary">frozen</code>; <code class="text-primary">SIGKILL</code> SHALL bypass the queue per its uncatchable semantics. See Section 4.5.
+      <!-- impl: src/kernel/signals.rs L40-L160 (Signal enum, name table; catchable flags); src/kernel/signal.rs (delivery surface) -->
+    </p>
+
+    <h3 id="sec-3-3" class="serif-text text-xl font-medium text-on-surface mt-8 mb-3">3.3. Process Identity</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      Every agent carries an <code class="text-primary">Owner</code> record &mdash; <code class="text-primary">(pid, started_us, build_id, host)</code> &mdash; that uniquely identifies the writing process across its entire lifetime, including across PID reuse. The pair <code class="text-primary">(pid, started_us)</code> defeats PID-reuse races: a recycled PID has a different <code class="text-primary">proc_start_micros</code>, so liveness checks fail closed.
+      <!-- impl: src/kernel/ownership.rs L83-L195 (Owner struct; is_alive checks kill_zero AND proc_start_micros equality) -->
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      The full Unix process-identity quad <code class="text-primary">(pid, ppid, pgid, sid)</code> is described as future work in Appendix A.1: the implementation currently records <code class="text-primary">pid</code> and <code class="text-primary">ppid</code> via the <code class="text-primary">Owner</code> record but does not yet thread <code class="text-primary">pgid</code>/<code class="text-primary">sid</code> through every audit row.
+    </p>
+  </section>
+
+  <!-- 4. Invariants -->
+  <section class="mb-12">
+    <h2 id="sec-4" class="serif-text text-2xl font-medium text-on-surface mb-4">4. Invariants</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-6">
+      An implementation conforming to this document SHALL satisfy each of the seven invariants in this section. Each invariant is given a short name, a normative statement, a non-normative rationale, a non-normative consequence (when violation has system-level impact), and one or more illustrative examples.
+    </p>
+
+    <!-- 4.1 Bounded Wait -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-1" class="serif-text text-xl font-medium text-on-surface mb-3">4.1. Invariant I: Bounded Wait</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> Every operation in the ostk kernel API that can block MUST accept a deadline. Any code path whose documented semantics include "wait forever" is a specification violation.
+      </p>
+      <!-- impl: src/kernel/deadline.rs L85-L165 (DeadlineError struct, with_deadline wrapper) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        POSIX provides a deadline-bearing sibling for every blocking primitive: <code class="text-primary">select(tv)</code>, <code class="text-primary">poll(timeout)</code>, <code class="text-primary">pthread_mutex_timedlock</code>, <code class="text-primary">flock(LOCK_NB)</code>, <code class="text-primary">connect</code> + <code class="text-primary">alarm</code>, <code class="text-primary">pidfd</code> + <code class="text-primary">ppoll</code>. Userspace inherits none of these by default. Without an explicit deadline contract, a stale daemon, a wedged file lock, or a mis-framed RPC will hang the caller.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Consequence.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        The kernel exposes <code class="text-primary">DeadlineError</code> with structured fields (<code class="text-primary">op</code>, <code class="text-primary">deadline</code>, <code class="text-primary">elapsed</code>, <code class="text-primary">holder</code>, <code class="text-primary">remediation</code>). The <code class="text-primary">remediation</code> field SHALL be a literal shell command an operator can paste verbatim.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Example.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-2">
+        A blocking RPC with a 2-second deadline returns a structured error if the holder is stuck:
+      </p>
+      <Terminal label="DeadlineError">
+<pre class="text-on-surface"><code>{`{
+    "op":          "agents.spawn",
+    "deadline":    "2s",
+    "elapsed":     "2.013s",
+    "holder":      {"pid":12345,"started_us":1761539600123456},
+    "remediation": "kill 12345"
+}`}</code></pre>
+      </Terminal>
+    </article>
+
+    <!-- 4.2 Owned State -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-2" class="serif-text text-xl font-medium text-on-surface mb-3">4.2. Invariant II: Owned State</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> Every mutable artifact the kernel reads or writes under <code class="text-primary">.ostk/</code> MUST carry an ownership record identifying the creating process. Every reader MUST verify owner liveness before trusting the contents. State whose owner is dead MUST be reaped atomically before re-use.
+      </p>
+      <!-- impl: src/kernel/ownership.rs L79-L200 (Owner struct + is_alive); L96-L145 (Owner::current refuses to write on proc_start_micros failure) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        POSIX enforces ownership at the OS level: file locks, open file descriptors, and process IDs are tagged by the kernel and released when the owning process dies. Userspace state files have none of those guarantees by default. Owned State adds them explicitly.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Record format.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-2">
+        Textual files (JSONL, TOML, plaintext) SHALL carry a two-line prefix:
+      </p>
+      <Terminal label=".ostk/&lt;file&gt; (textual header)">
+<pre class="text-on-surface"><code># ostk-owner v1 pid=&lt;pid&gt; started_at=&lt;ISO8601&gt; build_id=&lt;hex16&gt; host=&lt;hostname&gt;
+# ostk-owner-end
+&lt;file content&gt;</code></pre>
+      </Terminal>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mt-3 mb-2">
+        Binary files SHALL carry a 64-byte fixed prefix beginning with magic <code class="text-primary">b"OSTKOWN1"</code> and containing <code class="text-primary">pid</code>, <code class="text-primary">started_us</code>, <code class="text-primary">build_id</code>, and <code class="text-primary">hostname</code>.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Liveness check.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-2">
+        An implementation SHALL test owner liveness via:
+      </p>
+      <Terminal label="kernel/ownership.rs::Owner::is_alive">
+<pre class="text-on-surface"><code>kill_zero(self.pid)
+    && proc_start_micros(self.pid) == Some(self.started_us)</code></pre>
+      </Terminal>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mt-3">
+        The <code class="text-primary">kill(pid, 0)</code> probe tests existence; the <code class="text-primary">started_us</code> equality defeats PID-reuse races.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mt-4 mb-1">Reader contract.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-2">
+        Every function that reads <code class="text-primary">.ostk/</code> state SHALL: (1) parse the owner record and reject unowned state with <code class="text-primary">Error::Unowned</code>; (2) call <code class="text-primary">owner.is_alive()</code>; (3) if dead, <code class="text-primary">reap_one(path)</code> &mdash; rename into <code class="text-primary">.ostk/graveyard/</code>; (4) if alive, return contents.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Fail-closed write.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        Implementations MUST refuse to write a header when <code class="text-primary">proc_start_micros(pid)</code> returns failure. A header without a verifiable <code class="text-primary">started_us</code> is unowned, not degraded; falling through to wallclock-now would create silently self-fenced records.
+      </p>
+    </article>
+
+    <!-- 4.3 Subreaper -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-3" class="serif-text text-xl font-medium text-on-surface mb-3">4.3. Invariant III: Subreaper</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> An ostk deployment MUST run exactly one subreaper process whose responsibility is walking <code class="text-primary">.ostk/</code> state and reaping artifacts whose owner is dead. The singleton property MUST be enforced via OS <code class="text-primary">flock</code> on a dedicated lock file. No other kernel subsystem MAY perform background reaping.
+      </p>
+      <!-- impl: src/kernel/init_subreap.rs L1-L568 (subreap loop); src/kernel/init.rs L1-L778 (singleton flock on .ostk/init.lock or anchor scope when no supervisor) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        Without a single reaper, two processes could race to rename the same dead-owner file. The OS <code class="text-primary">flock</code> on the subreaper's lock file is auto-released when the holding process exits for any reason; the same Owned State fallback that protects every other artifact protects the subreaper itself.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Reap atomicity.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        Reap SHALL be implemented as <code class="text-primary">rename(path, .ostk/graveyard/&lt;unix_micros&gt;-&lt;basename&gt;)</code>. <code class="text-primary">.ostk/</code> MUST reside on a single filesystem so that rename is atomic; cross-filesystem layouts SHALL be rejected at startup and on every per-rename check (Section 4.4).
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Build-id orphan adoption.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        Before the first reap pass, the supervisor SHALL walk <code class="text-primary">.ostk/</code> and adopt every file whose owner header has <code class="text-primary">build_id == current_build_id</code> AND <code class="text-primary">is_alive() == false</code>. Adoption rewrites the owner header in place to name the running supervisor's pid, exactly once per file per boot, and emits one audit row carrying the prior dead owner's identity for forensics. Adoption is not a liveness exemption: post-adoption, the standard reader contract applies.
+        <!-- impl: src/kernel/adoption.rs L1-L503 (adoption walk + audit emission) -->
+      </p>
+    </article>
+
+    <!-- 4.4 RNI -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-4" class="serif-text text-xl font-medium text-on-surface mb-3">4.4. Invariant IV: Root Namespace Isolation</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> Every code path that resolves <code class="text-primary">.ostk/</code> MUST route through a single <code class="text-primary">state_dir(root)</code> function. Under <code class="text-primary">cfg(test)</code> or when <code class="text-primary">OSTK_TEST=1</code> is set, <code class="text-primary">state_dir(None)</code> SHALL panic if <code class="text-primary">OSTK_STATE_DIR</code> is unset, and SHALL panic if <code class="text-primary">OSTK_STATE_DIR</code> is not an absolute path. Resolving to the project git root in a test context is a specification violation.
+      </p>
+      <!-- impl: src/util/paths.rs L43-L100 (state_dir; cfg(test)/OSTK_TEST gates; absolute-path requirement) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        The hazard class RNI closes is substrate corruption from inside the same process tree: a test process that resolves <code class="text-primary">.ostk/</code> to the live project would write audit rows, take locks, and reap state belonging to the production fleet. Userspace cannot rely on the OS to prevent this; the kernel MUST.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Single-filesystem requirement.</h4>
+      <ol class="font-body text-sm text-secondary list-decimal pl-6 space-y-1 max-w-2xl mb-3">
+        <li><strong class="text-on-surface">Startup check.</strong> The implementation SHALL verify on init that the resolved <code class="text-primary">.ostk/</code> root and the graveyard target reside on the same filesystem (equal <code class="text-primary">stat.st_dev</code>); on mismatch, init SHALL refuse to start with <code class="text-primary">StateDirCrossFilesystem</code>.</li>
+        <li><strong class="text-on-surface">Per-rename check.</strong> Immediately before each <code class="text-primary">rename(src, graveyard_dst)</code>, the reaper SHALL <code class="text-primary">stat(src)</code> and verify <code class="text-primary">src.st_dev == graveyard_dst.parent.st_dev</code>; on mismatch, the reaper SHALL refuse the operation. This catches bind-mounts introduced inside <code class="text-primary">.ostk/</code> after the startup check.</li>
+      </ol>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Test helper.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        An implementation SHOULD provide an <code class="text-primary">OstkTestRoot::new()</code> helper that returns a configured <code class="text-primary">tempfile::TempDir</code>, sets <code class="text-primary">OSTK_STATE_DIR</code> to its path, and on <code class="text-primary">Drop</code> restores the prior value of the env var.
+        <!-- impl: src/util/paths.rs L275-L370 (OstkTestRoot helper, drop guard) -->
+      </p>
+    </article>
+
+    <!-- 4.5 Signal Table -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-5" class="serif-text text-xl font-medium text-on-surface mb-3">4.5. Invariant V: Signal Table Closure</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> All cross-process coordination MUST be expressible as a signal from a closed, numbered table. Ad-hoc per-call-site cancel, redirect, or pause mechanisms are specification violations and SHALL be re-expressed as signals against the table below. Amendments SHALL be additive; signal numbers SHALL NOT be renumbered.
+      </p>
+      <!-- impl: src/kernel/signals.rs L40-L200 (Signal enum + name table; catchable per-variant) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        Signal Table Closure depends on Bounded Wait: a signal handler that can hang is a specification violation that subsumes its containing signal. ostk signals are NOT OS signals; they are envelope-level coordination delivered over the kernel UDS, which decouples them from OS-signal handling restrictions (re-entrancy, async-signal-safe set) and lets handlers run normal code with full access to allocators and async runtimes.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Canonical table.</h4>
+      <div class="overflow-x-auto mt-2 mb-4">
+        <table class="font-body text-xs text-secondary border-collapse">
+          <thead>
+            <tr class="border-b border-surface-variant text-on-surface">
+              <th class="text-left pr-4 pb-2">#</th>
+              <th class="text-left pr-4 pb-2">Name</th>
+              <th class="text-left pr-4 pb-2">Catchable</th>
+              <th class="text-left pb-2">Semantics</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="pr-4 py-1">1</td><td class="pr-4 py-1"><code class="text-primary">SIGCANCEL</code></td><td class="pr-4 py-1">yes</td><td>Graceful stop at next checkpoint; unwind cleanly; write <code class="text-primary">agent.cancelled</code> row.</td></tr>
+            <tr><td class="pr-4 py-1">2</td><td class="pr-4 py-1"><code class="text-primary">SIGREDIRECT</code></td><td class="pr-4 py-1">yes</td><td>Inject a user message via the side-channel payload; continue from current turn.</td></tr>
+            <tr><td class="pr-4 py-1">3</td><td class="pr-4 py-1"><code class="text-primary">SIGRELOAD</code></td><td class="pr-4 py-1">yes</td><td>Re-read Agentfile and kernel registers; keep pid and open handles.</td></tr>
+            <tr><td class="pr-4 py-1">4</td><td class="pr-4 py-1"><code class="text-primary">SIGFREEZE</code></td><td class="pr-4 py-1">yes</td><td>Pause at next checkpoint; remain addressable; no turns until resume.</td></tr>
+            <tr><td class="pr-4 py-1">5</td><td class="pr-4 py-1"><code class="text-primary">SIGRESUME</code></td><td class="pr-4 py-1">n/a</td><td>Resume from freeze (delivered to a frozen process only).</td></tr>
+            <tr><td class="pr-4 py-1">6</td><td class="pr-4 py-1"><code class="text-primary">SIGHUP</code></td><td class="pr-4 py-1">yes</td><td>Controlling session detached; reconfigure (redial proxy, re-open logs).</td></tr>
+            <tr><td class="pr-4 py-1">7</td><td class="pr-4 py-1"><code class="text-primary">SIGQUOTA</code></td><td class="pr-4 py-1">yes</td><td>Budget warning crossed; agent SHOULD wrap up its current intent.</td></tr>
+            <tr><td class="pr-4 py-1">8</td><td class="pr-4 py-1"><code class="text-primary">SIGBAIL</code></td><td class="pr-4 py-1">yes</td><td>Operator-issued bail; agent writes a bail row and exits.</td></tr>
+            <tr><td class="pr-4 py-1">9</td><td class="pr-4 py-1"><code class="text-primary">SIGSTOP</code></td><td class="pr-4 py-1">no</td><td>Daemon-level freeze for migration / standby handoff.</td></tr>
+            <tr><td class="pr-4 py-1">15</td><td class="pr-4 py-1"><code class="text-primary">SIGTERM</code></td><td class="pr-4 py-1">yes</td><td>Ask the agent process to exit gracefully.</td></tr>
+            <tr><td class="pr-4 py-1">63</td><td class="pr-4 py-1"><code class="text-primary">SIGKILL</code></td><td class="pr-4 py-1">no</td><td>Fence; uncatchable; watchdog writes <code class="text-primary">agent.fenced</code> post-mortem.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Delivery to lifecycle states.</h4>
+      <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-1 max-w-2xl">
+        <li>Signals to <code class="text-primary">spawning</code> SHALL be queued and dispatched on transition to <code class="text-primary">spawned</code>; they MUST NOT be dispatched against a partial identity.</li>
+        <li>Signals to <code class="text-primary">frozen</code> SHALL be queued; <code class="text-primary">SIGRESUME</code> and <code class="text-primary">SIGKILL</code> are the only exceptions.</li>
+        <li>Signals to <code class="text-primary">exiting</code> or <code class="text-primary">reaped</code> SHALL return <code class="text-primary">SignalTargetGone</code> with the agent's last known identity in the error.</li>
+      </ul>
+    </article>
+
+    <!-- 4.6 Anchor Exclusivity -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-6" class="serif-text text-xl font-medium text-on-surface mb-3">4.6. Invariant VI: Anchor Exclusivity</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> Every project root MUST have at most one active anchor daemon at any time. A process that attempts to acquire <code class="text-primary">.ostk/anchor.lock</code> while another anchor holds it SHALL either fail immediately with a structured error (when no supervisor is running) or be fenced by the supervisor (when one is). The enforcement path SHALL be observable via the audit journal.
+      </p>
+      <!-- impl: src/kernel/anchor.rs L343-L500 (flock LOCK_EX|LOCK_NB on .ostk/anchor.lock); src/kernel/error.rs L300-L360 (AnchorFenced, AnchorEpochStale, OperationRetryable variants) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        Without exclusivity, two anchors could write to <code class="text-primary">.ostk/journal.jsonl</code> concurrently, producing inconsistent hash chains and rendering audit verification untenable. Anchor Exclusivity does not say "only one process may attempt to acquire the lock"; it says that at most one may <em>hold</em> it. Contention is the mechanism by which the invariant is enforced.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Fencing tokens.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        Every kernel RPC response from the anchor SHALL carry an <code class="text-primary">anchor_epoch</code> &mdash; a monotonic counter incremented on every anchor start. Clients that observe a strictly lower epoch than the last received one SHALL treat the in-flight operation as <code class="text-primary">OperationRetryable</code> and reconnect via the supervisor's listening socket. The <code class="text-primary">anchor_epoch</code> appears on every response frame, not only on the handshake; this prevents a zombie anchor from serving stale responses on an already-accepted connection.
+      </p>
+    </article>
+
+    <!-- 4.7 HLU -->
+    <article class="mb-10 pl-4 border-l-2 border-primary">
+      <h3 id="sec-4-7" class="serif-text text-xl font-medium text-on-surface mb-3">4.7. Invariant VII: Handle Lifetime Uniqueness</h3>
+      <p class="font-body text-sm text-on-surface italic mb-4 max-w-2xl">
+        <strong class="not-italic">Statement.</strong> A handle identifier (alias, page-id, subscription-id, any resource ID that can be cycled) MUST NOT be reused for a new resource until every handle referencing the prior resource has been closed or fenced. Handles MUST carry a monotonic generation counter (<code class="text-primary">gen</code>) such that <code class="text-primary">(id, gen)</code> uniquely identifies a resource instance across its entire lifetime, including through reap-reallocate cycles.
+      </p>
+      <!-- impl: src/kernel/handle_gen.rs L59-L230 (HandleGenRow, append-only handle_gen.jsonl, HandleStale validation) -->
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Rationale.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+        POSIX itself violates Handle Lifetime Uniqueness for PIDs &mdash; PID reuse is real, which is why Owned State (Section 4.2) uses <code class="text-primary">(pid, started_us)</code> to disambiguate. Every userspace system that cares pays the tax in fencing tokens, generation counters, or <code class="text-primary">pidfd</code>-style handles. ostk extends the same discipline to all reusable handle types.
+      </p>
+
+      <h4 class="font-body text-sm font-bold text-on-surface mb-1">Reader discipline.</h4>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        A client that caches a handle MUST re-validate the <code class="text-primary">gen</code> before operating on it. The kernel exposes a structured <code class="text-primary">HandleStale</code> error carrying both the seen and current <code class="text-primary">gen</code>; clients SHALL surface this error rather than retrying silently against the new resource.
+      </p>
+    </article>
+  </section>
+
+  <!-- 5. Syscall Surface -->
+  <section class="mb-12">
+    <h2 id="sec-5" class="serif-text text-2xl font-medium text-on-surface mb-4">5. Syscall Surface</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      The kernel exposes a small set of structured errors and a deadline-bearing RPC contract. The error surface is normative; alternative implementations satisfying the same invariants MAY use different error names but MUST preserve the field semantics.
+    </p>
+    <Terminal label="kernel/error.rs::KernelError">
+<pre class="text-on-surface"><code>pub enum KernelError {`{`}
+    Deadline(DeadlineError),                                          // §4.1
+    StaleOwner {`{`} path, owner, remediation {`}`},                          // §4.2
+    Unowned {`{`} path, remediation {`}`},                                    // §4.2 migration
+    Reaped {`{`} path, owner, when {`}`},                                     // §4.3
+    NoStateDir {`{`} remediation {`}`},                                       // §4.4
+    StateDirCrossFilesystem {`{`} path, remediation {`}`},                    // §4.4
+    SignalUnknown {`{`} name, table {`}`},                                    // §4.5
+    SignalTargetGone {`{`} target, last_owner {`}`},                          // §4.5 lifecycle
+    AnchorFenced {`{`} winner_pid, remediation {`}`},                         // §4.6
+    AnchorEpochStale {`{`} client_epoch, server_epoch, remediation {`}`},     // §4.6
+    HandleStale {`{`} handle_id, seen_gen, current_gen {`}`},                 // §4.7
+    OperationRetryable {`{`} new_socket, new_epoch {`}`},                     // §4.6
+{`}`}</code></pre>
+    </Terminal>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mt-4 mb-2">
+      The mapping from kernel-level requirements to underlying OS primitives is:
+    </p>
+    <div class="overflow-x-auto">
+      <table class="font-body text-xs text-secondary border-collapse min-w-full">
+        <thead>
+          <tr class="border-b border-surface-variant text-on-surface">
+            <th class="text-left pr-4 pb-2">Requirement</th>
+            <th class="text-left pr-4 pb-2">Linux</th>
+            <th class="text-left pr-4 pb-2">macOS / BSD</th>
+            <th class="text-left pb-2">Fallback</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="pr-4 py-1">Bounded connect</td><td class="pr-4 py-1"><code class="text-primary">connect</code> + <code class="text-primary">SO_SNDTIMEO</code></td><td class="pr-4 py-1">same</td><td><code class="text-primary">O_NONBLOCK</code> + select loop</td></tr>
+          <tr><td class="pr-4 py-1">Bounded lock acquire</td><td class="pr-4 py-1"><code class="text-primary">fcntl(F_OFD_SETLKW)</code></td><td class="pr-4 py-1"><code class="text-primary">flock(LOCK_NB)</code> + deadline loop</td><td><code class="text-primary">LOCK_NB</code> + bounded sleep</td></tr>
+          <tr><td class="pr-4 py-1">PID-death notification</td><td class="pr-4 py-1"><code class="text-primary">pidfd_open</code> + <code class="text-primary">poll</code></td><td class="pr-4 py-1"><code class="text-primary">kqueue EVFILT_PROC</code></td><td>poll <code class="text-primary">kill(pid, 0)</code></td></tr>
+          <tr><td class="pr-4 py-1">Process liveness</td><td class="pr-4 py-1"><code class="text-primary">kill(pid, 0)</code></td><td class="pr-4 py-1">same</td><td>same</td></tr>
+          <tr><td class="pr-4 py-1">Process start-time</td><td class="pr-4 py-1"><code class="text-primary">/proc/&lt;pid&gt;/stat</code> field 22</td><td class="pr-4 py-1"><code class="text-primary">proc_pidinfo</code></td><td>fail closed</td></tr>
+          <tr><td class="pr-4 py-1">Atomic file move</td><td class="pr-4 py-1"><code class="text-primary">rename</code> (single-fs only)</td><td class="pr-4 py-1">same</td><td>same</td></tr>
+          <tr><td class="pr-4 py-1">Single-fs check</td><td class="pr-4 py-1"><code class="text-primary">stat.st_dev</code> compare</td><td class="pr-4 py-1">same</td><td>same</td></tr>
+          <tr><td class="pr-4 py-1">Signal delivery to agent</td><td class="pr-4 py-1">UDS frame; not OS signal</td><td class="pr-4 py-1">same</td><td>same</td></tr>
+          <tr><td class="pr-4 py-1">Fencing token</td><td class="pr-4 py-1">monotonic <code class="text-primary">u64</code> per anchor start</td><td class="pr-4 py-1">same</td><td>same</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6. Examples -->
+  <section class="mb-12">
+    <h2 id="sec-6" class="serif-text text-2xl font-medium text-on-surface mb-4">6. Examples</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      The examples in this section are illustrative. Exact CLI surface is governed by the kernel ABI and may evolve; see Section 1.2.
+    </p>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-6 mb-2">Example 1: reading state with a dead owner.</h3>
+    <Terminal label="reader contract (§4.2)">
+<pre class="text-on-surface"><code>let raw = fs::read(&path)?;
+let (header, body) = parse_owner_header(&raw)?;          // §4.2 parse
+if !header.is_alive() {`{`}                                    // §4.2 check
+    reap_one(&path)?;                                    // §4.2/§4.3 rename
+    return Err(KernelError::Reaped {`{`} path, owner: header, when: now() {`}`});
+{`}`}
+Ok(body)</code></pre>
+    </Terminal>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-6 mb-2">Example 2: bounded RPC with deadline.</h3>
+    <Terminal label="bounded kernel call (§4.1)">
+<pre class="text-on-surface"><code>let resp = client
+    .call("agents.spawn", payload, Duration::from_secs(2))   // §4.1
+    .await?;
+verify_anchor_epoch(&resp)?;                                 // §4.6</code></pre>
+    </Terminal>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-6 mb-2">Example 3: signal table inspection.</h3>
+    <p class="font-body text-sm text-secondary mb-2 max-w-2xl">
+      The closed table is exposed by the kernel; an unknown signal name returns a structured error including the canonical table:
+    </p>
+    <Terminal label="SignalUnknown error">
+<pre class="text-on-surface"><code>SignalUnknown {`{`}
+    name: "SIGFOO",
+    table: [
+        ("SIGCANCEL", 1), ("SIGREDIRECT", 2), ("SIGRELOAD", 3),
+        ("SIGFREEZE", 4), ("SIGRESUME", 5),  ("SIGHUP", 6),
+        ("SIGQUOTA", 7),  ("SIGBAIL", 8),    ("SIGSTOP", 9),
+        ("SIGTERM", 15),  ("SIGKILL", 63),
+    ],
+{`}`}</code></pre>
+    </Terminal>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-6 mb-2">Example 4: handle generation.</h3>
+    <Terminal label="kernel/handle_gen.rs::validate">
+<pre class="text-on-surface"><code>// Client cached alias "alpha" at gen=3.
+match validate(&state_dir, "agent", "alpha", 3) {`{`}
+    Ok(()) =&gt; /* still gen 3; safe to use */,
+    Err(KernelError::HandleStale {`{`} seen_gen, current_gen, .. {`}`}) =&gt; {`{`}
+        // resource was reaped and recreated; current_gen &gt; seen_gen
+    {`}`}
+    Err(other) =&gt; return Err(other),
+{`}`}</code></pre>
+    </Terminal>
+  </section>
+
+  <!-- 7. Conformance -->
+  <section class="mb-12">
+    <h2 id="sec-7" class="serif-text text-2xl font-medium text-on-surface mb-4">7. Conformance</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      An implementation conforms to this specification when it satisfies every normative (MUST / SHALL / REQUIRED) statement in Sections 1 through 5. Statements using SHOULD / RECOMMENDED are non-normative guidance; statements in Appendix A are non-normative future work and are not part of conformance.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      Conformance is partitioned into two levels:
+    </p>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-2 max-w-2xl mb-3">
+      <li><strong class="text-on-surface">Core Conformance.</strong> Sections 4.1 (Bounded Wait), 4.2 (Owned State), 4.3 (Subreaper), 4.4 (Root Namespace Isolation), and 4.7 (Handle Lifetime Uniqueness). The reference implementation enforces these in <code class="text-primary">src/kernel/deadline.rs</code>, <code class="text-primary">src/kernel/ownership.rs</code>, <code class="text-primary">src/kernel/init_subreap.rs</code>, <code class="text-primary">src/util/paths.rs</code>, and <code class="text-primary">src/kernel/handle_gen.rs</code> respectively.</li>
+      <li><strong class="text-on-surface">Extended Conformance.</strong> Sections 4.5 (Signal Table Closure) and 4.6 (Anchor Exclusivity). The reference implementation enforces these in <code class="text-primary">src/kernel/signals.rs</code> and <code class="text-primary">src/kernel/anchor.rs</code> respectively. Extended Conformance subsumes Core Conformance.</li>
+    </ul>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      The journal verification primitive at <code class="text-primary">ostk audit verify</code> is the canonical conformance test surface for the audit-chain properties referenced in Sections 4.2 and 4.3: an implementation under test SHOULD be exercised against a synthetic incident, and <code class="text-primary">ostk audit verify</code> SHOULD return a clean result on the recovered state. The verification primitive is implemented at <code class="text-primary">src/commands/journal.rs</code>.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      An implementation that claims conformance SHOULD list the source-tree paths that enforce each invariant in its release notes; readers verifying conformance can audit those paths directly.
+    </p>
+  </section>
+
+  <!-- 8. Security Considerations -->
+  <section class="mb-12">
+    <h2 id="sec-8" class="serif-text text-2xl font-medium text-on-surface mb-4">8. Security Considerations</h2>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-4 mb-2">8.1. Threat Model.</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      This document specifies a single-host coordination kernel. The threat model assumes (a) the local user is trusted with respect to their own <code class="text-primary">.ostk/</code>; (b) other local processes outside the trust boundary may attempt to cause hangs, lock contention, or audit-chain corruption; (c) operating-system features (file permissions, process isolation, filesystem semantics) are reliable.
+    </p>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-4 mb-2">8.2. Properties This Specification Addresses.</h3>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-1 max-w-2xl mb-3">
+      <li><strong class="text-on-surface">Resource exhaustion via hangs.</strong> The Bounded Wait invariant (Section 4.1) ensures every kernel operation has a deadline, eliminating the indefinite-block class.</li>
+      <li><strong class="text-on-surface">Stale-state corruption.</strong> Owned State (Section 4.2) ensures that any artifact whose creating process is dead is reaped before re-use. <code class="text-primary">(pid, started_us)</code> ownership defeats PID-reuse races.</li>
+      <li><strong class="text-on-surface">Test-substrate contamination.</strong> Root Namespace Isolation (Section 4.4) prevents test processes from corrupting the live <code class="text-primary">.ostk/</code> by failing closed when an explicit root is not provided.</li>
+      <li><strong class="text-on-surface">Concurrent-anchor split-brain.</strong> Anchor Exclusivity (Section 4.6) ensures that at most one anchor holds the lock per project root; concurrent attempts are either rejected or fenced. Per-response <code class="text-primary">anchor_epoch</code> closes the zombie-anchor mid-stream window.</li>
+      <li><strong class="text-on-surface">Stale-handle confusion.</strong> Handle Lifetime Uniqueness (Section 4.7) ensures cached handle identifiers cannot silently address the wrong resource: <code class="text-primary">HandleStale</code> is raised on any post-reap reuse.</li>
+    </ul>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-4 mb-2">8.3. Properties This Specification Does NOT Address.</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-2">
+      The following are out of scope and are addressed by other specifications, or are explicitly future work:
+    </p>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-1 max-w-2xl mb-3">
+      <li><strong class="text-on-surface">Cross-host coordination.</strong> Federation across hosts requires a separate trust and transport model.</li>
+      <li><strong class="text-on-surface">Distributed consensus.</strong> No quorum protocol is specified; single-host guarantees only.</li>
+      <li><strong class="text-on-surface">Capability-pin escapes.</strong> Capability-pin enforcement and policy are documented in companion documents on the trust model and capability pins; this specification only requires that pin enforcement integrates with the audit journal.</li>
+      <li><strong class="text-on-surface">Audit-chain signing and key rotation.</strong> The journal hash chain is specified here; signing keys, rotation, and revocation are governed by the attestation envelope (OAE) specification, not this document.</li>
+      <li><strong class="text-on-surface">Identity spoofing within a single trust graph.</strong> Out of scope; the trust model document handles identity tier graduation and revocation.</li>
+      <li><strong class="text-on-surface">Replay attacks.</strong> The kernel relies on the journal's hash chain plus per-response <code class="text-primary">anchor_epoch</code> to detect replay across anchor rotations; cross-host replay is not in scope.</li>
+      <li><strong class="text-on-surface">Network attackers.</strong> No network surface is specified; clients connect to the kernel via local Unix domain sockets.</li>
+    </ul>
+
+    <h3 class="serif-text text-base font-medium text-on-surface mt-4 mb-2">8.4. Known Gaps.</h3>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      The full POSIX process-identity quad <code class="text-primary">(pid, ppid, pgid, sid)</code> is not yet enforced on every audit row (see Appendix A.1). Consumers that require process-group-level kill semantics SHOULD treat process-group operations as best-effort until that work lands. The Connection Continuity property described in Appendix A.3 is partially implemented as the <code class="text-primary">OperationRetryable</code> error variant; transparent client reconnection is not currently a kernel guarantee.
+    </p>
+  </section>
+
+  <!-- 9. References -->
+  <section class="mb-12">
+    <h2 id="sec-9" class="serif-text text-2xl font-medium text-on-surface mb-4">9. References</h2>
+
+    <h3 id="sec-9-1" class="serif-text text-xl font-medium text-on-surface mb-3">9.1. Normative References</h3>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-2 max-w-2xl mb-6">
+      <li>[RFC2119] Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997, <a href="https://www.rfc-editor.org/info/rfc2119" class="text-primary hover:underline">https://www.rfc-editor.org/info/rfc2119</a>.</li>
+      <li>[RFC8174] Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words", BCP 14, RFC 8174, May 2017, <a href="https://www.rfc-editor.org/info/rfc8174" class="text-primary hover:underline">https://www.rfc-editor.org/info/rfc8174</a>.</li>
+      <li>[POSIX.1-2024] IEEE and The Open Group, "IEEE Standard for Information Technology &mdash; Portable Operating System Interface (POSIX) Base Specifications, Issue 8", IEEE Std 1003.1-2024.</li>
+      <li>[ostk-source] ostk reference implementation, <a href="https://github.com/os-tack/ostk.ai" class="text-primary hover:underline">https://github.com/os-tack/ostk.ai</a>. Sections cited above point at file paths in this tree.</li>
+    </ul>
+
+    <h3 id="sec-9-2" class="serif-text text-xl font-medium text-on-surface mb-3">9.2. Informative References</h3>
+    <ul class="font-body text-sm text-secondary list-disc pl-6 space-y-2 max-w-2xl">
+      <li>Linux <code class="text-primary">pidfd_open(2)</code>, <code class="text-primary">pidfd_send_signal(2)</code> &mdash; kernel 5.3+.</li>
+      <li>FreeBSD / macOS <code class="text-primary">kqueue(2)</code>, <code class="text-primary">EVFILT_PROC</code> with <code class="text-primary">NOTE_EXIT</code>.</li>
+      <li><code class="text-primary">flock(2)</code>, <code class="text-primary">fcntl(2)</code> &mdash; advisory file locking.</li>
+      <li><code class="text-primary">systemd.socket(5)</code> and <code class="text-primary">launchd.plist(5)</code> &mdash; supervisor-owned listening sockets.</li>
+      <li>FUSE: <code class="text-primary">libfuse(3)</code>, the Rust <code class="text-primary">fuser</code> crate.</li>
+      <li>Kleppmann, M., "How to do distributed locking" (2016) &mdash; fencing tokens.</li>
+      <li>Plan 9 from Bell Labs &mdash; "everything is a file" namespace doctrine.</li>
+      <li>FreeBSD <code class="text-primary">capsicum(4)</code> &mdash; capability-mode filesystem access.</li>
+      <li>Companion ostk specifications: <a href="/docs/kernel-spec/" class="text-primary hover:underline">Kernel Specification</a>, <a href="/docs/five-laws/" class="text-primary hover:underline">Five Laws</a>, <a href="/docs/coordination-primitives/" class="text-primary hover:underline">Coordination Primitives</a>, <a href="/docs/trust-model/" class="text-primary hover:underline">Trust Model</a>.</li>
+    </ul>
+  </section>
+
+  <!-- 10. Revision Procedure -->
+  <section class="mb-12">
+    <h2 id="sec-10" class="serif-text text-2xl font-medium text-on-surface mb-4">10. Revision Procedure</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-3">
+      This document is versioned alongside the ostk reference implementation. A revision SHALL bump the document version, list the substantive changes, and (where the change is normative) cite the implementing change in the source tree. Revisions that promote an Appendix A entry to a normative section SHALL be accompanied by tests demonstrating enforcement.
+    </p>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+      Revisions that retract a normative requirement SHALL document the prior wording in an "Acknowledged Failure Modes" entry so the public record of the kernel's design errors remains intact.
+    </p>
+  </section>
+
+  <!-- Appendix A -->
+  <section class="mb-16">
+    <h2 id="appendix-a" class="serif-text text-2xl font-medium text-on-surface mb-4">Appendix A. Non-Normative Notes (Future Work)</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-6">
+      This appendix collects properties described in the working draft that are not yet enforced by the ostk 4.5.0 reference implementation. Conformance to this document does not require any of the following. A future revision MAY promote these to normative sections.
+    </p>
+
+    <article class="mb-8">
+      <h3 id="appendix-a-1" class="serif-text text-lg font-medium text-on-surface mb-2">A.1. Process Identity Quad &mdash; Not Yet Implemented</h3>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        The working draft specifies that every agent SHALL carry the full Unix process-identity quad <code class="text-primary">(pid, ppid, pgid, sid)</code> on every audit row that mentions it. The 4.5.0 implementation records <code class="text-primary">pid</code> and (via the supervisor adoption protocol) <code class="text-primary">ppid</code>, but does not yet thread <code class="text-primary">pgid</code> and <code class="text-primary">sid</code> through the agent-state schema. New verbs of the shape <code class="text-primary">ostk ps</code>, <code class="text-primary">ostk pstree</code>, and <code class="text-primary">ostk pkill -g &lt;pgid&gt;</code> depend on this work landing.
+      </p>
+    </article>
+
+    <article class="mb-8">
+      <h3 id="appendix-a-2" class="serif-text text-lg font-medium text-on-surface mb-2">A.2. VFS Mount of <code class="text-primary">/ostk</code> &mdash; Partially Implemented</h3>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        The working draft specifies that every kernel-visible resource SHALL have both a stable filesystem path under <code class="text-primary">/ostk/&hellip;</code> and a serializable handle. The 4.5.0 implementation defines the namespace in <code class="text-primary">src/kernel/vfs/namespace.rs</code> and the lifecycle in <code class="text-primary">src/kernel/vfs/lifecycle.rs</code>, but the FUSE mount that exposes the namespace at the OS level is gated behind a Cargo feature and is not yet a stability-promised surface. Once the FUSE layer ships unfeatured, this property will be promoted to a normative invariant.
+      </p>
+    </article>
+
+    <article class="mb-8">
+      <h3 id="appendix-a-3" class="serif-text text-lg font-medium text-on-surface mb-2">A.3. Connection Continuity &mdash; Partially Implemented</h3>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        The working draft specifies that a client holding a valid kernel handle SHALL continue to make progress after the serving anchor is replaced, without re-establishing state. The 4.5.0 implementation defines the <code class="text-primary">OperationRetryable</code> and <code class="text-primary">AnchorEpochStale</code> error variants and includes a server-side <code class="text-primary">reconnect_with_replay</code> path, but a fully transparent client reconnect library is future work. Until that ships, an anchor swap during an in-flight operation MAY surface as a typed error rather than a transparent retry.
+      </p>
+    </article>
+
+    <article class="mb-8">
+      <h3 id="appendix-a-4" class="serif-text text-lg font-medium text-on-surface mb-2">A.4. Recovery Protocol &mdash; Implemented; Promotion Pending</h3>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        The working draft specifies a recovery protocol for operator-acknowledged audit-chain breaks: a <code class="text-primary">journal.reset</code> row format with a discontinuous-genesis prev-hash sentinel, an <code class="text-primary">ostk init --assess --dry-run</code> reporter, and the inverse-direction <code class="text-primary">ostk recovery graveyard plan</code> / <code class="text-primary">adopt</code> verbs. The 4.5.0 implementation ships these (see <code class="text-primary">src/main.rs</code>, <code class="text-primary">src/kernel/recovery_v22.rs</code>, <code class="text-primary">src/kernel/migrate_legacy.rs</code>) but their on-wire formats are still subject to revision and are therefore not yet normative.
+      </p>
+    </article>
+
+    <article>
+      <h3 id="appendix-a-5" class="serif-text text-lg font-medium text-on-surface mb-2">A.5. Migration Windowing &mdash; Implemented; Operator Surface Stabilizing</h3>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl">
+        Phased rollout policy specifies hard cutover at the introducing phase plus an in-process migration walk performed as the first action of <code class="text-primary">ostk init start</code>. The implementation lives in <code class="text-primary">src/kernel/migrate_legacy.rs</code>; migration walker and reaper walker share a <code class="text-primary">SKIP_NAMES</code> contract. Operator-facing migration ergonomics continue to evolve and are not yet locked into this specification.
+      </p>
+    </article>
+
+    <div class="metadata-ribbon border-t border-surface-variant mt-12">
+      <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+      <a href="/docs/kernel-spec/">KERNEL_SPEC</a>
+      <a href="/docs/five-laws/">FIVE_LAWS</a>
+      <a href="/docs/coordination-primitives/">COORDINATION</a>
+      <a href="/docs/trust-model/">TRUST_MODEL</a>
+    </div>
+  </section>
+</DocsLayout>
