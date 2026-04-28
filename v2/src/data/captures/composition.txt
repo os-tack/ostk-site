@@ -1,14 +1,17 @@
 response_composition — session audit summary
-  source: /Users/scottmeyer/projects/ostk-site/.ostk/journal.jsonl
-  rows:   0
+  source: ~/your-repo/.ostk/journal.jsonl
+  rows:   5213
 
 totals (bytes):
-  tool_payload:               0
-  stderr:                     0
-  envelope:                   0
+  tool_payload:        16561771
+  stderr:                  6544
+  envelope:             7740857
   squasher_metadata:          0
-  raw (pre-compress):         0
-  total output:               0
-  overhead ratio:         0.00% (envelope+metadata / total_output)
+  raw (pre-compress):        91
+  total output:        24309172
+  overhead ratio:        31.84% (envelope+metadata / total_output)
 
 by category:
+  condense     rows: 255 payload: 3886273 envelope:  263026 overhead:  6.3%
+  dangerous    rows:   1 payload:      91 envelope:     183 overhead: 66.8%
+  none         rows:4957 payload:12675407 envelope: 7477648 overhead: 37.1%
