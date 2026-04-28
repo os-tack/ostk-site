@@ -1,0 +1,170 @@
+---
+// Live-typing demo grid.
+// Strip A: full-width feature demo (first-run).
+// Strip B: 2x2 grid of facet demos (model, clock, tack, journal).
+// Each demo is a <video autoplay loop muted playsinline> with <img> GIF fallback.
+// Width/height attributes match the .tape file dimensions to avoid CLS.
+
+interface Demo {
+  name: string;
+  command: string;
+  caption: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
+const featureDemo: Demo = {
+  name: 'first-run',
+  command: '$ ostk init && ostk boot',
+  caption:
+    'Real session. No edits. Bottom-text annotation by the kernel itself.',
+  alt: 'Terminal recording: ostk init followed by ostk boot. Fresh repository to validated kernel in seven seconds, with the kernel state envelope appearing under each command.',
+  width: 1100,
+  height: 650,
+};
+
+const facetDemos: Demo[] = [
+  {
+    name: 'model',
+    command: '$ ostk tack --llm "..."',
+    caption:
+      'Local model on Apple silicon. Ternary-Bonsai-8B-mlx-2bit lazy-spawns mlx_lm.server, returns a real response. Zero API keys.',
+    alt: 'Terminal recording: ostk pins a local mlx model and answers a prompt on-device with no API key.',
+    width: 1100,
+    height: 700,
+  },
+  {
+    name: 'clock',
+    command: '$ ostk os clock',
+    caption: 'Kernel has a clock. Session, swap, audit events, focus.',
+    alt: 'Terminal recording: ostk os clock prints a box-drawn kernel clock showing session, swap, audit events, and focus.',
+    width: 1100,
+    height: 500,
+  },
+  {
+    name: 'tack',
+    command: "$ ostk tack ':needle 1' --json",
+    caption:
+      'Kernel as language. Every tack expression resolves to a typed verb.',
+    alt: "Terminal recording: ostk tack resolves ':needle 1' to a typed verb and prints structured JSON.",
+    width: 1100,
+    height: 500,
+  },
+  {
+    name: 'journal',
+    command: '$ ostk os journal verify',
+    caption:
+      'Audit chain integrity. Hash-chained rows, signed seals, Merkle continuity.',
+    alt: 'Terminal recording: ostk os journal verify walks the audit chain, validating hash links and signed seals.',
+    width: 1100,
+    height: 550,
+  },
+];
+---
+
+<!-- Strip A — feature demo -->
+<div class="mb-10">
+  <p class="font-body text-sm text-on-surface mb-3">
+    <span class="text-primary">Day one:</span>
+    <code class="font-body text-[0.95em] bg-surface-container px-1.5 py-0.5">ostk init</code>
+    then
+    <code class="font-body text-[0.95em] bg-surface-container px-1.5 py-0.5">ostk boot</code>.
+    Fresh repo to validated kernel in seven seconds.
+  </p>
+  <div class="bg-surface-container-lowest border border-surface-variant max-w-full overflow-hidden">
+    <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
+      <div class="w-2 h-2 rounded-full bg-error-container"></div>
+      <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+      <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+      <span class="ml-auto font-label text-[9px] text-outline truncate">FIRST_RUN</span>
+    </div>
+    <video
+      class="block w-full h-auto demo-video"
+      src={`/assets/demo/${featureDemo.name}.mp4`}
+      width={featureDemo.width}
+      height={featureDemo.height}
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="metadata"
+      aria-label={featureDemo.alt}
+    >
+      <img
+        src={`/assets/demo/${featureDemo.name}.gif`}
+        alt={featureDemo.alt}
+        width={featureDemo.width}
+        height={featureDemo.height}
+        loading="lazy"
+        class="block w-full h-auto"
+      />
+    </video>
+  </div>
+  <p class="font-body text-xs text-outline mt-2">
+    Real session. No edits. Bottom-text annotation by the kernel itself.
+  </p>
+</div>
+
+<!-- Strip B — facet demo grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  {facetDemos.map((demo) => (
+    <div class="flex flex-col gap-3">
+      <div class="font-body text-[11px] md:text-xs text-primary">
+        <span aria-hidden="true">{demo.command}</span>
+      </div>
+      <div class="bg-surface-container-lowest border border-surface-variant max-w-full overflow-hidden">
+        <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
+          <div class="w-2 h-2 rounded-full bg-error-container"></div>
+          <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+          <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+          <span class="ml-auto font-label text-[9px] text-outline truncate">
+            OSTK_{demo.name.toUpperCase().replace(/-/g, '_')}
+          </span>
+        </div>
+        <video
+          class="block w-full h-auto demo-video"
+          src={`/assets/demo/${demo.name}.mp4`}
+          width={demo.width}
+          height={demo.height}
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          aria-label={demo.alt}
+        >
+          <img
+            src={`/assets/demo/${demo.name}.gif`}
+            alt={demo.alt}
+            width={demo.width}
+            height={demo.height}
+            loading="lazy"
+            class="block w-full h-auto"
+          />
+        </video>
+      </div>
+      <p class="font-body text-sm text-secondary leading-relaxed">{demo.caption}</p>
+    </div>
+  ))}
+</div>
+
+<script>
+  // Respect prefers-reduced-motion: pause and rewind autoplaying demos so the
+  // user sees the first frame (still informative) without motion.
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    document.querySelectorAll<HTMLVideoElement>('video.demo-video').forEach((v) => {
+      v.removeAttribute('autoplay');
+      v.pause();
+      try {
+        v.currentTime = 0;
+      } catch (_) {
+        /* metadata may not be loaded yet; pausing is enough */
+      }
+    });
+  }
+</script>

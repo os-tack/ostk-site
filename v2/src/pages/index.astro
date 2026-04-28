@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Sidebar from '../components/Sidebar.astro';
 import Terminal from '../components/Terminal.astro';
-import CapturesGrid from '../components/CapturesGrid.astro';
+import LiveDemos from '../components/LiveDemos.astro';
 import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
@@ -232,13 +232,13 @@ const sidebarGroups = {
         </div>
       </section>
 
-      <!-- Real CLI captures from a live ostk session -->
+      <!-- Live-typed demo videos from real ostk sessions -->
       <section class="mb-20">
         <div class="section-label mb-4">WHAT_THE_KERNEL_LOOKS_LIKE</div>
         <h2 class="serif-text text-2xl md:text-3xl font-medium text-on-surface leading-snug max-w-3xl mb-10">
-          Real outputs from a live session. Not screenshots, not reenactments — what your terminal will show after <code class="font-body text-[0.9em] bg-surface-container px-1.5 py-0.5">ostk init</code>.
+          Real ostk sessions, live-typed and on-device. Not screenshots. Not reenactments.
         </h2>
-        <CapturesGrid />
+        <LiveDemos />
       </section>
 
       <!-- Three failure modes the kernel addresses -->
