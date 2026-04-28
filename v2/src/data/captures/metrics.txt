@@ -1,0 +1,21 @@
+ostk metrics
+
+  prompt cache (opus):
+    efficiency:   99.6%  (read / total prompt)
+    cache_read:   131,423 tokens (ceiling: 131,423)
+    cache_create: 566 tokens
+    cache_create  (1h/5m): 566 / 0  (100%/0%)
+    input:        1 tokens
+    output:       604 tokens
+    billed:       131,990 tokens
+    api calls:    1  (0 tool calls)
+    cost:         $0.2531  (no-cache: $2.0252, saved: $1.7721)
+    stop reasons: end_turn:1
+
+  squash:
+    token savings:  ~0 tokens (↓0% avg)
+    bytes:          0 → 0
+    events:         0
+    est. saved:     ~$0.00 (opus input @ $15/M)
+
+  session:          unknown, unknown

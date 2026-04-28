@@ -1,0 +1,14 @@
+host:        macos / aarch64
+family:      unix
+exe_suffix:  ""
+
+ipc:         Unix domain sockets (UnixListener / UnixStream / std::os::unix::net)
+pty:         forkpty + nix (master fd, execvp)
+process:     unix: nix::sys::signal, execvp, setsid, libc::getppid
+signal:      SIGTERM | SIGINT (tokio::signal::unix)
+perm:        chmod 0o600/0o700 + MetadataExt (unix)
+
+daemon:      /Users/scottmeyer/projects/ostk-site/.ostk/ostk.sock  [not bound]
+drivers:     0 live, 0 total
+
+gates:       (audit failed: read allowlist: No such file or directory (os error 2))

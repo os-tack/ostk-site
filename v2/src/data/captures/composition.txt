@@ -1,0 +1,14 @@
+response_composition — session audit summary
+  source: /Users/scottmeyer/projects/ostk-site/.ostk/journal.jsonl
+  rows:   0
+
+totals (bytes):
+  tool_payload:               0
+  stderr:                     0
+  envelope:                   0
+  squasher_metadata:          0
+  raw (pre-compress):         0
+  total output:               0
+  overhead ratio:         0.00% (envelope+metadata / total_output)
+
+by category:

@@ -1,0 +1,144 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+
+interface SpecEntry {
+  title: string;
+  description: string;
+  href?: string;
+  comingSoon?: boolean;
+}
+
+interface SpecGroup {
+  heading: string;
+  entries: SpecEntry[];
+}
+
+const groups: SpecGroup[] = [
+  {
+    heading: 'Kernel',
+    entries: [
+      {
+        title: 'Kernel Specification',
+        description: 'Canonical ostk kernel architecture: six Unix syscalls, seven primitives, the LLM memory hierarchy, and the dual-CPU scheduler binding humans + LLMs.',
+        href: '/docs/kernel-spec/',
+      },
+      {
+        title: 'Five Laws',
+        description: 'The five load-bearing constraints behind ostk: invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infra.',
+        href: '/docs/five-laws/',
+      },
+      {
+        title: 'POSIX Kernel Spec',
+        description: 'Merged POSIX kernel spec — the substrate doctrine in formal form.',
+        comingSoon: true,
+      },
+    ],
+  },
+  {
+    heading: 'Trust + Identity',
+    entries: [
+      {
+        title: 'Trust Model',
+        description: 'How GPG identity tiers, capability pins, and Ed25519-signed audit compose into the trust model. Four problems an operator has — what can I do, how do I graduate, how do I verify a release, how do I revoke a compromised key — and the compositions that solve them.',
+        href: '/docs/trust-model/',
+      },
+      {
+        title: 'HUMANFILE',
+        description: 'Operator identity document. Tells the OS who you are, what models to use, and how to calibrate.',
+        href: '/docs/humanfile/',
+      },
+      {
+        title: '.primefile',
+        description: 'The .primefile is ostk’s dual-signed root of trust — kernel + operator GPG keys anchor the identity chain. Auto-managed, never edit by hand.',
+        href: '/docs/primefile/',
+      },
+      {
+        title: 'ENTITYFILE',
+        description: 'The trust constitution of your OS instance. Identity chains, trust tiers, and governance ceremonies.',
+        href: '/docs/entityfile/',
+      },
+    ],
+  },
+  {
+    heading: 'Coordination + Audit',
+    entries: [
+      {
+        title: 'Coordination Primitives',
+        description: 'Four primitives that let multiple agents share a codebase without a message bus: optimistic concurrency, Hot PR conflict resolution, digest injection, and nudges.',
+        href: '/docs/coordination-primitives/',
+      },
+      {
+        title: 'Observation Substrate',
+        description: 'Audit-row dispatch, projection lattice, and the observation substrate over the VFS namespace.',
+        comingSoon: true,
+      },
+    ],
+  },
+  {
+    heading: 'Application Layer',
+    entries: [
+      {
+        title: 'Agentfile',
+        description: 'An Agentfile is a Dockerfile for agents — a declarative spec the kernel can audit, supervise, and verify. Four operator problems and the compositions that solve them.',
+        href: '/docs/agentfile/',
+      },
+      {
+        title: 'Tack Grammar',
+        description: 'The operator intent language for the TUI tack bar. Compressed input syntax that resolves through the kernel. What, not how.',
+        href: '/docs/tack-grammar/',
+      },
+      {
+        title: 'Application v1',
+        description: 'Application-layer protocol for agent lifecycle, sub-agent spawning, and journal recovery.',
+        comingSoon: true,
+      },
+    ],
+  },
+];
+---
+
+<DocsLayout
+  title="Specifications"
+  description="The substrate ostk is built on: kernel spec, five laws, trust model, audit format. Read before you trust your codebase to it."
+  sectionLabel="REFERENCE // SPECIFICATIONS"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-6">
+    The substrate underneath ostk. Kernel doctrine, trust model, audit format, application layer.
+  </p>
+  <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-12">
+    These are the canonical public specifications. If you’re going to trust your codebase to a kernel, this is what you should read first. Specifications marked <em class="text-outline not-italic">specification draft — public version forthcoming</em> are tracked under active work; the public-version page goes up when it’s frozen.
+  </p>
+
+  {groups.map(group => (
+    <section class="mb-14">
+      <h2 class="serif-text text-2xl font-medium text-on-surface mb-6">{group.heading}</h2>
+      <div class="space-y-px">
+        {group.entries.map(entry => (
+          entry.comingSoon ? (
+            <div class="bg-surface-container-low p-5 opacity-60">
+              <div class="font-body text-sm text-outline mb-1">{entry.title}</div>
+              <div class="font-body text-xs text-outline italic mb-1">(specification draft — public version forthcoming)</div>
+              <div class="font-body text-xs text-outline leading-relaxed max-w-xl">{entry.description}</div>
+            </div>
+          ) : (
+            <a href={entry.href} class="bg-surface-container p-5 block hover:bg-surface-container-high transition-none group">
+              <div class="font-body text-sm text-primary group-hover:underline mb-1">
+                {entry.title}
+                <span class="text-outline ml-2 text-xs font-normal">{entry.href}</span>
+              </div>
+              <div class="font-body text-xs text-secondary leading-relaxed max-w-xl">{entry.description}</div>
+            </a>
+          )
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <div class="mt-16 pt-8 border-t border-surface-variant">
+    <p class="font-body text-xs text-outline max-w-xl">
+      Source of truth for kernel internals lives in the
+      <a href="https://github.com/os-tack/ostk.ai" class="text-primary hover:underline">os-tack/ostk.ai</a>
+      repository. Specs are versioned alongside the kernel; any drift between this index and a release tag is reconciled at release time.
+    </p>
+  </div>
+</DocsLayout>

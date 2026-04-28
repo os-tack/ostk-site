@@ -1,0 +1,123 @@
+---
+import Base from '../layouts/Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import { LATEST_TAG, LATEST_VERSION, RELEASE_URL } from '../site-version';
+
+const sidebarGroups = {
+  items: [
+    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+    { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+    { icon: 'extension', label: 'MCP', href: '/docs/mcp/' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
+    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model/' },
+    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
+  ],
+  bottomItems: [
+    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
+    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
+  ],
+};
+
+// Hand-maintained release log. Bump LATEST_VERSION in v2/src/site-version.ts
+// at release time, then add an entry to the top of this list with notes.
+// Older entries are placeholders until we backfill from real release notes.
+const releases = [
+  {
+    tag: LATEST_TAG,
+    label: 'current',
+    note: 'Stable release. Local-first kernel for AI coding agents — CAS writes, audit chain, capability pins, fleet coordination. macOS universal, Linux musl arm64/x86_64, Windows x86_64. GPG-signed.',
+    url: RELEASE_URL,
+  },
+  {
+    tag: 'v4.4.1',
+    note: 'Replace this list with real release notes when ready.',
+  },
+  {
+    tag: 'v4.4.0',
+    note: 'Replace this list with real release notes when ready.',
+  },
+  {
+    tag: 'v4.3.x',
+    note: 'Replace this list with real release notes when ready.',
+  },
+  {
+    tag: 'v4.2.x',
+    note: 'Replace this list with real release notes when ready.',
+  },
+];
+
+const canonicalUrl = new URL(Astro.url.pathname, 'https://ostk.ai').href;
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Changelog — ostk",
+  "description": "ostk release history. Hand-maintained log of recent versions with notes.",
+  "image": "https://ostk.ai/og-image.png",
+  "author": { "@type": "Organization", "name": "ostk", "url": "https://ostk.ai" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ostk",
+    "url": "https://ostk.ai",
+    "logo": { "@type": "ImageObject", "url": "https://ostk.ai/og-image.png" },
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
+};
+---
+
+<Base
+  title="Changelog — ostk"
+  description="ostk release history. Last 10 versions with notes. Hand-maintained, signed binaries on GitHub, sitemap-tracked for crawlers."
+>
+  <script slot="schema" type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <Sidebar title="OSTK" subtitle={`${LATEST_TAG} STABLE`} groups={sidebarGroups} />
+
+  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
+    <div class="max-w-4xl mx-auto py-12">
+      <Breadcrumb crumbs={[
+        { label: 'OSTK', href: '/' },
+        { label: 'CHANGELOG' },
+      ]} />
+
+      <div class="section-label mb-4">RELEASE_HISTORY</div>
+      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Changelog</h1>
+      <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
+        Hand-maintained log of recent ostk releases.
+      </p>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-12">
+        Every release ships as GPG-signed binaries on the
+        <a href="https://github.com/os-tack/ostk.ai/releases" class="text-primary hover:underline">releases page</a>.
+        Verify signatures before installing on shared infrastructure. Current stable: <code class="text-primary">{LATEST_TAG}</code>.
+      </p>
+
+      <div class="space-y-px">
+        {releases.map(release => (
+          <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 gap-0">
+            <div class="md:col-span-2 bg-surface-container-low flex items-center justify-center py-6 px-4">
+              <div class="text-center">
+                <div class="serif-text text-2xl font-bold text-primary">{release.tag}</div>
+                {release.label && (
+                  <div class="font-label text-[9px] uppercase tracking-widest text-secondary mt-1">{release.label}</div>
+                )}
+              </div>
+            </div>
+            <div class="md:col-span-10 p-6">
+              <p class="font-body text-sm text-on-surface leading-relaxed mb-2">{release.note}</p>
+              {release.url && (
+                <a href={release.url} class="font-body text-[11px] text-primary hover:underline">
+                  → release notes on GitHub
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="font-body text-xs text-outline mt-12 max-w-xl">
+        Looking for the source of truth? See
+        <a href="https://github.com/os-tack/ostk.ai/releases" class="text-primary hover:underline">github.com/os-tack/ostk.ai/releases</a>
+        for every published binary, signature, and SHA-256 manifest.
+      </p>
+    </div>
+  </main>
+</Base>

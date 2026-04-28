@@ -12,6 +12,7 @@ The script is loaded once in `v2/src/layouts/Base.astro` (variant: `tagged-event
 | `Persona CTA`     | Homepage three-up persona cards                               | `persona` ∈ `mcp` / `local` / `server`    |
 | `Install Copied`  | Any install command click (homepage hero, `/start`)           | `source` ∈ `hero` / `start`, `variant` ∈ `A` / `B` (hero only) |
 | `Architecture View` | Homepage hero "read the architecture" / "tear it apart" CTA | `variant` ∈ `A` / `B`                     |
+| `Where Fits CTA`  | Homepage `WHERE_OSTK_FITS` two-CTA pair                       | `target` ∈ `mcp` / `architecture`         |
 | `Path Picked`     | `/start` branch cards                                         | `path` ∈ `mcp` / `local` / `server`       |
 | `Start Here`      | Homepage footer CTA                                           | `source=footer-cta`                       |
 | `Source View`     | Homepage `VIEW_SOURCE` button (also auto-tracked as outbound) | —                                         |

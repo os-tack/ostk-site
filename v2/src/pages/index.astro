@@ -162,6 +162,75 @@ const sidebarGroups = {
         </div>
       </section>
 
+      <!-- Where ostk fits in the agent stack -->
+      <section class="mb-20">
+        <div class="section-label mb-4">WHERE_OSTK_FITS</div>
+        <p class="serif-text text-2xl md:text-3xl font-medium text-on-surface leading-snug max-w-3xl mb-10">
+          ostk is one layer down from the AI coding tools you already use.
+        </p>
+
+        {/* Stacked-layer diagram. Each row: label column (left) + content column (right).
+            Mobile stacks the label above the content; desktop renders horizontal rows.
+            Vertical arrows connect rows on both axes. */}
+        <div class="max-w-3xl">
+          {[
+            {
+              label: 'AGENT_SURFACES',
+              body: 'Cursor · Claude Code · Continue · Aider · your CLI · local models (Ollama, MLX)',
+            },
+            {
+              label: 'KERNEL',
+              body: 'ostk: state envelope · CAS writes · audit chain · capability pins · identity · fleet coordination',
+              emphasis: true,
+            },
+            {
+              label: 'SUBSTRATE',
+              body: 'your codebase · your filesystem · your machine',
+            },
+          ].map((row, idx, arr) => (
+            <>
+              <div class:list={[
+                'grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-6 py-4',
+                row.emphasis ? 'bg-surface-container border-l-2 border-primary px-4' : 'bg-surface-container-low px-4',
+              ]}>
+                <div class="md:col-span-3 flex items-center">
+                  <span class={row.emphasis
+                    ? 'font-label text-[11px] tracking-widest uppercase text-primary'
+                    : 'font-label text-[11px] tracking-widest uppercase text-secondary opacity-70'}>{row.label}</span>
+                </div>
+                <div class="md:col-span-9 flex items-center">
+                  <p class="font-body text-sm text-on-surface leading-relaxed">{row.body}</p>
+                </div>
+              </div>
+              {idx < arr.length - 1 && (
+                <div class="flex items-center justify-center py-1" aria-hidden="true">
+                  <span class="font-body text-base text-outline">↓</span>
+                </div>
+              )}
+            </>
+          ))}
+        </div>
+
+        <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mt-8 mb-8">
+          The agent surface is what you type into. The kernel is what keeps multiple of them from stepping on each other, what signs every action, and what ensures your agents stay oriented across thousands of turns. ostk doesn't replace your editor or your model. It sits underneath them.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-3 max-w-2xl">
+          <a
+            href="/docs/mcp/"
+            class="plausible-event-name=Where+Fits+CTA plausible-event-target=mcp bg-surface-variant text-primary font-body text-sm py-3 px-5 transition-none hover:bg-surface-container-high flex items-center justify-center gap-2 whitespace-nowrap flex-1"
+          >
+            compose with Claude Code, Cursor, or MCP →
+          </a>
+          <a
+            href="/docs/architecture/"
+            class="plausible-event-name=Where+Fits+CTA plausible-event-target=architecture bg-surface-variant text-primary font-body text-sm py-3 px-5 transition-none hover:bg-surface-container-high flex items-center justify-center gap-2 whitespace-nowrap flex-1"
+          >
+            read the architecture →
+          </a>
+        </div>
+      </section>
+
       <!-- Three failure modes the kernel addresses -->
       <section class="mb-20">
         <div class="section-label mb-4">HOW_THE_KERNEL_KEEPS_THE_FRAME</div>
@@ -204,6 +273,9 @@ const sidebarGroups = {
             </div>
           ))}
         </div>
+        <p class="font-body text-[11px] text-outline mt-6 max-w-xl">
+          Want the substrate spec underneath all of this? <a href="/docs/spec/" class="text-primary hover:underline">Read the canonical specifications →</a>
+        </p>
       </section>
 
       <!-- Why containers comparison -->

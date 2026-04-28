@@ -1,0 +1,10 @@
+ostk clock
+──────────────────────────────
+  wall      2026-05-12T03:35:49Z
+  session   537h58m
+  kernel    v4.5.0 (@prime+8)
+  swap      ✓ fresh (2m50s)
+  last gen  360h56m
+  audit     686 events
+  focus     —
+──────────────────────────────
