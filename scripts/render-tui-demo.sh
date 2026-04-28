@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+# render-tui-demo.sh — reproducibly render a TUI .tape against a live daemon.
+#
+# VHS spawns a fresh ttyd per tape, and any daemon backgrounded inside the
+# tape dies when ttyd exits its step. So we start the daemon OUTSIDE vhs
+# (parent process), wait for the socket to bind, run the tape, then kill
+# the daemon. The tape itself does only `ostk tui` + key chords.
+#
+# Usage:
+#   scripts/render-tui-demo.sh <tape-file>          # honest first-boot
+#   scripts/render-tui-demo.sh --warm <tape-file>   # pre-warm session
+#                                                     (language seeded,
+#                                                      seeded turns,
+#                                                      ready for Alt+c)
+set -euo pipefail
+
+WARM=0
+if [[ "${1:-}" == "--warm" ]]; then
+  WARM=1
+  shift
+fi
+
+TAPE="${1:?missing tape path}"
+SITE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DEMO_ROOT="/tmp/ostk-tui-demo"
+DAEMON_LOG="/tmp/ostk-daemon-$$.log"
+
+# Reap any stragglers from prior aborted runs.
+pkill -f 'ostk daemon' 2>/dev/null || true
+sleep 1
+
+# Fresh playground.
+rm -rf "$DEMO_ROOT"
+mkdir -p "$DEMO_ROOT"
+cd "$DEMO_ROOT"
+ostk init >/dev/null 2>&1
+
+if [[ "$WARM" == "1" ]]; then
+  # Compile .language so the TUI doesn't warn about a stale/missing one.
+  # ostk shutdown is the canonical compile trigger (no daemon yet, just
+  # invokes the post-shutdown language compile path).
+  ostk shutdown >/dev/null 2>&1 || true
+
+  # Start the daemon detached.
+  ( ostk daemon > "$DAEMON_LOG" 2>&1 ) &
+  DAEMON_PID=$!
+
+  # Wait for the socket to bind.
+  for i in {1..30}; do
+    [[ -S "$DEMO_ROOT/.ostk/ostk.sock" ]] && break
+    sleep 1
+  done
+
+  # Pin local mlx model so prompts in the TUI route to ternary-bonsai
+  # (Anthropic API is rate-limited; Ollama isn't running). The kernel
+  # resolution chain is staging/preferred_model -> OSTK_MODEL -> cloud.
+  mkdir -p .ostk/staging
+  printf 'mlx/ternary-bonsai-8b' > .ostk/staging/preferred_model
+
+  # Seed a few session turns so the [ctx] peek shows something interesting.
+  ostk decide "demo: project initialized" >/dev/null 2>&1 || true
+  ostk decide "demo: kernel boot validated" >/dev/null 2>&1 || true
+  ostk tack ':needle 1' --json >/dev/null 2>&1 || true
+  ostk tack ':status' --json >/dev/null 2>&1 || true
+
+  # Pre-warm the mlx_lm.server so the TUI's first prompt skips the
+  # cold-spawn cost (~6s) and the response actually fits inside the
+  # tape's recorded window. Tiny prompt; we throw the response away.
+  ostk tack --llm 'hi' --max-tokens 8 >/dev/null 2>&1 || true
+
+  echo "[render-tui-demo] warm session ready (PID $DAEMON_PID)"
+else
+  # Honest first-boot: only daemon, no language compile, no seeded turns.
+  ( ostk daemon > "$DAEMON_LOG" 2>&1 ) &
+  DAEMON_PID=$!
+  for i in {1..30}; do
+    [[ -S "$DEMO_ROOT/.ostk/ostk.sock" ]] && break
+    sleep 1
+  done
+  echo "[render-tui-demo] cold session ready (PID $DAEMON_PID)"
+fi
+
+# Render the tape.
+vhs "$SITE_ROOT/$TAPE"
+VHS_EXIT=$?
+
+# Post-process: collapse static frames throughout (mpdecimate) AND trim
+# trailing dead time. This keeps Sleep generous in the .tape so we
+# always capture the full response/interaction, but the published
+# artifact only contains the active region — no waiting on inference,
+# no idle terminal at the end.
+base_name=$(grep -oE 'Output "[^"]*\.mp4"' "$SITE_ROOT/$TAPE" | head -1 | sed 's/Output "//; s/\.mp4"//')
+if [[ -n "$base_name" && -f "$base_name.mp4" ]]; then
+  # Step 1: mpdecimate drops near-duplicate frames (kills inference-
+  # thinking gaps, cursor-only frames, idle tail). setpts re-times the
+  # surviving frames so they play at the source's nominal frame rate
+  # — no slow-mo, no time-warp, just static gaps removed.
+  # Thresholds (hi=64*12:lo=64*5) are the ffmpeg-recipe defaults that
+  # drop obvious duplicates while preserving typing-token motion.
+  ffmpeg -y -i "$base_name.mp4" \
+    -vf "mpdecimate=hi=64*12:lo=64*5:frac=0.05,setpts=N/FRAME_RATE/TB" \
+    -c:v libx264 -preset slow -crf 23 -pix_fmt yuv420p \
+    -movflags +faststart \
+    "$base_name.decimated.mp4" 2>/dev/null
+  mv "$base_name.decimated.mp4" "$base_name.mp4"
+
+  # Step 2: trim any trailing static dwell that survived mpdecimate
+  # (usually 0.3–1.0s of leftover idle).
+  LAST_T=$(
+    ffmpeg -i "$base_name.mp4" \
+      -vf "select='gt(scene,0.005)',showinfo" \
+      -f null - 2>&1 \
+    | grep -oE 'pts_time:[0-9.]+' \
+    | tail -1 \
+    | cut -d: -f2
+  )
+  if [[ -n "$LAST_T" ]]; then
+    DWELL_BUFFER=1.0
+    TRIM_T=$(awk -v a="$LAST_T" -v b="$DWELL_BUFFER" 'BEGIN { printf "%.2f", a + b }')
+    echo "[render-tui-demo] decimated; last motion at ${LAST_T}s; trimming to ${TRIM_T}s"
+    ffmpeg -y -i "$base_name.mp4" -t "$TRIM_T" \
+      -c:v libx264 -preset slow -crf 23 -pix_fmt yuv420p \
+      -movflags +faststart \
+      "$base_name.trimmed.mp4" 2>/dev/null
+    mv "$base_name.trimmed.mp4" "$base_name.mp4"
+  fi
+
+  # Step 3: regenerate the GIF from the cleaned MP4.
+  ffmpeg -y -i "$base_name.mp4" \
+    -vf "fps=15,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+    "$base_name.gif" 2>/dev/null
+
+  if command -v gifsicle >/dev/null 2>&1; then
+    gifsicle -O3 --colors 64 "$base_name.gif" -o "$base_name.gif"
+  fi
+fi
+
+# Cleanup.
+kill "$DAEMON_PID" 2>/dev/null || true
+wait "$DAEMON_PID" 2>/dev/null || true
+rm -f "$DAEMON_LOG"
+
+exit "$VHS_EXIT"
