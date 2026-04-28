@@ -207,7 +207,8 @@ const sidebarGroups = {
         <p class="font-body text-sm text-secondary max-w-2xl mb-6">
           Containers gave processes isolation. They didn't ship coordination. ostk does.
         </p>
-        <div class="bg-surface-container-low p-6 max-w-3xl">
+        <div class="bg-surface-container-low p-6 max-w-3xl overflow-x-auto">
+          <div class="min-w-[480px]">
           <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-3 mb-3">
             <div class="font-label text-[10px] text-secondary">PROBLEM</div>
             <div class="font-label text-[10px] text-secondary">CONTAINERS</div>
@@ -228,6 +229,7 @@ const sidebarGroups = {
               <div class="text-on-surface">{row[2]}</div>
             </div>
           ))}
+          </div>
         </div>
         <p class="font-body text-[11px] text-outline mt-3 max-w-xl">
           Not a wrapper around containers. Containers contain processes; ostk contains agents.

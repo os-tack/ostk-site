@@ -70,10 +70,10 @@ created: .ostk/agents/fix-bug-27.Agentfile
           { name: 'RESTART', req: 'optional', desc: 'Supervisor restart strategy: one_for_one, one_for_all, rest_for_one, simple_one_for_one. Used by the application/v1 supervisor when this agent is part of a tree.' },
           { name: 'HEALTHCHECK', req: 'optional', desc: 'Liveness probe. Cross-validates with RESTART and LIFETIME. The lint pass catches incompatible combinations.' },
         ].map(d => (
-          <div class="grid grid-cols-12 gap-4 text-xs font-body py-1 border-b border-surface-variant">
-            <span class="col-span-2 text-primary font-bold">{d.name}</span>
-            <span class="col-span-2 text-outline italic">{d.req}</span>
-            <span class="col-span-8 text-secondary leading-relaxed">{d.desc}</span>
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-1 md:gap-4 text-xs font-body py-2 border-b border-surface-variant">
+            <span class="md:col-span-2 text-primary font-bold break-words">{d.name}</span>
+            <span class="md:col-span-2 text-outline italic">{d.req}</span>
+            <span class="md:col-span-8 text-secondary leading-relaxed break-words">{d.desc}</span>
           </div>
         ))}
       </div>

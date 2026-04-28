@@ -101,7 +101,7 @@ import Icon from '../../components/Icon.astro';
   <!-- Dual-CPU Scheduler -->
   <section class="mb-16">
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Dual-CPU Scheduler</h2>
-    <div class="grid grid-cols-2 gap-px bg-surface-variant mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant mb-6">
       {[
         { class_: 'Human CPU', latency: 'Seconds to hours', judgment: 'Authoritative', ring: 'Ring 0' },
         { class_: 'LLM CPU', latency: 'Seconds/turn', judgment: 'Context-bounded', ring: 'Ring 3' },

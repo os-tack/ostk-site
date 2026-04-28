@@ -93,7 +93,7 @@ const sidebarGroups = {
       {relatedPages.length > 0 && (
         <div class="mt-20 pt-8 border-t border-surface-variant">
           <div class="font-label text-[10px] text-secondary mb-4">RELATED_FEATURES</div>
-          <div class="grid grid-cols-3 gap-px bg-surface-variant">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-surface-variant">
             {relatedPages.map(page => (
               <a href={page.href} class="bg-surface p-5 hover:bg-surface-container transition-none group block">
                 <div class="font-body text-sm text-on-surface group-hover:text-primary font-medium">{page.title}</div>

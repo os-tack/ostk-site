@@ -155,7 +155,7 @@ import Terminal from '../../components/Terminal.astro';
     </p>
     <div class="bg-surface-container-low p-6 border-l-2 border-primary">
       <div class="space-y-0">
-        <div class="grid grid-cols-12 gap-2 text-xs font-body py-3 border-b border-surface-variant">
+        <div class="hidden md:grid grid-cols-12 gap-2 text-xs font-body py-3 border-b border-surface-variant">
           <span class="font-label text-[10px] text-outline col-span-6">METRIC</span>
           <span class="font-label text-[10px] text-outline col-span-3 text-right">VALUE</span>
           <span class="font-label text-[10px] text-outline col-span-3 text-right">NOTE</span>
@@ -168,10 +168,10 @@ import Terminal from '../../components/Terminal.astro';
           { metric: 'tokens saved', value: '~21,728', note: '4 bytes per token' },
           { metric: 'cost saved (opus input)', value: '~$0.33', note: '$15/M tokens' },
         ].map(r => (
-          <div class="grid grid-cols-12 gap-2 text-xs font-body py-3 border-b border-surface-variant">
-            <span class="text-on-surface col-span-6">{r.metric}</span>
-            <span class="text-primary col-span-3 text-right font-bold">{r.value}</span>
-            <span class="text-outline col-span-3 text-right">{r.note}</span>
+          <div class="grid grid-cols-2 md:grid-cols-12 gap-x-2 gap-y-1 text-xs font-body py-3 border-b border-surface-variant">
+            <span class="text-on-surface md:col-span-6 break-words">{r.metric}</span>
+            <span class="text-primary md:col-span-3 md:text-right font-bold text-right">{r.value}</span>
+            <span class="text-outline md:col-span-3 md:text-right col-span-2">{r.note}</span>
           </div>
         ))}
       </div>

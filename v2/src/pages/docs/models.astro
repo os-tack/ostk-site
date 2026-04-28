@@ -90,32 +90,32 @@ import Terminal from '../../components/Terminal.astro';
         },
       ].map(p => (
         <div class="bg-surface-container-low">
-          <div class="grid grid-cols-12 gap-0">
-            <div class="md:col-span-2 bg-surface-container px-4 py-5 flex flex-col justify-start">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-0">
+            <div class="md:col-span-2 bg-surface-container px-4 py-5 flex md:flex-col justify-between md:justify-start items-baseline md:items-start gap-2 md:gap-0">
               <span class="font-body text-sm font-bold text-primary">{p.name}</span>
-              <span class="font-label text-[9px] text-outline uppercase tracking-widest mt-1">{p.level}</span>
+              <span class="font-label text-[9px] text-outline uppercase tracking-widest md:mt-1">{p.level}</span>
             </div>
             <div class="md:col-span-10 p-5">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-body">
-                <div>
+                <div class="min-w-0">
                   <div class="font-label text-[10px] text-primary mb-1">MODELS</div>
-                  <code class="text-secondary text-[11px]">{p.models}</code>
+                  <code class="text-secondary text-[11px] break-words">{p.models}</code>
                 </div>
-                <div>
+                <div class="min-w-0">
                   <div class="font-label text-[10px] text-primary mb-1">CONTEXT / WIRE</div>
-                  <span class="text-secondary">{p.context} — {p.wire}</span>
+                  <span class="text-secondary break-words">{p.context} — {p.wire}</span>
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 min-w-0">
                   <div class="font-label text-[10px] text-primary mb-1">FEATURES</div>
-                  <span class="text-secondary">{p.features}</span>
+                  <span class="text-secondary break-words">{p.features}</span>
                 </div>
-                <div>
+                <div class="min-w-0">
                   <div class="font-label text-[10px] text-outline mb-1">API KEY</div>
-                  <code class="text-secondary text-[11px]">{p.key}</code>
+                  <code class="text-secondary text-[11px] break-words">{p.key}</code>
                 </div>
-                <div>
+                <div class="min-w-0">
                   <div class="font-label text-[10px] text-outline mb-1">SOURCE</div>
-                  <code class="text-secondary text-[10px]">{p.src}</code>
+                  <code class="text-secondary text-[10px] break-words">{p.src}</code>
                 </div>
               </div>
             </div>
@@ -167,10 +167,10 @@ import Terminal from '../../components/Terminal.astro';
         { method: 'HUMANFILE MODEL directive', scope: 'Project-wide default. Applies when FROM is auto or absent.', example: 'MODEL claude-opus-4-6' },
         { method: '--model flag on ostk kernel spawn', scope: 'Per-spawn override. Takes precedence over Agentfile FROM auto.', example: 'ostk kernel spawn worker --model gemini-2.5-pro "task"' },
       ].map(c => (
-        <div class="flex gap-4 text-xs font-body py-3 border-b border-surface-variant">
-          <span class="text-primary w-52 shrink-0 font-bold">{c.method}</span>
-          <span class="text-secondary flex-1">{c.scope}</span>
-          <code class="text-outline shrink-0 text-[10px]">{c.example}</code>
+        <div class="flex flex-col md:flex-row gap-2 md:gap-4 text-xs font-body py-3 border-b border-surface-variant">
+          <span class="text-primary md:w-52 md:shrink-0 font-bold break-words">{c.method}</span>
+          <span class="text-secondary flex-1 break-words">{c.scope}</span>
+          <code class="text-outline md:shrink-0 text-[10px] break-words">{c.example}</code>
         </div>
       ))}
     </div>

@@ -132,16 +132,16 @@ const groups = [
 
           <div class="space-y-px">
             {group.deps.map(dep => (
-              <a href={dep.url} class="bg-surface-container grid grid-cols-12 hover:bg-surface-container-high transition-none group">
+              <a href={dep.url} class="bg-surface-container grid grid-cols-1 md:grid-cols-12 hover:bg-surface-container-high transition-none group">
                 <div class="md:col-span-2 px-4 py-4 bg-surface-container-low">
-                  <code class="font-body text-sm text-primary group-hover:underline font-bold">{dep.name}</code>
+                  <code class="font-body text-sm text-primary group-hover:underline font-bold break-words">{dep.name}</code>
                   <div class="font-label text-[10px] text-outline mt-1">v{dep.version}</div>
                 </div>
                 <div class="md:col-span-8 px-4 py-4">
-                  <span class="font-body text-xs text-secondary">{dep.desc}</span>
+                  <span class="font-body text-xs text-secondary break-words">{dep.desc}</span>
                 </div>
-                <div class="md:col-span-2 px-4 py-4 flex items-center justify-end">
-                  <span class="font-label text-[10px] text-outline group-hover:text-primary truncate">{dep.url.replace('https://', '').replace('github.com/', '')}</span>
+                <div class="md:col-span-2 px-4 py-4 flex items-center md:justify-end">
+                  <span class="font-label text-[10px] text-outline group-hover:text-primary truncate max-w-full">{dep.url.replace('https://', '').replace('github.com/', '')}</span>
                 </div>
               </a>
             ))}

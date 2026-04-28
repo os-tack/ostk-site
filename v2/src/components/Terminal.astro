@@ -5,14 +5,27 @@ interface Props {
 const { label = 'TERMINAL' } = Astro.props;
 ---
 
-<div class="bg-surface-container-lowest border border-surface-variant">
+<div class="bg-surface-container-lowest border border-surface-variant max-w-full">
   <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
     <div class="w-2 h-2 rounded-full bg-error-container"></div>
     <div class="w-2 h-2 rounded-full bg-primary-container"></div>
     <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
-    <span class="ml-auto font-label text-[9px] text-outline">{label}</span>
+    <span class="ml-auto font-label text-[9px] text-outline truncate">{label}</span>
   </div>
-  <div class="px-4 py-3 font-body text-xs leading-relaxed overflow-x-auto">
+  <div class="px-4 py-3 font-body text-[11px] md:text-xs leading-relaxed overflow-x-auto terminal-scroll">
     <slot />
   </div>
 </div>
+
+<style>
+  .terminal-scroll {
+    scrollbar-width: thin;
+  }
+  .terminal-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .terminal-scroll::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.4);
+    border-radius: 3px;
+  }
+</style>

@@ -25,7 +25,8 @@ import Terminal from '../../components/Terminal.astro';
       Whatever your tier-default pin allows. The kernel resolves your trust tier at boot (T0/T1/T2/T3 — see <a href="/docs/trust-model/" class="text-primary hover:underline">trust model</a>) and applies the matching default profile. T0 is unrestricted; T1 denies <code class="text-primary">write-kernel</code> and <code class="text-primary">modify-governance</code>; T2 also denies <code class="text-primary">write-src</code>; T3 denies all writes. You start safe, then opt into more permissive pins as needed.
     </p>
 
-    <div class="bg-surface-container-low p-6 max-w-2xl mb-3">
+    <div class="bg-surface-container-low p-6 max-w-2xl mb-3 overflow-x-auto">
+      <div class="min-w-[420px]">
       <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-2 mb-3">
         <div class="font-label text-[10px] text-secondary">TIER</div>
         <div class="font-label text-[10px] text-secondary">WRITES_ALLOWED</div>
@@ -43,6 +44,7 @@ import Terminal from '../../components/Terminal.astro';
           <div class="text-secondary">{row.denies}</div>
         </div>
       ))}
+      </div>
     </div>
 
     <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">

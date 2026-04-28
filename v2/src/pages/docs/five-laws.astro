@@ -48,13 +48,13 @@ const laws = [
   <div class="space-y-0 mt-12">
     {laws.map(law => (
       <section class="bg-surface-container mb-px">
-        <div class="grid grid-cols-12 gap-0">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-0">
           {/* Left: large number on tonal step */}
-          <div class="md:col-span-2 bg-surface-container-low flex items-center justify-center py-12">
-            <span class="serif-text text-7xl font-bold text-primary italic">{law.num}</span>
+          <div class="md:col-span-2 bg-surface-container-low flex items-center justify-center py-6 md:py-12">
+            <span class="serif-text text-5xl md:text-7xl font-bold text-primary italic">{law.num}</span>
           </div>
           {/* Right: content */}
-          <div class="md:col-span-10 p-8">
+          <div class="md:col-span-10 p-6 md:p-8">
             <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">{law.title}</h2>
             <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
               {law.body}

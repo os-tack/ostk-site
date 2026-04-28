@@ -217,7 +217,8 @@ import { LATEST_TAG } from '../../site-version';
   <!-- Comparison table -->
   <section class="mb-16">
     <h2 class="section-label mb-4">DIRECTIONS_AT_A_GLANCE</h2>
-    <div class="bg-surface-container-low p-6 max-w-3xl">
+    <div class="bg-surface-container-low p-6 max-w-3xl overflow-x-auto">
+      <div class="min-w-[520px]">
       <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-3 mb-3">
         <div class="font-label text-[10px] text-secondary">ASPECT</div>
         <div class="font-label text-[10px] text-primary">INBOUND (ostk mcp)</div>
@@ -238,6 +239,7 @@ import { LATEST_TAG } from '../../site-version';
           <div class="text-on-surface">{row[2]}</div>
         </div>
       ))}
+      </div>
     </div>
   </section>
 
