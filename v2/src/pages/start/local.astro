@@ -40,6 +40,46 @@ import { LATEST_TAG } from '../../site-version';
     </p>
   </section>
 
+  <!-- TUI conversation demo -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">WHAT_STEP_05_LOOKS_LIKE</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-4">
+      The TUI takes your prompt, routes it to the kernel daemon, the daemon hands it to the local <code class="text-primary">mlx_lm.server</code>, and the response streams back into the chat surface. No API key. No cloud.
+    </p>
+    <div class="bg-surface-container-lowest border border-surface-variant max-w-full overflow-hidden">
+      <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
+        <div class="w-2 h-2 rounded-full bg-error-container"></div>
+        <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+        <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+        <span class="ml-auto font-label text-[9px] text-outline truncate">OSTK_TUI</span>
+      </div>
+      <video
+        class="block w-full h-auto demo-video"
+        src="/assets/demo/tui-converse.mp4"
+        width="1200"
+        height="700"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="metadata"
+        aria-label="Terminal recording: ostk tui receives a prompt, routes it to a local mlx_lm.server running Ternary-Bonsai-8B, and streams the response back into the chat surface."
+      >
+        <img
+          src="/assets/demo/tui-converse.gif"
+          alt="Terminal recording: ostk tui receives a prompt, routes it to a local mlx_lm.server running Ternary-Bonsai-8B, and streams the response back into the chat surface."
+          width="1200"
+          height="700"
+          loading="lazy"
+          class="block w-full h-auto"
+        />
+      </video>
+    </div>
+    <p class="font-body text-xs text-outline mt-2">
+      Real session. Local model on Apple silicon. Ternary-Bonsai-8B-mlx-2bit, lazy-spawned by the kernel on first prompt.
+    </p>
+  </section>
+
   <!-- ============================================================ -->
   <!-- BACKEND 01: OLLAMA -->
   <!-- ============================================================ -->
