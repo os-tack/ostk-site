@@ -19,31 +19,81 @@ const sidebarGroups = {
   ],
 };
 
-// Hand-maintained release log. Bump LATEST_VERSION in v2/src/site-version.ts
-// at release time, then add an entry to the top of this list with notes.
-// Older entries are placeholders until we backfill from real release notes.
+// Hand-maintained release log. LATEST_VERSION/LATEST_TAG are auto-synced
+// from os-tack/ostk.ai by scripts/sync-version.mjs on every build; bump
+// the current entry's note when the new release lands and append the
+// previous one with its own entry.
 const releases = [
   {
     tag: LATEST_TAG,
     label: 'current',
-    note: 'Stable release. Local-first kernel for AI coding agents — CAS writes, audit chain, capability pins, fleet coordination. macOS universal, Linux musl arm64/x86_64, Windows x86_64. GPG-signed.',
+    note: 'Wires the EMBED index to `search --mode embedding`; embeddings now run on Windows CI. Patch on top of v4.6.0.',
     url: RELEASE_URL,
   },
   {
-    tag: 'v4.4.1',
-    note: 'Replace this list with real release notes when ready.',
+    tag: 'v4.6.0',
+    note: 'Daemon-only dispatch, Bounded Wait scheduler, raised FD ceiling. VFS auto-mount lifecycle (POSIX init pattern, daemon-owned). Inbox migrated to Maildir under /ostk/proc/<alias>/inbox/. Projection lattice ratified — three-tier path doctrine; standalone :ls/:cat/:tree retired in favor of VFS reads. Glyph-aware envelope rendering (four-class attention taxonomy). [health] one-line envelope replacing [procs]/[loadavg]/[meminfo]. [ctx] v2 with closed_recent + peer_activity + fleet_calls + cache panel. [attention] event-driven coordination signals. /fleet/<alias>/ operator-facing per-agent namespace. CacheAmpRegistry attributes volatile-region cache misses to peer writes.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v4.6.0',
   },
   {
-    tag: 'v4.4.0',
-    note: 'Replace this list with real release notes when ready.',
+    tag: 'v4.5.0',
+    note: 'Substrate boundary ratified as a type-system invariant (→1652). VFS visibility checked structurally; the v4.4.6 string-grep lint retired in favor of the rule.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v4.5.0',
   },
   {
-    tag: 'v4.3.x',
-    note: 'Replace this list with real release notes when ready.',
+    tag: 'v4.3.0',
+    note: 'System ABI introspection + CLI surface cleanup (EPIC →1589). Trust + release hardening (first-true-node patch). Spec ratifications: llmos sovereign substrate v0.1, sovereign pool whitepaper v0.1, sovereign substrate whitepaper v0.1.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v4.3.0',
   },
   {
-    tag: 'v4.2.x',
-    note: 'Replace this list with real release notes when ready.',
+    tag: 'v4.0.0',
+    note: 'OAE Attestation Envelope. Provenance & security elevated to a core ostk primitive: a single verify() entry point backed by DSSE + in-toto Statement envelopes, per-vessel Policy constants, T0/T1 rotation, dual-criterion retirement gate. Seven canary vessels shipped through parallel-validate (Agentfile ATTEST, JournalSeal, bail dual-emit, ENTITYFILE, HUMANFILE + primefile, fleet-manifest + JournalSeal enforce, kernel binary release SLSA v1). Keys Store (W3C Multikey, T0 rotation, TOFU). Real sigstore-rs crypto.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v4.0.0',
+  },
+  {
+    tag: 'v3.4.0',
+    note: 'fcp-llm-envelope-grammar promoted from draft to spec. kernel::inject discriminator turns GREEN — full envelope set wired ([files], [maintenance], [ctx], [loadavg], [meminfo]) with byte-equality verification against the legacy dispatch path.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v3.4.0',
+  },
+  {
+    tag: 'v3.2.0',
+    note: 'L1.5 page table — context_store / context_load / context_pin / context_evict / context_pages MCP verbs (→1261, →1262). Windows fix + macOS codesign fix.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v3.2.0',
+  },
+  {
+    tag: 'v3.0.0',
+    note: 'Full Windows port: IPC abstraction (named pipes on Windows, Unix sockets on Unix), PTY via ConPTY, Win32 process management, Job Objects for process-tree termination. Clean MCP tool surface — fs_read, fs_write, edit, search. Driver-mediated enrichment hooks (fs_read + edit query drivers for diagnostics). Maildir inbox + spec for inter-agent messaging without JSONL scans. Token-efficiency architecture spec — log-structured conversations, predictive squasher, cache-aware fleet. Burn → ndarray for embeddings (cross-compile-friendly).',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v3.0.0',
+  },
+  {
+    tag: 'v2.5.0',
+    note: 'Session topology Part X complete. SubStackHandle + ClientHandle architecture; spawn_stack + seal_stack + spawn_agent / reap_agent MCP tools. Hot-rehydrate crashed sessions with zero-restart recovery. Drain default ON + cleanup-on-reap. RevivalPolicy Reap/Ask. Sub-stack token budget aggregation. Compound-write detector + /dev/tcp detection. pin.caps deny-verb grammar enforcement.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v2.5.0',
+  },
+  {
+    tag: 'v2.4.0',
+    note: 'fcp-llm envelope grammar + maintenance cycle state machine (→1150). :arrive Phase 2 — presence state machine, MCP verb, drop-to-off hook. recall (formerly pitchfork) renamed; transcripts source + @witness preset. needle promote/edit verbs; atomic ID allocation under issues.lock. Context debug overlay (Opt+D). Audit coverage for every operator-initiated session verb.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v2.4.0',
+  },
+  {
+    tag: 'v2.3.0',
+    note: 'Unified tool surface — .language-driven verb resolution; MCP tool surface generated from .language; nine more verbs internalized (no fork+exec for boot/clock/reap/decompose/diff/ps/audit/…). Model switch handoff with lookup table. HUMANFILE BOOT/VERB extension points. ostk embeddings download for semantic search. Secret masking prevents secret values from entering LLM context. Sphere navigator (Alt+G) — embedding-clustered isolated needles, fuzzy search, temporal heat filter.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v2.3.0',
+  },
+  {
+    tag: 'v2.2.9',
+    note: 'ratatui TUI rewrite — custom type system deleted, seven rendering bugs closed. Approval policy chain v0.3 (capability classes, shell classifier, TRUST directive). Background daemon poller (input never blocks during tool execution). Staged + queued input buffer. Kitty keyboard protocol (Shift+Enter for newline). Bench harness — seven vendor CLIs + local Ollama models. Local LLM summarization via burn-lm. pin.caps fail-closed + scoped approval prompt + :revoke verb.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v2.2.9',
+  },
+  {
+    tag: 'v2.2.1',
+    note: 'Web-of-Trust identity — T0/T1/T2/T3 trust tiers via GPG cross-signatures. Trust anchors: @scottmeyer (T0), @ostk.ai root (T0). Tier-default pin enforcement (floor semantics). New files: HUMANFILE (operator context, secrets authorization), ENTITYFILE v2.1 (agent identity, capabilities, trust tier).',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v2.2.1',
+  },
+  {
+    tag: 'v1.0',
+    note: 'Genesis release. The distributed OS.',
+    url: 'https://github.com/os-tack/ostk.ai/releases/tag/v1.0',
   },
 ];
 
