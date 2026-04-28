@@ -49,6 +49,34 @@ const metaDescription = description || 'ostk — the operating system for AI cod
   <!-- Plausible Analytics — privacy-first, cookie-free. Tagged-events variant supports `plausible-event-name=...` class tags + auto outbound-link tracking + file-download tracking. -->
   <script defer data-domain="ostk.ai" src="https://plausible.io/js/script.tagged-events.outbound-links.file-downloads.js"></script>
   <script is:inline>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>
+  <!-- Hero A/B variant assignment (must run before first paint to avoid FOUC). -->
+  <script is:inline>
+    (function() {
+      try {
+        var v = localStorage.getItem('ostk_hero_variant');
+        if (!v || (v !== 'A' && v !== 'B')) {
+          v = Math.random() < 0.5 ? 'A' : 'B';
+          localStorage.setItem('ostk_hero_variant', v);
+        }
+        document.documentElement.setAttribute('data-hero-variant', v);
+        window.addEventListener('DOMContentLoaded', function() {
+          if (typeof window.plausible === 'function') {
+            window.plausible('Hero View', { props: { variant: v }});
+          }
+        });
+      } catch (e) {
+        // localStorage blocked — leave variant unset, CSS fallback shows A.
+      }
+    })();
+  </script>
+  <style is:global>
+    /* Hero A/B test: hide the unselected variant. Default (no attr) shows B —
+       the terminal envelope hero is the SSR/SSG fallback for bots, no-JS, and
+       cold loads before the assignment script runs. */
+    [data-hero-variant="A"] [data-hero="B"] { display: none !important; }
+    [data-hero-variant="B"] [data-hero="A"] { display: none !important; }
+    html:not([data-hero-variant="A"]):not([data-hero-variant="B"]) [data-hero="A"] { display: none !important; }
+  </style>
 </head>
 <body class="flex flex-col min-h-screen">
   <Header activeTab={activeTab} />

@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Sidebar from '../components/Sidebar.astro';
+import Terminal from '../components/Terminal.astro';
 import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
@@ -70,26 +71,73 @@ const sidebarGroups = {
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
     <div class="max-w-5xl mx-auto py-12">
 
-      <!-- Hero: containers, for agents -->
-      <section class="mb-20">
+      <!-- Hero A/B test: both variants render in the same HTML. The inline script
+           in Base.astro sets `data-hero-variant` on <html> before paint, and CSS
+           hides the non-selected variant. SSR fallback (no attribute) shows A. -->
+
+      <!-- Variant A — declarative prose hero (default / SSR / bots / cold loads) -->
+      <section data-hero="A" class="mb-12">
         <div class="section-label mb-4">SYSTEM_MANIFEST // OSTK</div>
-        <h1 class="serif-text text-7xl font-bold tracking-tighter text-on-surface mb-6">
-          Like containers,<br/>for AI agents.
+        <h1 class="serif-text text-7xl font-bold tracking-tighter text-on-surface mb-4">
+          ostk
         </h1>
-        <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
-          Plus the kernel underneath.
+        <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-6">
+          A kernel for AI coding agents.
         </p>
-        <p class="font-body text-base text-secondary max-w-2xl mb-4">
-          Containers gave processes isolation, packaging, and reproducibility. ostk gives those to AI coding agents — and ships the kernel that coordinates the agents, audits their work, and signs the record.
-        </p>
-        <p class="font-body text-base text-on-surface max-w-2xl mb-3">
-          Run Claude, Cursor, your own scripts, or a local model on the same codebase. They don't collide. They leave a signed trail. You stay in control.
-        </p>
-        <p class="font-body text-sm text-secondary max-w-2xl mb-8">
-          Even with one agent, you get a signed audit trail and capability bounds. With two, you get the rest.
+        <p class="font-body text-base text-on-surface max-w-2xl mb-8 leading-relaxed">
+          Every syscall returns wrapped in a state envelope — fleet, files, audit, working memory — so your agents stay oriented across thousands of turns. Local-first. One Rust binary.
         </p>
 
-        <!-- Three persona CTAs -->
+        <div class="flex flex-col sm:flex-row gap-3 max-w-3xl mb-4">
+          <button
+            type="button"
+            data-copy="curl -fsSL https://ostk.ai/install.sh | sh"
+            class="plausible-event-name=Install+Copied plausible-event-source=hero plausible-event-variant=A bg-surface-container-lowest border border-surface-variant px-4 py-3 font-body text-sm text-left hover:bg-surface-container-low transition-colors cursor-pointer flex-1"
+          >
+            <span class="text-outline select-none">install → </span><span class="text-primary">curl -fsSL https://ostk.ai/install.sh | sh</span>
+          </button>
+          <a
+            href="/docs/architecture/"
+            class="plausible-event-name=Architecture+View plausible-event-variant=A bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            read the architecture →
+          </a>
+        </div>
+        <p class="font-body text-[10px] text-outline mb-2">macOS (universal arm64+x86_64), Linux musl arm64/x86_64, Windows x86_64. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
+      </section>
+
+      <!-- Variant B — show-don't-tell terminal envelope hero (SSR/SSG default) -->
+      <section data-hero="B" class="mb-12">
+        <div class="section-label mb-4">SYSTEM_MANIFEST // OSTK</div>
+        <Terminal label="ostk init">
+<pre class="whitespace-pre font-body leading-relaxed m-0"><span class="text-outline select-none">$ </span><span class="text-primary">ostk init</span>
+<span class="text-outline">+ exit:0 1.2s</span>
+
+  <span class="text-on-surface">ostk: kernel installed</span>
+  <span class="text-on-surface">identity: bound (T2 author)</span>
+  <span class="text-on-surface">trust: web-of-trust verified</span>
+
+<span class="text-secondary">[procs]</span>   count:3 active:1 stale:2 dead:0
+<span class="text-secondary">[files]</span>   gen_table indexed: 12 files
+<span class="text-secondary">[audit]</span>   +5 rows | needles:0 | fleet:1/1
+<span class="text-secondary">[loadavg]</span> needles: 0 open | nudges: 0
+<span class="text-secondary">[ctx]</span>     <h1 class="text-on-surface font-bold inline m-0 p-0 text-inherit"># ostk</h1>
+          <span class="text-on-surface">A kernel for AI coding agents that keeps the frame.</span>
+          <span class="text-on-surface">Every syscall returns wrapped — fleet, files, audit, working</span>
+          <span class="text-on-surface">memory — so your agents stay oriented. Local-first. One Rust binary.</span>
+
+<button
+  type="button"
+  data-copy="curl -fsSL https://ostk.ai/install.sh | sh"
+  class="plausible-event-name=Install+Copied plausible-event-source=hero plausible-event-variant=B block w-full text-left hover:bg-surface-container-low transition-colors cursor-pointer py-1"
+><span class="text-primary">→ get started:</span>  <span class="text-outline select-none">$ </span><span class="text-on-surface">curl -fsSL https://ostk.ai/install.sh | sh</span></button><a
+  href="/docs/architecture/"
+  class="plausible-event-name=Architecture+View plausible-event-variant=B block hover:bg-surface-container-low transition-colors py-1"
+><span class="text-primary">→ tear it apart:</span>  <span class="text-on-surface underline">/docs/architecture/</span></a></pre>
+        </Terminal>
+      </section>
+
+      <!-- Three persona CTAs -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-8 max-w-3xl">
           <a href="/docs/mcp/" class="plausible-event-name=Persona+CTA plausible-event-persona=mcp bg-surface-container-high p-5 hover:bg-surface-container transition-colors">
             <div class="flex items-start gap-3 mb-2">
