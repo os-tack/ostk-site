@@ -1,0 +1,92 @@
+[
+  {
+    "tag": "v4.5.0",
+    "name": "v4.5.0",
+    "date": "2026-04-27T12:52:30Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.5.0",
+    "body": "## Changes since v4.4.6\n\n- release: v4.5.0 — substrate boundary as type-system invariant (→1652) (e870ff60)",
+    "prerelease": false,
+    "assetCount": 20
+  },
+  {
+    "tag": "v4.4.2",
+    "name": "v4.4.2",
+    "date": "2026-04-27T00:00:02Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.4.2",
+    "body": "## Changes since v4.4.1\n\n- ci(release): unbreak v4.4 release — Windows checkout + macOS universal (5e2d45d3)",
+    "prerelease": false,
+    "assetCount": 20
+  },
+  {
+    "tag": "v4.3.2",
+    "name": "v4.3.2",
+    "date": "2026-04-26T17:59:37Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.3.2",
+    "body": "## Changes since v4.3.1\n\n- release: v4.3.2 — first-true-node ergonomics finishing (EPIC →1624) (fbed85c2)",
+    "prerelease": false,
+    "assetCount": 16
+  },
+  {
+    "tag": "v4.3.1",
+    "name": "v4.3.1",
+    "date": "2026-04-26T16:49:14Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.3.1",
+    "body": "## Changes since v4.3.0\r\n\r\n- release: v4.3.1 — Trust + release hardening (first-true-node patch) (1e4c04d0)",
+    "prerelease": false,
+    "assetCount": 12
+  },
+  {
+    "tag": "v4.3.0",
+    "name": "v4.3.0",
+    "date": "2026-04-26T08:49:04Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.3.0",
+    "body": "## Changes since v4.2.5\n\n- fix(release): agentfile_cmd test cwd-pollution broke macOS suite (→1618) (e940472e)\n- fix(release): restore legacy aliases in normalize_tool_name (→1617) (b6647e28)\n- fix(release): cfg_attr-ignore PTY test on macOS + add CI timeouts (→1616) (759713c0)\n- release: v4.3.0 — System ABI introspection + CLI surface cleanup (EPIC →1589) (9cc6d5d6)\n- spec: ratify llmos-sovereign-pool-whitepaper v0.1, co-promote substrate-whitepaper (LLMOS_SOVEREIGN_POOL_PAPER_V01_RATIFIED) (ac92fda3)\n- arc: System ABI introspection + CLI surface cleanup (EPIC →1589) (fa74d9b6)\n- spec: llmos sovereign substrate v0.1 RATIFIED + white paper draft (LLMOS_SOVEREIGN_SUBSTRATE_V01_RATIFIED) (c3ced673)\n- ci(release): fix homebrew tap repo name (homebrew-ostk, not ostk-homebrew) (a43a2b1c)",
+    "prerelease": false,
+    "assetCount": 12
+  },
+  {
+    "tag": "v4.2.5",
+    "name": "v4.2.5",
+    "date": "2026-04-25T23:24:25Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.2.5",
+    "body": "## [4.2.5] - 2026-04-25 — Build x86_64 musl via `cross` (sentencepiece-sys)\n\nPatch release. v4.2.4 successfully went green on macOS, Windows, and\nLinux aarch64, but Linux x86_64 musl now fails its release build\nbecause the Cargo.lock bump invalidated the build cache and the rebuild\nof `sentencepiece-sys` exposed a missing `x86_64-linux-musl-g++`. The\nUbuntu `musl-tools` package only provides `musl-gcc`, not `musl-g++`,\nso cmake fails the C++ compiler probe.\n\n### Fixed\n\n- **`build-linux (x86_64-unknown-linux-musl)`** — switched to `cross`\n  (matches what aarch64 already does). The cross-rs Docker image\n  bundles the musl C++ toolchain so sentencepiece-sys's cmake step\n  finds `x86_64-linux-musl-g++`. Side effect: the unit-test step is\n  skipped on this target (cross builds don't run tests in the\n  Docker image); macOS remains the canonical unit-test runner. The\n  `Install musl tools` step is left in place but is now a no-op\n  (no matrix entry sets `musl: true`).\n\n## [4.2.4] - 2026-04-25 — CI test environment fixes + rustls-webpki vuln patch\n\nPatch release. v4.2.3 unblocked Windows checkout and Linux compile, but\nthe macOS + Linux x86_64 unit-test jobs still failed on tests that\ndepended on developer-machine state (signing keys, API keys, locally\ninstalled tokenizer). Plus the dependabot bump.\n\n### Security\n\n- **`rustls-webpki` 0.103.10 → 0.103.13** (Cargo.lock only, no source\n  changes). Closes three Dependabot alerts:\n  - **#11 HIGH** RUSTSEC: DoS via panic on malformed CRL BIT STRING\n  - **#9 LOW**  webpki: name constraints accepted on wildcard names\n  - **#8 LOW**  webpki: URI name constraints incorrectly accepted\n\n### Fixed (CI test failures)\n\n- **`commands::humanfile::tests::cross_user_replay_different_subject_hash`**\n  — calls `sign_humanfile` which reads `~/.ostk/keys/signing.key`. CI\n  runners don't have that key. Test now skips with an `eprintln!` if\n  the key is absent. Local devs with a configured T0 still run it.\n- **`cpu::session::tests::quota_over_with_enforce_false_proceeds`** and\n  **`quota_warn_band_with_enforce_true_proceeds`** — the dispatch chain\n  pulls in `count_tokens` + tokenizer, which on a CI runner without\n  `ANTHROPIC_API_KEY` stalls long enough for the 2 s `TripwireDriver`\n  poll to time out before the driver fires. Skip when the key is\n  absent. (`quota_over_with_enforce_true_returns_exceeded` was already\n  passing — only the two paths that go through dispatch are affected.)\n- **`tests/profiles_and_grammar.rs`** — `test_coder_profile_loads_and_resolves`,\n  `test_oneshot_profile_loads`, `test_persona_reaches_system_prompt_past_init_contract`,\n  and `test_agentfile_narrows_profile_limits` all call\n  `SpawnRequest::prepare`, which constructs an Anthropic driver eagerly\n  and errors with \"no API key for anthropic\" when the env is unset.\n  Each test now skips with a single helper.\n- **`tests/tui_pty_integration.rs::test_tui_status_bar_shows_model`** —\n  same root cause: no API key → no model in the status bar. Skipped\n  when the key is unset.\n- **`tests/ontology_invariant.rs::top_level_matches_whitelist`** —\n  `registry.lock` (process-registry flock recreated on every boot)\n  added to `ACKNOWLEDGED_SPRAWL`.\n- **`src/squasher/passthrough.rs::format_passthrough` doctest** — the\n  example fed `ls -la` into the function and asserted on the\n  `[passthrough]` footer marker, but `looks_like_ls_long` correctly\n  routes ls-shaped output to the listing renderer (no `[passthrough]`\n  marker). Doctest reworked to use a generic command.\n\n## [4.2.3] - 2026-04-25 — v4.2.2 follow-up: actually delete `budget*0.8,`\n\nPatch release. The `git rm 'budget*0.8,'` staged in the v4.2.2 work\ntree got reverted before commit, so the v4.2.2 tag still carried the\nWindows-invalid filename and `build-windows` failed on `git checkout`\nfor a second release in a row. v4.2.3 actually contains the deletion.\n\n### Fixed\n\n- **Windows checkout (for real this time)** — the empty file\n  `budget*0.8,` is removed from the tree. v4.2.2 announced this fix\n  but the deletion was missing from commit `426345b1` (re-staged\n  in the working tree, lost from the index between `git rm` and the\n  release commit; root cause TBD). Verified via\n  `git ls-tree -r v4.2.3 'budget*'` returning empty.\n\nEverything from v4.2.2 (cross-platform CI repair, ~155 clippy lints,\nboot ISA emit/verify, primefile/agentfile/ontology test fixes,\n`spawn_detached` FD_CLOEXEC repair) is included transitively. See\nthe [4.2.2] section below.\n\n## [4.2.2] - 2026-04-25 — Cross-platform CI repair + clippy clean\n\nPatch release rolling forward from v4.2.1 (whose Release pipeline failed\non every runner). No new features and no semantic kernel changes — this\nis build-platform plumbing, test correctness, and a workspace-wide\nclippy pass.\n\n### Fixed\n\n- **Windows checkout** — removed a stray 0-byte file `budget*0.8,` at\n  the repo root (introduced in `6ef9ffcd`); the `*` is illegal in\n  Windows paths so `git checkout` aborted before any build ran.\n- **Linux x86_64 unit-test compile** — added the `Path` import inside\n  the `#[cfg(target_os = \"linux\")]`-gated\n  `addendum_1584_reap_one_refuses_cross_filesystem_linux` test in\n  `tests/phase3_owned_state_piq_init.rs`. macOS jobs were unaffected\n  because the test was cfg'd out.\n- **`spawn_detached` lost exec-error reports** — the `pre_exec` closure\n  in `src/kernel/process.rs` closed every fd in `3..=4095`, including\n  std's CLOEXEC-marked exec-error pipe. A failing exec (binary not on\n  PATH) silently looked like a successful spawn, so\n  `mlx_lifecycle::ensure_running` returned `ReadyTimeout` instead of\n  `NotInstalled`. Now skips fds that already carry `FD_CLOEXEC` so\n  std's reporting pipe survives.\n- **Integration tests get a real CORE primitive set** — `→1489`\n  derived the CORE list from `.language`, but integration-test crates\n  in `tests/*.rs` create scratch `.ostk` dirs with no `.language`,\n  so `dispatch_tools_call` returned `Unknown tool: fs_ops` for the\n  bd_204…bd_510, needle_442, dispatch_help_tiering, and\n  socket_transport_shell_echo tests. `seed_core_language` is now\n  `pub` (`#[doc(hidden)]`) and called from each setup helper.\n- **`primefile_rotate_integration` asserted the wrong field** — the\n  test compared the DSSE envelope payload to `outcome.v2_bytes`, but\n  the envelope signs `outcome.signed_body` (`v2_bytes` minus the\n  embedded sig trailer; see `RotateOutcome::signed_body`).\n- **Agentfile migration round-trip fixture** — `WORK spec: fleet-v2 review`\n  is the retired post-run-command WORK syntax (`→1573` made WORK a\n  pull-model affinity filter); replaced with `WORK tags=fleet-v2`.\n- **Ontology §3 invariant** — added six Phase-3-era top-level files\n  (`.migration-v3-complete`, `audit.jsonl`, `handle_gen.jsonl`,\n  `init.lock`, `init.status.json`, `journal.seq`) to\n  `ACKNOWLEDGED_SPRAWL` with cleanup pointers.\n- **`tui_flow_test::test_boot_context_build_system_prompt_with_data`**\n  — assertions predated `→1535` (BootContext kernel-state surfaces no\n  longer leak into `.system` for empty alias); rewritten to mirror\n  the unit-level contract in `src/cpu/session.rs:4998`.\n- **`commands/mount.rs` test scope** — restored a `use super::*;` that\n  clippy autofix dropped: it was flagged unused on macOS but is\n  required by the `#[cfg(not(feature = \"fuse\"))]` arm.\n\n### Changed\n\n- **Workspace clippy: `-D warnings` is green again** — fixed ~155\n  lints across `src/` and `tests/`. Mostly mechanical:\n  `sort_by_key` + `std::cmp::Reverse`, `manual_contains`,\n  `useless_vec`, `field_reassign_with_default`, `collapsible_if` /\n  `collapsible_match`, `manual_checked_division`, `derivable_impls`,\n  doc-list indentation. Six `await_holding_lock` sites in\n  `tests/signal_table_closure.rs` reviewed and allowed (sync\n  `Mutex<()>` serialising env-var mutations on a `current_thread`\n  runtime — no real cross-thread contention).\n- **`migrate_legacy::run` deprecation contained** — call sites in\n  `src/commands/init_subreap.rs` and the migration-coverage tests in\n  `tests/phase3_owned_state_piq_init.rs` now use explicit\n  `#[allow(deprecated)]` rather than emitting warnings; v2.2 §A.1\n  retraction stands.\n\n### Known stale tests (marked `#[ignore]`)\n\nThree OAE / ENTITYFILE-admission tests predate commit `7172ef98`\n(primefile-rooted TrustRoot; commit 4 of\n`docs/spec/primefile-rooted-trust-root-admission.md`) and need a\nverified `.primefile` fixture in their scratch `.ostk` dir before\n`load_entityfile` can succeed. They are flagged `#[ignore]` with a\ncontext note pointing at the rotate-ceremony scaffolding in\n`tests/primefile_rotate_integration.rs`:\n\n- `commands::boot::entity::tests::test_boot_oae_only_entityfile_ok`\n- `tests/oae_entityfile_tests.rs::integ_boot_oae_only_entityfile_ok`\n- `tests/oae_entityfile_tests.rs::integ_boot_both_oae_and_legacy_oae_primary`\n\n## [4.2.1] - 2026-04-25 — v2.2 errata (release pipeline failed)\n\nTagged but never shipped: the cross-platform Release workflow failed\n(see v4.2.2 fixes). Contents are subsumed by v4.2.2.\n\n",
+    "prerelease": false,
+    "assetCount": 12
+  },
+  {
+    "tag": "v4.0.0",
+    "name": "v4.0.0 — OAE Attestation Envelope",
+    "date": "2026-04-19T06:06:11Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.0.0",
+    "body": "# v4.0.0 — OAE Attestation Envelope\r\n\r\nCloses the →1472 umbrella. Provenance & security elevated to a core ostk primitive: a single `verify()` entry point backed by DSSE + in-toto Statement envelopes, per-vessel Policy constants, T0/T1 rotation machinery, and a dual-criterion retirement gate.\r\n\r\n## 7 canary vessels shipped through parallel-validate\r\n- →1479 Agentfile ATTEST\r\n- →1480 JournalSeal (write-only)\r\n- →1481 bail dual-emit\r\n- →1482 ENTITYFILE (boot-critical)\r\n- →1483 HUMANFILE + .primefile (threshold-2)\r\n- →1484 fleet-manifest + JournalSeal enforce\r\n- →1485 kernel binary release (SLSA v1)\r\n\r\n## Cross-cutting\r\n- →1474 Keys Store (W3C Multikey, T0 rotation, TOFU)\r\n- →1475 Envelope shape\r\n- →1476 Verifier + PolicyExpr\r\n- →1477 Policy History Registry (append-only)\r\n- →1478 Legacy Shim + sigstore-rs real crypto\r\n- →1486 oae.verify telemetry + coverage aggregator\r\n- →1487 retire-legacy gate (≥95% × 30d AND ≥2 releases × ≥6 mo)\r\n\r\nAbsorbs →1452 and →1470.\r\n\r\n## Assets\r\n\r\nEach binary ships with a `.oae.json` SLSA BuildProvenance envelope signed by the local T0 Ed25519 key (keyid `ed25519:NomDGsZ7QzCT7xXiNDG1OeciKWH3-XahT-smjIBYzmo`). macOS is additionally Apple Developer ID-signed (Gatekeeper).\r\n\r\n| Target | SHA-256 (binary) |\r\n|---|---|\r\n| `x86_64-apple-darwin` + `aarch64-apple-darwin` (universal) | `c80cc52efe5b1ba7b316d0758e7ac5ac9c19c0b780afa19a52a36a14f45d950a` |\r\n| `x86_64-unknown-linux-musl` | `cd13c9ec3a1ca44df091c619485f989fb9cfbcb0bb8a12f466f5bb6f5ebddbc4` |\r\n| `aarch64-unknown-linux-musl` | `fe64aad3408fd1d93035a8638813b0ef9e89827d2c6aea7479b0c7c0595e0ae9` |\r\n\r\nVerify via `ostk install --from-local <binary> <envelope>`.\r\n\r\n## Build provenance\r\n\r\nBuilt locally from commit `d09ff4e` (tag `v4.0.0`). Trust chain: Apple Developer ID (macOS Gatekeeper) + local T0 Ed25519 (OAE envelope). No GitHub Actions in the signing ceremony — the chain is self-contained.\r\n\r\n## Known gaps (deferred to v4.0.1)\r\n\r\n- Windows build: pre-existing `tokio::net::UnixStream` portability issue in `serve/server.rs`; CI builds with no-features to avoid it (ships without attestation). To be fixed properly in v4.0.1.\r\n- Real sigstore-rs Rekor inclusion verification (→1478 follow-up); currently `ExternalWitness(Rekor)` returns `policy_satisfied=false` pending wire-in.\r\n\r\n4197 lib tests + 5 integration suites + 14 golden fixtures. Paired Opus verify on every boot-critical wave.",
+    "prerelease": false,
+    "assetCount": 17
+  },
+  {
+    "tag": "v3.4.0",
+    "name": "v3.4.0",
+    "date": "2026-04-14T01:04:13Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v3.4.0",
+    "body": "## Changes since v3.3.0\n\n- v3.4.0 (78e547d)\n- doc: promote fcp-llm-envelope-grammar from draft to spec (c20abf2)\n- test(kernel/approval): serialize tests sharing the global pending() queue (35eae75)\n- fix(kernel): noop:1 calming signal on [maintenance] envelopes (f94101c)\n- fix(kernel): build_procs_envelope handles aliases without trailing digits (d213496)\n- feat(serve/dispatch): collapse to kernel::inject — Phase 2 wire-up (35b521d)\n- feat(kernel/inject): wire [files], [maintenance], [ctx] — full envelope set (fdd57c4)\n- feat(kernel/inject): wire [loadavg] + [meminfo] — discriminator turns GREEN (b925190)\n- test(kernel/inject): byte-equality discriminator vs legacy dispatch path (5cbeeb7)\n- refactor(kernel): carve maintenance render side-effect — Phase 2 prep (db0aecb)\n- feat(kernel): build_procs_envelope — Phase 2 commit 2/3 (cache rendering v2) (8b0f3a9)\n- feat(kernel): inject module — Phase 2 commit 1/3 (cache rendering v2) (8bc340a)\n- fix(windows): ungate cross-platform imports breaking CI build (→1282) (11b43fc)",
+    "prerelease": false,
+    "assetCount": 12
+  },
+  {
+    "tag": "v3.2.0",
+    "name": "v3.2.0",
+    "date": "2026-04-13T17:46:28Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v3.2.0",
+    "body": "## Changes since v3.1.1\n\n- v3.2.0: L1.5 page table, Windows fix, macOS codesign fix (566fc1d)\n- fix(windows): remove remaining cfg gates on sh_interact import + mod (6fb4ac6)\n- feat: wire L1.5 page table — context_store/load/pin/evict/pages MCP verbs (→1261, →1262) (8ff3db6)\n- fix(ci): macOS codesign — strip before lipo, force re-sign fallback (a1a3cf1)",
+    "prerelease": false,
+    "assetCount": 12
+  },
+  {
+    "tag": "v3.1.0",
+    "name": "v3.1.0",
+    "date": "2026-04-13T16:36:24Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v3.1.0",
+    "body": "## Changes since v3.0.0\n\n- v3.1.0: hook syscall boundary, in-process search, Windows MCP, burn→ndarray (2389c96)\n- fix(ci): homebrew — download from ostk.ai mirror, push to ostk-homebrew tap (424da10)\n- fix(ci): homebrew formula URL — os-tack/haystack not os-tack/ostk (3d819a7)",
+    "prerelease": false,
+    "assetCount": 12
+  }
+]

@@ -1,10 +1,11 @@
-// Single source of truth for the latest published ostk version.
-// Bump on release: edit LATEST_VERSION, build, commit.
+// AUTO-GENERATED at build time by scripts/sync-version.mjs.
+// Source of truth: https://github.com/os-tack/ostk.ai/releases (latest published).
+// Manual edits to this file will be overwritten on the next build.
 //
-// LATEST_VERSION must match the most recent tag on
-// https://github.com/os-tack/ostk.ai/releases (a binary, not just
-// a haystack source tag — those move ahead of shipped binaries).
+// To force-pin a version (e.g. roll back if a release is bad):
+//   SKIP_VERSION_SYNC=1 npm run build
+// or remove sync-version.mjs from the build chain in v2/package.json.
 
-export const LATEST_VERSION = "4.4.2";
-export const LATEST_TAG = `v${LATEST_VERSION}`;
-export const RELEASE_URL = `https://github.com/os-tack/ostk.ai/releases/tag/${LATEST_TAG}`;
+export const LATEST_VERSION = "4.5.0";
+export const LATEST_TAG = "v4.5.0";
+export const RELEASE_URL = "https://github.com/os-tack/ostk.ai/releases/tag/v4.5.0";
