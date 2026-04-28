@@ -32,3 +32,9 @@ jobs:
           path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Wait for new artifact to be live at the edge
+        run: sleep 30
+      - name: Ping IndexNow (post-deploy)
+        env:
+          INDEXNOW_POST_DEPLOY: '1'
+        run: node scripts/indexnow-ping.mjs

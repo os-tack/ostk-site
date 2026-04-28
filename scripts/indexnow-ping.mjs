@@ -31,6 +31,15 @@ async function main() {
     info('INDEXNOW_DISABLE=1 — skipping ping');
     return 0;
   }
+  // Default-skip unless explicitly post-deploy. Pinging during build (before
+  // deploy-pages uploads the artifact) makes IndexNow verify against the OLD
+  // live key file, returns 403 UserForbiddedToAccessSite, and burns the key
+  // (cached negative verdict for ~24h). Set INDEXNOW_POST_DEPLOY=1 only in
+  // the workflow step that runs AFTER actions/deploy-pages succeeds.
+  if (process.env.INDEXNOW_POST_DEPLOY !== '1') {
+    info('not post-deploy (set INDEXNOW_POST_DEPLOY=1 to enable) — skipping');
+    return 0;
+  }
 
   // Load config
   let config;
