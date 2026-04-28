@@ -17,7 +17,7 @@ Output "/Users/scottmeyer/projects/ostk-site/v2/public/assets/demo/model.mp4"
 Set FontFamily "Monaco"
 Set FontSize 16
 Set Width 1100
-Set Height 700
+Set Height 380
 Set Theme "Dracula"
 Set Padding 20
 Set TypingSpeed 60ms
