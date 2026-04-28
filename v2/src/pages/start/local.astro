@@ -20,7 +20,7 @@ import { LATEST_TAG } from '../../site-version';
     <div class="space-y-px max-w-2xl">
       {[
         { num: '01', step: 'Verify install and run ostk init in your project (universal steps from /start).' },
-        { num: '02', step: 'Pick a backend: ollama (cross-platform, default) or mlx (Apple Silicon-only, faster on M-series).' },
+        { num: '02', step: 'Pick a backend. ollama is the cross-platform default; mlx is an option on Apple Silicon only (faster on M-series, kernel-managed mlx_lm.server lifecycle).' },
         { num: '03', step: 'Pull or load a model. Tool-capable models recommended — not every local model supports function calling.' },
         { num: '04', step: 'Spawn an agent with the model alias. ostk routes to the local server; audit + pin caps still apply.' },
         { num: '05', step: 'Open ostk tui to chat. First response is slower (model warm-up); subsequent calls are fast.' },
@@ -44,7 +44,7 @@ import { LATEST_TAG } from '../../site-version';
   <section class="mb-16">
     <h2 class="section-label mb-4">WHAT_STEP_05_LOOKS_LIKE</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-4">
-      The TUI takes your prompt, routes it to the kernel daemon, the daemon hands it to the local <code class="text-primary">mlx_lm.server</code>, and the response streams back into the chat surface. No API key. No cloud.
+      The TUI takes your prompt and routes it to the kernel daemon. The daemon's native MLX driver hands it to a kernel-managed <code class="text-primary">mlx_lm.server</code>, and the response streams back into the chat surface. No API key. No cloud.
     </p>
     <div class="bg-surface-container-lowest border border-surface-variant max-w-full overflow-hidden">
       <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
@@ -55,28 +55,28 @@ import { LATEST_TAG } from '../../site-version';
       </div>
       <video
         class="block w-full h-auto demo-video"
-        src="/assets/demo/tui-converse.mp4"
+        src="/assets/demo/tui-bonsai.mp4"
         width="1200"
-        height="700"
+        height="760"
         autoplay
         loop
         muted
         playsinline
         preload="metadata"
-        aria-label="Terminal recording: ostk tui receives a prompt, routes it to a local mlx_lm.server running Ternary-Bonsai-8B, and streams the response back into the chat surface."
+        aria-label="Terminal recording: two-turn conversation in ostk tui with Ternary-Bonsai-8B running on the kernel's native MLX driver — first an explanation of how Apple's mlx framework runs quantized models, then a small Python magic 8 ball script."
       >
         <img
-          src="/assets/demo/tui-converse.gif"
-          alt="Terminal recording: ostk tui receives a prompt, routes it to a local mlx_lm.server running Ternary-Bonsai-8B, and streams the response back into the chat surface."
-          width="1200"
-          height="700"
+          src="/assets/demo/tui-bonsai.gif"
+          alt="Terminal recording: two-turn conversation in ostk tui with Ternary-Bonsai-8B running on the kernel's native MLX driver — first an explanation of how Apple's mlx framework runs quantized models, then a small Python magic 8 ball script."
+          width="900"
+          height="525"
           loading="lazy"
           class="block w-full h-auto"
         />
       </video>
     </div>
     <p class="font-body text-xs text-outline mt-2">
-      Real session. Local model on Apple silicon. Ternary-Bonsai-8B-mlx-2bit, lazy-spawned by the kernel on first prompt.
+      Real session. Two turns, no edits. Ternary-Bonsai-8B-mlx-2bit on Apple Silicon, lazy-spawned by the kernel's native MLX driver on first prompt.
     </p>
   </section>
 
@@ -181,10 +181,10 @@ ok</pre>
       <div class="section-label mb-4">BACKEND_02 // MLX</div>
       <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Run on Apple mlx (Apple Silicon only)</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-        Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size; pick mlx if you have the chip. ostk's primary mlx model is <a href="https://prismml.com/news/ternary-bonsai" class="text-primary hover:underline">Ternary-Bonsai-8B</a>, a ternary-quantized model purpose-built for low-latency local inference — it ships as the kernel default. ostk routes <code class="text-primary">mlx/</code>-prefixed models to a <code class="text-primary">mlx_lm.server</code> at <code class="text-primary">localhost:11942</code> using the same OpenAI-wire format.
+        Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size. ostk has a native <code class="text-primary">Mlx</code> CPU driver — a peer of the Anthropic and Ollama drivers, with its own kernel-managed lifecycle for <code class="text-primary">mlx_lm.server</code>. On first use of an <code class="text-primary">mlx/</code>-prefixed model the kernel auto-spawns the server, polls it ready, and pins a pidfile + log + flock under <code class="text-primary">.ostk/mlx/&lt;port&gt;.{'{pid,log,lock}'}</code>. The default model is <a href="https://prismml.com/news/ternary-bonsai" class="text-primary hover:underline">Ternary-Bonsai-8B</a>, a ternary-quantized model purpose-built for low-latency local inference.
       </p>
       <p class="font-body text-xs text-outline max-w-xl mb-8">
-        Source: <code class="text-primary">src/cpu/providers.rs:69-72</code> (MLX prefix routing), <code class="text-primary">src/cpu/mlx_lifecycle.rs</code> (server lifecycle), <code class="text-primary">src/commands/mlx.rs</code> (mlx-specific verbs).
+        Source: <code class="text-primary">src/cpu/providers.rs:22-27</code> (<code>ApiProvider::Mlx</code>), <code class="text-primary">src/cpu/mlx_lifecycle.rs:25-34</code> (<code>MlxRuntime</code> + <code>ensure_running</code>), <code class="text-primary">src/commands/mlx.rs:22-46</code> (operator verbs).
       </p>
     </div>
 
@@ -193,72 +193,62 @@ ok</pre>
       <span class="serif-text text-2xl font-bold text-primary">2.1</span>
       <h3 class="serif-text text-xl font-medium text-on-surface">Install mlx_lm</h3>
     </div>
+    <p class="font-body text-xs text-secondary mb-3 max-w-lg">
+      The kernel manages the <code class="text-primary">mlx_lm.server</code> process for you, but the Python package that provides it still needs to be on your PATH:
+    </p>
     <Terminal>
       <pre><span class="text-outline"># Apple Silicon Mac required</span>
 <span class="text-outline">$ </span>pip install mlx-lm</pre>
     </Terminal>
 
-    <!-- 02-2: start server -->
+    <!-- 02-2: spawn — kernel handles the server -->
     <div class="flex items-baseline gap-4 mb-4 mt-8">
       <span class="serif-text text-2xl font-bold text-primary">2.2</span>
-      <h3 class="serif-text text-xl font-medium text-on-surface">Start mlx_lm.server</h3>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Spawn an agent — the kernel starts the server for you</h3>
     </div>
     <p class="font-body text-xs text-secondary mb-3 max-w-lg">
-      ostk's MLX integration expects the server on <code class="text-primary">localhost:11942</code>. Set the model with <code class="text-primary">MLX_MODEL_ID</code>:
+      There is no separate "start mlx_lm.server" step. On the first <code class="text-primary">mlx/</code> model invocation the kernel runs <code class="text-primary">ensure_running</code>: it probes <code class="text-primary">localhost:11942</code>, and if the server isn't already up it spawns <code class="text-primary">{'mlx_lm.server --port 11942 --model <wire-id>'}</code> detached, polls <code class="text-primary">/v1/models</code> until ready, and pins the pid + model under <code class="text-primary">.ostk/mlx/</code>. Concurrent ostk sessions on the same project coordinate via flock and share one server.
     </p>
-    <Terminal>
-      <pre><span class="text-outline"># Primary: Ternary-Bonsai-8B (the kernel default)</span>
-<span class="text-outline">$ </span>MLX_MODEL_ID=prism-ml/Ternary-Bonsai-8B-mlx-2bit \
-  mlx_lm.server --port 11942
-
-<span class="text-outline"># Or a community 4-bit Coder model if you want a larger context</span>
-<span class="text-outline">$ </span>MLX_MODEL_ID=mlx-community/Qwen2.5-Coder-32B-Instruct-4bit \
-  mlx_lm.server --port 11942</pre>
-    </Terminal>
-    <p class="font-body text-xs text-outline mt-3 max-w-lg">
-      ostk remaps the alias (e.g. <code class="text-primary">mlx/ternary-bonsai-8b</code>) to the wire model-id from <code class="text-primary">MLX_MODEL_ID</code>. Port 11942 is the ostk default for mlx (see <a href="/docs/env-vars/" class="text-primary hover:underline">env-vars</a>). Source: <code class="text-primary">src/cpu/providers.rs:22-26</code>.
-    </p>
-
-    <!-- 02-3: spawn -->
-    <div class="flex items-baseline gap-4 mb-4 mt-8">
-      <span class="serif-text text-2xl font-bold text-primary">2.3</span>
-      <h3 class="serif-text text-xl font-medium text-on-surface">Spawn an agent with the mlx model</h3>
-    </div>
     <Terminal>
       <pre><span class="text-outline">$ </span>ostk _agent --name worker --model mlx/ternary-bonsai-8b \
   --budget 10 \
-  --task "Run cargo check and report"</pre>
+  --task "Write a unix one-liner that tails a log and only shows ERROR lines"</pre>
     </Terminal>
     <p class="font-body text-xs text-outline mt-3 max-w-lg">
-      Tool calls on mlx models come back inside the text output, not as a separate structured field — quantized models often skip the structured envelope. ostk extracts them either way. Same <code class="text-primary">--budget</code> semantics as the ollama path (USD cap; symbolic for local models). Source: <code class="text-primary">src/cpu/mod.rs:466</code> (enum), <code class="text-primary">:765</code> (mlx), <code class="text-primary">:789</code> (ollama).
+      First call pays the cold-spawn cost (a few seconds on M-series). Subsequent calls reuse the running server. The alias <code class="text-primary">mlx/ternary-bonsai-8b</code> resolves to the wire model-id from the kernel's MLX driver registry (HUMANFILE <code>mlx_drivers</code> entry, or per-process override via <code class="text-primary">MLX_MODEL_ID</code>; default <code class="text-primary">prism-ml/Ternary-Bonsai-8B-mlx-2bit</code>). Same <code class="text-primary">--budget</code> semantics as the ollama path. Source: <code class="text-primary">src/cpu/mlx_lifecycle.rs:1-14</code> (lifecycle doc), <code class="text-primary">src/cpu/providers.rs:69-72</code> (<code>mlx/</code> prefix routing).
     </p>
-  </section>
 
-  <!-- ============================================================ -->
-  <!-- VERIFY IN THE TUI -->
-  <!-- ============================================================ -->
-  <section class="mb-16">
-    <div class="flex items-baseline gap-4 mb-6">
-      <span class="serif-text text-4xl font-bold text-primary">03</span>
-      <h2 class="serif-text text-2xl font-medium text-on-surface">CHAT_IN_THE_TUI</h2>
+    <!-- 02-3: operator verbs -->
+    <div class="flex items-baseline gap-4 mb-4 mt-8">
+      <span class="serif-text text-2xl font-bold text-primary">2.3</span>
+      <h3 class="serif-text text-xl font-medium text-on-surface">Operator verbs: <code class="text-primary">ostk mlx</code></h3>
     </div>
-    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      Open the terminal UI and confirm the agent is running on your local model:
+    <p class="font-body text-xs text-secondary mb-3 max-w-lg">
+      The kernel handles spawn-and-reuse on its own. When you need to inspect or override that — see what's running, switch the model, read the server log, stop a process — use the <code class="text-primary">ostk mlx</code> subcommand:
     </p>
     <Terminal>
-      <pre><span class="text-outline">$ </span>ostk tui
-ostk v{LATEST_TAG.replace(/^v/, '')}
-fleet: 1 alive | worker (ollama/qwen2.5-coder:32b)
-needles: 0 open
-boot confidence: 1.00 ◉
+      <pre><span class="text-outline"># What's running, on which port, serving which model</span>
+<span class="text-outline">$ </span>ostk mlx status
+PORT     HEALTH      PID       MODEL
+11942    ready       57843     prism-ml/Ternary-Bonsai-8B-mlx-2bit
 
-[you] _</pre>
+<span class="text-outline"># Explicit start (normally implicit on first agent invocation)</span>
+<span class="text-outline">$ </span>ostk mlx start --model mlx-community/Qwen2.5-Coder-32B-Instruct-4bit
+
+<span class="text-outline"># Tail the server log</span>
+<span class="text-outline">$ </span>ostk mlx log --port 11942
+
+<span class="text-outline"># Stop one or all</span>
+<span class="text-outline">$ </span>ostk mlx stop --port 11942
+<span class="text-outline">$ </span>ostk mlx stop --all
+
+<span class="text-outline"># Locally-cached mlx model weights (under ~/.cache/huggingface)</span>
+<span class="text-outline">$ </span>ostk mlx models
+prism-ml/Ternary-Bonsai-8B-mlx-2bit
+mlx-community/Qwen2.5-Coder-32B-Instruct-4bit</pre>
     </Terminal>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Type at the prompt. The agent answers. Tool calls (file reads, edits, shell) flow through ostk's audit chain. Open <code class="text-primary">.ostk/journal.jsonl</code> in another window — every action lands there with <code class="text-primary">"model":"ollama/qwen2.5-coder:32b"</code> for attribution.
-    </p>
     <p class="font-body text-xs text-outline mt-3 max-w-lg">
-      Source: <code class="text-primary">src/main.rs:822,2273</code> (Tui command + dispatch).
+      Tool calls on mlx models come back inside the text output, not as a separate structured field — quantized models often skip the structured envelope. ostk extracts them either way. Source: <code class="text-primary">src/commands/mlx.rs:39-46</code> (<code>Action</code> enum), <code class="text-primary">src/main.rs:1382</code> (<code>MlxCommands</code>).
     </p>
   </section>
 

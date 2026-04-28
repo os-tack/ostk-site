@@ -11,23 +11,39 @@ URL: https://ostk.ai/
 
 SYSTEM_MANIFEST // OSTK
 
-# Like containers,for AI agents.
+# ostk
 
-Plus the kernel underneath.
+A kernel for AI coding agents.
 
-Containers gave processes isolation, packaging, and reproducibility. ostk gives those to AI coding agents — and ships the kernel that coordinates the agents, audits their work, and signs the record.
+Every syscall returns wrapped in a state envelope — fleet, files, audit, working memory — so your agents stay oriented across thousands of turns. Local-first. One Rust binary.
 
-Run Claude, Cursor, your own scripts, or a local model on the same codebase. They don't collide. They leave a signed trail. You stay in control.
+install → curl -fsSL https://ostk.ai/install.sh | sh read the architecture → (/docs/architecture/)
 
-Even with one agent, you get a signed audit trail and capability bounds. With two, you get the rest.
+macOS (universal arm64+x86_64), Linux musl arm64/x86_64, Windows x86_64. All on releases (https://github.com/os-tack/ostk.ai/releases/latest), GPG-signed. ~30 seconds.
 
-DRIVE_YOUR_AGENT Wire ostk into Claude Code, Cursor, or any MCP-capable tool. Keep your UI; gain coordination. ~10 MIN (/docs/mcp/) RUN_A_LOCAL_MODEL Run a local model through ollama or mlx, with ostk's terminal UI as the chat surface. No API bill. Everything stays local. ~15 MIN (/start/local/) SERVER_MODE Run `ostk daemon` on the host. CI runners, remote machines, and Discord bots connect on the Unix socket and drive agents. ~10 MIN (/start/server/)
+SYSTEM_MANIFEST // OSTK
 
-TERMINAL
+ostk init
 
-$ curl -fsSL https://ostk.ai/install.sh | sh
+```
+$ ostk init
++ exit:0 1.2s
 
-$ cd ~/projects/your-repo && ostk init
+ostk: kernel installed
+identity: bound (T2 author)
+trust: web-of-trust verified
+
+[procs] count:3 active:1 stale:2 dead:0
+[files] gen_table indexed: 12 files
+[audit] +5 rows | needles:0 | fleet:1/1
+[loadavg] needles: 0 open | nudges: 0
+[ctx] # ostk
+A kernel for AI coding agents that keeps the frame.
+Every syscall returns wrapped — fleet, files, audit, working
+memory — so your agents stay oriented. Local-first. One Rust binary.
+
+→ get started: $ curl -fsSL https://ostk.ai/install.sh | sh→ tear it apart: /docs/architecture/
+```
 
 macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All on releases (https://github.com/os-tack/ostk.ai/releases/latest), GPG-signed. ~30 seconds.
 
@@ -39,33 +55,96 @@ RUNTIME: LOCAL_ONLY
 
 TRUST: GPG_SIGNED
 
-WHAT_AGENTS_BREAK
+WHERE_OSTK_FITS
 
-Three things break the moment you run more than one agent. ostk fixes all three at the kernel layer, without changing how you drive your agents.
+ostk is one layer down from the AI coding tools you already use.
+
+AGENT_SURFACES
+
+Cursor · Claude Code · Continue · Aider · your CLI · local models (Ollama, MLX)
+
+↓
+
+KERNEL
+
+ostk: state envelope · CAS writes · audit chain · capability pins · identity · fleet coordination
+
+↓
+
+SUBSTRATE
+
+your codebase · your filesystem · your machine
+
+The agent surface is what you type into. The kernel is what keeps multiple of them from stepping on each other, what signs every action, and what ensures your agents stay oriented across thousands of turns. ostk doesn't replace your editor or your model. It sits underneath them.
+
+compose with Claude Code, Cursor, or MCP → (/docs/mcp/) read the architecture → (/docs/architecture/)
+
+WHAT_THE_KERNEL_LOOKS_LIKE
+
+## Real ostk sessions, live-typed and on-device. Not screenshots. Not reenactments.
+
+Day one: `ostk init`
+then
+`ostk boot`.
+Fresh repo to validated kernel in seven seconds.
+
+FIRST_RUN
+
+Real session. No edits. Bottom-text annotation by the kernel itself.
+
+$ ostk tack --llm "..."
+
+OSTK_MODEL
+
+Local model on Apple silicon. Ternary-Bonsai-8B-mlx-2bit lazy-spawns mlx_lm.server, returns a real response. Zero API keys.
+
+$ ostk os clock
+
+OSTK_CLOCK
+
+Kernel has a clock. Session, swap, audit events, focus.
+
+$ ostk tack ':needle 1' --json
+
+OSTK_TACK
+
+Kernel as language. Every tack expression resolves to a typed verb.
+
+$ ostk os journal verify
+
+OSTK_JOURNAL
+
+Audit chain integrity. Hash-chained rows, signed seals, Merkle continuity.
+
+HOW_THE_KERNEL_KEEPS_THE_FRAME
+
+Three failure modes show up the moment LLM agents touch real codebases. ostk addresses each one structurally — at the kernel layer, in the envelope you saw above — not as application-layer hacks bolted onto a chat loop.
 
 01
 
 ### They collide.
 
-Two agents edit the same file. Last write wins. Silently. ostk catches every conflict before it lands. Nothing disappears; the second writer sees a clean error.
+Two agents edit the same file. Last write wins. Silently. Kernel-mediated CAS writes catch every conflict before it lands. Nothing disappears; the second writer sees a clean error.
 
-→ Read why (/why#collision)
+→ Read why (/why/#collision)
 
 02
 
 ### They drift.
 
-Each agent has its own context. They re-discover the same things. They forget what was decided. ostk gives every agent a shared state directory to read from — the project develops a memory.
+Each agent has its own context. They re-discover the same things. They forget what was decided. Every syscall returns the working state envelope, so the agent re-grounds each turn — the project develops a memory the fleet shares.
 
-→ Read why (/why#drift)
+→ Read why (/why/#drift)
 
 03
 
 ### They leave no trace.
 
-You can't replay, audit, or prove what shipped. ostk records every action in a hash-chained, Ed25519-signed audit trail. Replay any session, byte for byte.
+You can't replay, audit, or prove what shipped. The kernel records every action in an append-only, hash-chained, Ed25519-signed audit trail. Replay any session, byte for byte.
 
-→ Read why (/why#trace)
+→ Read why (/why/#trace)
+
+Want the substrate spec underneath all of this? Read the canonical specifications → (/docs/spec/)
 
 CONTAINERS_VS_OSTK
 
@@ -223,6 +302,8 @@ A small state footprint. Per-project state in `.ostk/`; per-machine state in `~/
 
 → START_HERE Pick a path. Three branches, ten to fifteen minutes each. (/start/) → HOW_IT_WORKS The model. Kernel, drivers, agents, the audit chain. (/docs/architecture/)
 
+For the philosophy underneath these failures and the trajectory ahead, see /doctrine/.
+
 ---
 
 # Start here — pick your path
@@ -281,7 +362,7 @@ Verify install and run ostk init in your project (universal steps from /start).
 
 02
 
-Pick a backend: ollama (cross-platform, default) or mlx (Apple Silicon-only, faster on M-series).
+Pick a backend. ollama is the cross-platform default; mlx is an option on Apple Silicon only (faster on M-series, kernel-managed mlx_lm.server lifecycle).
 
 03
 
@@ -295,7 +376,15 @@ Spawn an agent with the model alias. ostk routes to the local server; audit + pi
 
 Open ostk tui to chat. First response is slower (model warm-up); subsequent calls are fast.
 
-Total time: ~15 minutes (most of it is model download). You need ostk v4.4.2+ and either ollama or mlx_lm installed locally.
+Total time: ~15 minutes (most of it is model download). You need ostk v4.6.0+ and either ollama or mlx_lm installed locally.
+
+## WHAT_STEP_05_LOOKS_LIKE
+
+The TUI takes your prompt and routes it to the kernel daemon. The daemon's native MLX driver hands it to a kernel-managed `mlx_lm.server`, and the response streams back into the chat surface. No API key. No cloud.
+
+OSTK_TUI
+
+Real session. Two turns, no edits. Ternary-Bonsai-8B-mlx-2bit on Apple Silicon, lazy-spawned by the kernel's native MLX driver on first prompt.
 
 BACKEND_01 // OLLAMA
 
@@ -372,13 +461,15 @@ BACKEND_02 // MLX
 
 ## Run on Apple mlx (Apple Silicon only)
 
-Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size; pick mlx if you have the chip. ostk's primary mlx model is Ternary-Bonsai-8B (https://prismml.com/news/ternary-bonsai), a ternary-quantized model purpose-built for low-latency local inference — it ships as the kernel default. ostk routes `mlx/`-prefixed models to a `mlx_lm.server` at `localhost:11942` using the same OpenAI-wire format.
+Apple's mlx framework runs quantized models on M-series chips. On M-series hardware mlx is typically faster than ollama for the same model size. ostk has a native `Mlx` CPU driver — a peer of the Anthropic and Ollama drivers, with its own kernel-managed lifecycle for `mlx_lm.server`. On first use of an `mlx/`-prefixed model the kernel auto-spawns the server, polls it ready, and pins a pidfile + log + flock under `.ostk/mlx/.{pid,log,lock}`. The default model is Ternary-Bonsai-8B (https://prismml.com/news/ternary-bonsai), a ternary-quantized model purpose-built for low-latency local inference.
 
-Source: `src/cpu/providers.rs:69-72` (MLX prefix routing), `src/cpu/mlx_lifecycle.rs` (server lifecycle), `src/commands/mlx.rs` (mlx-specific verbs).
+Source: `src/cpu/providers.rs:22-27` (`ApiProvider::Mlx`), `src/cpu/mlx_lifecycle.rs:25-34` (`MlxRuntime` + `ensure_running`), `src/commands/mlx.rs:22-46` (operator verbs).
 
 2.1
 
 ### Install mlx_lm
+
+The kernel manages the `mlx_lm.server` process for you, but the Python package that provides it still needs to be on your PATH:
 
 TERMINAL
 
@@ -389,59 +480,51 @@ $ pip install mlx-lm
 
 2.2
 
-### Start mlx_lm.server
+### Spawn an agent — the kernel starts the server for you
 
-ostk's MLX integration expects the server on `localhost:11942`. Set the model with `MLX_MODEL_ID`:
-
-TERMINAL
-
-```
-# Primary: Ternary-Bonsai-8B (the kernel default)
-$ MLX_MODEL_ID=prism-ml/Ternary-Bonsai-8B-mlx-2bit \
-mlx_lm.server --port 11942
-
-# Or a community 4-bit Coder model if you want a larger context
-$ MLX_MODEL_ID=mlx-community/Qwen2.5-Coder-32B-Instruct-4bit \
-mlx_lm.server --port 11942
-```
-
-ostk remaps the alias (e.g. `mlx/ternary-bonsai-8b`) to the wire model-id from `MLX_MODEL_ID`. Port 11942 is the ostk default for mlx (see env-vars (/docs/env-vars/)). Source: `src/cpu/providers.rs:22-26`.
-
-2.3
-
-### Spawn an agent with the mlx model
+There is no separate "start mlx_lm.server" step. On the first `mlx/` model invocation the kernel runs `ensure_running`: it probes `localhost:11942`, and if the server isn't already up it spawns `mlx_lm.server --port 11942 --model ` detached, polls `/v1/models` until ready, and pins the pid + model under `.ostk/mlx/`. Concurrent ostk sessions on the same project coordinate via flock and share one server.
 
 TERMINAL
 
 ```
 $ ostk _agent --name worker --model mlx/ternary-bonsai-8b \
 --budget 10 \
---task "Run cargo check and report"
+--task "Write a unix one-liner that tails a log and only shows ERROR lines"
 ```
 
-Tool calls on mlx models come back inside the text output, not as a separate structured field — quantized models often skip the structured envelope. ostk extracts them either way. Same `--budget` semantics as the ollama path (USD cap; symbolic for local models). Source: `src/cpu/mod.rs:466` (enum), `:765` (mlx), `:789` (ollama).
+First call pays the cold-spawn cost (a few seconds on M-series). Subsequent calls reuse the running server. The alias `mlx/ternary-bonsai-8b` resolves to the wire model-id from the kernel's MLX driver registry (HUMANFILE `mlx_drivers` entry, or per-process override via `MLX_MODEL_ID`; default `prism-ml/Ternary-Bonsai-8B-mlx-2bit`). Same `--budget` semantics as the ollama path. Source: `src/cpu/mlx_lifecycle.rs:1-14` (lifecycle doc), `src/cpu/providers.rs:69-72` (`mlx/` prefix routing).
 
-03
+2.3
 
-## CHAT_IN_THE_TUI
+### Operator verbs: `ostk mlx`
 
-Open the terminal UI and confirm the agent is running on your local model:
+The kernel handles spawn-and-reuse on its own. When you need to inspect or override that — see what's running, switch the model, read the server log, stop a process — use the `ostk mlx` subcommand:
 
 TERMINAL
 
 ```
-$ ostk tui
-ostk v4.4.2
-fleet: 1 alive | worker (ollama/qwen2.5-coder:32b)
-needles: 0 open
-boot confidence: 1.00 ◉
+# What's running, on which port, serving which model
+$ ostk mlx status
+PORT HEALTH PID MODEL
+11942 ready 57843 prism-ml/Ternary-Bonsai-8B-mlx-2bit
 
-[you] _
+# Explicit start (normally implicit on first agent invocation)
+$ ostk mlx start --model mlx-community/Qwen2.5-Coder-32B-Instruct-4bit
+
+# Tail the server log
+$ ostk mlx log --port 11942
+
+# Stop one or all
+$ ostk mlx stop --port 11942
+$ ostk mlx stop --all
+
+# Locally-cached mlx model weights (under ~/.cache/huggingface)
+$ ostk mlx models
+prism-ml/Ternary-Bonsai-8B-mlx-2bit
+mlx-community/Qwen2.5-Coder-32B-Instruct-4bit
 ```
 
-Type at the prompt. The agent answers. Tool calls (file reads, edits, shell) flow through ostk's audit chain. Open `.ostk/journal.jsonl` in another window — every action lands there with `"model":"ollama/qwen2.5-coder:32b"` for attribution.
-
-Source: `src/main.rs:822,2273` (Tui command + dispatch).
+Tool calls on mlx models come back inside the text output, not as a separate structured field — quantized models often skip the structured envelope. ostk extracts them either way. Source: `src/commands/mlx.rs:39-46` (`Action` enum), `src/main.rs:1382` (`MlxCommands`).
 
 ## CAVEATS
 
@@ -491,7 +574,7 @@ The kernel daemon listens on a local Unix socket. Drive it from CI, a remote she
 
 DOCUMENTATION_STATUS
 
-This walkthrough is in progress. The pieces below are real and shipped at v4.4.2; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
+This walkthrough is in progress. The pieces below are real and shipped at v4.6.0; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
 
 If you've wired ostk into CI or a Discord bot already and have notes that would help others, send them to os-tack/ostk-site issues (https://github.com/os-tack/ostk-site/issues).
 
@@ -543,7 +626,7 @@ RELATED: START_HERE (/start/) MCP_BRIDGE (/docs/mcp/) SESSION_TOPOLOGY (/docs/se
 
 URL: https://ostk.ai/docs/
 
-ARCHIVE_INDEX // v4.4.2
+ARCHIVE_INDEX // v4.6.0
 
 # Documentation Archive
 
@@ -5014,7 +5097,7 @@ Runtime configuration that doesn't belong in files. Most are optional — the ke
 
 ## DRAIN_RECOVERY
 
-`OSTK_DRAIN_SNAPSHOT` Controls drain snapshot writes. Set to 0 to disable. Enabled (v4.4.2+)
+`OSTK_DRAIN_SNAPSHOT` Controls drain snapshot writes. Set to 0 to disable. Enabled (v4.6.0+)
 
 04
 
@@ -5315,7 +5398,7 @@ Key terms used throughout the documentation.
 
 URL: https://ostk.ai/features/
 
-FEATURE_INDEX // v4.4.2
+FEATURE_INDEX // v4.6.0
 
 # Features
 
@@ -5698,6 +5781,8 @@ FEATURE // INTERFACE
 
 Terminal interface showing the OS in real time. Agents, permissions, edits, costs — all visible. The operator sees everything.
 
+OSTK_TUI
+
 ## What you see
 
 Launch `ostk tui` and the terminal becomes a command deck. Fleet status in one pane, audit events in another, needle backlog below, tack bar at the bottom. Every agent action surfaces in real time.
@@ -5852,6 +5937,12 @@ The kernel started as a coordination layer for AI agents on the same codebase. F
 
 At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.
 
+## Built By
+
+Scott Meyer.
+
+I've been writing software a long time. The era doesn't matter — the principles do. ostk is built on the ones that survived: local-first, single-binary, signed by default, comprehensible by reading the source.
+
 ## Source Availability
 
 The kernel source is not currently published. An open source release under a dual license is planned.
@@ -5860,9 +5951,11 @@ The binary is free for personal and internal commercial use. Governance document
 
 ## CONTACT
 
-Built by agents running on ostk. Maintained by humans who speak tack.
+Real improvements get reported through the kernel itself. `ostk should` files them straight into the repo where they'll be seen.
 
-contact@ostk.ai (mailto:contact@ostk.ai) Discord (https://discord.gg/ZP6zRp2eF4) GitHub (https://github.com/os-tack)
+Email works for everything else: scott@ostk.ai (mailto:scott@ostk.ai). I read everything.
+
+Discord (https://discord.gg/ZP6zRp2eF4) GitHub (https://github.com/os-tack)
 
 ---
 

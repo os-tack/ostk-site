@@ -14,6 +14,36 @@ const relatedPages = [
   description="Terminal interface showing the OS in real time. Agents, permissions, edits, costs — all visible. The operator sees everything."
   relatedPages={relatedPages}
 >
+  <div class="bg-surface-container-lowest border border-surface-variant max-w-full overflow-hidden mb-8 not-prose">
+    <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
+      <div class="w-2 h-2 rounded-full bg-error-container"></div>
+      <div class="w-2 h-2 rounded-full bg-primary-container"></div>
+      <div class="w-2 h-2 rounded-full bg-secondary-container"></div>
+      <span class="ml-auto font-label text-[9px] text-outline truncate">OSTK_TUI</span>
+    </div>
+    <video
+      class="block w-full h-auto demo-video"
+      src="/assets/demo/tui-converse.mp4"
+      width="1200"
+      height="700"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="metadata"
+      aria-label="Terminal recording: ostk tui receives a prompt and streams a real model response back into the chat surface."
+    >
+      <img
+        src="/assets/demo/tui-converse.gif"
+        alt="Terminal recording: ostk tui receives a prompt and streams a real model response back into the chat surface."
+        width="1200"
+        height="700"
+        loading="lazy"
+        class="block w-full h-auto"
+      />
+    </video>
+  </div>
+
   <h2>What you see</h2>
   <p>
     Launch <code>ostk tui</code> and the terminal becomes a command deck. Fleet status in one pane, audit events in another, needle backlog below, tack bar at the bottom. Every agent action surfaces in real time.
