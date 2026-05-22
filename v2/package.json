@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "node ../scripts/sync-version.mjs && astro build && node ../scripts/build-llms-full.mjs && node ../scripts/indexnow-ping.mjs",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check-links": "node ../scripts/link_checker.js"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.1",

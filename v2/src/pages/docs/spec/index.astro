@@ -22,13 +22,13 @@ const groups: SpecGroup[] = [
       {
         title: 'Kernel Specification',
         description: 'Canonical ostk kernel architecture: six Unix syscalls, seven primitives, the LLM memory hierarchy, and the dual-CPU scheduler binding humans + LLMs.',
-        href: '/docs/kernel-spec/',
+        href: '/docs/architecture/#the-unix-substrate',
         maturity: 'STABLE',
       },
       {
         title: 'Five Laws',
         description: 'The five load-bearing constraints behind ostk: invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infra.',
-        href: '/docs/five-laws/',
+        href: '/docs/architecture/#the-five-foundational-laws',
         maturity: 'STABLE',
       },
       {
@@ -45,25 +45,25 @@ const groups: SpecGroup[] = [
       {
         title: 'Trust Model',
         description: 'How GPG identity tiers, capability pins, and Ed25519-signed audit compose into the trust model. Four problems an operator has — what can I do, how do I graduate, how do I verify a release, how do I revoke a compromised key — and the compositions that solve them.',
-        href: '/docs/trust-model/',
+        href: '/docs/security/#gpg-rooted-trust-tiers',
         maturity: 'STABLE',
       },
       {
         title: 'HUMANFILE',
         description: 'Operator identity document. Tells the OS who you are, what models to use, and how to calibrate.',
-        href: '/docs/humanfile/',
+        href: '/docs/configuration/#humanfile',
         maturity: 'STABLE',
       },
       {
         title: '.primefile',
         description: 'The .primefile is ostk’s dual-signed root of trust — kernel + operator GPG keys anchor the identity chain. Auto-managed, never edit by hand.',
-        href: '/docs/primefile/',
+        href: '/docs/configuration/#primefile',
         maturity: 'STABLE',
       },
       {
         title: 'ENTITYFILE',
         description: 'The trust constitution of your OS instance. Identity chains, trust tiers, and governance ceremonies.',
-        href: '/docs/entityfile/',
+        href: '/docs/configuration/#entityfile',
         maturity: 'STABLE',
       },
     ],

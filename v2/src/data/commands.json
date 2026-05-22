@@ -1,0 +1,888 @@
+[
+  {
+    "name": "arrive",
+    "category": "SYSTEM ABI",
+    "description": "Emit a presence handshake glyph",
+    "usage": "Usage: ostk arrive [OPTIONS]",
+    "options": [
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Emit a presence handshake glyph\n\nUsage: ostk arrive [OPTIONS]\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "bash",
+    "category": "SYSTEM ABI",
+    "description": "Run a shell command through the kernel",
+    "usage": "Usage: ostk bash [OPTIONS] <CMD>",
+    "options": [
+      "<CMD>  Shell command line",
+      "--cwd <CWD>          Working directory override",
+      "--timeout <TIMEOUT>  Wall-clock deadline in seconds",
+      "--raw                Skip squasher / elision compression",
+      "-v, --verbose            Print info-level kernel logs to stderr",
+      "--json               Emit JSON",
+      "-h, --help               Print help"
+    ],
+    "raw_help": "Run a shell command through the kernel\n\nUsage: ostk bash [OPTIONS] <CMD>\n\nArguments:\n  <CMD>  Shell command line\n\nOptions:\n      --cwd <CWD>          Working directory override\n      --timeout <TIMEOUT>  Wall-clock deadline in seconds\n      --raw                Skip squasher / elision compression\n  -v, --verbose            Print info-level kernel logs to stderr\n      --json               Emit JSON\n  -h, --help               Print help\n"
+  },
+  {
+    "name": "context-evict",
+    "category": "SYSTEM ABI",
+    "description": "Demote a context page from hot to warm tier",
+    "usage": "Usage: ostk context-evict [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Page identifier",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Demote a context page from hot to warm tier\n\nUsage: ostk context-evict [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Page identifier\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "context-load",
+    "category": "SYSTEM ABI",
+    "description": "Load a context page into the hot tier",
+    "usage": "Usage: ostk context-load [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Page identifier",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Load a context page into the hot tier\n\nUsage: ostk context-load [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Page identifier\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "context-pages",
+    "category": "SYSTEM ABI",
+    "description": "List context pages, optionally filtered by tier",
+    "usage": "Usage: ostk context-pages [OPTIONS]",
+    "options": [
+      "--state <STATE>  Filter by tier: hot, warm, cold",
+      "--json           Emit JSON",
+      "-v, --verbose        Print info-level kernel logs to stderr",
+      "-h, --help           Print help"
+    ],
+    "raw_help": "List context pages, optionally filtered by tier\n\nUsage: ostk context-pages [OPTIONS]\n\nOptions:\n      --state <STATE>  Filter by tier: hot, warm, cold\n      --json           Emit JSON\n  -v, --verbose        Print info-level kernel logs to stderr\n  -h, --help           Print help\n"
+  },
+  {
+    "name": "context-pin",
+    "category": "SYSTEM ABI",
+    "description": "Toggle eviction protection on a context page",
+    "usage": "Usage: ostk context-pin [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Page identifier",
+      "--unpin    Inverse: clear the pin instead of setting it",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Toggle eviction protection on a context page\n\nUsage: ostk context-pin [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Page identifier\n\nOptions:\n      --unpin    Inverse: clear the pin instead of setting it\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "context-release",
+    "category": "SYSTEM ABI",
+    "description": "Mark a context page warm and free its hot slot",
+    "usage": "Usage: ostk context-release [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Page identifier",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Mark a context page warm and free its hot slot\n\nUsage: ostk context-release [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Page identifier\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "context-restore",
+    "category": "SYSTEM ABI",
+    "description": "Promote a warm or cold context page back to hot",
+    "usage": "Usage: ostk context-restore [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Page identifier",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Promote a warm or cold context page back to hot\n\nUsage: ostk context-restore [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Page identifier\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "context-store",
+    "category": "SYSTEM ABI",
+    "description": "Store new content as a cold-tier context page",
+    "usage": "Usage: ostk context-store [OPTIONS] <NAME> <CONTENT>",
+    "options": [
+      "<NAME>     Page identifier",
+      "<CONTENT>  Page body content",
+      "--owner <OWNER>  Owner attribution string",
+      "--json           Emit JSON",
+      "-v, --verbose        Print info-level kernel logs to stderr",
+      "-h, --help           Print help"
+    ],
+    "raw_help": "Store new content as a cold-tier context page\n\nUsage: ostk context-store [OPTIONS] <NAME> <CONTENT>\n\nArguments:\n  <NAME>     Page identifier\n  <CONTENT>  Page body content\n\nOptions:\n      --owner <OWNER>  Owner attribution string\n      --json           Emit JSON\n  -v, --verbose        Print info-level kernel logs to stderr\n  -h, --help           Print help\n"
+  },
+  {
+    "name": "dispatch",
+    "category": "SYSTEM ABI",
+    "description": "Invoke a kernel verb by name with a JSON args payload",
+    "usage": "Usage: ostk dispatch [OPTIONS] [VERB]",
+    "options": [
+      "[VERB]  Underlying verb name (omit when --ops is used for batch mode) [default: \"\"]",
+      "--args <ARGS>  JSON object of underlying-verb arguments",
+      "--ops <OPS>    JSON list of {verb, args} batch entries",
+      "--atomic       Request all-or-nothing semantics for the batch",
+      "-v, --verbose      Print info-level kernel logs to stderr",
+      "--json         Emit JSON",
+      "-h, --help         Print help"
+    ],
+    "raw_help": "Invoke a kernel verb by name with a JSON args payload\n\nUsage: ostk dispatch [OPTIONS] [VERB]\n\nArguments:\n  [VERB]  Underlying verb name (omit when --ops is used for batch mode) [default: \"\"]\n\nOptions:\n      --args <ARGS>  JSON object of underlying-verb arguments\n      --ops <OPS>    JSON list of {verb, args} batch entries\n      --atomic       Request all-or-nothing semantics for the batch\n  -v, --verbose      Print info-level kernel logs to stderr\n      --json         Emit JSON\n  -h, --help         Print help\n"
+  },
+  {
+    "name": "fs-ops",
+    "category": "SYSTEM ABI",
+    "description": "Mutate a file \u2014 CAS edit, write, mkdir, mv, cp, rm, chmod",
+    "usage": "Usage: ostk fs-ops [OPTIONS] [PATH]",
+    "options": [
+      "[PATH]  Filesystem path target [default: \"\"]",
+      "--op <OP>            Non-content op discriminator: mkdir, mv, cp, rm, chmod, write",
+      "--old-str <OLD_STR>  CAS-edit \"before\" string",
+      "--new-str <NEW_STR>  CAS-edit \"after\" / new file content",
+      "-v, --verbose            Print info-level kernel logs to stderr",
+      "--ops <OPS>          JSON list of batched operations",
+      "--json               Emit JSON",
+      "-h, --help               Print help"
+    ],
+    "raw_help": "Mutate a file \u2014 CAS edit, write, mkdir, mv, cp, rm, chmod\n\nUsage: ostk fs-ops [OPTIONS] [PATH]\n\nArguments:\n  [PATH]  Filesystem path target [default: \"\"]\n\nOptions:\n      --op <OP>            Non-content op discriminator: mkdir, mv, cp, rm, chmod, write\n      --old-str <OLD_STR>  CAS-edit \"before\" string\n      --new-str <NEW_STR>  CAS-edit \"after\" / new file content\n  -v, --verbose            Print info-level kernel logs to stderr\n      --ops <OPS>          JSON list of batched operations\n      --json               Emit JSON\n  -h, --help               Print help\n"
+  },
+  {
+    "name": "handoff",
+    "category": "SYSTEM ABI",
+    "description": "Switch model and inject a transition message",
+    "usage": "Usage: ostk handoff [OPTIONS] <TARGET>",
+    "options": [
+      "<TARGET>  Identifier of the destination model / agent",
+      "--transition <TRANSITION>  Free-form transition message body",
+      "--json                     Emit JSON",
+      "-v, --verbose                  Print info-level kernel logs to stderr",
+      "-h, --help                     Print help"
+    ],
+    "raw_help": "Switch model and inject a transition message\n\nUsage: ostk handoff [OPTIONS] <TARGET>\n\nArguments:\n  <TARGET>  Identifier of the destination model / agent\n\nOptions:\n      --transition <TRANSITION>  Free-form transition message body\n      --json                     Emit JSON\n  -v, --verbose                  Print info-level kernel logs to stderr\n  -h, --help                     Print help\n"
+  },
+  {
+    "name": "help",
+    "category": "SYSTEM ABI",
+    "description": "Render the man page for a System ABI verb",
+    "usage": "Usage: ostk help [OPTIONS] [VERB]",
+    "options": [
+      "[VERB]  Verb name; omit for usage hint",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Render the man page for a System ABI verb\n\nUsage: ostk help [OPTIONS] [VERB]\n\nArguments:\n  [VERB]  Verb name; omit for usage hint\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "interact",
+    "category": "SYSTEM ABI",
+    "description": "Read tail, send input, signal, kill, or status a process",
+    "usage": "Usage: ostk interact [OPTIONS] --action <ACTION> <ALIAS>",
+    "options": [
+      "<ALIAS>  Process alias previously registered by spawn",
+      "--action <ACTION>    Sub-mode discriminator: read_tail, send_input, send_signal, kill, status",
+      "--input <INPUT>      Input to send (for send_input / send_signal)",
+      "--lines <LINES>      Number of lines to read (for read_tail)",
+      "-v, --verbose            Print info-level kernel logs to stderr",
+      "--timeout <TIMEOUT>  Wall-clock deadline in seconds",
+      "--json               Emit JSON",
+      "-h, --help               Print help"
+    ],
+    "raw_help": "Read tail, send input, signal, kill, or status a process\n\nUsage: ostk interact [OPTIONS] --action <ACTION> <ALIAS>\n\nArguments:\n  <ALIAS>  Process alias previously registered by spawn\n\nOptions:\n      --action <ACTION>    Sub-mode discriminator: read_tail, send_input, send_signal, kill, status\n      --input <INPUT>      Input to send (for send_input / send_signal)\n      --lines <LINES>      Number of lines to read (for read_tail)\n  -v, --verbose            Print info-level kernel logs to stderr\n      --timeout <TIMEOUT>  Wall-clock deadline in seconds\n      --json               Emit JSON\n  -h, --help               Print help\n"
+  },
+  {
+    "name": "lock",
+    "category": "SYSTEM ABI",
+    "description": "Create, release, watch, or query a coordination lock",
+    "usage": "Usage: ostk lock [OPTIONS] --action <ACTION> --name <NAME>",
+    "options": [
+      "--action <ACTION>    Sub-mode discriminator: create, release, watch, status",
+      "--name <NAME>        Lock name",
+      "--timeout <TIMEOUT>  Watch timeout in seconds",
+      "-v, --verbose            Print info-level kernel logs to stderr",
+      "--json               Emit JSON",
+      "-h, --help               Print help"
+    ],
+    "raw_help": "Create, release, watch, or query a coordination lock\n\nUsage: ostk lock [OPTIONS] --action <ACTION> --name <NAME>\n\nOptions:\n      --action <ACTION>    Sub-mode discriminator: create, release, watch, status\n      --name <NAME>        Lock name\n      --timeout <TIMEOUT>  Watch timeout in seconds\n  -v, --verbose            Print info-level kernel logs to stderr\n      --json               Emit JSON\n  -h, --help               Print help\n"
+  },
+  {
+    "name": "note",
+    "category": "SYSTEM ABI",
+    "description": "Append an annotation to the audit stream",
+    "usage": "Usage: ostk note [OPTIONS] <TEXT>",
+    "options": [
+      "<TEXT>  Annotation text body",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Append an annotation to the audit stream\n\nUsage: ostk note [OPTIONS] <TEXT>\n\nArguments:\n  <TEXT>  Annotation text body\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "read",
+    "category": "SYSTEM ABI",
+    "description": "Read a file with gen tracking and elision-aware output",
+    "usage": "Usage: ostk read [OPTIONS] <PATH>",
+    "options": [
+      "<PATH>  File path to read",
+      "--offset <OFFSET>  Start line (1-indexed)",
+      "--limit <LIMIT>    Maximum lines to return",
+      "--enrich           Overlay driver-supplied diagnostics on the result",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "--json             Emit JSON",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Read a file with gen tracking and elision-aware output\n\nUsage: ostk read [OPTIONS] <PATH>\n\nArguments:\n  <PATH>  File path to read\n\nOptions:\n      --offset <OFFSET>  Start line (1-indexed)\n      --limit <LIMIT>    Maximum lines to return\n      --enrich           Overlay driver-supplied diagnostics on the result\n  -v, --verbose          Print info-level kernel logs to stderr\n      --json             Emit JSON\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "search",
+    "category": "SYSTEM ABI",
+    "description": "Search code, hay, decisions, and transcripts",
+    "usage": "Usage: ostk search [OPTIONS] <QUERY>",
+    "options": [
+      "<QUERY>  Search query (regex or literal string)",
+      "--path <PATH>      Limit search to this path",
+      "--scope <SCOPE>    Search boundary: code, files, work, history, decisions, transcripts, all, vfs (default: code) [default: code]",
+      "--mode <MODE>      Match mode: literal, regex, glob, semantic, symbol, id (default: regex/literal inference)",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "--expand <EXPAND>  Result expansion: callers, history, semantic, attribution",
+      "--limit <LIMIT>    Max results (default 20) [default: 20]",
+      "--semantic         Use semantic search via LLM (alias for `--mode semantic` `--scope all`). Mutually exclusive with `--mode` to avoid ambiguous combinations",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Search code, hay, decisions, and transcripts\n\nUsage: ostk search [OPTIONS] <QUERY>\n\nArguments:\n  <QUERY>  Search query (regex or literal string)\n\nOptions:\n      --path <PATH>      Limit search to this path\n      --scope <SCOPE>    Search boundary: code, files, work, history, decisions, transcripts, all, vfs (default: code) [default: code]\n      --mode <MODE>      Match mode: literal, regex, glob, semantic, symbol, id (default: regex/literal inference)\n  -v, --verbose          Print info-level kernel logs to stderr\n      --expand <EXPAND>  Result expansion: callers, history, semantic, attribution\n      --limit <LIMIT>    Max results (default 20) [default: 20]\n      --semantic         Use semantic search via LLM (alias for `--mode semantic` `--scope all`). Mutually exclusive with `--mode` to avoid ambiguous combinations\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "session",
+    "category": "SYSTEM ABI",
+    "description": "List, create, or close a kernel session",
+    "usage": "Usage: ostk session [OPTIONS] --action <ACTION>",
+    "options": [
+      "--action <ACTION>  Sub-mode discriminator: list, create, close",
+      "--name <NAME>      Session name (for create / close)",
+      "--json             Emit JSON",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "List, create, or close a kernel session\n\nUsage: ostk session [OPTIONS] --action <ACTION>\n\nOptions:\n      --action <ACTION>  Sub-mode discriminator: list, create, close\n      --name <NAME>      Session name (for create / close)\n      --json             Emit JSON\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "session-history",
+    "category": "SYSTEM ABI",
+    "description": "Replay the session event log",
+    "usage": "Usage: ostk session-history [OPTIONS]",
+    "options": [
+      "--limit <LIMIT>  Maximum events to return",
+      "--json           Emit JSON",
+      "-v, --verbose        Print info-level kernel logs to stderr",
+      "-h, --help           Print help"
+    ],
+    "raw_help": "Replay the session event log\n\nUsage: ostk session-history [OPTIONS]\n\nOptions:\n      --limit <LIMIT>  Maximum events to return\n      --json           Emit JSON\n  -v, --verbose        Print info-level kernel logs to stderr\n  -h, --help           Print help\n"
+  },
+  {
+    "name": "spawn",
+    "category": "SYSTEM ABI",
+    "description": "Start a background process under an alias",
+    "usage": "Usage: ostk spawn [OPTIONS] <ALIAS> <CMD>",
+    "options": [
+      "<ALIAS>  Process alias",
+      "<CMD>    Shell command line",
+      "--wait-for <WAIT_FOR>  Regex matched against child output before declaring readiness",
+      "--timeout <TIMEOUT>    Wall-clock deadline in seconds",
+      "--json                 Emit JSON",
+      "-v, --verbose              Print info-level kernel logs to stderr",
+      "-h, --help                 Print help"
+    ],
+    "raw_help": "Start a background process under an alias\n\nUsage: ostk spawn [OPTIONS] <ALIAS> <CMD>\n\nArguments:\n  <ALIAS>  Process alias\n  <CMD>    Shell command line\n\nOptions:\n      --wait-for <WAIT_FOR>  Regex matched against child output before declaring readiness\n      --timeout <TIMEOUT>    Wall-clock deadline in seconds\n      --json                 Emit JSON\n  -v, --verbose              Print info-level kernel logs to stderr\n  -h, --help                 Print help\n"
+  },
+  {
+    "name": "tack",
+    "category": "SYSTEM ABI",
+    "description": "Resolve a tack expression \u2014 preview, dispatch, or LLM call",
+    "usage": "Usage: ostk tack [OPTIONS] <INPUT>",
+    "options": [
+      "<INPUT>  Tack expression (e.g. ':compile', '.? status', '\u2192437')",
+      "--json                     Output as JSON",
+      "--run                      Resolve and dispatch the verb (was `ostk do`)",
+      "--llm                      Single-turn LLM call with the expression as user message (was `ostk ask`)",
+      "-v, --verbose                  Print info-level kernel logs to stderr",
+      "--max-tokens <MAX_TOKENS>  With `--llm`, max response tokens [default: 1024]",
+      "-h, --help                     Print help"
+    ],
+    "raw_help": "Resolve a tack expression \u2014 preview, dispatch, or LLM call\n\nUsage: ostk tack [OPTIONS] <INPUT>\n\nArguments:\n  <INPUT>  Tack expression (e.g. ':compile', '.? status', '\u2192437')\n\nOptions:\n      --json                     Output as JSON\n      --run                      Resolve and dispatch the verb (was `ostk do`)\n      --llm                      Single-turn LLM call with the expression as user message (was `ostk ask`)\n  -v, --verbose                  Print info-level kernel logs to stderr\n      --max-tokens <MAX_TOKENS>  With `--llm`, max response tokens [default: 1024]\n  -h, --help                     Print help\n"
+  },
+  {
+    "name": "verb-help",
+    "category": "SYSTEM ABI",
+    "description": "Render help text for a single kernel verb",
+    "usage": "Usage: ostk verb-help [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Verb name to render help for",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Render help text for a single kernel verb\n\nUsage: ostk verb-help [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Verb name to render help for\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "verb-load",
+    "category": "SYSTEM ABI",
+    "description": "Demand-load the schema for a deferred verb",
+    "usage": "Usage: ostk verb-load [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Verb name to load schema for",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Demand-load the schema for a deferred verb\n\nUsage: ostk verb-load [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Verb name to load schema for\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "web-links",
+    "category": "SYSTEM ABI",
+    "description": "Extract all links from a web page",
+    "usage": "Usage: ostk web-links [OPTIONS] <URL>",
+    "options": [
+      "<URL>  Fully-qualified URL",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Extract all links from a web page\n\nUsage: ostk web-links [OPTIONS] <URL>\n\nArguments:\n  <URL>  Fully-qualified URL\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "web-read",
+    "category": "SYSTEM ABI",
+    "description": "Read a web page and extract its text content",
+    "usage": "Usage: ostk web-read [OPTIONS] <URL>",
+    "options": [
+      "<URL>  Fully-qualified URL",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Read a web page and extract its text content\n\nUsage: ostk web-read [OPTIONS] <URL>\n\nArguments:\n  <URL>  Fully-qualified URL\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "web-status",
+    "category": "SYSTEM ABI",
+    "description": "Check the HTTP status and headers of a URL",
+    "usage": "Usage: ostk web-status [OPTIONS] <URL>",
+    "options": [
+      "<URL>  Fully-qualified URL",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Check the HTTP status and headers of a URL\n\nUsage: ostk web-status [OPTIONS] <URL>\n\nArguments:\n  <URL>  Fully-qualified URL\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "tui",
+    "category": "DAILY WORK",
+    "description": "Launch the terminal UI",
+    "usage": "Usage: ostk tui [OPTIONS]",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Launch the terminal UI\n\nUsage: ostk tui [OPTIONS]\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "show",
+    "category": "DAILY WORK",
+    "description": "Look up a needle, hay, thread, status, or clock",
+    "usage": "Usage: ostk show [OPTIONS] <TARGET>",
+    "options": [
+      "<TARGET>  What to show: needle ID (\u2192NNN), needles, hay, threads, status, clock",
+      "--json     Output as JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Look up a needle, hay, thread, status, or clock\n\nUsage: ostk show [OPTIONS] <TARGET>\n\nArguments:\n  <TARGET>  What to show: needle ID (\u2192NNN), needles, hay, threads, status, clock\n\nOptions:\n      --json     Output as JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "trace",
+    "category": "DAILY WORK",
+    "description": "Print the attribution chain for a needle, commit, or spec",
+    "usage": "Usage: ostk trace [OPTIONS] <TARGET>",
+    "options": [
+      "<TARGET>  Needle ID (`\u2192NNN`), commit hash, or spec path",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Print the attribution chain for a needle, commit, or spec\n\nUsage: ostk trace [OPTIONS] <TARGET>\n\nArguments:\n  <TARGET>  Needle ID (`\u2192NNN`), commit hash, or spec path\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "decide",
+    "category": "DAILY WORK",
+    "description": "Append a decision to the decision log",
+    "usage": "Usage: ostk decide [OPTIONS] <KEY> <VALUE>",
+    "options": [
+      "<KEY>    Decision key (snake_case identifier)",
+      "<VALUE>  Decision value (the rationale or content)",
+      "--reason <REASON>  Optional reason explaining why the decision was made",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Append a decision to the decision log\n\nUsage: ostk decide [OPTIONS] <KEY> <VALUE>\n\nArguments:\n  <KEY>    Decision key (snake_case identifier)\n  <VALUE>  Decision value (the rationale or content)\n\nOptions:\n      --reason <REASON>  Optional reason explaining why the decision was made\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "commit",
+    "category": "DAILY WORK",
+    "description": "Create a git commit with spec, section, and needle attribution",
+    "usage": "Usage: ostk commit [OPTIONS] --message <MESSAGE>",
+    "options": [
+      "-m, --message <MESSAGE>  Commit message description",
+      "--spec <SPEC>        Spec name (file in docs/spec/, without .md)",
+      "--section <SECTION>  Section within the spec",
+      "-v, --verbose            Print info-level kernel logs to stderr",
+      "--bead <BEAD>        Needle ID to attribute (deprecated: use --needle)",
+      "--needle <NEEDLE>    Needle ID to attribute (canonical; --bead is a deprecated alias)",
+      "--agent <AGENT>      Agent name [default: orchestrator]",
+      "-h, --help               Print help"
+    ],
+    "raw_help": "Create a git commit with spec, section, and needle attribution\n\nUsage: ostk commit [OPTIONS] --message <MESSAGE>\n\nOptions:\n  -m, --message <MESSAGE>  Commit message description\n      --spec <SPEC>        Spec name (file in docs/spec/, without .md)\n      --section <SECTION>  Section within the spec\n  -v, --verbose            Print info-level kernel logs to stderr\n      --bead <BEAD>        Needle ID to attribute (deprecated: use --needle)\n      --needle <NEEDLE>    Needle ID to attribute (canonical; --bead is a deprecated alias)\n      --agent <AGENT>      Agent name [default: orchestrator]\n  -h, --help               Print help\n"
+  },
+  {
+    "name": "should",
+    "category": "DAILY WORK",
+    "description": "File a bug or feature request",
+    "usage": "Usage: ostk should [OPTIONS] [DESCRIPTION]...",
+    "options": [
+      "[DESCRIPTION]...  What ostk should do (natural language)",
+      "--no-refine  Skip AI refinement \u2014 use dumb label inference only",
+      "-v, --verbose    Print info-level kernel logs to stderr",
+      "-h, --help       Print help"
+    ],
+    "raw_help": "File a bug or feature request\n\nUsage: ostk should [OPTIONS] [DESCRIPTION]...\n\nArguments:\n  [DESCRIPTION]...  What ostk should do (natural language)\n\nOptions:\n      --no-refine  Skip AI refinement \u2014 use dumb label inference only\n  -v, --verbose    Print info-level kernel logs to stderr\n  -h, --help       Print help\n"
+  },
+  {
+    "name": "work",
+    "category": "WORK PIPELINE",
+    "description": "Operate on the needle pipeline",
+    "usage": "Usage: ostk work [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Operate on the needle pipeline\n\nUsage: ostk work [OPTIONS] <COMMAND>\n\nCommands:\n  pull       Claim the next available needle and begin work\n  hay        Capture a thought into the hay pile, or list clustered hay\n  compile    Triage hay into needles, or keep as hay\n  index      Re-index hay and drafts for semantic search\n  add        Create a needle with title, priority, AC, tags, and edges\n  close      Close a needle with an optional reason\n  release    Release a claimed needle so it can be re-dispatched\n  promote    Change a needle's priority\n  edit       Edit fields on an existing needle\n  link       Add a relation edge between a needle and a target\n  list       List needles, optionally filtered by status or priority\n  next       Show or claim the next available task\n  depends    Show the dependency graph for a needle\n  refine     Validate, link, and assess a list of needles\n  compound   Append intent text to a needle to densify it\n  radiate    Show frontier rings around a high-degree needle\n  sphere     Show sphere digest for a needle \u2014 members, joints, hay\n  near       Find needles and hay by concept \u2014 neighborhood discovery\n  unlink     Remove a joint between two needles\n  activate   Pre-flight briefing for a needle \u2014 sphere, blockers, hay\n  lineage    Resolve an Ask-pending session lineage\n  related    Find semantically related code symbols\n  compounds  Show highest-compounding needles\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "trust",
+    "category": "IDENTITY & SECURITY",
+    "description": "Sign, rotate, migrate, and revoke trust keys and primefiles",
+    "usage": "Usage: ostk trust [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Sign, rotate, migrate, and revoke trust keys and primefiles\n\nUsage: ostk trust [OPTIONS] <COMMAND>\n\nCommands:\n  sign          Sign HUMANFILE, Agentfiles, or ceremony artifacts\n  keys          List, rotate, or reconcile TrustRoot and PinStore entries\n  primefile     Run the primefile rotation ceremony\n  migrate-keys  Migrate signing keys from GPG to Ed25519\n  revoke        Compute the revocation hash for an Agentfile\n  attestation   OAE legacy-shim attestation telemetry\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "secret",
+    "category": "IDENTITY & SECURITY",
+    "description": "Manage keychain secrets \u2014 keys never enter LLM context",
+    "usage": "Usage: ostk secret [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Manage keychain secrets \u2014 keys never enter LLM context\n\nUsage: ostk secret [OPTIONS] <COMMAND>\n\nCommands:\n  set   Store a secret in the platform keychain\n  get   Retrieve a secret to stdout for subprocess capture\n  list  List secret key names \u2014 never values\n  env   Print a shell `export KEY=...` statement\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "grant",
+    "category": "IDENTITY & SECURITY",
+    "description": "Approve or deny privilege escalation requests",
+    "usage": "Usage: ostk grant [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Approve or deny privilege escalation requests\n\nUsage: ostk grant [OPTIONS] <COMMAND>\n\nCommands:\n  list     List privilege requests, optionally filtered by status\n  approve  Approve a request with a TTL and optional scope\n  deny     Deny a privilege request with a reason\n  show     Show details for a specific request\n  types    List available privilege request types\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "recovery",
+    "category": "RECOVERY & FLEET",
+    "description": "Recover from incidents \u2014 graveyard, repair, rescue, assess",
+    "usage": "Usage: ostk recovery [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Recover from incidents \u2014 graveyard, repair, rescue, assess\n\nUsage: ostk recovery [OPTIONS] <COMMAND>\n\nCommands:\n  graveyard      Generate or apply a recovery plan from an assessment\n  repair         Rebuild OAE envelopes from legacy sigs or TOFU keys\n  rescue         Boot in rescue mode \u2014 skip primefile verify\n  assess         Read-only discrepancy report \u2014 pair with `--dry-run`\n  journal-reset  Mark an operator-initiated journal reset boundary\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "fleet",
+    "category": "RECOVERY & FLEET",
+    "description": "Sign, verify, rotate, and revoke fleet MANIFESTs",
+    "usage": "Usage: ostk fleet [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Sign, verify, rotate, and revoke fleet MANIFESTs\n\nUsage: ostk fleet [OPTIONS] <COMMAND>\n\nCommands:\n  manifest  Sign, verify, rotate, or revoke fleet MANIFESTs\n  profile   Verify cold-path Agentfile profiles\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "ps",
+    "category": "RECOVERY & FLEET",
+    "description": "Show the fleet with pid, ppid, pgid, sid columns",
+    "usage": "Usage: ostk ps [OPTIONS]",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Show the fleet with pid, ppid, pgid, sid columns\n\nUsage: ostk ps [OPTIONS]\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "pstree",
+    "category": "RECOVERY & FLEET",
+    "description": "Render the fleet as a process tree",
+    "usage": "Usage: ostk pstree [OPTIONS]",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Render the fleet as a process tree\n\nUsage: ostk pstree [OPTIONS]\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "kill",
+    "category": "RECOVERY & FLEET",
+    "description": "Send a signal to an agent over the kernel inbox",
+    "usage": "Usage: ostk kill [OPTIONS] --signal <SIGNAL> <ALIAS>",
+    "options": [
+      "<ALIAS>  Target agent alias",
+      "-N, --signal <SIGNAL>  Signal name (SIG\u2026) or number. e.g. `-N SIGTERM`, `-N TERM`, `-N 15`",
+      "--reason <REASON>  Optional side-channel payload (for SIGREDIRECT / SIGBAIL)",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Send a signal to an agent over the kernel inbox\n\nUsage: ostk kill [OPTIONS] --signal <SIGNAL> <ALIAS>\n\nArguments:\n  <ALIAS>  Target agent alias\n\nOptions:\n  -N, --signal <SIGNAL>  Signal name (SIG\u2026) or number. e.g. `-N SIGTERM`, `-N TERM`, `-N 15`\n      --reason <REASON>  Optional side-channel payload (for SIGREDIRECT / SIGBAIL)\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "pkill",
+    "category": "RECOVERY & FLEET",
+    "description": "Send a signal to every agent in a process group",
+    "usage": "Usage: ostk pkill [OPTIONS] --pgid <PGID>",
+    "options": [
+      "-g, --pgid <PGID>      Process group id (from `ostk ps`)",
+      "-N, --signal <SIGNAL>  Signal name (SIG-prefixed or short form). Default: SIGTERM [default: SIGTERM]",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Send a signal to every agent in a process group\n\nUsage: ostk pkill [OPTIONS] --pgid <PGID>\n\nOptions:\n  -g, --pgid <PGID>      Process group id (from `ostk ps`)\n  -N, --signal <SIGNAL>  Signal name (SIG-prefixed or short form). Default: SIGTERM [default: SIGTERM]\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "attach",
+    "category": "RECOVERY & FLEET",
+    "description": "Attach to a detachable agent's event stream",
+    "usage": "Usage: ostk attach [OPTIONS] <NAME>",
+    "options": [
+      "<NAME>  Agent name to attach to",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Attach to a detachable agent's event stream\n\nUsage: ostk attach [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  Agent name to attach to\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "run",
+    "category": "RECOVERY & FLEET",
+    "description": "Run an agent from an Agentfile",
+    "usage": "Usage: ostk run [OPTIONS] <AGENTFILE>",
+    "options": [
+      "<AGENTFILE>  Path to the Agentfile",
+      "--env-passthrough <KEY>  Inject an authorized secret into agent env",
+      "--runtime <RUNTIME>      Runtime: \"host\" or \"qemu\" [default: host]",
+      "--dry-run                Only show what would be done",
+      "-v, --verbose                Print info-level kernel logs to stderr",
+      "-h, --help                   Print help"
+    ],
+    "raw_help": "Run an agent from an Agentfile\n\nUsage: ostk run [OPTIONS] <AGENTFILE>\n\nArguments:\n  <AGENTFILE>  Path to the Agentfile\n\nOptions:\n      --env-passthrough <KEY>  Inject an authorized secret into agent env\n      --runtime <RUNTIME>      Runtime: \"host\" or \"qemu\" [default: host]\n      --dry-run                Only show what would be done\n  -v, --verbose                Print info-level kernel logs to stderr\n  -h, --help                   Print help\n"
+  },
+  {
+    "name": "agentfile",
+    "category": "DOCUMENTATION & SPECS",
+    "description": "Scaffold, list, render, lint, validate, or migrate Agentfiles",
+    "usage": "Usage: ostk agentfile [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Scaffold, list, render, lint, validate, or migrate Agentfiles\n\nUsage: ostk agentfile [OPTIONS] <COMMAND>\n\nCommands:\n  new       Scaffold a new Agentfile from a profile template\n  list      List Agentfiles under .ostk/agents/ and .ostk/profiles/\n  show      Render a parsed Agentfile with its signature status\n  lint      Lint cross-directive rules \u2014 RESTART, HEALTHCHECK, FROM-PROFILE\n  validate  Parse, sign-verify, and lint with an outcome envelope\n  migrate   Migrate a legacy Agentfile to the new grammar\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "doc",
+    "category": "DOCUMENTATION & SPECS",
+    "description": "Draft, promote, or decompose a spec",
+    "usage": "Usage: ostk doc [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Draft, promote, or decompose a spec\n\nUsage: ostk doc [OPTIONS] <COMMAND>\n\nCommands:\n  draft      Create a new draft markdown document\n  promote    Promote a draft to a spec\n  decompose  Decompose a spec or needle into sub-needles\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "serve",
+    "category": "INFRASTRUCTURE",
+    "description": "Run the kernel server on `--transport mcp` or `--transport uds`",
+    "usage": "Usage: ostk serve [OPTIONS] [COMMAND]",
+    "options": [
+      "--transport <TRANSPORT>",
+      "Which transport to bring up. Ignored when a sub-verb (e.g. `embeddings`) is given"
+    ],
+    "raw_help": "Run the kernel server on `--transport mcp` or `--transport uds`\n\nUsage: ostk serve [OPTIONS] [COMMAND]\n\nCommands:\n  embeddings  Manage the embedding model \u2014 download or status\n\nOptions:\n      --transport <TRANSPORT>\n          Which transport to bring up. Ignored when a sub-verb (e.g. `embeddings`) is given\n\n          Possible values:\n          - mcp: MCP kernel server on stdio (was `ostk mcp`)\n          - uds: Kernel daemon on a Unix domain socket (was `ostk daemon`)\n          \n          [default: mcp]\n\n  -v, --verbose\n          Print info-level kernel logs to stderr\n\n  -h, --help\n          Print help (see a summary with '-h')\n"
+  },
+  {
+    "name": "vfs",
+    "category": "INFRASTRUCTURE",
+    "description": "Mount the .ostk/ overlay as a read-through filesystem",
+    "usage": "Usage: ostk vfs [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Mount the .ostk/ overlay as a read-through filesystem\n\nUsage: ostk vfs [OPTIONS] <COMMAND>\n\nCommands:\n  mount          Mount the VFS at the given path \u2014 blocks until unmounted\n  unmount        Unmount the VFS at the given path\n  status         Report current VFS mount status\n  unmount-stale  Force-unmount stale FUSE entries with dead daemons\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "driver",
+    "category": "INFRASTRUCTURE",
+    "description": "List, call, or serve fcp device drivers",
+    "usage": "Usage: ostk driver [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "List, call, or serve fcp device drivers\n\nUsage: ostk driver [OPTIONS] <COMMAND>\n\nCommands:\n  list   List configured device drivers\n  call   Call a tool on a device driver with key=value args\n  serve  Run a device driver on a Unix domain socket\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "bail",
+    "category": "INFRASTRUCTURE",
+    "description": "Pack, unpack, or verify a signed portable OS package",
+    "usage": "Usage: ostk bail [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Pack, unpack, or verify a signed portable OS package\n\nUsage: ostk bail [OPTIONS] <COMMAND>\n\nCommands:\n  pack    Pack a signed portable OS-state package\n  unpack  Unpack a bail \u2014 verify signature and apply state\n  verify  Verify a bail's signature without unpacking\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "mlx",
+    "category": "INFRASTRUCTURE",
+    "description": "Manage the kernel mlx_lm.server",
+    "usage": "Usage: ostk mlx [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Manage the kernel mlx_lm.server\n\nUsage: ostk mlx [OPTIONS] <COMMAND>\n\nCommands:\n  status  List tracked mlx_lm.server instances and their health\n  start   Spawn an mlx_lm.server instance\n  stop    Send SIGTERM to a tracked instance, or all with `--all`\n  log     Tail the mlx_lm.server log for a port\n  models  List MLX models cached under ~/.cache/huggingface/hub\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "machined",
+    "category": "INFRASTRUCTURE",
+    "description": "Operator supervisor for llmos-machined (Unix only)",
+    "usage": "Usage: ostk machined [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Operator supervisor for llmos-machined (Unix only)\n\nUsage: ostk machined [OPTIONS] <COMMAND>\n\nCommands:\n  start              Start the machined supervisor in the foreground\n  stop               Send `SIGTERM` to the running machined supervisor\n  status             Print machined supervisor status\n  fleets             List adopted project daemons (fleet view)\n  cert               Cert ceremonies (`issue`, `issue --renew`, `issue --renew --seq=N`)\n  claim-shared-root  Force-claim a project root whose `.ostk/state/machined_lock.json` sentinel was written by a foreign `machine_id` (spec \u00a79.8)\n  peers              Federation peer registry at `~/.ostk/peers.toml` (\u00a75.4 + \u00a73.4). Track F (\u21921722)\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "inspect",
+    "category": "DIAGNOSTICS",
+    "description": "Print platform helpers, IPC endpoints, and gate leakage",
+    "usage": "Usage: ostk inspect [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Print platform helpers, IPC endpoints, and gate leakage\n\nUsage: ostk inspect [OPTIONS] <COMMAND>\n\nCommands:\n  platform  Print platform info: OS, helper implementations, IPC endpoints, gate leakage. Exits 0\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "profile",
+    "category": "DIAGNOSTICS",
+    "description": "Profile the ISA \u2014 opcodes, tokens, TTFT, generation, drift",
+    "usage": "Usage: ostk profile [OPTIONS] <COMMAND>",
+    "options": [
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Profile the ISA \u2014 opcodes, tokens, TTFT, generation, drift\n\nUsage: ostk profile [OPTIONS] <COMMAND>\n\nCommands:\n  abi        Validate opcodes against S7.2 cost budgets (S8.4 gate)\n  tokens     Per-turn token budget breakdown (S9, \u00a75.5.1 TurnFrame.tokens)\n  ttft       TTFT and generation latency histogram (S9)\n  gen        Generation-phase throughput tokens/s (S9)\n  offenders  Top-N commands by token cost -- ->1495 hook (S9)\n  cache      Cache hit rate + prefix-invalidation events (S2.7, S9). \u21921550: --policy/--since/--until filters, --group-by for A/B\n  emit       Emission-cost attribution per EmitCategory (\u21921528 \u00a72 sized-for-little)\n  drift      Cache drift analysis between two api.call rows (\u21921544)\n  sessions   Fleet session accounting: message counts + token/cost estimates (\u21921561)\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "validate",
+    "category": "DIAGNOSTICS",
+    "description": "Plan a CONTROL/REGISTER/JUDGE validation phase from a corpus",
+    "usage": "Usage: ostk validate [OPTIONS] --phase <PHASE>",
+    "options": [
+      "--phase <PHASE>    Validation phase number",
+      "--corpus <CORPUS>  Path to corpus JSONL file [default: tasks/build-corpus.jsonl]",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Plan a CONTROL/REGISTER/JUDGE validation phase from a corpus\n\nUsage: ostk validate [OPTIONS] --phase <PHASE>\n\nOptions:\n      --phase <PHASE>    Validation phase number\n      --corpus <CORPUS>  Path to corpus JSONL file [default: tasks/build-corpus.jsonl]\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "bench",
+    "category": "DIAGNOSTICS",
+    "description": "Run needle-bench cargo tests, Docker scenarios, or leaderboard",
+    "usage": "Usage: ostk bench [OPTIONS] [SCENARIO]",
+    "options": [
+      "[SCENARIO]  Specific scenario name to run",
+      "-l, --list             List all available scenarios",
+      "--cargo-only       Run cargo tests only",
+      "-m, --model <MODEL>    Model name for Docker scenarios [default: claude-sonnet-4-6]",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-d, --docker           Run Docker scenarios only",
+      "-s, --score            Render leaderboard from existing results",
+      "-a, --arm <ARM>        Experiment arm: native, kernel, or both (default: both) [default: both]",
+      "--all              Run all Docker scenarios",
+      "--local            Use locally cross-compiled ostk binary for kernel arm (skip download)",
+      "--driver <DRIVER>  Driver for kernel arm: openrouter (default, consistent API) or cpu (optimized native drivers) [default: openrouter]",
+      "--keep             Keep containers after run for investigation (skip cleanup)",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Run needle-bench cargo tests, Docker scenarios, or leaderboard\n\nUsage: ostk bench [OPTIONS] [SCENARIO]\n\nArguments:\n  [SCENARIO]  Specific scenario name to run\n\nOptions:\n  -l, --list             List all available scenarios\n      --cargo-only       Run cargo tests only\n  -m, --model <MODEL>    Model name for Docker scenarios [default: claude-sonnet-4-6]\n  -v, --verbose          Print info-level kernel logs to stderr\n  -d, --docker           Run Docker scenarios only\n  -s, --score            Render leaderboard from existing results\n  -a, --arm <ARM>        Experiment arm: native, kernel, or both (default: both) [default: both]\n      --all              Run all Docker scenarios\n      --local            Use locally cross-compiled ostk binary for kernel arm (skip download)\n      --driver <DRIVER>  Driver for kernel arm: openrouter (default, consistent API) or cpu (optimized native drivers) [default: openrouter]\n      --keep             Keep containers after run for investigation (skip cleanup)\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "boot",
+    "category": "SYSTEM SETUP",
+    "description": "Read .ostk/ state and report boot status",
+    "usage": "Usage: ostk boot [OPTIONS]",
+    "options": [
+      "--bail           Fail-fast: exit non-zero if POST check fails or checkpoint is stale",
+      "--update-prompt  Update the continuation prompt from kernel state",
+      "--rescue         Diagnostic rescue mode: skip primefile verification and proceed with code-seeded anchors only (docs/spec/primefile-rooted-trust- root-admission.md \u00a7Commit 5). Emits a `boot.rescue` audit row",
+      "-v, --verbose        Print info-level kernel logs to stderr",
+      "-h, --help           Print help"
+    ],
+    "raw_help": "Read .ostk/ state and report boot status\n\nUsage: ostk boot [OPTIONS]\n\nOptions:\n      --bail           Fail-fast: exit non-zero if POST check fails or checkpoint is stale\n      --update-prompt  Update the continuation prompt from kernel state\n      --rescue         Diagnostic rescue mode: skip primefile verification and proceed with code-seeded anchors only (docs/spec/primefile-rooted-trust- root-admission.md \u00a7Commit 5). Emits a `boot.rescue` audit row\n  -v, --verbose        Print info-level kernel logs to stderr\n  -h, --help           Print help\n"
+  },
+  {
+    "name": "init",
+    "category": "SYSTEM SETUP",
+    "description": "Bootstrap, repair, or supervise an ostk project",
+    "usage": "Usage: ostk init [OPTIONS] [SUBCOMMAND]",
+    "options": [
+      "[SUBCOMMAND]  Subcommand for Phase 4 (\u21921566) supervisor: start, stop, status, fleets. When omitted, runs the legacy project initializer (or the Phase 3 flags below) [possible values: start, stop, status, fleets]",
+      "--guided                     Interactive guided setup with step-by-step configuration",
+      "--import                     Import existing repo: scan git history, README, issues into needles",
+      "--from-export <FROM_EXPORT>  Seed from an export bail after init",
+      "-v, --verbose                    Print info-level kernel logs to stderr",
+      "--attest                     Attest identity files to Sigstore after GPG signing",
+      "--subreap-only               Phase 3 (\u21921565): run as the subreaper process. Acquires .ostk/init.lock, walks .ostk/ on a 60s/5s/event-driven cadence, reaps dead-owned files via same_fs_rename (\u21921584). Singleton; second invocation errors with a lock conflict",
+      "--assess                     v2.2 \u00a7B.2: read-only assessment pass. MUST be paired with `--dry-run` (the bare `--assess` form is reserved for a future alias). Emits a JSON discrepancy report to stdout and exits 0 without mutating state. Run before `ostk graveyard plan` for incident recovery",
+      "--dry-run                    v2.2 \u00a7B.2: with `--assess`, perform the walk without any mutation. The discrepancy report is the only side-effect (stdout). Without `--assess`, this flag is reserved",
+      "--force                      With --assess --dry-run (or recovery internals): re-stamp files already migrated",
+      "--emit-isa                   BOOT_ISA_V22_REWRITE_RATIFIED: regenerate the canonical block of `.ostk/.boot/INIT` from live state (primefile keys, kernel version, invariant table, confidence formula). Operator-edited sections outside the GEN_BEGIN/GEN_END markers are preserved. Defaults to stdout; use `--in-place` to write the file",
+      "--verify-isa                 BOOT_ISA_V22_REWRITE_RATIFIED: diff the on-disk `.boot/INIT` generated section against live state. Exits non-zero on drift with a per-directive report. No file mutation",
+      "--in-place                   With `--emit-isa`: write the rendered file to disk instead of printing to stdout",
+      "-h, --help                       Print help"
+    ],
+    "raw_help": "Bootstrap, repair, or supervise an ostk project\n\nUsage: ostk init [OPTIONS] [SUBCOMMAND]\n\nArguments:\n  [SUBCOMMAND]  Subcommand for Phase 4 (\u21921566) supervisor: start, stop, status, fleets. When omitted, runs the legacy project initializer (or the Phase 3 flags below) [possible values: start, stop, status, fleets]\n\nOptions:\n      --guided                     Interactive guided setup with step-by-step configuration\n      --import                     Import existing repo: scan git history, README, issues into needles\n      --from-export <FROM_EXPORT>  Seed from an export bail after init\n  -v, --verbose                    Print info-level kernel logs to stderr\n      --attest                     Attest identity files to Sigstore after GPG signing\n      --subreap-only               Phase 3 (\u21921565): run as the subreaper process. Acquires .ostk/init.lock, walks .ostk/ on a 60s/5s/event-driven cadence, reaps dead-owned files via same_fs_rename (\u21921584). Singleton; second invocation errors with a lock conflict\n      --assess                     v2.2 \u00a7B.2: read-only assessment pass. MUST be paired with `--dry-run` (the bare `--assess` form is reserved for a future alias). Emits a JSON discrepancy report to stdout and exits 0 without mutating state. Run before `ostk graveyard plan` for incident recovery\n      --dry-run                    v2.2 \u00a7B.2: with `--assess`, perform the walk without any mutation. The discrepancy report is the only side-effect (stdout). Without `--assess`, this flag is reserved\n      --force                      With --assess --dry-run (or recovery internals): re-stamp files already migrated\n      --emit-isa                   BOOT_ISA_V22_REWRITE_RATIFIED: regenerate the canonical block of `.ostk/.boot/INIT` from live state (primefile keys, kernel version, invariant table, confidence formula). Operator-edited sections outside the GEN_BEGIN/GEN_END markers are preserved. Defaults to stdout; use `--in-place` to write the file\n      --verify-isa                 BOOT_ISA_V22_REWRITE_RATIFIED: diff the on-disk `.boot/INIT` generated section against live state. Exits non-zero on drift with a per-directive report. No file mutation\n      --in-place                   With `--emit-isa`: write the rendered file to disk instead of printing to stdout\n  -h, --help                       Print help\n"
+  },
+  {
+    "name": "hook",
+    "category": "SYSTEM SETUP",
+    "description": "Harness hook handlers \u2014 kernel syscall boundary",
+    "usage": "Usage: ostk hook [OPTIONS] [ARGS]...",
+    "options": [
+      "[ARGS]...  Subcommand: install, uninstall, pre-tool, post-tool, post-fail, agent-start, agent-stop, session-start, session-end",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "Harness hook handlers \u2014 kernel syscall boundary\n\nUsage: ostk hook [OPTIONS] [ARGS]...\n\nArguments:\n  [ARGS]...  Subcommand: install, uninstall, pre-tool, post-tool, post-fail, agent-start, agent-stop, session-start, session-end\n\nOptions:\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "completions",
+    "category": "SYSTEM SETUP",
+    "description": "Emit a shell completion script. ostk completions bash       > ~/.local/share/bash-completion/completions/ostk ostk completions zsh        > \"${fpath[1]}/_ostk\" ostk completions fish       > ~/.config/fish/completions/ostk.fish ostk completions powershell > $PROFILE  # append",
+    "usage": "Usage: ostk completions [OPTIONS] <SHELL>",
+    "options": [
+      "<SHELL>",
+      "Target shell",
+      "[possible values: bash, zsh, fish, powershell, elvish]",
+      "-v, --verbose",
+      "Print info-level kernel logs to stderr",
+      "-h, --help",
+      "Print help (see a summary with '-h')"
+    ],
+    "raw_help": "Emit a shell completion script.\n\nPipe the output into the appropriate completion file for your shell:\n\n  ostk completions bash       > ~/.local/share/bash-completion/completions/ostk\n  ostk completions zsh        > \"${fpath[1]}/_ostk\"\n  ostk completions fish       > ~/.config/fish/completions/ostk.fish\n  ostk completions powershell > $PROFILE  # append\n\nUsage: ostk completions [OPTIONS] <SHELL>\n\nArguments:\n  <SHELL>\n          Target shell\n          \n          [possible values: bash, zsh, fish, powershell, elvish]\n\nOptions:\n  -v, --verbose\n          Print info-level kernel logs to stderr\n\n  -h, --help\n          Print help (see a summary with '-h')\n"
+  },
+  {
+    "name": "mem-fault-recall",
+    "category": "OTHER",
+    "description": "Synthesize recall hits into virtual memory pages",
+    "usage": "Usage: ostk mem-fault-recall [OPTIONS] <QUERY>",
+    "options": [
+      "<QUERY>  Search query",
+      "--intent <INTENT>  Retrieval intent: symbol, narrative, trace, general",
+      "--limit <LIMIT>    Maximum hits to synthesize [default: 10]",
+      "--json             Emit JSON",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "Synthesize recall hits into virtual memory pages\n\nUsage: ostk mem-fault-recall [OPTIONS] <QUERY>\n\nArguments:\n  <QUERY>  Search query\n\nOptions:\n      --intent <INTENT>  Retrieval intent: symbol, narrative, trace, general\n      --limit <LIMIT>    Maximum hits to synthesize [default: 10]\n      --json             Emit JSON\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  },
+  {
+    "name": "recall",
+    "category": "OTHER",
+    "description": "\u21921801 (W2.1, EPIC \u21921798): `recall` ISA opcode \u2014 fetch a substrate record by address. The shell binding mirrors the MCP tool surface",
+    "usage": "Usage: ostk recall [OPTIONS] <ADDR>",
+    "options": [
+      "<ADDR>  Substrate address (`\u2192NNN`, `decision:KEY`, `seq:N`, `path:rel`, `file-...`, or a bare path containing `/`)",
+      "--json     Emit JSON",
+      "-v, --verbose  Print info-level kernel logs to stderr",
+      "-h, --help     Print help"
+    ],
+    "raw_help": "\u21921801 (W2.1, EPIC \u21921798): `recall` ISA opcode \u2014 fetch a substrate record by address. The shell binding mirrors the MCP tool surface\n\nUsage: ostk recall [OPTIONS] <ADDR>\n\nArguments:\n  <ADDR>  Substrate address (`\u2192NNN`, `decision:KEY`, `seq:N`, `path:rel`, `file-...`, or a bare path containing `/`)\n\nOptions:\n      --json     Emit JSON\n  -v, --verbose  Print info-level kernel logs to stderr\n  -h, --help     Print help\n"
+  },
+  {
+    "name": "recall-outline",
+    "category": "OTHER",
+    "description": "\u21921801 (W2.1): `recall_outline` ISA opcode \u2014 hierarchical outline (title + children) for a recall address",
+    "usage": "Usage: ostk recall-outline [OPTIONS] <ADDR>",
+    "options": [
+      "<ADDR>  Substrate address (see `ostk recall --help`)",
+      "--depth <DEPTH>  Recursion depth cap (default 1) [default: 1]",
+      "--json           Emit JSON",
+      "-v, --verbose        Print info-level kernel logs to stderr",
+      "-h, --help           Print help"
+    ],
+    "raw_help": "\u21921801 (W2.1): `recall_outline` ISA opcode \u2014 hierarchical outline (title + children) for a recall address\n\nUsage: ostk recall-outline [OPTIONS] <ADDR>\n\nArguments:\n  <ADDR>  Substrate address (see `ostk recall --help`)\n\nOptions:\n      --depth <DEPTH>  Recursion depth cap (default 1) [default: 1]\n      --json           Emit JSON\n  -v, --verbose        Print info-level kernel logs to stderr\n  -h, --help           Print help\n"
+  },
+  {
+    "name": "recall-search",
+    "category": "OTHER",
+    "description": "\u21921801 (W2.1): `recall_search` ISA opcode \u2014 substrate-wide search",
+    "usage": "Usage: ostk recall-search [OPTIONS] <QUERY>",
+    "options": [
+      "<QUERY>  Search query (literal or regex per `--mode`)",
+      "--scope <SCOPE>  Search scope: code, files, work, history, decisions, transcripts, all [default: all]",
+      "--mode <MODE>    Match mode: hybrid (default), literal, semantic, index, substrate [default: hybrid]",
+      "--limit <LIMIT>  Maximum hits to return [default: 25]",
+      "-v, --verbose        Print info-level kernel logs to stderr",
+      "--json           Emit JSON",
+      "-h, --help           Print help"
+    ],
+    "raw_help": "\u21921801 (W2.1): `recall_search` ISA opcode \u2014 substrate-wide search\n\nUsage: ostk recall-search [OPTIONS] <QUERY>\n\nArguments:\n  <QUERY>  Search query (literal or regex per `--mode`)\n\nOptions:\n      --scope <SCOPE>  Search scope: code, files, work, history, decisions, transcripts, all [default: all]\n      --mode <MODE>    Match mode: hybrid (default), literal, semantic, index, substrate [default: hybrid]\n      --limit <LIMIT>  Maximum hits to return [default: 25]\n  -v, --verbose        Print info-level kernel logs to stderr\n      --json           Emit JSON\n  -h, --help           Print help\n"
+  },
+  {
+    "name": "seal",
+    "category": "OTHER",
+    "description": "\u21921851: fire a manual journal seal \u2014 operator-driven rotation for forensic checkpointing or session-end without a git commit",
+    "usage": "Usage: ostk seal [OPTIONS]",
+    "options": [
+      "--reason <REASON>  Optional reason for the seal (recorded in the audit row)",
+      "-v, --verbose          Print info-level kernel logs to stderr",
+      "-h, --help             Print help"
+    ],
+    "raw_help": "\u21921851: fire a manual journal seal \u2014 operator-driven rotation for forensic checkpointing or session-end without a git commit\n\nUsage: ostk seal [OPTIONS]\n\nOptions:\n      --reason <REASON>  Optional reason for the seal (recorded in the audit row)\n  -v, --verbose          Print info-level kernel logs to stderr\n  -h, --help             Print help\n"
+  }
+]

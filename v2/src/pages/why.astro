@@ -27,10 +27,10 @@ const sidebarGroups = {
       <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Why ostk</h1>
 
       <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
-        ostk is a Rust binary that sits underneath whatever drives your agents. Three things break without it.
+        ostk is a modular local-first runtime that sits underneath whatever drives your agents. Three things break without it.
       </p>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-16">
-        You're using AI agents to code. ostk fixes the three things below without changing how you drive them.
+        You're using AI agents to code. ostk resolves the three core failure modes of autonomous coding using a decoupled, open-source stack.
       </p>
 
       <!-- Problem 1 -->
@@ -39,13 +39,13 @@ const sidebarGroups = {
         <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">They collide.</h2>
         <div class="max-w-xl space-y-4">
           <p class="font-body text-sm text-secondary leading-relaxed">
-            Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently. The first agent's work is gone, and nothing tells you it happened.
+            Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently overwriting files. The first agent's work is lost, and the system fails silently.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">ostk's answer:</strong> the second writer always sees the conflict. Whichever agent edits stale gets a loud failure with a diff, not a silent loss. Nothing disappears between you and what your agents actually did.
+            <strong class="text-on-surface">Modular Solution:</strong> The <code>ostk-core</code> daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
           </p>
           <p class="font-body text-xs text-outline">
-            How: optimistic concurrency at the filesystem layer (<a href="/docs/architecture/" class="text-primary hover:underline">architecture</a>).
+            Handled by: <a href="/docs/ostk-core/" class="text-primary hover:underline">ostk-core daemon</a> & <a href="/docs/libostk/" class="text-primary hover:underline">libostk IPC client</a>.
           </p>
         </div>
       </section>
@@ -56,13 +56,13 @@ const sidebarGroups = {
         <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">They drift.</h2>
         <div class="max-w-xl space-y-4">
           <p class="font-body text-sm text-secondary leading-relaxed">
-            Each agent runs in its own context window. They re-discover the same things. They forget what was already decided. They don't see each other's work. You repeat yourself across sessions and across agents.
+            Each agent session runs in its own context window. They re-discover codebase details. They forget previous decisions. They don't see concurrent actions, forcing you to manually copy and paste context across chats.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">ostk's answer:</strong> a shared state directory at <code class="text-primary">.ostk/</code>. Decisions, open questions ("needles"), agent identity, audit history — all observed by every agent that boots into the project. New agents resume context. Old agents leave breadcrumbs. The project develops a memory.
+            <strong class="text-on-surface">Modular Solution:</strong> The <code>ostk-recall</code> memory MCP server watches the workspace via socket notifications, indexing changes incrementally to a local LanceDB vector store. Built-in tools let the agent retrieve real-time context without wasting context window or suffering drift.
           </p>
           <p class="font-body text-xs text-outline">
-            One observed state. The directory is the database.
+            Handled by: <a href="/docs/ostk-recall/" class="text-primary hover:underline">ostk-recall MCP server</a> with local embeddings.
           </p>
         </div>
       </section>
@@ -73,13 +73,13 @@ const sidebarGroups = {
         <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">They leave no trace.</h2>
         <div class="max-w-xl space-y-4">
           <p class="font-body text-sm text-secondary leading-relaxed">
-            Something went wrong. Or right, and you want to reproduce it. There's no record of which agent did what against which version of which code, signed by whom. You can't replay. You can't audit. You can't prove what shipped.
+            Something went wrong. There's no auditable record of what prompt generated a command, what files were read, or who authorized the action. Security reviews stall because proprietary binary wrappers hide agent execution.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">ostk's answer:</strong> every action is an append-only event in <code class="text-primary">.ostk/journal.jsonl</code>, hash-chained and Ed25519-signed in-process. Replay it. Diff it across sessions. Sign a release against it. Capability boundaries (<a href="/docs/pins/" class="text-primary hover:underline">pin caps</a>) say what each agent is allowed to touch — escapes are denied and logged.
+            <strong class="text-on-surface">Modular Solution:</strong> Every action is logged to a structured, append-only Write-Ahead Log (WAL) that is cryptographically signed. Because our client integration layer — <code>libostk</code> — is **MIT licensed and fully open-source**, operators can audit the socket communication directly. There are no opaque binary wrappers: you get absolute visibility and total control.
           </p>
           <p class="font-body text-xs text-outline">
-            A signed trail. Bounded capability. Reproducibility from first principles.
+            Handled by: <a href="/docs/libostk/" class="text-primary hover:underline">libostk client library</a> & GPG signature chains.
           </p>
         </div>
       </section>
@@ -88,23 +88,20 @@ const sidebarGroups = {
       <section class="mb-16">
         <h2 class="section-label mb-4">THE_SHAPE</h2>
         <p class="font-headline text-lg text-on-surface italic leading-relaxed max-w-xl mb-6">
-          One Rust binary, sitting underneath whatever drives your agents.
+          A decoupled, open-source stack. Adopt only what you need.
         </p>
         <div class="max-w-xl space-y-4 font-body text-sm text-secondary leading-relaxed">
           <p>
-            ostk doesn't replace Claude Code, Cursor, your script, or your local Llama. It sits <em>under</em> them. They write through it. They observe through it. The agent driver doesn't change — but coordination, audit, and capability appear underneath.
+            ostk is built as a set of modular components. You don't have to adopt the full suite. You can drop in <code>ostk-cache</code> to save tokens immediately, connect <code>ostk-recall</code> as an MCP server to add memory to Cursor, or build custom integrations against the permissive MIT-licensed <code>libostk</code>.
           </p>
           <p>
-            One install per machine. <code class="text-primary">ostk init</code> per project. After that:
+            Choose your onboarding path:
           </p>
           <ul class="space-y-2 list-none pl-0">
-            <li><span class="text-primary mr-2">→</span>Drive an agent over <a href="/docs/mcp/" class="text-primary hover:underline">MCP</a> — Claude Code, Cursor, anything that speaks the protocol.</li>
-            <li><span class="text-primary mr-2">→</span>Or use <a href="/start/" class="text-primary hover:underline">ostk's own TUI</a> with a local model (ollama, mlx) for an offline, no-API-bill workflow.</li>
-            <li><span class="text-primary mr-2">→</span>Or run a server and hit it from CI, scripts, or a remote machine.</li>
+            <li><span class="text-primary mr-2">→</span>Explore the modular architecture comparison on our <a href="/stack/" class="text-primary hover:underline">Stack Page</a>.</li>
+            <li><span class="text-primary mr-2">→</span>Read how the userspace client links applications at <a href="/docs/libostk/" class="text-primary hover:underline">libostk Reference</a>.</li>
+            <li><span class="text-primary mr-2">→</span>Install the full CLI daemon for complete integration via <a href="/start/" class="text-primary hover:underline">Quick Start</a>.</li>
           </ul>
-          <p>
-            Same kernel underneath all three. Same audit. Same trust boundaries. Different first 10 minutes.
-          </p>
         </div>
       </section>
 
@@ -136,11 +133,11 @@ const sidebarGroups = {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
           <a href="/start/" class="plausible-event-name=Why+to+Start bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
             <div class="font-body text-sm text-primary font-bold mb-2">→ START_HERE</div>
-            <p class="font-body text-xs text-secondary">Pick a path. Three branches, ten to fifteen minutes each.</p>
+            <p class="font-body text-xs text-secondary">Pick an onboarding path. Install the daemon or adopt components.</p>
           </a>
-          <a href="/docs/architecture/" class="plausible-event-name=Docs+Deep+Dive plausible-event-page=architecture bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
-            <div class="font-body text-sm text-primary font-bold mb-2">→ HOW_IT_WORKS</div>
-            <p class="font-body text-xs text-secondary">The model. Kernel, drivers, agents, the audit chain.</p>
+          <a href="/stack/" class="plausible-event-name=Stack+Overview bg-surface-container-high p-6 hover:bg-surface-container transition-colors">
+            <div class="font-body text-sm text-primary font-bold mb-2">→ THE_STACK</div>
+            <p class="font-body text-xs text-secondary">Review the decoupled components and licensing layout.</p>
           </a>
         </div>
       </section>

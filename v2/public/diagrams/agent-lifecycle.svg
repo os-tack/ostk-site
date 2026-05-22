@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 280" fill="none">
+  <style>
+    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
+    .phase { font-size: 15px; font-weight: 600; }
+    .phase-sub { fill: #a0a0aa; font-size: 11px; font-weight: 400; }
+    .cycle-label { fill: #606068; font-size: 11px; font-weight: 400; font-style: italic; }
+    .box { rx: 6; ry: 6; }
+  </style>
+
+  <!-- Phase 1: boot -->
+  <rect class="box" x="40" y="80" width="110" height="56" fill="#1a1a1e" stroke="#d4a054" stroke-width="1.5"/>
+  <text class="phase" x="95" y="106" text-anchor="middle" fill="#d4a054">boot</text>
+  <text class="phase-sub" x="95" y="124" text-anchor="middle">load state</text>
+
+  <!-- Arrow: boot -> POST -->
+  <line x1="150" y1="108" x2="180" y2="108" stroke="#3a3a42" stroke-width="1.5"/>
+  <polygon points="180,103 192,108 180,113" fill="#3a3a42"/>
+
+  <!-- Phase 2: POST -->
+  <rect class="box" x="195" y="80" width="110" height="56" fill="#1a1a1e" stroke="#3a3a42" stroke-width="1"/>
+  <text class="phase" x="250" y="106" text-anchor="middle" fill="#e8e8ec">POST</text>
+  <text class="phase-sub" x="250" y="124" text-anchor="middle">orient, verify</text>
+
+  <!-- Arrow: POST -> work -->
+  <line x1="305" y1="108" x2="335" y2="108" stroke="#3a3a42" stroke-width="1.5"/>
+  <polygon points="335,103 347,108 335,113" fill="#3a3a42"/>
+
+  <!-- Phase 3: work -->
+  <rect class="box" x="350" y="80" width="110" height="56" fill="#1a1a1e" stroke="#5a9a6a" stroke-width="1.5"/>
+  <text class="phase" x="405" y="106" text-anchor="middle" fill="#5a9a6a">work</text>
+  <text class="phase-sub" x="405" y="124" text-anchor="middle">execute needles</text>
+
+  <!-- Arrow: work -> shutdown -->
+  <line x1="460" y1="108" x2="490" y2="108" stroke="#3a3a42" stroke-width="1.5"/>
+  <polygon points="490,103 502,108 490,113" fill="#3a3a42"/>
+
+  <!-- Phase 4: shutdown -->
+  <rect class="box" x="505" y="80" width="110" height="56" fill="#1a1a1e" stroke="#b85450" stroke-width="1" stroke-opacity="0.6"/>
+  <text class="phase" x="560" y="106" text-anchor="middle" fill="#e8e8ec">shutdown</text>
+  <text class="phase-sub" x="560" y="124" text-anchor="middle">persist state</text>
+
+  <!-- Cycle arrow: shutdown -> boot (bottom path) -->
+  <!-- Down from shutdown -->
+  <line x1="560" y1="136" x2="560" y2="200" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
+  <!-- Across bottom -->
+  <line x1="560" y1="200" x2="95" y2="200" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
+  <!-- Up to boot -->
+  <line x1="95" y1="200" x2="95" y2="141" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
+  <!-- Arrow head -->
+  <polygon points="90,141 95,130 100,141" fill="#d4a054" fill-opacity="0.4"/>
+
+  <!-- Cycle label -->
+  <text class="cycle-label" x="300" y="220" text-anchor="middle">next session</text>
+</svg>

@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="License" description="ostk license terms. Free for personal and internal commercial use. Binary redistribution and reverse engineering prohibited.">
+<Base title="License" description="ostk license terms: open-source AGPL-3.0 for daemons/CLIs and MIT for client libraries.">
   <main id="main-content" class="pt-16 pb-12 px-10 max-w-3xl mx-auto">
     <div class="py-12">
       <div class="section-label mb-4">LEGAL // LICENSE</div>
@@ -11,29 +11,48 @@ import Base from '../../layouts/Base.astro';
       <p class="font-body text-sm text-secondary mb-8">Copyright 2026 ostk.ai. All rights reserved.</p>
 
       <section class="mb-12">
-        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Grant</h2>
-        <p class="font-body text-xs text-secondary mb-4">The ostk binary is provided free of charge for personal and internal commercial use. You may:</p>
-        <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-6">
-          <li><strong class="text-on-surface">Use</strong> the binary for any purpose — personal projects, company work, research, education</li>
-          <li><strong class="text-on-surface">Install</strong> on any number of machines you operate</li>
-          <li><strong class="text-on-surface">Run</strong> in CI/CD pipelines and automated workflows</li>
-        </ul>
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Open Source Licensing Model</h2>
+        <p class="font-body text-xs text-secondary mb-4">
+          The <code>ostk</code> project is committed to open source. We divide our codebase into two primary licensing tiers to balance developer integration freedom with copyleft safeguards:
+        </p>
+        
+        <div class="space-y-4">
+          <div class="bg-surface-container p-5 border-l-2 border-primary">
+            <h3 class="font-bold text-sm text-primary mb-1">GNU Affero General Public License v3.0 (AGPL-3.0)</h3>
+            <p class="font-body text-xs text-secondary mb-2">
+              Applies to the core runtime executables, daemons, and system CLI packages:
+            </p>
+            <ul class="font-body text-xs text-secondary space-y-1 list-disc pl-6">
+              <li><code>ostk-core</code> (the central daemon and CLI orchestration system)</li>
+              <li><code>ostk-cache</code> (the L1.5 optimizing prompt wire proxy)</li>
+              <li><code>ostk-recall</code> (the local code indexing and memory MCP server)</li>
+            </ul>
+            <p class="font-body text-[10px] text-outline mt-2">
+              Any modifications or integrations run as network services must make their source code available under the same terms.
+            </p>
+          </div>
+
+          <div class="bg-surface-container p-5 border-l-2 border-primary">
+            <h3 class="font-bold text-sm text-primary mb-1">MIT License</h3>
+            <p class="font-body text-xs text-secondary mb-2">
+              Applies to client libraries and integration hooks:
+            </p>
+            <ul class="font-body text-xs text-secondary space-y-1 list-disc pl-6">
+              <li><code>libostk</code> (userspace programmatic IPC client library)</li>
+              <li>Official IDE integrations, web hooks, and runner plugins</li>
+            </ul>
+            <p class="font-body text-[10px] text-outline mt-2">
+              Permissive licensing allows you to link or embed these clients in commercial or proprietary tools without restriction.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section class="mb-12">
-        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Restrictions</h2>
-        <p class="font-body text-xs text-secondary mb-4">You may not:</p>
-        <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-6">
-          <li><strong class="text-on-surface">Redistribute</strong> the binary or any modified version</li>
-          <li><strong class="text-on-surface">Reverse engineer, decompile, or disassemble</strong> the binary</li>
-          <li><strong class="text-on-surface">Remove or alter</strong> copyright notices, signatures, or attribution</li>
-          <li><strong class="text-on-surface">Offer as a service</strong> to third parties</li>
-        </ul>
-      </section>
-
-      <section class="mb-12">
-        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Source Code</h2>
-        <p class="font-body text-xs text-secondary">Source code is not yet publicly available. An open source release under a dual license is planned.</p>
+        <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Verification & Integrity</h2>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          All official release binaries are cryptographically signed with our release GPG key. You can audit and verify the integrity of any downloaded package locally using <code>ostk bail verify</code>.
+        </p>
       </section>
 
       <section class="mb-12">

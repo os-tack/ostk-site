@@ -1,0 +1,148 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const tiers = [
+  { tier: 'Tier A', action: 'Tool Result Ejection', desc: 'Ejects individual tool output bytes exceeding the threshold, replacing them with truncation notices.' },
+  { tier: 'Tier B', action: 'Message Pruning', desc: 'Prunes oldest assistant tool-use and corresponding user tool-result message pairs to save context window.' },
+  { tier: 'Tier C', action: 'Tool Definition Dropping', desc: 'Drops unused tool schema definitions from the system instructions.' },
+  { tier: 'Tier D', action: 'Hard Rejection', desc: 'Rejects the payload entirely and returns HTTP 413 (Payload Too Large).' },
+];
+---
+
+<DocsLayout
+  title="ostk-cache"
+  description="L1.5 proxy for prompt compression, state mutation, and soft-cap window management."
+  sectionLabel="MODULAR_STACK // PROXY_CACHE"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    An optimizing wire proxy for OpenAI and Anthropic client payloads. Intercepts outgoing requests to enforce size boundaries, inject cache markers, and dynamically compress context.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    License: <span class="text-primary font-mono font-bold">AGPL-3.0</span> | Port: 8080 (default) | Schema: HTTP
+  </p>
+
+  <!-- Overview -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">OVERVIEW</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      <code>ostk-cache</code> acts as a middleware layer running between your AI agent (like Claude Code or Cursor) and the model provider's API endpoint. It sits on your local machine, intercepting outgoing HTTPS payloads, compressing redundant codebase references, and maintaining a local cache history to maximize token savings.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <h3 class="font-label text-xs uppercase tracking-widest text-primary mb-2">Integration Example</h3>
+      <p class="font-body text-xs text-secondary mb-4">
+        Redirect your client requests to the local proxy. For Claude Code (whose source exposure date is March 31, 2026), export the proxy environment variable:
+      </p>
+      <pre class="font-body text-xs text-primary bg-[#1c1a18] p-4">
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8080/v1</pre>
+    </div>
+  </section>
+
+  <!-- Operations Modes -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">OPERATION MODES</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      The proxy can run in one of four processing modes, configured via <code>.ostk/config</code>:
+    </p>
+    <div class="space-y-4">
+      <div class="bg-surface-container p-4">
+        <h3 class="font-body text-xs font-bold text-primary">PASSTHROUGH</h3>
+        <p class="font-body text-xs text-secondary mt-1">
+          Forwards payloads byte-identically to the upstream provider. Acts as a silent recorder logging metadata to <code>ledger.jsonl</code>.
+        </p>
+      </div>
+      <div class="bg-surface-container p-4">
+        <h3 class="font-body text-xs font-bold text-primary">MUTATE</h3>
+        <p class="font-body text-xs text-secondary mt-1">
+          Injects prompt cache boundaries, inserts HUD diagnostic overlays into the assistant prompt, and strips redundant <code>cache_control</code> headers that conflict with local limits.
+        </p>
+      </div>
+      <div class="bg-surface-container p-4">
+        <h3 class="font-body text-xs font-bold text-primary">REBUILD</h3>
+        <p class="font-body text-xs text-secondary mt-1">
+          L1 Cache Rebuild. Resolves file paths inside user prompt scripts and swaps them with local filesystem caches if the content hasn't changed.
+        </p>
+      </div>
+      <div class="bg-surface-container p-4">
+        <h3 class="font-body text-xs font-bold text-primary">REBUILD_KERNEL</h3>
+        <p class="font-body text-xs text-secondary mt-1">
+          L2 Federated Rebuild. Communicates via IPC socket with the main <code>ostk</code> daemon. Queries the shared workspace graph to inject highly compressed structural summaries of changed files.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Soft-Cap Reduction -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">SOFT-CAP WINDOW REDUCTION</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      To prevent run-away developer API costs, <code>ostk-cache</code> enforces a default 30MB payload soft-cap limit. When a payload exceeds this limit, the proxy executes a sequential degradation pipeline:
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-0">
+        {tiers.map(t => (
+          <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+            <code class="text-primary w-24 shrink-0 font-bold">{t.tier}</code>
+            <code class="text-on-surface w-44 shrink-0">{t.action}</code>
+            <span class="text-secondary">{t.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Ledger Metrics -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">THE LEDGER LOG</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      Every transaction processed by the proxy is appended to <code>.ostk/memory/ledger.jsonl</code>. This log serves as the single source of truth for billing, cost auditing, and efficiency tracking.
+    </p>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <span class="font-label text-[10px] text-outline block mb-2">LEDGER ENTRY SCHEMA</span>
+      <pre class="font-body text-xs text-secondary leading-relaxed">
+{"{"}
+  "timestamp": "2026-05-22T20:50:50.105Z",
+  "mode": "rebuild_kernel",
+  "upstream": "api.anthropic.com",
+  "tokens_in": 12894,
+  "tokens_cached": 88042,
+  "tokens_out": 451,
+  "cost_usd": 0.3129,
+  "reduction_tier": "B"
+{"}"}</pre>
+    </div>
+  </section>
+
+  <!-- Claude Code Hooks -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CLAUDE_CODE_INTEGRATION</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      Claude Code can be integrated with <code>ostk-cache</code> hooks. By running the installation command, the proxy intercepts Claude Code events and maintains hook logs:
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary space-y-4">
+      <div>
+        <span class="font-label text-[10px] text-outline block mb-1">INSTALL HOOKS</span>
+        <pre class="font-body text-xs text-primary bg-[#1c1a18] p-3">ostk-cache-hooks install</pre>
+      </div>
+      <p class="font-body text-xs text-secondary">
+        This command registers global hooks that post lifecycle events to <code>/hook/event</code> on the proxy server. Lifecycle logs are recorded locally to <code>.l1.5/hooks.jsonl</code>.
+      </p>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/libostk/">
+      <Icon name="lock" size="14" class="align-middle mr-1" />
+      LIBOSTK
+    </a>
+    <a href="/docs/ostk-recall/">
+      <Icon name="memory" size="14" class="align-middle mr-1" />
+      OSTK-RECALL
+    </a>
+    <a href="/docs/ostk-core/">
+      <Icon name="terminal" size="14" class="align-middle mr-1" />
+      OSTK-CORE
+    </a>
+  </div>
+</DocsLayout>

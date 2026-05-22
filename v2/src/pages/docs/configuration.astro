@@ -1,0 +1,482 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+import { LATEST_TAG } from '../../site-version';
+
+const humanFileDirectives = [
+  { name: 'IDENTITY', req: true, desc: 'Your username. Used in audit attribution and agent identity.' },
+  { name: 'SIGN', req: false, desc: 'GPG key fingerprint. Establishes T0 trust tier when verified.' },
+  { name: 'MODEL', req: true, desc: 'Default model for agent sessions. Kernel auto-detects provider from model name.' },
+  { name: 'FALLBACK', req: false, desc: 'Model when primary is unavailable or rate-limited.' },
+  { name: 'AVAILABLE <<MODELS', req: false, desc: 'Heredoc listing all authorized models. Consumed by FROM auto in Agentfiles.' },
+  { name: 'SECRET <<KEYS', req: false, desc: 'Heredoc listing authorized API key names. Keys stored in platform keychain.' },
+  { name: 'DRIVER <type> <name>', req: false, desc: 'FCP driver to load at boot. Internal drivers don\'t need declaration.' },
+  { name: 'EMBED', req: false, desc: 'Embedding index mode: codebase (full), incremental (git-diff), off.' },
+  { name: 'PREPROCESS', req: false, desc: 'Local model for preprocessing user input via olleh runtime. e.g. apple/default. Fixes grammar, expands tack shorthand before the remote LLM sees it.' },
+  { name: 'TRUST', req: false, desc: 'Trust policy for Agentfile signing. unsigned skips signature requirement.' },
+  { name: 'EXTENDS', req: false, desc: 'Path to parent HUMANFILE for inheritance. Child directives override.' },
+  { name: 'BOOT', req: false, desc: 'Custom boot steps appended after kernel initialization.' },
+  { name: 'VERB', req: false, desc: 'Custom verb registration merged into .language at boot.' },
+];
+
+const entityFileTiers = [
+  { tier: 'T0', who: 'Human operator', caps: 'Full governance — including modifying ENTITYFILE itself', proof: 'Fingerprint hardcoded in src/kernel/identity.rs trust anchors' },
+  { tier: 'T1', who: 'Verified agent or CI', caps: 'Write source, run agents, delegate needles. Denied: write-kernel, modify-governance', proof: 'GPG key cross-signed by a T0 holder' },
+  { tier: 'T2', who: 'GPG key, not cross-signed', caps: 'Read everything. Narrow write exceptions. Denied: write-kernel, modify-governance, write-src', proof: 'GPG key present, check_gpg_cross_signature returns None' },
+  { tier: 'T3', who: 'No GPG key', caps: 'Boots; reads everything; all writes denied by pin caps (policy.rs:248)', proof: 'host_identity::discover() returns no gpg_key' },
+];
+
+const entityFileSetup = [
+  { setup: 'Solo developer, one machine', need: false },
+  { setup: 'Solo developer, GPG identity needed', need: false },
+  { setup: 'Team with shared repo', need: true },
+  { setup: 'CI pipeline dispatching agents', need: true },
+  { setup: 'Multiple humans with different trust', need: true },
+];
+
+const entityFileCeremony = [
+  { step: '01', action: 'File an offer describing the change (.ostk/offers/)' },
+  { step: '02', action: 'Counter-party reviews and responds' },
+  { step: '03', action: 'Both parties sign with their keys' },
+  { step: '04', action: 'Merge with --no-ff to preserve ceremony in git history' },
+];
+
+const primeFileFields = [
+  { field: 'KERNEL', desc: 'Kernel identity name. Default: @project.prime.' },
+  { field: 'VERSION', desc: 'Kernel declaration version.' },
+  { field: 'AUTHORITY', desc: 'Who controls the kernel — primary (human), kernel, and co-signer requirements.' },
+  { field: 'KEYS', desc: 'GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.' },
+  { field: 'LINEAGE', desc: 'Root of trust chain, co-signers, and chain continuity date.' },
+];
+
+const ostkTolmlSections = [
+  { section: '[project]', desc: 'Project name and optional bail lineage (the upstream signed package this project was seeded from). Top-level kernel = ">=X.Y.Z" pin sits alongside.' },
+  { section: '[authorization]', desc: 'Declarative trust policy: github_gpg_required, trust_tiers list. Documentary — source of truth is src/kernel/identity.rs trust anchors.' },
+  { section: '[distribution]', desc: 'Release mirrors, signature verification, tarball pattern. Used by install scripts and bail fetchers, not the runtime kernel.' },
+  { section: '[kernel]', desc: 'boot_mode (embedded-first | daemon-first), daemon_lifecycle, laws. The laws array is documentary — the actual five laws are enforced in code.' },
+  { section: '[onboarding]', desc: 'install.sh ceremony steps. Documentary — consumed by the install script, not the kernel.' },
+  { section: '[pins.*]', desc: 'Named pin configurations. read/write/execute paths and deny tokens. Parsed by the pin loader at boot.' },
+  { section: '[features]', desc: 'Boolean toggles: tui, agents, audit, digest, embeddings. Read at boot to gate subsystem initialization.' },
+  { section: '[mcp.*]', desc: 'Historical. MCP servers are declared in HUMANFILE, not ostk.toml — see /docs/mcp for the real path.' },
+];
+
+const envVarGroups = [
+  {
+    label: 'AGENT_IDENTITY',
+    vars: [
+      { name: 'OSTK_AGENT', desc: 'Agent alias. Set by kernel on spawn. Used for audit attribution, heartbeat, gen_table writer.', default_: '"unknown"' },
+      { name: 'OSTK_PIN', desc: 'Active capability pin name. Loads .ostk/pins/<name>/pin.caps.', default_: 'Tier default' },
+      { name: 'OSTK_TRUST_TIER', desc: 'Override trust tier resolution. Bypasses GPG detection. Used by CI/tests.', default_: 'Auto-detected' },
+      { name: 'OSTK_AGENTFILE', desc: 'Path to Agentfile to load at boot.', default_: 'None' },
+    ],
+  },
+  {
+    label: 'DAEMON_SCHEDULER',
+    vars: [
+      { name: 'OSTK_SCHEDULER_TICK_SECONDS', desc: 'Scheduler tick loop interval. Set to 0 to disable.', default_: 'Disabled' },
+      { name: 'OSTK_SCHEDULER_STUCK_AFTER_SECS', desc: 'Seconds before tick escalates from skipped to stuck in audit.', default_: '90' },
+      { name: 'OSTK_SCHEDULER_FORCE_CLEAR_AFTER_SECS', desc: 'Seconds before force-clearing busy flag.', default_: '300' },
+    ],
+  },
+  {
+    label: 'DRAIN_RECOVERY',
+    vars: [
+      { name: 'OSTK_DRAIN_SNAPSHOT', desc: 'Controls drain snapshot writes. Set to 0 to disable.', default_: `Enabled (${LATEST_TAG}+)` },
+    ],
+  },
+  {
+    label: 'MODEL_SECRETS',
+    vars: [
+      { name: 'OSTK_MODEL', desc: 'Override default model for ostk run, ostk tack --run, FROM auto. Overrides HUMANFILE.', default_: 'HUMANFILE' },
+      { name: 'OSTK_SECRET_CMD', desc: 'BYO vault command (ambient env variable is ignored for execution bounds in favor of local secret_cmd in .ostk/config).', default_: 'None' },
+    ],
+  },
+  {
+    label: 'DIAGNOSTICS',
+    vars: [
+      { name: 'OSTK_DUMP_REQUEST', desc: 'Directory for full API request JSON dumps. For debugging cache/preload.', default_: 'Disabled' },
+      { name: 'OSTK_DUMP_HANDSHAKE', desc: 'File path for handshake bytes at boot. For debugging byte-stability.', default_: 'Disabled' },
+      { name: 'OSTK_NO_CACHE', desc: 'Set to 1 to disable cache_control breakpoints.', default_: 'Disabled' },
+      { name: 'OSTK_T2_OBSERVER', desc: 'Set to 1 for Hot PR Tier 2 arbitration audit rows.', default_: 'Disabled' },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    vars: [
+      { name: 'OSTK_STATE_DIR', desc: 'Override state directory name (instead of .ostk).', default_: '.ostk' },
+      { name: 'OSTK_DIR', desc: 'Absolute path to .ostk directory. Set by kernel for FCP driver subprocesses.', default_: 'Auto' },
+      { name: 'OSTK_REGISTRY_DIR', desc: 'Override global registry directory. Used by CI for isolation.', default_: '~/.ostk/' },
+      { name: 'OSTK_PREPROCESS', desc: 'Local model for input preprocessing via olleh runtime. Overrides HUMANFILE PREPROCESS.', default_: 'HUMANFILE' },
+      { name: 'OSTK_TOOL_THRESHOLD', desc: 'Momentum threshold for verb loading from .language. Float 0-1.', default_: '0.45' },
+    ],
+  },
+];
+---
+
+<DocsLayout
+  title="Configuration & Environment"
+  description="Comprehensive reference for ostk configuration files (HUMANFILE, ENTITYFILE, .primefile, ostk.toml) and runtime environment variables."
+  sectionLabel="CONFIGURATION // CONFIG_AND_ENV"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
+    The configuration hierarchy governs identity, trust limits, project-specific settings, and ambient environment variable overrides.
+  </p>
+
+  <!-- Table of Contents -->
+  <div class="bg-surface-container-low p-6 mb-16 border-l-2 border-primary max-w-2xl">
+    <div class="font-label text-[10px] text-primary mb-3">CONFIGURATION_FILES</div>
+    <ul class="space-y-2 font-body text-xs text-secondary">
+      <li><a href="#humanfile" class="text-primary hover:underline">1. HUMANFILE</a> — Operator identity, defaults, and API keys</li>
+      <li><a href="#entityfile" class="text-primary hover:underline">2. ENTITYFILE</a> — Governance constitution and authority chains</li>
+      <li><a href="#primefile" class="text-primary hover:underline">3. .primefile</a> — Auto-generated kernel root-of-trust anchor</li>
+      <li><a href="#ostktoml" class="text-primary hover:underline">4. ostk.toml</a> — Project-level config overrides</li>
+      <li><a href="#envvars" class="text-primary hover:underline">5. Environment Variables</a> — Runtime flags and options</li>
+    </ul>
+  </div>
+
+  <!-- Section 1: HUMANFILE -->
+  <section id="humanfile" class="mb-24 pt-8 border-t border-surface-variant">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="serif-text text-3xl font-medium text-on-surface">1. HUMANFILE</h2>
+      <span class="font-body text-xs text-outline">Location: <code>.ostk/HUMANFILE</code> or <code>~/.HUMANFILE</code></span>
+    </div>
+    
+    <p class="font-body text-sm text-secondary max-w-xl mb-6">
+      Your compiled operator identity. The OS reads this at boot and calibrates to you. This is a governance document representing the human at the terminal.
+    </p>
+
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8">
+      <div class="font-label text-[10px] text-outline mb-2">EXAMPLE_HUMANFILE</div>
+      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">IDENTITY</span> yourname
+<span class="text-primary">SIGN</span> YOUR_GPG_FINGERPRINT
+
+<span class="text-primary">MODEL</span> claude-opus-4-6
+<span class="text-primary">FALLBACK</span> mistral-large-latest
+
+<span class="text-primary">AVAILABLE</span> &lt;&lt;MODELS
+claude-sonnet-4-5
+claude-opus-4-6
+gemini-2.5-pro
+mistral-large-latest
+MODELS
+
+<span class="text-primary">SECRET</span> &lt;&lt;KEYS
+ANTHROPIC_API_KEY
+GEMINI_API_KEY
+KEYS
+
+<span class="text-primary">DRIVER</span> rust fcp-rust
+<span class="text-primary">EMBED</span> codebase
+<span class="text-primary">PREPROCESS</span> apple/default</pre>
+    </div>
+
+    <div class="font-label text-[10px] text-primary mb-3">HUMANFILE_DIRECTIVES</div>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8">
+      <div class="space-y-0">
+        {humanFileDirectives.map(d => (
+          <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant last:border-0">
+            <code class="text-primary w-44 shrink-0">{d.name}</code>
+            <span class={`w-8 shrink-0 ${d.req ? 'text-primary' : 'text-outline'}`}>
+              {d.req ? 'REQ' : '—'}
+            </span>
+            <span class="text-secondary">{d.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="font-label text-[10px] text-primary mb-3">SECRET_RESOLUTION_ORDER</div>
+    <div class="space-y-3">
+      {[
+        { step: '01', label: 'BYO_SECRET_MANAGER', desc: 'secret_cmd inside .ostk/config (e.g. bw, op, pass). User-controlled local file only. Ambient environment variables like OSTK_SECRET_CMD are explicitly ignored to prevent injection/exfiltration.' },
+        { step: '02', label: 'PLATFORM_KEYCHAIN', desc: 'macOS: security Keychain access. Linux: secret-tool storage.' },
+        { step: '03', label: 'ENVIRONMENT_VARIABLE', desc: 'Fallback to $KEY in shell environment (least secure).' },
+      ].map(s => (
+        <div class="flex items-center gap-4 bg-surface-container p-4">
+          <span class="serif-text text-xl font-bold text-primary">{s.step}</span>
+          <div>
+            <div class="font-body text-sm text-on-surface">{s.label}</div>
+            <div class="font-body text-xs text-secondary mt-0.5">{s.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Section 2: ENTITYFILE -->
+  <section id="entityfile" class="mb-24 pt-8 border-t border-surface-variant">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="serif-text text-3xl font-medium text-on-surface">2. ENTITYFILE</h2>
+      <span class="font-body text-xs text-outline">Location: <code>.ostk/ENTITYFILE</code></span>
+    </div>
+
+    <p class="font-body text-sm text-secondary max-w-xl mb-6">
+      The trust constitution of your OS instance. Written once, it governs permissions, trust anchors, and structural operations for multi-agent or collaborative repos.
+    </p>
+
+    <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 mb-8">
+      {entityFileTiers.map(t => (
+        <div class="md:col-span-12 grid grid-cols-1 md:grid-cols-12 border-b border-surface-variant last:border-0">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="font-body text-lg font-bold text-primary">{t.tier}</span>
+          </div>
+          <div class="md:col-span-2 px-4 py-4">
+            <span class="font-body text-xs text-on-surface font-medium">{t.who}</span>
+          </div>
+          <div class="md:col-span-6 px-4 py-4">
+            <span class="font-body text-xs text-secondary leading-relaxed">{t.caps}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-4">
+            <span class="font-body text-xs text-outline leading-relaxed">{t.proof}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8">
+      <div class="font-label text-[10px] text-outline mb-2">EXAMPLE_ENTITYFILE</div>
+      <pre class="font-body text-xs text-secondary leading-relaxed">ENTITYFILE: v1.0 (GPG chain signed — kernel@project.prime)
+---
+<span class="text-primary">entity:</span>
+  <span class="text-primary">name:</span> @project.prime
+  <span class="text-primary">key:</span> AAAA1111BBBB2222CCCC3333DDDD4444EEEE5555
+  <span class="text-primary">domain:</span> project.prime
+  <span class="text-primary">version:</span> 3.0.0
+  <span class="text-primary">boot_signature:</span> FFFF0000AAAA1111BBBB2222CCCC3333DDDD4444
+  <span class="text-primary">laws:</span>
+    - invisible-write
+    - ephemeral
+    - filesystem
+    - OCC
+    - invisible-infra
+  <span class="text-primary">harness:</span> terminal
+  <span class="text-primary">tool_pattern:</span> native Bash
+  <span class="text-primary">dialect:</span>
+    - tack
+    - hay
+  <span class="text-primary">fleet:</span>
+    alive: 1
+    agents: 54
+<span class="text-primary">signing_key:</span> 3689831ac67b433093ef15e23431b539e7222961f7f976a14feb268c8058ce6a
+<span class="text-primary">signing_algo:</span> ed25519</pre>
+    </div>
+
+    <div class="font-label text-[10px] text-primary mb-3">WHEN_DO_I_NEED_AN_ENTITYFILE?</div>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8 max-w-xl">
+      {entityFileSetup.map(s => (
+        <div class="flex justify-between text-xs font-body py-2.5 border-b border-surface-variant last:border-0">
+          <span class="text-on-surface">{s.setup}</span>
+          <span class={s.need ? 'text-primary font-bold' : 'text-outline'}>{s.need ? 'YES' : 'NO'}</span>
+        </div>
+      ))}
+    </div>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">The Negotiate Protocol</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
+      Changes require ceremony. You cannot unilaterally modify `ENTITYFILE` — even as T0.
+    </p>
+    <div class="space-y-px mb-8">
+      {entityFileCeremony.map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3 flex items-center">
+            <span class="font-body text-xs text-secondary">{s.action}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">Authority Chain Flow</h3>
+    <div class="flex items-center gap-0 mb-4">
+      {['T0 (human)', 'kernel', 'agents'].map((level, i) => (
+        <>
+          <div class={`px-4 py-2 font-body text-xs font-bold ${i === 0 ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
+            {level}
+          </div>
+          {i < 2 && <div class="px-2 text-outline">→</div>}
+        </>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary max-w-lg">
+      Trust flows downward. No agent can elevate its own trust tier. No agent can modify `ENTITYFILE`. The human remains the final authority.
+    </p>
+  </section>
+
+  <!-- Section 3: .primefile -->
+  <section id="primefile" class="mb-24 pt-8 border-t border-surface-variant">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="serif-text text-3xl font-medium text-on-surface">3. .primefile</h2>
+      <span class="font-body text-xs text-outline">Location: <code>.ostk/.primefile</code></span>
+    </div>
+
+    <p class="font-body text-sm text-secondary max-w-xl mb-6">
+      The kernel's identity document. Written automatically by the OS, it anchors the identity chain.
+    </p>
+
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-8 max-w-xl">
+      <p class="font-body text-sm text-on-surface mb-3">
+        The <code class="text-primary">.primefile</code> is <span class="text-primary font-bold">dual-signed</span>: once by the kernel's GPG key (T1), and once by the operator's GPG key (T0).
+      </p>
+      <p class="font-body text-xs text-secondary">
+        Modifying it manually invalidates the signature and will cause the kernel to refuse to boot.
+      </p>
+    </div>
+
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8">
+      <div class="font-label text-[10px] text-outline mb-2">EXAMPLE_PRIMEFILE</div>
+      <pre class="font-body text-xs text-secondary leading-relaxed">---BEGIN HAYSTACK.PRIME KERNEL DECLARATION---
+
+KERNEL: @project.prime
+VERSION: 3.0.0
+CREATED: 2026-03-10T00:00:00Z
+
+AUTHORITY:
+  Primary: @operator (Human operator, HUMANFILE authority)
+  Kernel: @project.prime (Persistent kernel, GOVERNANCE.md authority)
+  Co-signers: Both keys required for mutation
+
+KEYS:
+  T0 Human Root:
+    Name: Your Name &lt;you@example.com&gt;
+    Key: AAAA...1111
+    Algorithm: ed25519
+
+  T1 Kernel:
+    Name: @project.prime (v3.0) &lt;kernel@project.prime&gt;
+    Key: BBBB...2222
+    Algorithm: ed25519
+
+LINEAGE:
+  Root: @operator GPG signature
+  Co-sign: @project.prime GPG signature
+  Chain: Unbroken from 2026-03-10
+
+---SIGNATURES BELOW---</pre>
+    </div>
+
+    <div class="font-label text-[10px] text-primary mb-3">PRIMEFILE_FIELDS</div>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8">
+      {primeFileFields.map(f => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant last:border-0">
+          <code class="text-primary w-28 shrink-0">{f.field}</code>
+          <span class="text-secondary">{f.desc}</span>
+        </div>
+      ))}
+    </div>
+
+    <div class="font-label text-[10px] text-primary mb-3">SIGNATURE_VERIFICATION</div>
+    <Terminal>
+      <pre><span class="text-outline select-none">$ </span>gpg --verify .ostk/.primefile.asc .ostk/.primefile
+<span class="text-outline select-none">$ </span>gpg --verify .ostk/.primefile.t0.asc .ostk/.primefile</pre>
+    </Terminal>
+    <p class="font-body text-xs text-secondary mt-3 max-w-lg">
+      Both verifications must pass. A single-signature primefile (T1 only) is not trusted.
+    </p>
+  </section>
+
+  <!-- Section 4: ostk.toml -->
+  <section id="ostktoml" class="mb-24 pt-8 border-t border-surface-variant">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="serif-text text-3xl font-medium text-on-surface">4. ostk.toml</h2>
+      <span class="font-body text-xs text-outline">Location: <code>./ostk.toml</code></span>
+    </div>
+
+    <p class="font-body text-sm text-secondary max-w-xl mb-6">
+      The project-level configuration file. Written and maintained by you at the repository root, it controls version bounds, pins, and custom tool rules.
+    </p>
+
+    <Terminal class="mb-8">
+      <pre><span class="text-primary">[project]</span>
+name = "ostk-site"
+bail = "os-tack/ostk.ai"
+kernel = ">=3.0.0, &lt;4.0.0"
+
+<span class="text-primary">[authorization]</span>
+github_gpg_required = true
+trust_tiers = ["T0:dual-signed", "T1:cross-signed", "T2:gpg-not-cross-signed", "T3:anonymous"]
+
+<span class="text-primary">[distribution]</span>
+mirrors = [
+  "https://github.com/os-tack/ostk.ai/releases",
+  "https://ostk.ai/releases"
+]
+verify_signature = true
+tarball_pattern = "ostk-{"{"}version{"}"}-{"{"}target{"}"}.tar.gz"
+
+<span class="text-primary">[kernel]</span>
+boot_mode = "embedded-first"
+daemon_lifecycle = "tui-owned"
+laws = ["invisible-write", "ephemeral", "filesystem", "OCC", "invisible-infra"]
+
+<span class="text-primary">[onboarding]</span>
+steps = ["binary-install", "environment-detect", "humanfile-create", "os-init", "import-offer"]
+
+<span class="text-primary">[pins.default]</span>
+read = [".ostk/", ".language"]
+write = [".ostk/store/default/"]
+execute = "shell(readonly)"
+deny = ["write-kernel", "modify-governance"]
+
+<span class="text-primary">[features]</span>
+tui = true
+agents = true
+audit = true
+digest = true
+embeddings = false</pre>
+    </Terminal>
+
+    <div class="font-label text-[10px] text-primary mb-3">TOML_SECTIONS</div>
+    <div class="space-y-px mb-8">
+      {ostkTolmlSections.map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-3">
+            <code class="font-body text-xs text-primary">{s.section}</code>
+          </div>
+          <div class="md:col-span-9 px-4 py-3">
+            <span class="font-body text-xs text-secondary leading-relaxed">{s.desc}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Section 5: Environment Variables -->
+  <section id="envvars" class="mb-24 pt-8 border-t border-surface-variant">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="serif-text text-3xl font-medium text-on-surface">5. Environment Variables</h2>
+      <span class="font-body text-xs text-outline">Prefix: <code>OSTK_*</code></span>
+    </div>
+
+    <p class="font-body text-sm text-secondary max-w-xl mb-6">
+      Ambient configuration options that live in the shell environment. Most are optional; the kernel boots cleanly with zero environment variables set.
+    </p>
+
+    {envVarGroups.map((group, i) => (
+      <div class="mb-12">
+        <div class="flex items-center gap-4 mb-4">
+          <span class="serif-text text-xl font-bold text-primary">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="font-label text-xs uppercase tracking-widest text-primary">{group.label}</h3>
+        </div>
+        <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+          {group.vars.map(v => (
+            <div class="flex gap-4 text-xs font-body py-3 border-b border-surface-variant last:border-0">
+              <code class="text-primary w-72 shrink-0">{v.name}</code>
+              <span class="text-secondary flex-1 leading-relaxed">{v.desc}</span>
+              <span class="text-outline w-28 shrink-0 text-right">{v.default_}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/agentfile/"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/security/"><Icon name="shield" size="14" class="align-middle mr-1" />SECURITY_AND_TRUST</a>
+    <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+  </div>
+</DocsLayout>

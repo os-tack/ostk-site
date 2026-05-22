@@ -72,75 +72,106 @@ const sidebarGroups = {
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
     <div class="max-w-5xl mx-auto py-12">
 
-      <!-- Hero A/B test: both variants render in the same HTML. The inline script
-           in Base.astro sets `data-hero-variant` on <html> before paint, and CSS
-           hides the non-selected variant. SSR fallback (no attribute) shows A. -->
-
-      <!-- Variant A — declarative prose hero (default / SSR / bots / cold loads) -->
-      <section data-hero="A" class="mb-12">
+      <section class="mb-12">
         <div class="section-label mb-4">SYSTEM_MANIFEST // OSTK</div>
         <h1 class="serif-text text-7xl font-bold tracking-tighter text-on-surface mb-4">
           ostk
         </h1>
-        <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-6">
-          A kernel for AI coding agents.
+        <p class="font-headline text-2xl text-on-surface italic leading-snug max-w-3xl mb-4">
+          Run AI agents like production infrastructure.
         </p>
-        <p class="font-body text-base text-on-surface max-w-2xl mb-8 leading-relaxed">
-          Every syscall returns wrapped in a state envelope — fleet, files, audit, working memory — so your agents stay oriented across thousands of turns. Local-first. One Rust binary.
+        <p class="font-body text-base text-on-surface-variant max-w-3xl mb-8 leading-relaxed">
+          Local-first, audited, and filesystem-coordinated. Adopt the open-source sandboxing library, the drop-in prompt cache, the context-drift memory engine, or the full integrated CLI suite.
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 max-w-3xl mb-4">
           <button
             type="button"
             data-copy="curl -fsSL https://ostk.ai/install.sh | sh"
-            class="plausible-event-name=Install+Copied plausible-event-source=hero plausible-event-variant=A bg-surface-container-lowest border border-surface-variant px-4 py-3 font-body text-sm text-left hover:bg-surface-container-low transition-colors cursor-pointer flex-1"
+            class="plausible-event-name=Install+Copied plausible-event-source=hero bg-surface-container-lowest border border-surface-variant px-4 py-3 font-body text-sm text-left hover:bg-surface-container-low transition-colors cursor-pointer flex-1"
           >
             <span class="text-outline select-none">install → </span><span class="text-primary">curl -fsSL https://ostk.ai/install.sh | sh</span>
           </button>
           <a
-            href="/docs/architecture/"
-            class="plausible-event-name=Architecture+View plausible-event-variant=A bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center justify-center gap-2 whitespace-nowrap"
+            href="/start/"
+            class="plausible-event-name=Quick+Start+View bg-surface-variant text-primary font-body text-sm py-3 px-6 transition-none hover:bg-surface-container-high flex items-center justify-center gap-2 whitespace-nowrap"
           >
-            read the architecture →
+            quick start →
           </a>
         </div>
-        <p class="font-body text-[10px] text-outline mb-2">macOS (universal arm64+x86_64), Linux musl arm64/x86_64, Windows x86_64. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
       </section>
 
-      <!-- Variant B — show-don't-tell terminal envelope hero (SSR/SSG default) -->
-      <section data-hero="B" class="mb-12">
-        <div class="section-label mb-4">SYSTEM_MANIFEST // OSTK</div>
-        <Terminal label="ostk init">
-<pre class="whitespace-pre font-body leading-relaxed m-0"><span class="text-outline select-none">$ </span><span class="text-primary">ostk init</span>
-<span class="text-outline">+ exit:0 1.2s</span>
+      <!-- 4-Column Stack Architecture Grid -->
+      <section class="mb-16">
+        <div class="section-label mb-4">MODULAR_STACK_ARCHITECTURE</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-surface-variant border border-surface-variant">
+          
+          <!-- libostk -->
+          <div class="bg-surface p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">libostk</span>
+                <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">MIT</span>
+              </div>
+              <h3 class="serif-text text-lg font-bold mb-2">Userspace Client</h3>
+              <p class="font-body text-xs text-secondary leading-relaxed">
+                Lightweight library for secure JSON-RPC communication over UNIX socket (<code class="text-[10px]">.ostk/ostk.sock</code>). Handles cryptographic envelope signature verification, GPG key checking, and background audit-tailing.
+              </p>
+            </div>
+            <a href="/docs/libostk/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read libostk docs →</a>
+          </div>
 
-  <span class="text-on-surface">ostk: kernel installed</span>
-  <span class="text-on-surface">identity: bound (T2 author)</span>
-  <span class="text-on-surface">trust: web-of-trust verified</span>
+          <!-- ostk-cache -->
+          <div class="bg-surface p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk-cache</span>
+                <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">AGPL-3.0</span>
+              </div>
+              <h3 class="serif-text text-lg font-bold mb-2">Transparent Proxy</h3>
+              <p class="font-body text-xs text-secondary leading-relaxed">
+                Port 8080 L1.5 cache proxy for Anthropic & OpenAI wire formats. Implements synthetic projection mutations, kernel-ipc cache rebuild signals, and a 4-tier soft-cap reduction pipeline.
+              </p>
+            </div>
+            <a href="/docs/ostk-cache/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read cache docs →</a>
+          </div>
 
-<span class="text-secondary">[procs]</span>   count:3 active:1 stale:2 dead:0
-<span class="text-secondary">[files]</span>   gen_table indexed: 12 files
-<span class="text-secondary">[audit]</span>   +5 rows | needles:0 | fleet:1/1
-<span class="text-secondary">[loadavg]</span> needles: 0 open | nudges: 0
-<span class="text-secondary">[ctx]</span>     <h1 class="text-on-surface font-bold inline m-0 p-0 text-inherit"># ostk</h1>
-          <span class="text-on-surface">A kernel for AI coding agents that keeps the frame.</span>
-          <span class="text-on-surface">Every syscall returns wrapped — fleet, files, audit, working</span>
-          <span class="text-on-surface">memory — so your agents stay oriented. Local-first. One Rust binary.</span>
+          <!-- ostk-recall -->
+          <div class="bg-surface p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk-recall</span>
+                <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">AGPL-3.0</span>
+              </div>
+              <h3 class="serif-text text-lg font-bold mb-2">Memory Engine</h3>
+              <p class="font-body text-xs text-secondary leading-relaxed">
+                Hybrid vector + BM25 search server using LanceDB and SQLite. Tracks codebase context changes via filesystem watcher socket (<code class="text-[10px]">recall.sock</code>) with debouncing.
+              </p>
+            </div>
+            <a href="/docs/ostk-recall/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read recall docs →</a>
+          </div>
 
-<button
-  type="button"
-  data-copy="curl -fsSL https://ostk.ai/install.sh | sh"
-  class="plausible-event-name=Install+Copied plausible-event-source=hero plausible-event-variant=B block w-full text-left hover:bg-surface-container-low transition-colors cursor-pointer py-1"
-><span class="text-primary">→ get started:</span>  <span class="text-outline select-none">$ </span><span class="text-on-surface">curl -fsSL https://ostk.ai/install.sh | sh</span></button><a
-  href="/docs/architecture/"
-  class="plausible-event-name=Architecture+View plausible-event-variant=B block hover:bg-surface-container-low transition-colors py-1"
-><span class="text-primary">→ tear it apart:</span>  <span class="text-on-surface underline">/docs/architecture/</span></a></pre>
-        </Terminal>
+          <!-- ostk-core -->
+          <div class="bg-surface p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk-core</span>
+                <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">AGPL-3.0</span>
+              </div>
+              <h3 class="serif-text text-lg font-bold mb-2">Integrated CLI Suite</h3>
+              <p class="font-body text-xs text-secondary leading-relaxed">
+                Complete CLI and supervisor daemon. Orchestrates multi-agent concurrency, manages state WAL logging, enforces Landlock/Seatbelt isolation, and maintains the GPG audit trail.
+              </p>
+            </div>
+            <a href="/docs/ostk-core/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read core docs →</a>
+          </div>
+
+        </div>
       </section>
 
-      <!-- Platform availability + status ribbon (kept; the hero terminal doesn't show this) -->
+      <!-- Platform availability + status ribbon -->
       <section class="mb-12">
-        <p class="font-body text-[10px] text-outline mb-3 max-w-2xl">macOS (universal arm64+x86_64; arm64+macFUSE variant separate), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on releases</a>, GPG-signed. ~30 seconds.</p>
+        <p class="font-body text-[10px] text-outline mb-3 max-w-2xl">macOS (universal arm64+x86_64), Linux musl arm64/x86_64, Windows x86_64 zip. All <a href="https://github.com/os-tack/ostk.ai/releases/latest" class="plausible-event-name=Releases+View underline hover:text-primary">on GitHub releases</a>, GPG-signed. ~30 seconds.</p>
 
         <!-- Status ribbon -->
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-y border-surface-variant text-xs">
@@ -158,7 +189,7 @@ const sidebarGroups = {
           </div>
           <div class="flex gap-2 md:border-l md:border-surface-variant md:pl-4">
             <span class="font-label text-[10px] text-secondary">TRUST:</span>
-            <span class="font-label text-[10px] text-primary">GPG_SIGNED</span>
+            <span class="font-label text-[10px] text-primary">GPG_SIGNED_AUDIT</span>
           </div>
         </div>
       </section>

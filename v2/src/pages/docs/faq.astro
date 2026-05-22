@@ -6,7 +6,7 @@ const faqs = [
   {
     q: 'How do multiple AI agents edit the same file without conflicts?',
     a: 'ostk uses optimistic concurrency control. Every file:edit() specifies the text the agent expects. If another agent changed it, the kernel detects the mismatch and resolves it through a 3-tier system: auto-merge for non-overlapping edits, mechanical rebase for nearby edits, and manual escalation for structural conflicts. No locking, no blocking.',
-    link: '/features/coordination',
+    link: '/docs/coordination-primitives',
   },
   {
     q: 'How do I install ostk?',
@@ -16,7 +16,7 @@ const faqs = [
   {
     q: 'Do I need to modify my AI agents to work with ostk?',
     a: 'No. The write path is invisible — agents edit files with their normal tools. The OS intercepts writes at the tool layer, coordinates between agents, and maintains an audit trail. Agents never know ostk is there. This is the first of the Five Laws.',
-    link: '/features/invisible-writes',
+    link: '/docs/vfs',
   },
   {
     q: 'How do I keep API keys safe from AI agents?',
@@ -31,17 +31,17 @@ const faqs = [
   {
     q: 'Can AI agents work on the same repository without conflicts?',
     a: 'Yes. ostk coordinates file access across agents through optimistic concurrency. Each agent gets a workspace boundary. Generation counters track every file write. When conflicts occur, the kernel resolves them mechanically — no LLM is called for conflict resolution. In practice, conflicts drop to near zero.',
-    link: '/features/coordination',
+    link: '/docs/coordination-primitives',
   },
   {
     q: 'How do I track what changes AI agents made?',
     a: 'Every agent action is logged to an append-only audit trail (.ostk/journal.jsonl). File edits, shell commands, tool calls, spawns, approvals — all timestamped and attributed. Run ostk os audit check to verify trail integrity. The process table is reconstructible from the audit log at any point.',
-    link: '/features/audit-trail',
+    link: '/docs/kernel-spec',
   },
   {
     q: 'Does ostk require a cloud connection?',
     a: 'No. ostk is local-first. Agent coordination happens through local files. The only network calls are to LLM providers when you run agents. The kernel itself is entirely offline. No telemetry, no analytics, no cloud sync.',
-    link: '/features/local-first',
+    link: '/why',
   },
   {
     q: 'What happens if an agent crashes?',
@@ -56,12 +56,12 @@ const faqs = [
   {
     q: 'What is tack?',
     a: 'Tack is the operator intent language in the TUI. You type commands into the tack bar: :compile dispatches to the kernel, .? queries the OS through the LLM, →573 references a needle, and bare text is filed as hay (raw unstructured intent for later compilation into needles).',
-    link: '/features/tack',
+    link: '/docs/tack-grammar',
   },
   {
     q: 'How does ostk differ from Cursor, Devin, or Aider?',
     a: 'ostk is an OS, not an IDE or agent. It coordinates multiple agents from any provider (Claude, Gemini, Mistral) on the same codebase simultaneously. Cursor and Aider are single-agent tools. Devin is a cloud-hosted agent. ostk runs locally, is agent-agnostic, and provides trust governance, audit trails, and crash recovery that none of these tools offer.',
-    link: '/about',
+    link: '/about/',
   },
 ];
 ---

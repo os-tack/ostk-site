@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "cd v2 && npm run dev",
     "build": "cd v2 && npm install && npm run build",
-    "preview": "cd v2 && npm run preview"
+    "preview": "cd v2 && npm run preview",
+    "check-links": "cd v2 && npm run check-links"
   }
 }

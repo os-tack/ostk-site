@@ -1,0 +1,164 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+
+const tools = [
+  { name: 'recall', arg: 'query: String', desc: 'Performs hybrid semantic and full-text search across the workspace index and logs.' },
+  { name: 'recall_link', arg: 'source: Path, target: Path', desc: 'Creates an explicit attribution edge in the semantic dependency graph.' },
+  { name: 'recall_stats', arg: '—', desc: 'Returns vector storage sizes, file watch queues, and cache hit ratios.' },
+  { name: 'recall_audit', arg: 'sql: String', desc: 'Executes direct SQL SELECT queries over the SQLite audit_events table.' },
+  { name: 'recall_fault', arg: 'target_dir: Path', desc: 'Runs synthesizers to locate undocumented API gaps or architectural discrepancies (relay for haystack mem.fault_recall).' },
+];
+---
+
+<DocsLayout
+  title="ostk-recall"
+  description="Autonomous workspace indexer, memory engine, and standard MCP server."
+  sectionLabel="MODULAR_STACK // MEMORY_ENGINE"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    An autonomous memory and code indexing engine. Connects as a standard Model Context Protocol (MCP) server to feed vector embeddings, search indexes, and relational event streams to your AI agent.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    License: <span class="text-primary font-mono font-bold">AGPL-3.0</span> | Interface: stdio (MCP) | Engine: LanceDB + Tantivy
+  </p>
+
+  <!-- Overview -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">OVERVIEW</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      <code>ostk-recall</code> watches your workspace directory in the background. It reads modified files, splits them into semantic code chunks, computes embeddings locally, and hosts a search engine. When your LLM client queries the codebase, <code>ostk-recall</code> supplies relevant context snippets, preventing prompt drift and memory loss.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
+      <h3 class="font-label text-xs uppercase tracking-widest text-primary mb-2">Incremental File Watching</h3>
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        Instead of scanning the whole filesystem on every prompt, a background file watcher monitors updates. File events are debounced and trigger incremental scans via the Unix socket at <code>corpus.root/recall.sock</code> (defaulting to <code>~/.local/share/ostk-recall/recall.sock</code>). Watch mode supports <code>incremental</code> (~250ms debounce) or <code>legacy</code> (full re-scan) cadences.
+      </p>
+    </div>
+  </section>
+
+  <!-- Search Pipeline -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">THE INDEXING & SEARCH PIPELINE</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      The search engine combines semantic vector similarity and full-text keyword indexing:
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-xs font-bold text-primary mb-2">Vector Search (LanceDB)</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Embeds chunks locally using the <strong>model2vec-rs</strong> library. The default model is <code>minishlab/potion-retrieval-32M</code>, producing dense 512-dimension vectors with zero network latency.
+        </p>
+      </div>
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-xs font-bold text-primary mb-2">Full-Text & Reranking</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Queries are tokenized and scored using <strong>Tantivy</strong> (BM25). The combined vector and text results are then re-scored locally using the <code>fastembed-rs</code> integration with <code>jina-reranker-v1-turbo-en</code>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Local Vectorization & Symbol-Aware AST Chunking -->
+  <section class="mb-16">
+    <div class="border-t border-surface-variant pt-8">
+      <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Local Vectorization & Symbol-Aware AST Chunking</h2>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+        <code>ostk-recall</code> avoids naive line-by-line or character-window chunking. It parses codebases syntax-first to preserve structural relationship context.
+      </p>
+
+      <div class="space-y-6 max-w-2xl font-body text-xs text-secondary leading-relaxed">
+        <div class="bg-surface-container-low p-5">
+          <h3 class="font-bold text-sm text-primary font-mono mb-2">1. Local Vectorization Mechanics</h3>
+          <p class="mb-2">
+            Vector generation runs completely local via <code>model2vec-rs</code> using the <code>minishlab/potion-retrieval-32M</code> model (512-dimensional output).
+          </p>
+          <ul class="space-y-1 pl-4 list-disc">
+            <li><strong>Zero Latency</strong>: Embeddings are computed in ~0.8ms per chunk on Apple Silicon GPUs (Metal backend) or standard CPU threads.</li>
+            <li><strong>Privacy</strong>: Code contents never leave localhost during indexing, resolving standard enterprise data-leak concerns.</li>
+          </ul>
+        </div>
+
+        <div class="bg-surface-container-low p-5">
+          <h3 class="font-bold text-sm text-primary font-mono mb-2">2. Symbol-Aware AST Chunking via `fcp-rust`</h3>
+          <p class="mb-2">
+            Instead of cutting chunks mid-expression, <code>ostk-recall</code> employs tree-sitter based parsers (like <code>fcp-rust</code> for Rust):
+          </p>
+          <ul class="space-y-1 pl-4 list-disc">
+            <li><strong>Syntactic Boundaries</strong>: Chunks are split at logical AST nodes—structs, impl blocks, functions, and enums.</li>
+            <li><strong>Context Parentage</strong>: Child nodes inherit the parent class/struct signature automatically, so that individual method chunks retain context of the class they belong to.</li>
+          </ul>
+        </div>
+
+        <div class="bg-surface-container-low p-5">
+          <h3 class="font-bold text-sm text-primary font-mono mb-2">3. File Path Weight-Multiplication</h3>
+          <p class="mb-2">
+            To prioritize direct file navigation queries, paths are enriched during index registration:
+          </p>
+          <ul class="space-y-1 pl-4 list-disc">
+            <li>File path tokens (e.g. <code>src/kernel/cas.rs</code> → <code>src</code>, <code>kernel</code>, <code>cas</code>) are appended to the document's keyword vector.</li>
+            <li>The indexing weights for path tokens are multiplied by a boost factor (default: <code>3.0x</code>). This guarantees that queries mentioning a file path or module name immediately bring up the containing symbol definition chunks first.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MCP Tools -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">EXPOSED MCP TOOLS</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      When registered as an MCP server in your client configuration, <code>ostk-recall</code> exposes the following specialized tools:
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <div class="space-y-0">
+        {tools.map(t => (
+          <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
+            <code class="text-primary w-32 shrink-0 font-bold">{t.name}</code>
+            <code class="text-on-surface w-40 shrink-0">{t.arg}</code>
+            <span class="text-secondary">{t.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Client Integration -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">CLIENT CONFIGURATION</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      To integrate memory into Claude Code or Cursor, register the server in your MCP settings:
+    </p>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <span class="font-label text-[10px] text-outline block mb-2">mcp_config.json</span>
+      <pre class="font-body text-xs text-secondary leading-relaxed">
+{"{"}
+  "mcpServers": {"{"}
+    "ostk-recall": {"{"}
+      "command": "ostk-recall",
+      "args": ["serve", "--stdio"],
+      "env": {"{"}
+        "OSTK_WORKSPACE": "/Users/username/projects/my-workspace"
+      {"}"}
+    {"}"}
+  {"}"}
+{"}"}</pre>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/libostk/">
+      <Icon name="lock" size="14" class="align-middle mr-1" />
+      LIBOSTK
+    </a>
+    <a href="/docs/ostk-cache/">
+      <Icon name="compress" size="14" class="align-middle mr-1" />
+      OSTK-CACHE
+    </a>
+    <a href="/docs/ostk-core/">
+      <Icon name="terminal" size="14" class="align-middle mr-1" />
+      OSTK-CORE
+    </a>
+  </div>
+</DocsLayout>

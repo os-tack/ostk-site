@@ -7,10 +7,10 @@ import { LATEST_TAG } from '../site-version';
 const sidebarGroups = {
   items: [
     { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+    { icon: 'layers', label: 'THE_STACK', href: '/stack/' },
     { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
-    { icon: 'extension', label: 'MCP_BRIDGE', href: '/docs/mcp/' },
-    { icon: 'tv', label: 'LOCAL_TUI', href: '/start/local/' },
-    { icon: 'cloud', label: 'SERVER_MODE', href: '/start/server/' },
+    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
+    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
   ],
   bottomItems: [
     { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
@@ -19,113 +19,173 @@ const sidebarGroups = {
 };
 ---
 
-<Base title="Start here — pick your path" description="Three ways to use ostk: as an MCP server for an external agent driver, as a TUI for a local model, or as a network server. Pick the path that matches how you want to work.">
+<Base title="Start here — pick your onboarding pathway" description="Four modular ways to adopt ostk: safe userspace sandbox library (libostk), transparent prompt cache proxy (ostk-cache), semantic memory engine (ostk-recall), or the full integrated CLI suite.">
   <Sidebar title="START" subtitle={LATEST_TAG} groups={sidebarGroups} />
 
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
-    <div class="max-w-3xl mx-auto py-12">
-      <div class="section-label mb-4">INITIALIZATION // PICK_PATH</div>
+    <div class="max-w-4xl mx-auto py-12">
+      <div class="section-label mb-4">INITIALIZATION // MODULAR_PATHWAYS</div>
       <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Start here.</h1>
 
       <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
-        ostk is one binary. There are three ways to drive it. Same kernel underneath; the first ten minutes differ.
+        ostk is modular. Adopt only the components that match your architecture. The first ten minutes differ by path.
       </p>
 
-      <!-- Universal prerequisites -->
-      <section class="mb-12">
-        <h2 class="section-label mb-4">UNIVERSAL // BEFORE_YOU_PICK</h2>
-        <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-          These two steps are identical for every path. Do them once per machine, then branch. <span class="text-outline">If you already ran them from the homepage, skip to <a href="#pick-a-path" class="text-primary hover:underline">PICK_A_PATH</a>.</span>
-        </p>
-        <div class="bg-surface-container-low p-6 max-w-2xl space-y-4">
-          <div>
-            <div class="font-label text-[10px] text-secondary mb-1">STEP_1 // INSTALL</div>
-            <button type="button" data-copy="curl -fsSL https://ostk.ai/install.sh | sh" class="plausible-event-name=Install+Copied plausible-event-source=start w-full text-left font-body text-sm text-primary block hover:bg-surface-container transition-colors cursor-pointer">curl -fsSL https://ostk.ai/install.sh | sh</button>
-            <p class="font-body text-xs text-outline mt-2">
-              Auto-detects platform, downloads the binary, verifies the GPG signature against the operator's <a href="/security/" class="text-primary hover:underline">release key</a>, installs to <code class="text-primary">~/.local/bin</code>. macOS (universal), Linux musl arm64/x86_64, Windows x86_64 zip.
-            </p>
-          </div>
-          <div class="border-t border-surface-variant pt-4">
-            <div class="font-label text-[10px] text-secondary mb-1">STEP_2 // INITIALIZE_PROJECT</div>
-            <code class="font-body text-sm text-primary block">cd ~/projects/your-repo && ostk init</code>
-            <p class="font-body text-xs text-outline mt-2">
-              Creates <code class="text-primary">.ostk/</code> with default <a href="/docs/humanfile/" class="text-primary hover:underline">HUMANFILE</a>, <a href="/docs/agentfile/" class="text-primary hover:underline">Agentfile</a>, and pin caps. Use <code class="text-primary">ostk init --guided</code> for an interactive setup.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Pick a path -->
+      <!-- Pathway Grid -->
       <section class="mb-16">
-        <h2 id="pick-a-path" class="section-label mb-4 scroll-mt-24">PICK_A_PATH</h2>
+        <h2 id="pick-a-path" class="section-label mb-6 scroll-mt-24">SELECT_YOUR_PATHWAY</h2>
 
-        <div class="space-y-px">
-          <!-- MCP Bridge -->
-          <a href="/docs/mcp/" class="plausible-event-name=Persona+CTA plausible-event-persona=mcp block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div class="md:col-span-1 flex items-start">
-                <Icon name="extension" size="32" class="text-primary" />
+        <div class="grid grid-cols-1 gap-6">
+          
+          <!-- Path 1: libostk -->
+          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div class="p-2 bg-green-400/10 border border-green-400/20 text-green-400">
+                  <Icon name="lock" size="24" />
+                </div>
+                <div>
+                  <h3 class="font-headline text-lg font-bold text-primary">1. Sandbox-Only Library (<code class="text-green-400">libostk</code>)</h3>
+                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
+                    For developers embedding safe process sandboxing directly into custom client tools, bots, or CI runners. Integrates via pure userspace socket calls.
+                  </p>
+                  <p class="font-body text-[10px] text-outline mt-2">
+                    License: <span class="text-green-400 font-bold font-mono">MIT (Permissive)</span> | Target: Rust, Node, Python
+                  </p>
+                </div>
               </div>
-              <div class="md:col-span-9">
-                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">MCP_BRIDGE — drive ostk from your existing agent tool <span class="text-outline font-normal">(recommended)</span></div>
-                <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-                  You already use Claude Code, Cursor, or another MCP-capable tool. Wire ostk in as an MCP server: your agent gets coordinated writes, audit, and capability boundaries while you keep your existing UI. Requires an MCP-capable agent driver.
-                </p>
-                <p class="font-body text-[10px] text-outline">
-                  Best for: anyone with a working agent setup who wants ostk's substrate underneath.
-                </p>
-              </div>
-              <div class="md:col-span-2 flex md:justify-end items-start">
-                <span class="font-label text-[10px] text-secondary">~10 MIN</span>
+              <div class="text-right">
+                <span class="font-label text-[10px] text-secondary">DEVELOPER SDK</span>
               </div>
             </div>
-          </a>
+            
+            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Add client library to Cargo.toml:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">libostk = {"{"} version = "6.0" {"}"}</pre>
+              </div>
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Connect to local socket & negotiate permissions:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">use libostk::KernelConnection;
+let client = KernelConnection::connect(".ostk/ostk.sock").await?;
+let session = client.negotiate_pins(&["read_file"]).await?;</pre>
+              </div>
+              <a href="/docs/libostk/" class="font-body text-xs text-primary hover:underline block">Read libostk integration docs →</a>
+            </div>
+          </div>
 
-          <!-- Local TUI -->
-          <a href="/start/local/" class="plausible-event-name=Persona+CTA plausible-event-persona=local block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div class="md:col-span-1 flex items-start">
-                <Icon name="tv" size="32" class="text-primary" />
+          <!-- Path 2: ostk-cache -->
+          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div class="p-2 bg-primary/10 border border-primary/20 text-primary">
+                  <Icon name="compress" size="24" />
+                </div>
+                <div>
+                  <h3 class="font-headline text-lg font-bold text-primary">2. Cache-Only Proxy (<code class="text-primary">ostk-cache</code>)</h3>
+                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
+                    For operators wanting immediate token savings on OpenAI or Anthropic API transactions. Acts as a transparent proxy on port 8080.
+                  </p>
+                  <p class="font-body text-[10px] text-outline mt-2">
+                    License: <span class="text-outline font-bold font-mono">AGPL-3.0</span> | Upstream: Anthropic, OpenAI
+                  </p>
+                </div>
               </div>
-              <div class="md:col-span-9">
-                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">LOCAL_TUI — chat with a local model in ostk's terminal UI</div>
-                <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-                  Run a model on your machine via ollama or Apple's mlx. Use ostk's TUI as the chat interface. No API bill, no third-party model traffic. Slower first response (model warm-up), but everything stays local.
-                </p>
-                <p class="font-body text-[10px] text-outline">
-                  Best for: local-first developers, offline work, hardware experimentation.
-                </p>
-              </div>
-              <div class="md:col-span-2 flex md:justify-end items-start">
-                <span class="font-label text-[10px] text-secondary">~15 MIN</span>
+              <div class="text-right">
+                <span class="font-label text-[10px] text-secondary">API WIRE PROXY</span>
               </div>
             </div>
-          </a>
 
-          <!-- Server -->
-          <a href="/start/server/" class="plausible-event-name=Persona+CTA plausible-event-persona=server block bg-surface-container hover:bg-surface-container-high transition-colors p-6 group">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div class="md:col-span-1 flex items-start">
-                <Icon name="cloud" size="32" class="text-primary" />
+            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Start proxy daemon:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">ostk-cache --port 8080 --mode mutate</pre>
               </div>
-              <div class="md:col-span-9">
-                <div class="font-body text-sm text-primary font-bold mb-1 group-hover:underline">SERVER_MODE — run ostk as a service for CI or remote agents</div>
-                <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-                  Run <code>ostk daemon</code> on the host. Other tools — your CI runner, a remote machine over SSH-forwarded socket, a Discord bot — connect to the same Unix socket and drive agents. Same kernel, same audit; just exposed across machine boundaries.
-                </p>
-                <p class="font-body text-[10px] text-outline">
-                  Best for: CI integration, multi-developer projects, server-side agent fleets.
-                </p>
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Redirect agent base URL:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">export ANTHROPIC_BASE_URL=http://127.0.0.1:8080/v1</pre>
               </div>
-              <div class="md:col-span-2 flex md:justify-end items-start">
-                <span class="font-label text-[10px] text-secondary">~10 MIN</span>
+              <p class="font-body text-xs text-outline leading-relaxed">
+                All requests now pass through the local cache pipeline, automatically ejecting large results (Tier A) and pruning oldest messages (Tier B) to respect budget parameters.
+              </p>
+              <a href="/docs/ostk-cache/" class="font-body text-xs text-primary hover:underline block">Read ostk-cache docs →</a>
+            </div>
+          </div>
+
+          <!-- Path 3: ostk-recall -->
+          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div class="p-2 bg-primary/10 border border-primary/20 text-primary">
+                  <Icon name="memory" size="24" />
+                </div>
+                <div>
+                  <h3 class="font-headline text-lg font-bold text-primary">3. Memory-Only Retrieval (<code class="text-primary">ostk-recall</code>)</h3>
+                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
+                    For developers integrating memory indices directly into Cursor or Claude Code. Runs LanceDB + Tantivy BM25 locally.
+                  </p>
+                  <p class="font-body text-[10px] text-outline mt-2">
+                    License: <span class="text-outline font-bold font-mono">AGPL-3.0</span> | Interface: stdio MCP / UNIX Socket
+                  </p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="font-label text-[10px] text-secondary">MCP MEMORY SERVER</span>
               </div>
             </div>
-          </a>
+
+            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Initialize codebase search index:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">ostk-recall init
+ostk-recall scan</pre>
+              </div>
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Spawn debounce watcher & register stdio MCP:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">ostk-recall watch &
+# add "ostk-recall" command: "ostk-recall serve --stdio" to your MCP config</pre>
+              </div>
+              <a href="/docs/ostk-recall/" class="font-body text-xs text-primary hover:underline block">Read ostk-recall docs →</a>
+            </div>
+          </div>
+
+          <!-- Path 4: ostk Core -->
+          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div class="p-2 bg-primary/10 border border-primary/20 text-primary">
+                  <Icon name="terminal" size="24" />
+                </div>
+                <div>
+                  <h3 class="font-headline text-lg font-bold text-primary">4. Integrated CLI Suite (<code class="text-primary">ostk-core</code>)</h3>
+                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
+                    For developers needing full platform supervision, process sandboxing (Landlock/Seatbelt), OCC validation, and GPG-signed audit logging.
+                  </p>
+                  <p class="font-body text-[10px] text-outline mt-2">
+                    License: <span class="text-outline font-bold font-mono">AGPL-3.0</span> | Interface: CLI / Socket Daemon
+                  </p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="font-label text-[10px] text-secondary">FULL RUNTIME</span>
+              </div>
+            </div>
+
+            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
+              <div class="font-mono text-xs text-secondary">
+                <span class="text-outline block mb-1">Install runtime binary & boot supervisor:</span>
+                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">curl -fsSL https://ostk.ai/install.sh | sh
+cd ~/projects/your-repo && ostk init
+ostk boot</pre>
+              </div>
+              <a href="/docs/ostk-core/" class="font-body text-xs text-primary hover:underline block">Read core supervisor docs →</a>
+            </div>
+          </div>
+
         </div>
 
         <p class="font-body text-xs text-outline mt-6 max-w-xl">
-          Picked one and changed your mind? They share the same <code class="text-primary">.ostk/</code> state. Switch any time, even mid-project — the audit and pin caps follow you.
+          Picked one and changed your mind? All stack modules coordinate seamlessly. You can start with `ostk-cache` and add the full `ostk-core` daemon later without rewriting your workflows.
         </p>
       </section>
 

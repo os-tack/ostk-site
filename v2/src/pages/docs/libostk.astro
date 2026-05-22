@@ -1,0 +1,137 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+---
+
+<DocsLayout
+  title="libostk"
+  description="Userspace client library for safe application sandboxing, JSON-RPC communication, and structured audit tailing."
+  sectionLabel="MODULAR_STACK // CLIENT_LIBRARY"
+>
+  <p class="font-body text-sm text-secondary max-w-xl mb-4">
+    The official userspace client library for interacting with the ostk kernel and daemons. Designed for application developers building wrappers, IDE extensions, or automated CI/CD runners.
+  </p>
+  <p class="font-body text-xs text-outline mb-12">
+    License: <span class="text-primary font-mono font-bold">MIT</span> | Target: Rust (native) & node/python (via IPC bindings)
+  </p>
+
+  <!-- Overview -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">OVERVIEW</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      <code>libostk</code> acts as the programmatic gateway to the ostk daemon. Instead of invoking CLI commands via subprocess spawning (which degrades performance and compromises security), tools like Claude Code, Cursor extensions, or Windmill integrations link against <code>libostk</code> to establish low-latency IPC channels, read real-time audits, and negotiate sandboxing capability pins.
+    </p>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+      <h3 class="font-label text-xs uppercase tracking-widest text-primary mb-2">Key Responsibilities</h3>
+      <ul class="list-disc list-inside font-body text-xs text-secondary space-y-2">
+        <li>Establishing JSON-RPC 2.0 communication over Unix Domain Sockets (<code>.ostk/ostk.sock</code>).</li>
+        <li>Tailing the <code>audit.jsonl</code> log using robust inode-rotation detection.</li>
+        <li>Parsing unstructured console lines using <code>envelope</code> heuristics.</li>
+        <li>Injecting caller identities (e.g., Discord username, Github action run ID) for strict audit attribution.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Socket Communication -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">JSON-RPC IPC PROTOCOL</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      The ostk daemon listens on a UNIX domain socket located at <code>.ostk/ostk.sock</code> relative to the project root. If the socket does not exist or fails to respond, clients can spawn the daemon on demand by invoking <code>ostk boot</code>.
+    </p>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-6">
+      <span class="font-label text-[10px] text-outline block mb-2">JSON-RPC 2.0 EXAMPLES</span>
+      <pre class="font-body text-xs text-secondary leading-relaxed">
+<span class="text-outline">// Request: Register Caller & Request Read Permissions</span>
+{"{"}
+  "jsonrpc": "2.0",
+  "method": "kernel.negotiate",
+  "params": {"{"}
+    "caller_id": {"{"}
+      "driver": "windmill",
+      "identity": "admin@company.corp",
+      "run_id": "job_948f93"
+    {"}"},
+    "requested_pins": ["read_file", "execute_url"]
+  {"}"},
+  "id": 1
+{"}"}
+
+<span class="text-outline">// Response: Negotiated Permissions & Session Token</span>
+{"{"}
+  "jsonrpc": "2.0",
+  "result": {"{"}
+    "session_id": "sess_88f2b38a",
+    "granted_pins": ["read_file"],
+    "denied_pins": ["execute_url"],
+    "trust_tier": "T2"
+  {"}"},
+  "id": 1
+{"}"}</pre>
+    </div>
+  </section>
+
+  <!-- Inode Rotation and Audit Tailing -->
+  <section class="mb-16">
+    <h2 class="section-label mb-4">AUDIT TAILING WITH INODE TRACKING</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      Security tools must follow the audit tail without dropping frames. Because log-rotation (renaming/compressing log files) causes traditional file polling to fail, the <code>libostk</code> Rust module <code>audit_tail</code> listens for file system modification events and verifies inodes.
+    </p>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <span class="font-label text-[10px] text-outline block mb-2">AUDIT TAIL RUST INTERFACE</span>
+      <pre class="font-body text-xs text-secondary leading-relaxed">
+<span class="text-primary">pub struct</span> <span class="text-on-surface">AuditTail</span> {"{"}
+    path: PathBuf,
+    current_inode: u64,
+    reader: BufReader&lt;File&gt;,
+{"}"}
+
+<span class="text-primary">impl</span> <span class="text-on-surface">AuditTail</span> {"{"}
+    <span class="text-primary">pub fn</span> <span class="text-on-surface">new</span>(path: PathBuf) -> io::Result&lt;Self&gt;;
+    
+    <span class="text-outline">/// Fetches the next event. If the file is rotated or replaced, </span>
+    <span class="text-outline">/// the tailer detects the inode change, re-opens the path,</span>
+    <span class="text-outline">/// and flushes any remaining bytes from the stale inode.</span>
+    <span class="text-primary">pub fn</span> <span class="text-on-surface">next_line</span>(&amp;<span class="text-primary">mut</span> <span class="text-on-surface">self</span>) -> io::Result&lt;Option&lt;String&gt;&gt;;
+{"}"}</pre>
+    </div>
+  </section>
+
+  <section class="mb-16">
+    <h2 class="section-label mb-4">ENVELOPE PARSING</h2>
+    <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+      The client contains a presentation-only <code>envelope</code> parser designed for styling CLI outputs. It matches the pattern <code>[keyword] k:v ...</code>. Note that this parser is strictly for presentation and HUD views; it <strong>MUST NOT</strong> produce events for the state dispatcher.
+    </p>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant">
+      <pre class="font-body text-xs text-secondary leading-relaxed">
+<span class="text-outline">// Raw console line:</span>
+[fs_ops] action:write target:/src/lib.rs size:124B actor:admin@company.corp
+
+<span class="text-outline">// libostk parses this into:</span>
+Envelope {"{"}
+    subsystem: "fs_ops",
+    fields: {"{"}
+        "action": "write",
+        "target": "/src/lib.rs",
+        "size": "124B",
+        "actor": "admin@company.corp"
+    {"}"}
+{"}"}</pre>
+    </div>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/ostk-cache/">
+      <Icon name="compress" size="14" class="align-middle mr-1" />
+      OSTK-CACHE
+    </a>
+    <a href="/docs/ostk-recall/">
+      <Icon name="memory" size="14" class="align-middle mr-1" />
+      OSTK-RECALL
+    </a>
+    <a href="/docs/ostk-core/">
+      <Icon name="terminal" size="14" class="align-middle mr-1" />
+      OSTK-CORE
+    </a>
+  </div>
+</DocsLayout>

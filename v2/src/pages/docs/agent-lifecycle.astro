@@ -1,261 +1,305 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
-import Terminal from '../../components/Terminal.astro';
 ---
 
 <DocsLayout
-  title="Agent Lifecycle"
-  description="Five states, context-pressure thresholds, turn-boundary drain snapshots, graceful-then-forced kill protocol, and the ephemeral-by-design principle that makes crash recovery tractable."
+  title="Agent Lifecycle & Topology"
+  description="How transient clients, sub-stacks, five-state lifecycles, and turn-boundary drain snapshots compose to enable fault-tolerant agent execution."
   sectionLabel="REFERENCE // AGENT_LIFECYCLE"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Agents are ephemeral by design. State lives in the filesystem and the audit log. The kernel owns a small state machine that moves each agent from healthy execution through context pressure into a graceful finalization turn, then death.
+    Sessions outlive everything that drives them — clients disconnect, daemons crash, workers hang. State lives in the filesystem and the audit log. The daemon acts as an ephemeral cache of active execution; the journal on disk is the ultimate truth.
   </p>
 
-  <!-- State machine -->
+  <!-- Section 1: Session Topology & Client Multiplexing -->
   <section class="mb-16">
-    <h2 class="section-label mb-6">STATE_MACHINE</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Five states, no regression. Once an agent advances, it cannot go back. Source: <code class="text-primary">src/kernel/lifecycle.rs:56–76, 132–135</code>.
+    <div class="section-label mb-4">01 // TOPOLOGY_AND_MULTIPLEXING</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Transient Clients & Daemon Isolation</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Clients are transient by design. The TUI, CLI, MCP bridges, and IDE extensions attach and detach over the Unix domain socket at <code class="text-primary">.ostk/ostk.sock</code> without affecting underlying execution. The daemon (anchor) manages agent lifecycles in memory, acting as a long-lived process while routing events to subscribed clients.
     </p>
-    <div class="space-y-px">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mb-8">
+      <div class="bg-surface-container p-5 border border-surface-variant">
+        <h3 class="font-body text-sm font-bold text-primary mb-2">Transient Connections</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          If your TUI or terminal emulator disconnects mid-task, the agent does not stop. The anchor keeps running. Upon reconnecting, the client issues a <code class="text-primary">client/attach</code> JSON-RPC request to resume streaming logs and state updates.
+        </p>
+        <span class="font-body text-[10px] text-outline">Source: <code class="text-primary">src/serve/server.rs</code>, <code class="text-primary">src/serve/client.rs</code></span>
+      </div>
+
+      <div class="bg-surface-container p-5 border border-surface-variant">
+        <h3 class="font-body text-sm font-bold text-primary mb-2">Sub-Stack Isolation</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          Sub-stacks isolate work scopes. Under <code class="text-primary">.ostk/stacks/&lt;name&gt;/</code>, a sub-stack maintains its own scoped journal, drain snapshots, and nudge inbox. The parent anchor communicates with it solely through these bounded IPC channels, limiting blast radius.
+        </p>
+        <span class="font-body text-[10px] text-outline">Source: <code class="text-primary">src/kernel/sub_stack.rs</code>, <code class="text-primary">src/kernel/sandbox.rs</code></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Agent State Machine -->
+  <section class="mb-16">
+    <div class="section-label mb-6">02 // STATE_MACHINE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Five-State Execution Lifecycle</h2>
+    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
+      Once an agent advances state, it cannot regress. State transitions are monitored by the kernel loop on every turn.
+    </p>
+
+    <img src="/diagrams/agent-lifecycle.svg" alt="Agent Lifecycle Flow" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <div class="space-y-px max-w-3xl">
       {[
         {
           state: 'HEALTHY',
-          trigger: 'Default state at spawn. Context &lt; 70%.',
-          behavior: 'Normal execution. All tool calls permitted, no instrumentation overhead.',
+          trigger: 'Default state at spawn. Context usage < 70%.',
+          behavior: 'Normal execution. All permitted tools are available with minimal monitoring overhead.',
         },
         {
           state: 'AGING',
-          trigger: 'Context ≥ 70% (AGING_THRESHOLD_PCT). lifecycle.rs:22',
-          behavior: 'Still executing. The kernel begins preparing a handoff record for a successor agent. No compaction — the agent\'s context is not mutated mid-turn.',
+          trigger: 'Context usage ≥ 70% (AGING_THRESHOLD_PCT).',
+          behavior: 'The kernel prepares a handoff record for the successor. Context is not mutated mid-turn to preserve the prompt cache.',
         },
         {
           state: 'DYING',
-          trigger: 'Context ≥ 90% (DYING_THRESHOLD_PCT). Context jumps (e.g. 60% → 92%) skip AGING and go straight to DYING. lifecycle.rs:23, 138–140',
-          behavior: 'Critical. No new tool calls allowed beyond the finalization turn. Handoff data is finalized.',
+          trigger: 'Context usage ≥ 90% (DYING_THRESHOLD_PCT). Jumps (e.g. 60% → 92%) skip AGING directly to DYING.',
+          behavior: 'Fencing begins. No new tool calls are allowed except within the single finalization turn.',
         },
         {
           state: 'DRAINING',
-          trigger: 'One finalization turn allowed after DYING.',
-          behavior: 'Single last tool call permitted — typically the handoff write. After this turn completes, the state advances to DEAD.',
+          trigger: 'Transitioned from DYING; last-turn execution.',
+          behavior: 'A single final tool call is allowed (typically writing the handoff document). Advances to DEAD once complete.',
         },
         {
           state: 'DEAD',
-          trigger: 'Finalization turn complete, or context pressure past recovery.',
-          behavior: 'All tool calls fenced. The agent process is a zombie until the daemon reaps it.',
+          trigger: 'Finalization turn complete or context limit exceeded.',
+          behavior: 'All tool calls are fenced. The agent subprocess persists as a zombie until the daemon reaps it.',
         },
       ].map(s => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-2 bg-surface-container-low px-4 py-5 flex items-center">
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 border-b border-surface-variant/20">
+          <div class="md:col-span-2 bg-surface-container-low px-4 py-4 flex items-center">
             <span class="font-body text-sm font-bold text-primary">{s.state}</span>
           </div>
-          <div class="md:col-span-5 px-4 py-5">
-            <div class="font-label text-[10px] text-outline mb-1">TRIGGER</div>
-            <span class="font-body text-xs text-secondary" set:html={s.trigger}></span>
+          <div class="md:col-span-5 px-4 py-4 border-t md:border-t-0 md:border-l border-surface-variant/20">
+            <div class="font-label text-[10px] text-outline mb-1 font-bold">TRIGGER</div>
+            <span class="font-body text-xs text-secondary">{s.trigger}</span>
           </div>
-          <div class="md:col-span-5 px-4 py-5">
-            <div class="font-label text-[10px] text-outline mb-1">BEHAVIOR</div>
+          <div class="md:col-span-5 px-4 py-4 border-t md:border-t-0 md:border-l border-surface-variant/20">
+            <div class="font-label text-[10px] text-outline mb-1 font-bold">BEHAVIOR</div>
             <span class="font-body text-xs text-secondary">{s.behavior}</span>
           </div>
         </div>
       ))}
     </div>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Transitions are guarded by <code class="text-primary">LifecycleState::can_transition_to()</code> at <code class="text-primary">lifecycle.rs:66–76</code>. The transition driver is <code class="text-primary">lifecycle.evaluate(context_pct)</code>, called from dispatch at <code class="text-primary">src/cpu/agent_loop.rs:1839</code>.
-    </p>
-  </section>
-
-  <!-- Context pressure -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">How Context Pressure is Detected</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
-      <p class="font-body text-xs text-secondary mb-3">
-        The kernel does <span class="text-primary font-bold">not</span> auto-compress context mid-turn. Context pressure is a signal, not an intervention point. The mechanism:
-      </p>
-      <ol class="font-body text-xs text-secondary list-decimal pl-5 space-y-2">
-        <li>Each turn, <code class="text-primary">PreCallTokenCount</code> and <code class="text-primary">Usage</code> events update the session's token state.</li>
-        <li>Dispatch computes <code class="text-primary">context_pct</code> from those counts and calls <code class="text-primary">lifecycle.evaluate(context_pct)</code>.</li>
-        <li>If the threshold crosses, the state advances monotonically (Healthy → Aging → Dying → Draining → Dead). A sudden jump can skip states — a 60% → 92% crossing goes straight from Healthy to Dying without stopping at Aging.</li>
-        <li>The current turn still completes. Fencing only kicks in when the next turn is requested.</li>
-      </ol>
-      <p class="font-body text-xs text-secondary mt-4">
-        Context pressure triggers a <span class="text-primary">handoff</span> — a structured record the next agent inherits — not in-flight compaction. The design choice is explicit: mutating context mid-turn would defeat the prompt cache and surprise the model.
-      </p>
-      <p class="font-body text-[10px] text-outline mt-4">
-        Source: <code class="text-primary">src/kernel/lifecycle.rs:22–23</code> (thresholds), <code class="text-primary">src/cpu/agent_loop.rs:1839</code> (call site), <code class="text-primary">src/kernel/lifecycle.rs:138–140</code> (skip behavior, test coverage at line 460).
+    <div class="bg-surface-container-low p-4 max-w-3xl mt-4">
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        Transitions are guarded by <code class="text-primary">LifecycleState::can_transition_to()</code> at <code class="text-primary">src/kernel/lifecycle.rs</code>. Evaluated during command dispatch via <code class="text-primary">lifecycle.evaluate(context_pct)</code> inside the CPU agent loop.
       </p>
     </div>
   </section>
 
-  <!-- Spawn -->
+  <!-- Section 3: Process Model -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">SPAWN</h2>
-    <div class="space-y-px">
+    <div class="section-label mb-4">03 // PROCESS_MODEL</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Spawning and Process Boundaries</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Unlike systems running agents in-process or inside green threads, the ostk daemon spawns agents as OS subprocesses with distinct isolation boundaries.
+    </p>
+
+    <div class="space-y-px max-w-3xl">
       {[
-        { step: '01', action: 'Operator runs ostk kernel spawn <name> --model sonnet --budget 5 "task description". Or internally via ostk _agent.' },
-        { step: '02', action: 'Daemon fork-exec\'s a subprocess (not an in-process thread). The agent is a real OS process with its own PID.' },
-        { step: '03', action: 'Agent writes .ostk/agents/<name>.meta with real PID and config. agent_cmd.rs:33–46.' },
-        { step: '04', action: 'Agent binds a UnixListener at .ostk/agents/<name>.sock. This is how detachable clients attach. agent_cmd.rs:88–96.' },
-        { step: '05', action: 'Lineage ID is the alias passed via --name. Lineage = the stable identity the daemon tracks across restarts; it outlives any single process.' },
-      ].map(s => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
-            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+        { step: '01', title: 'Spawn Request', text: 'Operator runs `ostk kernel spawn <name> --model <model>` or invokes it programmatically. A new session is initialized.' },
+        { step: '02', title: 'OS Fork-Exec', text: 'The daemon fork-execs the agent as an independent child process. The agent gets its own PID and isolated environment.' },
+        { step: '03', title: 'Metadata Registration', text: 'The agent registers its configuration and PID to `.ostk/agents/<name>.meta` for process tracking.' },
+        { step: '04', title: 'Local IPC Listener', text: 'The child process opens a dedicated socket listener at `.ostk/agents/<name>.sock` to route agent-specific client traffic.' },
+        { step: '05', title: 'Lineage Bind', text: 'The agent is bound to a Lineage ID—the persistent, logical identifier tracked by the daemon across restarts.' }
+      ].map(item => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 border-b border-surface-variant/20">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4 font-bold text-primary serif-text text-lg">
+            {item.step}
           </div>
-          <div class="md:col-span-11 px-4 py-3">
-            <span class="font-body text-xs text-secondary">{s.action}</span>
+          <div class="md:col-span-11 px-6 py-4">
+            <h4 class="font-body text-xs font-bold text-on-surface mb-1">{item.title}</h4>
+            <p class="font-body text-xs text-secondary leading-relaxed">{item.text}</p>
           </div>
         </div>
       ))}
     </div>
   </section>
 
-  <!-- Heartbeat -->
+  <!-- Section 4: Heartbeats and Hang Recovery -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">HEARTBEAT_AND_CRASH_DETECTION</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
-      <p class="font-body text-xs text-secondary mb-3">
-        Timestamp-based, not socket-based. Each agent writes its <code class="text-primary">last_seen</code> ISO8601 to <code class="text-primary">.ostk/agents.jsonl</code> on every turn. The daemon interprets staleness:
-      </p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
-        <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">ACTIVE</div>
-          <p class="font-body text-xs text-secondary">last_seen &lt; 30s ago. Agent is actively ticking.</p>
+    <div class="section-label mb-4">04 // HEARTBEATS_AND_HANG_RECOVERY</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Worker Hang Detection & Recovery</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      To maintain the Bounded Wait scheduler invariant, each active session writes a periodic heartbeat timestamp. If a worker process hangs or stops responding, the scheduler tick loop detects the failure and reclaims the resource.
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">ACTIVE</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            Heartbeat updated &lt; 30 seconds ago. Process is executing normally.
+          </p>
         </div>
-        <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">STALE</div>
-          <p class="font-body text-xs text-secondary">30s–90s. Idle but probably alive. Daemon does not intervene yet.</p>
+        <div class="border-t md:border-t-0 md:border-l border-surface-variant/30 pt-4 md:pt-0 md:pl-4">
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">STALE</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            30 to 90 seconds since last heartbeat. Process is assumed idle; daemon monitors.
+          </p>
         </div>
-        <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">CRASHED</div>
-          <p class="font-body text-xs text-secondary">&gt; 90s. Daemon calls <code class="text-primary">kill(pid, 0)</code> to distinguish idle-alive from actually-dead.</p>
+        <div class="border-t md:border-t-0 md:border-l border-surface-variant/30 pt-4 md:pt-0 md:pl-4">
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">CRASHED</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            &gt; 90 seconds. Tick loop probes PID; if hung, it reaps the process and triggers hot-rehydration.
+          </p>
         </div>
       </div>
-      <p class="font-body text-[10px] text-outline mt-4">
-        Source: <code class="text-primary">src/kernel/heartbeat.rs:47–54, 89–91</code> (thresholds and is_alive probe). Turn-based fallback state per agent at <code class="text-primary">.ostk/.heartbeat.&lt;alias&gt;</code> is tracked at <code class="text-primary">heartbeat.rs:228–240</code>.
+    </div>
+
+    <p class="font-body text-xs text-secondary max-w-xl mb-4">
+      Heartbeats write to the global registry at <code class="text-primary">.ostk/agents.jsonl</code>. A secondary fallback file is maintained per agent at <code class="text-primary">.ostk/.heartbeat.&lt;alias&gt;</code> to prevent serialization contention.
+    </p>
+    <span class="font-body text-[10px] text-outline">Source: <code class="text-primary">src/kernel/heartbeat.rs</code>, <code class="text-primary">src/kernel/scheduler.rs</code></span>
+  </section>
+
+  <!-- Section 5: Crash Recovery & Revival Policies -->
+  <section class="mb-16">
+    <div class="section-label mb-4">05 // CRASH_RECOVERY</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Daemon Crash Recovery & Revival</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      When the daemon is killed or crashes, no state is lost. At every turn boundary, the daemon commits a snapshot of the execution state to disk. On reboot, the daemon identifies active lineages without corresponding processes, marks them <code class="text-primary">Orphaned</code>, and resolves them based on the revival policy.
+    </p>
+
+    <div class="bg-surface-container-low p-6 max-w-3xl mb-6 border border-surface-variant">
+      <div class="font-label text-[10px] text-primary mb-3 font-bold">REVIVAL_POLICIES</div>
+      <pre class="font-body text-xs text-secondary leading-relaxed mb-4"><span class="text-primary">LIMIT</span> revival_policy revive   <span class="text-outline"># Rehydrate and resume from last turn (default)</span>
+<span class="text-primary">LIMIT</span> revival_policy reap     <span class="text-outline"># Discard session immediately on daemon start</span>
+<span class="text-primary">LIMIT</span> revival_policy ask      <span class="text-outline"># Block lineage; wait for manual resolution</span></pre>
+      
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        Ask-pending lineages can be resolved via CLI: <code class="text-primary">ostk lineage resolve &lt;id&gt; --revive</code> or <code class="text-primary">--reap</code>. Anchor Exclusivity invariants guarantee that multiple running daemons cannot collide or double-rehydrate the same lineage.
       </p>
     </div>
+    <span class="font-body text-[10px] text-outline">Source: <code class="text-primary">src/kernel/drain.rs</code>, <code class="text-primary">src/kernel/anchor.rs</code></span>
   </section>
 
-  <!-- Drain snapshot -->
+  <!-- Section 6: Drain Snapshots -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      At every turn boundary (after each assistant response completes), the session hook writes a snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Wave G.3 flipped this to default ON — previously opt-in via <code class="text-primary">OSTK_DRAIN_SNAPSHOT=1</code>. Source: <code class="text-primary">src/kernel/drain.rs:102–111</code>, hook at <code class="text-primary">src/cpu/session.rs:1052</code>.
+    <div class="section-label mb-4">06 // DRAIN_SNAPSHOTS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Turn-Boundary Drain Snapshots</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      A snapshot is written to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code> on every completed turn. Snapshots contain all parameters required to re-establish the assistant context from the exact same boundary.
     </p>
-    <h3 class="section-label-secondary mb-3">SNAPSHOT_V2_CONTENTS</h3>
-    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-4">
-      <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">lineage_id</span>      <span class="text-outline"># stable identity</span>
-<span class="text-primary">anchor_id</span>       <span class="text-outline"># daemon instance that wrote this</span>
-<span class="text-primary">written_at</span>      <span class="text-outline"># ISO8601 timestamp</span>
-<span class="text-primary">model</span>           <span class="text-outline"># LLM model string</span>
-<span class="text-primary">session_tokens</span>  <span class="text-outline"># input/output/cache_read/cache_create cumulative</span>
-<span class="text-primary">messages</span>        <span class="text-outline"># full conversation history</span>
-<span class="text-primary">config</span>          <span class="text-outline"># pruned LoopConfig: tools, max_tokens, permission_mode,</span>
-                <span class="text-outline">#   thinking, citations, tool_patterns, revival_policy</span></pre>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mb-6">
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-primary mb-2">Committed Fields</h4>
+        <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1">
+          <li><code class="text-primary">lineage_id</code> & <code class="text-primary">anchor_id</code></li>
+          <li><code class="text-primary">written_at</code> ISO8601 timestamp</li>
+          <li>Active LLM configuration and Model string</li>
+          <li>Cumulative token usage accounting</li>
+          <li>Full structured conversation messages</li>
+          <li>Current <code class="text-primary">LoopConfig</code> (tools, permissions, limits)</li>
+        </ul>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-outline mb-2">Deliberately Ephemeral Fields</h4>
+        <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1">
+          <li><code class="text-primary">root</code> / directory pointers (regenerated at boot)</li>
+          <li><code class="text-primary">pending_images</code> (discarded across turns)</li>
+          <li><code class="text-primary">runtime_allowed</code> approvals (rebuilt per run)</li>
+          <li>Tokio task handles, cancel flags, and IPC channels</li>
+          <li>Mid-turn outbox events (rehydration resumes from turn boundaries only)</li>
+        </ul>
+      </div>
     </div>
-    <p class="font-body text-xs text-secondary mb-3 max-w-lg">
-      What's <span class="text-primary">not</span> in a snapshot (deliberately ephemeral):
-    </p>
-    <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1 mb-4">
-      <li><code class="text-primary">root</code>, <code class="text-primary">preload_context</code> — daemon-local pointers regenerated at boot</li>
-      <li><code class="text-primary">pending_images</code>, <code class="text-primary">outbox</code> — transient turn state</li>
-      <li><code class="text-primary">runtime_allowed</code> — session approval list, rebuilt per run</li>
-      <li><code class="text-primary">task_handle</code>, <code class="text-primary">cancel_flag</code>, event channels — tokio primitives, not serializable</li>
-    </ul>
-    <p class="font-body text-[10px] text-outline">
-      Source: <code class="text-primary">src/kernel/drain.rs:81–88, 192–221</code>.
-    </p>
+    <span class="font-body text-[10px] text-outline">Source: <code class="text-primary">src/kernel/drain.rs</code> (V2 Upgrade path supported at <code class="text-primary">upgrade_from_v1</code>)</span>
   </section>
 
-  <!-- Kill and reap -->
+  <!-- Section 7: Process Termination -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">KILL_AND_REAP</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Two different operations. Kill terminates a running process; reap compacts the registry after the process is already dead.
+    <div class="section-label mb-4">07 // TERMINATION_AND_CLEANUP</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Kill & Reap Protocol</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Process termination distinguishes between active termination (Kill) and post-mortem state synchronization (Reap).
     </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">KILL (session_proctable)</div>
-        <ol class="font-body text-xs text-secondary list-decimal pl-4 space-y-2">
-          <li>SIGTERM to the process group (negative PID). session_proctable.rs:161.</li>
-          <li>Five-second grace period. session_proctable.rs:170–171.</li>
-          <li>SIGKILL fallback if the process is still alive. session_proctable.rs:179.</li>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mb-8">
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-sm font-bold text-primary mb-2">Kill Sequence</h3>
+        <ol class="font-body text-xs text-secondary list-decimal pl-4 space-y-1 leading-relaxed">
+          <li>Send SIGTERM to the process group (negative PID).</li>
+          <li>Initiate a 5-second grace period for clean exit.</li>
+          <li>Fall back to SIGKILL if the process fails to terminate.</li>
         </ol>
-        <p class="font-body text-[10px] text-outline mt-4">No final drain write — session_proctable handles in-process background tasks.</p>
+        <p class="font-body text-[10px] text-outline mt-3">Does not trigger a final drain; managed by the session process table.</p>
       </div>
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">REAP (ostk kernel reap)</div>
-        <ol class="font-body text-xs text-secondary list-decimal pl-4 space-y-2">
-          <li>Read <code class="text-primary">.ostk/agents.jsonl</code>, probe each "active" entry with <code class="text-primary">kill(pid, 0)</code>. reap.rs:77–213.</li>
-          <li>For entries whose process is already dead: flip status, remove from active set.</li>
-          <li>Rewrite a compacted <code class="text-primary">agents.jsonl</code>.</li>
-          <li>Call <code class="text-primary">cleanup_agent_state()</code> (heartbeat.rs:304) to remove per-agent files.</li>
+
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-sm font-bold text-primary mb-2">Reap Process</h3>
+        <ol class="font-body text-xs text-secondary list-decimal pl-4 space-y-1 leading-relaxed">
+          <li>Sweep the active table in <code class="text-primary">agents.jsonl</code>.</li>
+          <li>Probe active entries using <code class="text-primary">kill(pid, 0)</code>.</li>
+          <li>For dead processes, update status to inactive and prune metadata.</li>
         </ol>
-        <p class="font-body text-[10px] text-outline mt-4">Reap is a post-mortem sweep. It does not send signals — if a process is still running it's left alone.</p>
+        <p class="font-body text-[10px] text-outline mt-3">Triggered periodically or via <code class="text-primary">ostk kernel reap</code>; removes heartbeat locks.</p>
       </div>
     </div>
   </section>
 
-  <!-- Rehydration -->
+  <!-- Section 8: Ephemeral by Design Invariants -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Crash Recovery</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
-      <p class="font-body text-xs text-secondary mb-3">
-        When the daemon restarts, <code class="text-primary">SessionManager::with_anchor</code> reads drain snapshots for orphaned lineages and rehydrates them. Source: <code class="text-primary">src/kernel/drain.rs:21–27</code>.
-      </p>
-      <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-2">
-        <li>Messages and token state are restored from the snapshot.</li>
-        <li>Config is either refreshed from the live Agentfile template or carried over from the snapshot.</li>
-        <li><code class="text-primary">SnapshotV2::upgrade_from_v1()</code> handles pre-G.1 snapshots (config=None on upgrade). drain.rs:253–264.</li>
-        <li>After successful rehydrate, the snapshot is cleared. drain.rs:29–33.</li>
-      </ul>
-      <p class="font-body text-xs text-secondary mt-4">
-        <span class="text-primary font-bold">Honest caveat:</span> recovery is snapshot-to-restart-point only. Tool calls that happened <em>after</em> the last snapshot write are lost. Rehydration is not full audit replay — the audit log is for observability, the snapshot is for resumption. The two are complementary, not redundant.
-      </p>
-    </div>
-  </section>
+    <div class="section-label mb-4">08 // EPHEMERAL_BY_DESIGN</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Ephemeral Invariants</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      "Agents are ephemeral" is the second of the Five Foundational Laws. The concrete runtime constraints enforced by the kernel include:
+    </p>
 
-  <!-- Ephemeral by design -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Ephemeral by Design</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      "Agents are ephemeral" is Five Laws #2 and it is load-bearing. Specific consequences:
-    </p>
-    <div class="space-y-3">
-      {[
-        { claim: 'Session state MUST NOT persist across restarts', why: 'Preload context (registers, .language identity blocks) is regenerated at boot. Pinning to a pre-crash cache prefix defeats cache efficiency. drain.rs:221–224.' },
-        { claim: 'Token accounting resets on rehydrate', why: 'session_tokens are zeroed, not accumulated from disk. The new process starts its own budget. session.rs:899.' },
-        { claim: 'Task handles are tokio-bound', why: 'task_handle and event channels cannot be deserialized. Rehydrated sessions get fresh tokio primitives. drain.rs:85–88.' },
-        { claim: 'In-flight outbox is transient', why: 'Tool results that were mid-flight when the process died are discarded. Rehydration resumes from the snapshot\'s message boundary, not mid-tool. drain.rs:82–84.' },
-      ].map(e => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-5 bg-surface-container-low px-4 py-4">
-            <span class="font-body text-xs text-primary font-bold">{e.claim}</span>
-          </div>
-          <div class="md:col-span-7 px-4 py-4">
-            <span class="font-body text-xs text-secondary">{e.why}</span>
-          </div>
-        </div>
-      ))}
+    <div class="space-y-4 max-w-3xl mb-6">
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-on-surface mb-1">State resets on daemon restart</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Preload contexts, temporary tools, and in-memory session structures are entirely generated fresh at boot. Pinning to local RAM state across restarts is forbidden.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-on-surface mb-1">Token accounting resets on rehydrate</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          The token budget for the running agent process is tracked locally in the process memory. If the process is rehydrated from a snapshot, token accounting is initialized clean from that point.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-on-surface mb-1">Task handles are tokio-bound</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Tokio futures, file stream handles, and socket event loop primitives cannot be serialized. Rehydrated processes are initialized with fresh handles, resuming from the last messages on disk.
+        </p>
+      </div>
     </div>
-    <p class="font-body text-xs text-secondary mt-6 max-w-lg">
-      The principle's origin statement, from <code class="text-primary">src/kernel/presence.rs:30–35</code>:
-    </p>
-    <div class="bg-surface-container-lowest p-4 border border-surface-variant mt-2">
-      <p class="font-body text-xs text-secondary italic">
-        "State is held in ServerState and resets on daemon restart. Arrivals are not themselves persistent kernel state — the persistent record is the audit row stream, which recall @arrived can query as the canonical arrival record."
+
+    <div class="bg-surface-container-low p-5 max-w-3xl border-l border-primary">
+      <p class="font-body text-xs text-secondary italic leading-relaxed">
+        "State is held in ServerState and resets on daemon restart. Arrivals are not themselves persistent kernel state — the persistent record is the audit row stream, which recall @arrived can query as the canonical arrival record." &mdash; <code class="text-outline">src/kernel/presence.rs</code>
       </p>
     </div>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/session-topology/"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
-    <a href="/docs/five-laws/"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
-    <a href="/docs/kernel-spec/"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
+    <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
     <a href="/docs/agentfile/"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
+    <a href="/docs/coordination-primitives/"><Icon name="hub" size="14" class="align-middle mr-1" />COORDINATION</a>
   </div>
 </DocsLayout>

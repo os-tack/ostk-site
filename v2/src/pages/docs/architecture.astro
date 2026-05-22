@@ -1,6 +1,40 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
+import ArchitectureDiagram from '../../components/ArchitectureDiagram.astro';
+
+const laws = [
+  {
+    num: '01',
+    title: 'The write path is invisible',
+    body: 'Agents edit files normally. They use whatever tools their model provider gives them. The OS coordinates underneath. No new API. No coordination protocol. No SDK.',
+    practice: 'Your agents never learn a new API. They write files. That\'s it.',
+  },
+  {
+    num: '02',
+    title: 'Agents are ephemeral',
+    body: 'Agents crash. They hit context limits. They lose memory. They get killed. This is the expected operating condition. State lives in the filesystem. When an agent dies, nothing is lost.',
+    practice: 'Session death does not mean work death. The OS survives its agents.',
+  },
+  {
+    num: '03',
+    title: 'Coordinate through the filesystem',
+    body: 'No message buses. No inboxes. No pub/sub. No RPC between agents. If agent A needs agent B to know something, agent A writes a file. ls and cat are your debugging tools.',
+    practice: 'The filesystem IS the communication channel. Every coordination artifact is a file you can read.',
+  },
+  {
+    num: '04',
+    title: 'Optimistic concurrency',
+    body: 'No locks. No mutexes. Agents write freely and concurrently. When two agents edit the same file, the kernel detects the conflict via generation counters and resolves it. Conflict resolution, not conflict prevention.',
+    practice: 'Agents never block each other. Two agents can edit the same file at the same time. The OS handles it.',
+  },
+  {
+    num: '05',
+    title: 'Invisible infrastructure, always',
+    body: 'If you have to think about the OS, the OS failed. No config files to learn. No YAML to write. No dashboard to check. The install is one command. Init is one command. Boot is one command.',
+    practice: 'Zero config, zero learning curve for agents. The OS works or it doesn\'t.',
+  },
+];
 ---
 
 <DocsLayout
@@ -9,6 +43,8 @@ import Icon from '../../components/Icon.astro';
   sectionLabel="SECTION_01 // ARCHITECTURE"
   activeTab="architecture"
 >
+  <ArchitectureDiagram />
+
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
     Six problems show up the moment you put agents in front of a real codebase. ostk's architecture is the composition that solves them. Each section below names a problem, walks the composition that addresses it, and points at the primitives that compose.
   </p>
@@ -153,7 +189,7 @@ import Icon from '../../components/Icon.astro';
       What you don't have to know: which file holds which counter, which subsystem listens on which signal, which invariant is implemented in which phase. Those live in the kernel and the spec. The architecture is the composition story above; the rest is implementation.
     </p>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl mb-12">
       <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-posix-kernel.md" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
         <div class="font-body text-xs text-primary font-bold mb-1">→ KERNEL_SPEC (NORMATIVE)</div>
         <p class="font-body text-[10px] text-secondary">The ten invariants in full normative form. RFC 2119 keywords. Phase-by-phase rollout map.</p>
@@ -173,6 +209,159 @@ import Icon from '../../components/Icon.astro';
     </div>
   </section>
 
+  <!-- Foundational Laws -->
+  <section class="mb-24 pt-12 border-t border-surface-variant">
+    <div class="section-label mb-4">GOVERNANCE // FOUNDATIONAL_LAWS</div>
+    <h2 class="serif-text text-4xl font-bold tracking-tighter text-on-surface mb-6">The Five Foundational Laws</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
+      These are not guidelines. They are load-bearing constraints. Every design decision in ostk must satisfy all five. If a feature violates a law, the design is wrong.
+    </p>
+
+    <div class="space-y-0 mt-8 max-w-4xl">
+      {laws.map(law => (
+        <div class="bg-surface-container mb-px" key={law.num}>
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-0">
+            {/* Left: large number on tonal step */}
+            <div class="md:col-span-2 bg-surface-container-low flex items-center justify-center py-4 md:py-8">
+              <span class="serif-text text-4xl md:text-6xl font-bold text-primary italic">{law.num}</span>
+            </div>
+            {/* Right: content */}
+            <div class="md:col-span-10 p-6">
+              <h3 class="serif-text text-xl font-medium text-on-surface mb-2">{law.title}</h3>
+              <p class="font-body text-xs text-secondary leading-relaxed max-w-2xl mb-4">
+                {law.body}
+              </p>
+              <div class="border-l-2 border-primary pl-4">
+                <span class="font-label text-[9px] text-outline block mb-1">IN_PRACTICE</span>
+                <span class="font-body text-xs text-on-surface leading-relaxed">{law.practice}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Kernel Substrate -->
+  <section class="mb-24 pt-12 border-t border-surface-variant">
+    <div class="section-label mb-4">SPECIFICATION // KERNEL_SUBSTRATE</div>
+    <h2 class="serif-text text-4xl font-bold tracking-tighter text-on-surface mb-6">The Unix Substrate</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
+      The ostk kernel does not reinvent basic filesystem primitives. Instead, it relies on battle-tested Unix system calls as its foundational substrate:
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl">
+      <div class="space-y-0">
+        {[
+          { syscall: 'rename(2)', use: 'Atomic file replacement (write to temp + fsync + rename) ensuring no torn writes' },
+          { syscall: 'flock(2)', use: 'Acquires exclusive locks on critical sections for CAS database commits' },
+          { syscall: 'fsync(2)', use: 'Enforces durability by flushing buffers to physical disk before renaming' },
+          { syscall: 'O_APPEND', use: 'Performs lockless audit log appends guaranteed atomic by the OS kernel under PIPE_BUF' },
+          { syscall: 'stat(2)', use: 'Inspects file modification times (mtime) as a lightweight heartbeat for agent liveness' },
+          { syscall: 'O_CREAT | O_EXCL', use: 'Creates files exclusively to manage coordination locks safely' },
+        ].map(s => (
+          <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant last:border-b-0" key={s.syscall}>
+            <code class="text-primary w-40 shrink-0 font-mono">{s.syscall}</code>
+            <span class="text-secondary leading-relaxed">{s.use}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Seven Primitives -->
+  <section class="mb-24 pt-12 border-t border-surface-variant">
+    <div class="section-label mb-4">SPECIFICATION // SEVEN_PRIMITIVES</div>
+    <h2 class="serif-text text-4xl font-bold tracking-tighter text-on-surface mb-6">The Seven Core Primitives</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
+      These seven architectural layers build upon the Unix substrate to enable safe, multi-agent operations:
+    </p>
+
+    <div class="space-y-px max-w-4xl">
+      {[
+        { num: '1', name: 'atomic_write', layer: 'Substrate', breaks: 'Torn reads and crash-induced filesystem inconsistency' },
+        { num: '2', name: 'gen + CAS', layer: 'Coordination', breaks: 'Concurrent writers clobbering each other\'s updates silently' },
+        { num: '3', name: 'Hot PR', layer: 'Coordination', breaks: 'Requiring human intervention for every concurrent edit conflict' },
+        { num: '4', name: 'audit log', layer: 'Coordination', breaks: 'Loss of happens-before ordering and cryptographic attribution' },
+        { num: '5', name: 'identity', layer: 'Coordination', breaks: 'Lost writer attribution tags, resulting in namespace collisions' },
+        { num: '6', name: 'digest injection', layer: 'Agent interface', breaks: 'Inability for LLMs to observe filesystem changes efficiently' },
+        { num: '7', name: '304 elision', layer: 'Agent interface', breaks: 'Redundant file reads destroying agent context budgets' },
+      ].map(p => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 gap-0" key={p.num}>
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3 md:py-6">
+            <span class="serif-text text-2xl font-bold text-primary">{p.num}</span>
+          </div>
+          <div class="md:col-span-4 px-6 py-4 flex flex-col justify-center">
+            <code class="font-mono text-sm text-on-surface font-bold">{p.name}</code>
+            <div class="font-label text-[9px] text-outline mt-1 uppercase tracking-wider">{p.layer}</div>
+          </div>
+          <div class="md:col-span-7 px-6 py-4 flex items-center">
+            <span class="font-body text-xs text-secondary leading-relaxed"><strong class="text-on-surface">Without it:</strong> {p.breaks}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- LLM Memory Hierarchy -->
+  <section class="mb-24 pt-12 border-t border-surface-variant">
+    <div class="section-label mb-4">SPECIFICATION // MEMORY_HIERARCHY</div>
+    <h2 class="serif-text text-4xl font-bold tracking-tighter text-on-surface mb-6">The LLM Memory Hierarchy</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
+      We map classical computer memory components to LLM inference structures, optimizing both cost and speed:
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-6">
+      {[
+        { tier: 'Registers', substrate: 'Context window', role: 'Active working memory', cost: 'Base model rate', width: '94%' },
+        { tier: 'L1 cache', substrate: 'Prompt cache', role: 'Fleet-shared prefix', cost: '10% of read cost', width: '80%' },
+        { tier: 'RAM', substrate: '.ostk/ files', role: 'Durable kernel state', cost: 'Zero token cost', width: '55%' },
+        { tier: 'Disk', substrate: 'Source code', role: 'Project codebase truth', cost: 'Zero token cost', width: '35%' },
+        { tier: 'Swap', substrate: 'boot.md, history', role: 'Cold conversation history', cost: 'Zero token cost', width: '15%' },
+      ].map(t => (
+        <div class="flex items-center mb-3 last:mb-0" key={t.tier}>
+          <div class="w-20 font-label text-[9px] text-secondary shrink-0 uppercase tracking-widest">{t.tier}</div>
+          <div class="flex-1 h-10 bg-surface-container-highest flex items-center px-4 relative overflow-hidden">
+            <div class="absolute left-0 top-0 h-full bg-primary opacity-10" style={`width: ${t.width}`}></div>
+            <div class="flex justify-between w-full z-10 text-xs font-body">
+              <span class="text-on-surface font-bold">{t.substrate}</span>
+              <span class="text-secondary">{t.role}</span>
+              <span class="text-primary font-mono">{t.cost}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="font-body text-xs text-secondary leading-relaxed max-w-xl">
+      The prompt cache at the model endpoint (such as Anthropic's edge) is content-addressed. Therefore, multiple concurrent agent processes using the same API key automatically hit the same prompt cache, driving down marginal token costs as fleet density increases.
+    </p>
+  </section>
+
+  <!-- Dual-CPU Scheduler -->
+  <section class="mb-24 pt-12 border-t border-surface-variant">
+    <div class="section-label mb-4">SPECIFICATION // DUAL_CPU_SCHEDULER</div>
+    <h2 class="serif-text text-4xl font-bold tracking-tighter text-on-surface mb-6">The Dual-CPU Scheduler</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
+      ostk views humans and LLMs as two distinct execution resources. The <code class="text-primary">CpuDriver</code> trait abstracts this boundary—allowing the kernel to route commands without needing to know whether it communicates with a TTY or an API:
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-3xl">
+      {[
+        { class_: 'Human CPU', latency: 'Seconds to hours', judgment: 'Authoritative / Policy', ring: 'Ring 0 (Privileged)' },
+        { class_: 'LLM CPU', latency: 'Seconds per turn', judgment: 'Context-bounded execution', ring: 'Ring 3 (Restricted)' },
+      ].map(cpu => (
+        <div class="bg-surface-container p-6" key={cpu.class_}>
+          <h3 class="font-body text-sm text-primary font-bold mb-3 uppercase tracking-wider">{cpu.class_}</h3>
+          <div class="space-y-2 font-body text-xs">
+            <div class="flex justify-between"><span class="text-outline uppercase text-[10px]">LATENCY</span><span class="text-on-surface font-bold">{cpu.latency}</span></div>
+            <div class="flex justify-between"><span class="text-outline uppercase text-[10px]">JUDGMENT</span><span class="text-on-surface">{cpu.judgment}</span></div>
+            <div class="flex justify-between"><span class="text-outline uppercase text-[10px]">RING</span><span class="text-primary font-mono">{cpu.ring}</span></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
   <!-- Related -->
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
@@ -180,9 +369,9 @@ import Icon from '../../components/Icon.astro';
       <Icon name="help_outline" size="14" class="align-middle mr-1" />
       WHY_OSTK
     </a>
-    <a href="/docs/session-topology/">
-      <Icon name="hub" size="14" class="align-middle mr-1" />
-      SESSION_TOPOLOGY
+    <a href="/docs/agent-lifecycle/">
+      <Icon name="sync" size="14" class="align-middle mr-1" />
+      AGENT_LIFECYCLE
     </a>
     <a href="/docs/needles/">
       <Icon name="search" size="14" class="align-middle mr-1" />

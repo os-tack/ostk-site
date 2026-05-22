@@ -13,39 +13,39 @@ const sections = [
     ],
   },
   {
+    label: 'MODULAR_STACK',
+    items: [
+      { title: 'libostk (Sandbox)', desc: 'Userspace client library with JSON-RPC interface', href: '/docs/libostk/', icon: 'lock' },
+      { title: 'ostk-cache (Proxy)', desc: 'Drop-in LLM proxy with multi-tier prompt compression', href: '/docs/ostk-cache/', icon: 'compress' },
+      { title: 'ostk-recall (Memory)', desc: 'Autonomous memory and context indexing MCP server', href: '/docs/ostk-recall/', icon: 'memory' },
+      { title: 'ostk-core (CLI)', desc: 'Optimistic concurrency daemon and terminal interface', href: '/docs/ostk-core/', icon: 'terminal' },
+    ],
+  },
+  {
     label: 'REFERENCE',
     items: [
       { title: 'Commands', desc: 'Full command reference', href: '/docs/commands/', icon: 'terminal' },
-      { title: 'Kernel Specification', desc: 'Seven primitives, Five Laws', href: '/docs/kernel-spec/', icon: 'memory' },
-      { title: 'Architecture', desc: 'Kernel, daemon, and driver layers', href: '/docs/architecture/', icon: 'architecture' },
+      { title: 'Architecture', desc: 'Foundational laws, substrate, and design principles', href: '/docs/architecture/', icon: 'architecture' },
       { title: 'Boot Sequence', desc: 'Kernel boot, daemon attach, POST checks', href: '/docs/boot-sequence/', icon: 'power_settings_new' },
-      { title: 'Session Topology', desc: 'Daemon sessions and client multiplexing', href: '/docs/session-topology/', icon: 'hub' },
-      { title: 'TUI', desc: 'Terminal interface operator guide', href: '/docs/tui/', icon: 'tv' },
-      { title: 'MCP Proxy', desc: 'External tool server integration', href: '/docs/mcp/', icon: 'swap_horiz' },
-      { title: 'Compression', desc: 'Output compression pipeline', href: '/docs/compression/', icon: 'compress' },
-      { title: 'Enrichment', desc: 'Driver diagnostics inlined into reads', href: '/docs/enrichment/', icon: 'auto_fix_high' },
-      { title: 'Skills', desc: 'Reusable capability bundles for agents', href: '/docs/skills/', icon: 'extension' },
+      { title: 'Agent Lifecycle', desc: 'Daemon sessions and client multiplexing', href: '/docs/agent-lifecycle/', icon: 'sync' },
+      { title: 'Context Management', desc: 'Prompt compression (Squasher), inline diagnostics, skills, and pull-model context', href: '/docs/context-management/', icon: 'layers' },
+      { title: 'Coordination', desc: 'VFS overlay, optimistic concurrency, and conflict resolution', href: '/docs/coordination-primitives/', icon: 'merge' },
       { title: 'Sphere Navigator', desc: 'Spatial context navigation for agents', href: '/docs/sphere-navigator/', icon: 'explore' },
-      { title: 'Bail', desc: 'Signed, portable OS packages', href: '/docs/bail/', icon: 'verified' },
+      { title: 'Tack Grammar', desc: 'The operator intent language for the TUI tack bar', href: '/docs/tack-grammar/', icon: 'code' },
+      { title: 'Specifications', desc: 'Low-level kernel specifications, POSIX-shaped invariants, and application layer specs', href: '/docs/spec/', icon: 'description' },
     ],
   },
   {
     label: 'CONFIGURATION',
     items: [
-      { title: 'HUMANFILE', desc: 'Operator identity and preferences', href: '/docs/humanfile/', icon: 'person' },
+      { title: 'Configuration Reference', desc: 'HUMANFILE, ENTITYFILE, .primefile, ostk.toml, and environment variables', href: '/docs/configuration/', icon: 'settings' },
       { title: 'Agentfile', desc: 'Agent process descriptor', href: '/docs/agentfile/', icon: 'smart_toy' },
-      { title: 'ENTITYFILE', desc: 'Governance and authority chains', href: '/docs/entityfile/', icon: 'groups' },
-      { title: '.primefile', desc: 'Root trust configuration', href: '/docs/primefile/', icon: 'settings' },
-      { title: 'ostk.toml', desc: 'Project configuration', href: '/docs/ostk-toml/', icon: 'tune' },
-      { title: 'Secrets', desc: 'API key management', href: '/docs/secrets/', icon: 'key' },
-      { title: 'Capability Pins', desc: 'Agent permission boundaries', href: '/docs/pins/', icon: 'pin_drop' },
     ],
   },
   {
     label: 'GOVERNANCE',
     items: [
-      { title: 'Five Laws', desc: 'Foundational governance principles', href: '/docs/five-laws/', icon: 'gavel' },
-      { title: 'Trust Model', desc: 'T0-T3 trust tiers and capability chains', href: '/docs/trust-model/', icon: 'shield' },
+      { title: 'Security & Trust', desc: 'T0-T3 trust tiers, capability pins, verifiable audits, secrets, and bail', href: '/docs/security/', icon: 'shield' },
       { title: 'FAQ', desc: 'Common questions from developers', href: '/docs/faq/', icon: 'help' },
     ],
   },
@@ -71,6 +71,7 @@ const sections = [
             <h2 class="font-label text-xs uppercase tracking-widest text-primary">{section.label}</h2>
             <p class="font-body text-[10px] text-secondary mt-0.5">
               {section.label === 'ONBOARDING' && 'Start here. Install, initialize, boot.'}
+              {section.label === 'MODULAR_STACK' && 'Individual components of the ostk framework.'}
               {section.label === 'REFERENCE' && 'Kernel internals, commands, and protocol specifications.'}
               {section.label === 'CONFIGURATION' && 'Files that define identity, governance, and agent behavior.'}
               {section.label === 'GOVERNANCE' && 'Trust model and operational laws.'}

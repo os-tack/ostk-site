@@ -6,169 +6,273 @@ import Terminal from '../../components/Terminal.astro';
 
 <DocsLayout
   title="Coordination Primitives"
-  description="Four primitives that let multiple agents share a codebase without a message bus: optimistic concurrency, Hot PR conflict resolution, digest injection, and nudges."
+  description="How agents coordinate state, files, and workloads using the VFS projection, Optimistic Concurrency Control, Hot PR, digest envelopes, and cross-boundary nudges."
   sectionLabel="REFERENCE // COORDINATION"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Four kernel primitives. No locks, no message buses, no RPC. A generation counter for writes, a three-tier mechanical merge for conflicts, a 5-line envelope that replaces redundant file reads, and a queue for cross-boundary interrupts.
+    Coordination operates without message buses, active servers, or RPC. ostk projects state directly into the filesystem, managing concurrency via per-file generation checks, resolving collisions with mechanical merges, and routing interrupts using durable queues.
   </p>
 
-  <!-- OCC -->
+  <!-- Section 1: Virtual Filesystem (VFS) Overlay -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">01 // OPTIMISTIC_CONCURRENCY_CONTROL</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Per-file monotonic generation counter + compare-and-swap. No locks on the data path; agents write freely and the kernel detects conflicts at write time.
+    <div class="section-label mb-4">01 // VIRTUAL_FILESYSTEM</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">VFS: The Observation Substrate</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      The VFS is a FUSE filesystem owned by the daemon. It projects the daemon's live memory and registries as standard directories. Any tool (e.g., <code class="text-primary">ls</code>, <code class="text-primary">cat</code>, <code class="text-primary">grep</code>) can query kernel state directly without needing JSON-RPC parsers.
     </p>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+
+    <!-- Mount Commands -->
+    <h3 class="section-label-secondary mb-3">VFS_CLI_REFERENCE</h3>
+    <Terminal>
+      <pre class="font-mono text-xs text-secondary"><span class="text-outline"># Mount at the default path (.ostk/vfs/)</span>
+<span class="text-outline">$ </span>ostk vfs mount
+
+<span class="text-outline"># Check mount status & owning daemon PID</span>
+<span class="text-outline">$ </span>ostk vfs status
+declared:
+  auto_mount:  true
+  mount_point: ~/.ostk/vfs
+actual:
+  mounted:     true
+  owner:       daemon
+  owner_pid:   27060
+
+<span class="text-outline"># Cleanly unmount VFS overlay</span>
+<span class="text-outline">$ </span>ostk vfs unmount
+
+<span class="text-outline"># Clean up orphan FUSE mounts left by hard crashes</span>
+<span class="text-outline">$ </span>ostk vfs unmount-stale</pre>
+    </Terminal>
+
+    <!-- Namespaces -->
+    <h3 class="serif-text text-2xl font-medium text-on-surface mb-3 mt-8">Directory Namespaces</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-xl">
+      Top-level namespaces map to distinct registries in the daemon memory:
+    </p>
+    <div class="bg-surface-container-low p-5 max-w-3xl border border-surface-variant mb-8">
+      {[
+        { ns: 'needles/', desc: 'Active work items and tickets. Subdirectories expose individual field values.' },
+        { ns: 'decisions/', desc: 'Historical decision logs, structured by slug. Documents justifications and timestamps.' },
+        { ns: 'fleet/', desc: 'Live agent registry enumerating active, stale, and dead agents.' },
+        { ns: 'proc/', desc: 'Detailed process table for active running workers.' },
+        { ns: 'journal/', desc: 'Append-only audit logs. Read to observe all kernel transactions.' },
+        { ns: 'sys/', desc: 'Kernel-internal caching states and graph index metrics.' },
+        { ns: 'mem/', desc: 'Working memory: context pages and capability pin boundaries.' },
+        { ns: 'drivers/', desc: 'Active device drivers and their declared capabilities.' },
+      ].map(n => (
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant/30 last:border-b-0">
+          <code class="text-primary md:col-span-2 font-mono">{n.ns}</code>
+          <span class="text-secondary md:col-span-10">{n.desc}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Projection Lattice -->
+    <h3 class="serif-text text-2xl font-medium text-on-surface mb-3">The Projection Lattice</h3>
+    <p class="font-body text-xs text-secondary mb-4 max-w-xl">
+      To balance performance and token economy, the VFS exposes data at three distinct resolution layers:
+    </p>
+    <div class="space-y-4 max-w-3xl">
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">ATOM // 1–30 tokens</div>
+        <p class="font-body text-xs text-secondary mb-2">A single property field. Ideal for tight agent polling loops and quick inline context.</p>
+        <Terminal>
+          <pre class="font-mono text-xs text-secondary"><span class="text-outline">$ </span>cat .ostk/vfs/needles/1338/title
+EPIC: Observation substrate over VFS namespace</pre>
+        </Terminal>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">OBJECT // One complete entity</div>
+        <p class="font-body text-xs text-secondary mb-2">The complete JSON serialization of a single record.</p>
+        <Terminal>
+          <pre class="font-mono text-xs text-secondary"><span class="text-outline">$ </span>cat .ostk/vfs/needles/1338/_object
+{"{"}"id":1338,"title":"EPIC: Observation substrate...","priority":"P0","status":"open"{"}"}</pre>
+        </Terminal>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">NAMESPACE // Collection enumeration</div>
+        <p class="font-body text-xs text-secondary mb-2 font-mono">Enables directory walks, file searches, and piping.</p>
+        <Terminal>
+          <pre class="font-mono text-xs text-secondary"><span class="text-outline">$ </span>ls .ostk/vfs/needles/ | wc -l
+1413</pre>
+        </Terminal>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Optimistic Concurrency Control -->
+  <section class="mb-16">
+    <div class="section-label mb-4">02 // OPTIMISTIC_CONCURRENCY</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Optimistic Concurrency Control (OCC)</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Rather than locking files on open (which stalls parallel workflows), ostk uses monotonic generation counters and Compare-and-Swap (CAS) edits.
+    </p>
+
+    <img src="/diagrams/write-path.svg" alt="The Write Path (str_replace_cas)" class="w-full max-w-2xl border border-surface-variant mb-8" />
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl">
       <div class="space-y-4">
         <div>
-          <div class="font-label text-[10px] text-primary mb-1">MECHANISM</div>
-          <p class="font-body text-xs text-secondary">Every file path has a u64 counter stored in <code class="text-primary">.ostk/gen_table.jsonl</code> (JSONL format, sorted by path). Every write bumps the counter via <code class="text-primary">bump_gen()</code> or <code class="text-primary">bump_gen_with_content()</code>.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">MONOTONIC GENERATIONS</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            Every file's generation is tracked in <code class="text-primary">.ostk/gen_table.jsonl</code>. Successful writes increment the generation counter, providing an instant state signature.
+          </p>
         </div>
         <div>
-          <div class="font-label text-[10px] text-primary mb-1">SERIALIZATION</div>
-          <p class="font-body text-xs text-secondary">An exclusive <code class="text-primary">flock(2)</code> on <code class="text-primary">.ostk/gen_table.lock</code> wraps the entire read-compute-write cycle. Two concurrent <code class="text-primary">bump_gen</code> calls serialize: the second observes the first's new gen and increments from there. No lost updates.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">SERIALIZATION LOCKS</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            A system-level <code class="text-primary">flock(2)</code> on <code class="text-primary">.ostk/gen_table.lock</code> wraps the generation lookup and modification loop. Concurrent writes are queued, avoiding lost updates.
+          </p>
         </div>
         <div>
-          <div class="font-label text-[10px] text-primary mb-1">SHADOWS</div>
-          <p class="font-body text-xs text-secondary">On bump, the pre-edit content is copied to <code class="text-primary">.ostk/shadows/&lt;path_hash&gt;/gen_&lt;N&gt;</code>. Hot PR uses these shadows to compute diffs when a later CAS fails. Source: <code class="text-primary">src/kernel/gen_table.rs:69–79, 261–296</code>.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">SHADOW BACKUPS</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            On every generation bump, the pre-edit content is backed up to <code class="text-primary">.ostk/shadows/&lt;path_hash&gt;/gen_&lt;N&gt;</code>. This historic record is used to resolve conflicts if a subsequent write fails.
+          </p>
         </div>
         <div>
-          <div class="font-label text-[10px] text-primary mb-1">CAS</div>
-          <p class="font-body text-xs text-secondary"><code class="text-primary">file:edit</code> sends the old_str the agent expects. If the current file content doesn't match, the CAS fails and Hot PR engages. The gen counter provides the authoritative "did the file change" signal — there is no content-hash comparison round-trip.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">CAS OPERATION</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            Write tools (like <code class="text-primary">file:edit</code>) pass the old content string. If the workspace version has changed, the write is blocked, triggering Hot PR conflict resolution.
+          </p>
         </div>
-      </div>
-      <p class="font-body text-[10px] text-outline mt-6">
-        Source: <code class="text-primary">src/kernel/gen_table.rs:16–35</code> (lock acquisition), <code class="text-primary">:52–53, 84–86</code> (agent alias recorded on bump), <code class="text-primary">:151–177</code> (table compaction under lock), <code class="text-primary">:601–648</code> (concurrent bump test).
-      </p>
-    </div>
-  </section>
-
-  <!-- Hot PR -->
-  <section class="mb-16">
-    <h2 class="section-label mb-4">02 // HOT_PR_CONFLICT_RESOLUTION</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      When a CAS fails, Hot PR classifies the conflict by position and size and attempts mechanical resolution. No LLM call — just text diffing with hard thresholds. Source: <code class="text-primary">src/kernel/hotpr.rs</code>.
-    </p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant">
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">TIER 1 — AUTO_MERGE</div>
-        <div class="font-body text-xs text-outline mb-3">PROXIMITY_LINES &gt; 3</div>
-        <p class="font-body text-xs text-secondary">Edits are more than 3 lines apart — non-overlapping. The kernel applies both silently. Neither agent is interrupted.</p>
-        <div class="font-label text-[10px] text-outline mt-4">hotpr.rs:22</div>
-      </div>
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">TIER 2 — ASSISTED_MERGE</div>
-        <div class="font-body text-xs text-outline mb-3">&lt; 30 changed lines, ≤ 2 regions</div>
-        <p class="font-body text-xs text-secondary">Edits within 3 lines or overlapping but small. The kernel computes a mechanical line rebase and returns a suggested <code class="text-primary">file:edit()</code> call the agent can accept, modify, or reject. Still no LLM call.</p>
-        <div class="font-label text-[10px] text-outline mt-4">hotpr.rs:26, 30</div>
-      </div>
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">TIER 3 — MANUAL_REBASE</div>
-        <div class="font-body text-xs text-outline mb-3">Above Tier 2 thresholds</div>
-        <p class="font-body text-xs text-secondary">The kernel returns conflict info and the agent re-reads from disk. If Tier 2 rebase fell through, an <code class="text-primary">ArbitrationObservation</code> is written to audit — Phase 0 observer for a future small-model arbiter. Gated by <code class="text-primary">OSTK_T2_OBSERVER</code>.</p>
-        <div class="font-label text-[10px] text-outline mt-4">file.rs:25–81, 33</div>
       </div>
     </div>
   </section>
 
-  <!-- Digest -->
+  <!-- Section 3: Hot PR Conflict Resolution -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">03 // DIGEST</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      A 5-line envelope appended to every tool response. The agent reads it to decide whether to re-read files, how much context budget is left, and which peers are active. Replaces redundant file reads with ~5 tokens of signal.
+    <div class="section-label mb-4">03 // HOT_PR_RESOLUTION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Hot PR: Automated Merge Routing</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      When a write fails due to a mismatched generation signature, Hot PR attempts to merge the changes mechanically, without invoking expensive LLM rounds.
     </p>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
-      <div class="font-label text-[10px] text-primary mb-3">ENVELOPE_COMPONENTS</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-3xl border border-surface-variant">
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">TIER 1 // AUTO_MERGE</div>
+        <div class="font-body text-[10px] text-outline mb-2">Distance &gt; 3 lines</div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Edits occur in different, non-overlapping parts of the file. The kernel merges both changes automatically and silently.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">TIER 2 // ASSISTED_MERGE</div>
+        <div class="font-body text-[10px] text-outline mb-2">&lt; 30 lines / 2 regions</div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Minor overlaps. The kernel computes a line rebase and returns a suggested edit call back to the agent for confirmation.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">TIER 3 // MANUAL_REBASE</div>
+        <div class="font-body text-[10px] text-outline mb-2">Over Tier 2 thresholds</div>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Large conflict. The write is rejected. The agent must re-read the file and manually re-apply its logic.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Digest Envelopes & 304 Elision -->
+  <section class="mb-16">
+    <div class="section-label mb-4">04 // DIGEST_AND_ELISION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Peripheral Aware Digest & 304 Elision</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Instead of querying files repeatedly, the agent checks the 5-line envelope appended to tool outputs. If a file is read unnecessarily, the kernel returns a 304 header.
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-6">
+      <div class="font-label text-[10px] text-primary mb-3 font-bold">ENVELOPE SECTIONS</div>
       <div class="space-y-2">
         {[
-          { tag: '[procs]', desc: 'All active agents + health status. Always included.', src: 'digest.rs:97–99, 363–364' },
-          { tag: '[presence]', desc: 'Register state glyph. Suppressed when register is Off.', src: 'digest.rs:65–67, 636–657' },
-          { tag: '[files]', desc: 'Stale files only — current files omitted. Format: path:gen=N:writer:age.', src: 'digest.rs:106–114, 260–282' },
-          { tag: '[loadavg]', desc: 'Needle count, P0 count, fleet alive, pending nudges.', src: 'digest.rs:174–231' },
-          { tag: '[meminfo]', desc: 'Context %, used/total tokens, buffers, tool call count. Assumes 800k token budget.', src: 'digest.rs:234–256, 249' },
-          { tag: '[maintenance]', desc: 'Maintenance phase + tokens reclaimed. Emitted for 3 register dumps after a cycle.', src: 'digest.rs:150–172' },
-        ].map(c => (
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
-            <code class="text-primary md:col-span-2">{c.tag}</code>
-            <span class="text-secondary md:col-span-7">{c.desc}</span>
-            <code class="text-outline md:col-span-3 text-[10px]">{c.src}</code>
+          { tag: '[procs]', desc: 'Active peer agents and execution health. Enables cross-agent status checks.' },
+          { tag: '[presence]', desc: 'State glyph tracking arrivals and departures.' },
+          { tag: '[files]', desc: 'Modified file paths, generation tokens, and editing agent aliases. Unmodified files are omitted.' },
+          { tag: '[loadavg]', desc: 'Active tickets, P0 count, and pending messages.' },
+          { tag: '[meminfo]', desc: 'Token usage metrics and remaining context budget.' },
+        ].map(item => (
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant/30 last:border-b-0">
+            <code class="text-primary md:col-span-2 font-mono">{item.tag}</code>
+            <span class="text-secondary md:col-span-10">{item.desc}</span>
           </div>
         ))}
       </div>
     </div>
-    <h3 class="section-label-secondary mb-3">DIGEST_AND_304_ELISION</h3>
-    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      Digest and 304 elision are the two defensive layers of the same primitive:
-    </p>
-    <ol class="font-body text-xs text-secondary list-decimal pl-5 space-y-2 mb-4">
-      <li><span class="text-primary font-bold">Suppression (digest).</span> Current files are absent from <code class="text-primary">[files]</code>. No stale files means no reason to re-read.</li>
-      <li><span class="text-primary font-bold">Elision (304).</span> If the agent reads a current file anyway, the kernel returns <code class="text-primary">[304] path:gen=N (current)</code> (~5 tokens) instead of the full content (~800 tokens). Source: <code class="text-primary">src/kernel/elision.rs</code>, called from <code class="text-primary">kernel::elision::read_file_with_elision</code>.</li>
-    </ol>
-    <p class="font-body text-xs text-secondary max-w-lg">
-      Digest is the <span class="text-primary">observation</span>; 304 is the <span class="text-primary">response</span>. Both are transparent to the agent — no protocol learning required. Source: <code class="text-primary">src/kernel/digest.rs:10–24</code>.
+
+    <p class="font-body text-xs text-secondary max-w-xl">
+      If an agent attempts to read an unmodified file (e.g. because it is missing from the <code class="text-primary">[files]</code> block), the kernel intercepts the operation and returns <code class="text-primary">[304] path:gen=N (current)</code>. This avoids loading hundreds of lines of duplicate data into the context window.
     </p>
   </section>
 
-  <!-- Nudges -->
+  <!-- Section 5: Nudges -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">04 // NUDGES</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      A durable message queue that crosses process, host, and temporal boundaries. How an operator or peer agent injects context into a target agent's next tool response, without modifying the target's process.
+    <div class="section-label mb-4">05 // DURABLE_NUDGES</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Nudges: Cross-Boundary Interrupts</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Nudges are durable, asynchronous messages pushed into an agent's next tool response context, bypassing the need for real-time IPC connections.
     </p>
-    <div class="space-y-px">
+
+    <div class="space-y-4 max-w-3xl mb-8">
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-primary mb-1">Local Nudges</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Pushed into the local queue at <code class="text-primary">.ostk/nudges/&lt;agent-alias&gt;.jsonl</code>. The dispatch loop reads this queue on every step and appends pending messages into the target's next turn.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-primary mb-1">Cross-Host Nudges</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Sent using the Files API, writing a <code class="text-primary">nudge.uploaded</code> event to the audit trail. Peer daemons scan the audit log, download the files, and insert them into their local queues.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-primary mb-1">Temporal Resiliency</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Nudges are persistent on disk. If the daemon is restarted, the queue remains intact, ensuring that messages are not lost during kernel upgrades.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Caveats -->
+  <section class="mb-16">
+    <div class="section-label mb-4">06 // SYSTEM_CAVEATS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">FUSE & VFS Operational Constraints</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Because VFS relies on the host operating system's FUSE layers, operators should be aware of the following execution limits:
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-error max-w-3xl">
       {[
-        {
-          q: 'Who can send?',
-          a: 'Operator (via CLI/API), peer agent (in-process via push_nudge), cross-host sender (via Files API + audit discovery). Source: src/kernel/nudge.rs:17–39 (local push), :225–275 (cross-host upload).',
-        },
-        {
-          q: 'Who receives?',
-          a: 'The dispatch layer reads the queue on every response via pop_nudges, injects each message as a [nudge] line in the [procs] row of the digest. Source: nudge.rs:129–135.',
-        },
-        {
-          q: 'How delivered?',
-          a: 'Local: JSONL queue at .ostk/nudges/<agent-alias>.jsonl, flock-serialized for concurrent appends. Cross-host: Files API upload + a nudge.uploaded event in the audit log. Receivers scan audit for undownloaded uploads. Source: nudge.rs:17–39, 262–272, 336–345.',
-        },
-        {
-          q: 'What about dead targets?',
-          a: 'Before delivery, pop_nudges checks if the nudge service is alive via is_capability_alive. If dead, returns empty — nudges are NOT auto-retried in that case; they are lost. This is a known stub per nudge.rs:46–51. A durable retry queue is not implemented.',
-        },
-        {
-          q: 'Persistence?',
-          a: 'Yes — the local queue is the JSONL file, truncated on pop. Cross-host nudges are recorded in .ostk/journal.jsonl as nudge.uploaded and nudge.downloaded events so rehydrating a crashed daemon can reconcile delivery state. Source: nudge.rs:83–88, 262–345.',
-        },
-      ].map(n => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-3 bg-surface-container-low px-4 py-4">
-            <span class="font-body text-xs text-primary font-bold">{n.q}</span>
-          </div>
-          <div class="md:col-span-9 px-4 py-4">
-            <span class="font-body text-xs text-secondary">{n.a}</span>
-          </div>
+        { issue: 'Feature Flag', body: 'Compiling from source requires the `--features fuse` cargo flag. Standard pre-built binaries include FUSE support by default.' },
+        { issue: 'Host Drivers', body: 'macOS requires the macFUSE kernel extension. Linux systems require `libfuse3` installed.' },
+        { issue: 'Stale Mounts', body: 'Hard daemon shutdowns (SIGKILL or OOM) leave stale mount references. Run `ostk vfs unmount-stale` to clear lock directories.' },
+        { issue: 'Read-Only Projection', body: 'VFS paths are read-only views. State modifications (e.g. creating needles) must be done through CLI tools or JSON-RPC verbs.' },
+      ].map(c => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant/30 last:border-b-0">
+          <span class="text-on-surface w-48 shrink-0 font-bold">{c.issue}</span>
+          <span class="text-secondary leading-relaxed">{c.body}</span>
         </div>
       ))}
     </div>
   </section>
 
-  <!-- Why four -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Why These Four, in That Order</h2>
-    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
-      <p class="font-body text-sm text-on-surface mb-3">
-        OCC catches conflicts. Hot PR resolves them. Digest prevents the need to re-read files. Nudges are how anything outside the agent's own turn gets its attention.
-      </p>
-      <p class="font-body text-xs text-secondary">
-        Each primitive is orthogonal: removing OCC makes Hot PR impossible; removing Hot PR makes OCC hostile (conflicts block agents); removing digest makes every tool response trigger full file re-reads (ruining the prompt cache); removing nudges means the only way to signal an agent mid-run is to kill it. The four together are the minimum set that supports multi-agent coordination without a message bus.
-      </p>
-    </div>
-  </section>
-
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/five-laws/"><Icon name="gavel" size="14" class="align-middle mr-1" />FIVE_LAWS</a>
-    <a href="/docs/kernel-spec/"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
-    <a href="/features/coordination/"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
-    <a href="/docs/compression/"><Icon name="compress" size="14" class="align-middle mr-1" />COMPRESSION</a>
+    <a href="/docs/agent-lifecycle/"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
+    <a href="/docs/context-management/"><Icon name="layers" size="14" class="align-middle mr-1" />CONTEXT_MGMT</a>
+    <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
   </div>
 </DocsLayout>

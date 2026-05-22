@@ -42,12 +42,6 @@ const articleSchema = {
 const sidebarGroups = {
   sections: [
     {
-      label: 'SUBSTRATE',
-      items: [
-        { icon: 'description', label: 'SPECIFICATIONS', href: '/docs/spec/' },
-      ],
-    },
-    {
       label: 'GET_STARTED',
       items: [
         { icon: 'rocket_launch', label: 'QUICK_START', href: '/start/' },
@@ -57,43 +51,31 @@ const sidebarGroups = {
       ],
     },
     {
+      label: 'MODULAR_STACK',
+      items: [
+        { icon: 'lock', label: 'LIBOSTK (SANDBOX)', href: '/docs/libostk/' },
+        { icon: 'compress', label: 'OSTK-CACHE (PROXY)', href: '/docs/ostk-cache/' },
+        { icon: 'memory', label: 'OSTK-RECALL (MEMORY)', href: '/docs/ostk-recall/' },
+        { icon: 'terminal', label: 'OSTK-CORE (CLI)', href: '/docs/ostk-core/' },
+      ],
+    },
+    {
       label: 'CORE_MODEL',
       items: [
-        { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
-        { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
         { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
         { icon: 'power_settings_new', label: 'BOOT_SEQUENCE', href: '/docs/boot-sequence/' },
         { icon: 'merge', label: 'COORDINATION', href: '/docs/coordination-primitives/' },
         { icon: 'edit_note', label: 'NEEDLES', href: '/docs/needles/' },
-        { icon: 'hub', label: 'SESSION_TOPOLOGY', href: '/docs/session-topology/' },
         { icon: 'sync', label: 'AGENT_LIFECYCLE', href: '/docs/agent-lifecycle/' },
-        { icon: 'compress', label: 'COMPRESSION', href: '/docs/compression/' },
         { icon: 'layers', label: 'CONTEXT_MGMT', href: '/docs/context-management/' },
-        { icon: 'auto_fix_high', label: 'ENRICHMENT', href: '/docs/enrichment/' },
-        { icon: 'extension', label: 'SKILLS', href: '/docs/skills/' },
         { icon: 'explore', label: 'SPHERE_NAVIGATOR', href: '/docs/sphere-navigator/' },
-        { icon: 'cloud_download', label: 'PULL_MODEL', href: '/docs/pull-model/' },
       ],
     },
     {
       label: 'CONFIG_FILES',
       items: [
-        { icon: 'person', label: 'HUMANFILE', href: '/docs/humanfile/' },
+        { icon: 'settings', label: 'CONFIGURATION', href: '/docs/configuration/' },
         { icon: 'smart_toy', label: 'AGENTFILE', href: '/docs/agentfile/' },
-        { icon: 'groups', label: 'ENTITYFILE', href: '/docs/entityfile/' },
-        { icon: 'settings', label: 'PRIMEFILE', href: '/docs/primefile/' },
-        { icon: 'tune', label: 'OSTK_TOML', href: '/docs/ostk-toml/' },
-        { icon: 'list_alt', label: 'ENV_VARS', href: '/docs/env-vars/' },
-      ],
-    },
-    {
-      label: 'TRUST_AND_SECURITY',
-      items: [
-        { icon: 'pin_drop', label: 'CAPABILITY_PINS', href: '/docs/pins/' },
-        { icon: 'lock', label: 'ISOLATION_TIERS', href: '/docs/isolation-tiers/' },
-        { icon: 'checklist', label: 'APPROVAL_CHAIN', href: '/docs/approval-chain/' },
-        { icon: 'key', label: 'SECRETS', href: '/docs/secrets/' },
-        { icon: 'verified', label: 'BAIL', href: '/docs/bail/' },
       ],
     },
     {
@@ -105,11 +87,16 @@ const sidebarGroups = {
         { icon: 'code', label: 'TACK_GRAMMAR', href: '/docs/tack-grammar/' },
       ],
     },
+    {
+      label: 'SUBSTRATE',
+      items: [
+        { icon: 'description', label: 'SPECIFICATIONS', href: '/docs/spec/' },
+      ],
+    },
   ],
   bottomItems: [
-    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model/' },
+    { icon: 'shield', label: 'SECURITY_AND_TRUST', href: '/docs/security/' },
     { icon: 'help', label: 'FAQ', href: '/docs/faq/' },
-    { icon: 'verified', label: 'SECURITY', href: '/security/' },
   ],
 };
 ---

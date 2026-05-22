@@ -2,200 +2,524 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Terminal from '../../components/Terminal.astro';
+import commandsData from '../../data/commands.json';
+
+// Curated JSON-RPC Examples for System ABI Verbs
+const jsonRpcExamples = {
+  "arrive": {
+    "method": "arrive",
+    "params": {
+      "json": true
+    }
+  },
+  "bash": {
+    "method": "bash",
+    "params": {
+      "cmd": "cargo test",
+      "cwd": "/Users/scottmeyer/projects/ostk-site",
+      "timeout": 30
+    }
+  },
+  "context-evict": {
+    "method": "context_evict",
+    "params": {
+      "name": "spec-doc-v1"
+    }
+  },
+  "context-load": {
+    "method": "context_load",
+    "params": {
+      "name": "spec-doc-v1"
+    }
+  },
+  "context-pages": {
+    "method": "context_pages",
+    "params": {
+      "state": "hot"
+    }
+  },
+  "context-pin": {
+    "method": "context_pin",
+    "params": {
+      "name": "spec-doc-v1",
+      "unpin": false
+    }
+  },
+  "context-release": {
+    "method": "context_release",
+    "params": {
+      "name": "spec-doc-v1"
+    }
+  },
+  "context-restore": {
+    "method": "context_restore",
+    "params": {
+      "name": "spec-doc-v1"
+    }
+  },
+  "context-store": {
+    "method": "context_store",
+    "params": {
+      "name": "spec-doc-v1",
+      "content": "This is the content of the page."
+    }
+  },
+  "dispatch": {
+    "method": "dispatch",
+    "params": {
+      "verb": "fs_ops",
+      "args": {
+        "path": "test.txt",
+        "new_str": "hello"
+      }
+    }
+  },
+  "fs-ops": {
+    "method": "fs_ops",
+    "params": {
+      "path": "src/lib.rs",
+      "old_str": "pub mod old;",
+      "new_str": "pub mod new;"
+    }
+  },
+  "handoff": {
+    "method": "handoff",
+    "params": {
+      "model": "claude-3-opus",
+      "message": "Please review this build failure and correct imports."
+    }
+  },
+  "interact": {
+    "method": "interact",
+    "params": {
+      "alias": "dev-server",
+      "action": "status"
+    }
+  },
+  "lock": {
+    "method": "lock",
+    "params": {
+      "action": "create",
+      "name": "compile-lock"
+    }
+  },
+  "note": {
+    "method": "note",
+    "params": {
+      "text": "Completed database migrations"
+    }
+  },
+  "read": {
+    "method": "read",
+    "params": {
+      "path": "src/main.rs",
+      "limit": 500
+    }
+  },
+  "search": {
+    "method": "search",
+    "params": {
+      "query": "fn main",
+      "scope": "code",
+      "mode": "literal"
+    }
+  },
+  "session": {
+    "method": "session",
+    "params": {
+      "action": "list"
+    }
+  },
+  "session-history": {
+    "method": "session_history",
+    "params": {
+      "limit": 100
+    }
+  },
+  "spawn": {
+    "method": "spawn",
+    "params": {
+      "alias": "web-server",
+      "cmd": "npm run dev",
+      "wait_for": "ready"
+    }
+  },
+  "tack": {
+    "method": "tack",
+    "params": {
+      "expr": "model:sonnet -> file:src/main.rs"
+    }
+  },
+  "web-links": {
+    "method": "web_links",
+    "params": {
+      "url": "https://ostk.ai"
+    }
+  },
+  "web-read": {
+    "method": "web_read",
+    "params": {
+      "url": "https://ostk.ai/docs"
+    }
+  },
+  "web-status": {
+    "method": "web_status",
+    "params": {
+      "url": "https://ostk.ai/healthz"
+    }
+  }
+};
+
+const categories = [
+  "ALL",
+  "SYSTEM ABI",
+  "DAILY WORK",
+  "WORK PIPELINE",
+  "IDENTITY & SECURITY",
+  "RECOVERY & FLEET",
+  "DOCUMENTATION & SPECS",
+  "INFRASTRUCTURE",
+  "DIAGNOSTICS",
+  "SYSTEM SETUP",
+  "OTHER"
+];
 ---
 
 <DocsLayout
-  title="CLI Surface"
-  description="ostk's CLI is two surfaces composed — a stable agent-callable System ABI and a free-evolving operator overlay. Below: five workflows showing how verbs from each compose into the things you actually do."
-  sectionLabel="REFERENCE // CLI"
+  title="CLI & ABI Reference"
+  description="ostk exposes two distinct interfaces: the human-centric Operator Overlay CLI and the stable, agent-callable System ABI. Learn their differences, command usage, and JSON-RPC kernel envelope protocol."
+  sectionLabel="REFERENCE // CLI & ABI"
   activeTab="commands"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-8">
-    The CLI is two surfaces composed. Five workflows show how their verbs chain into what you actually do.
+    ostk is structured as a microkernel. It separates the human user experience from the agent program interface.
   </p>
 
-  <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-12">
-    For verb-by-verb help, run <code class="text-primary">ostk help &lt;verb&gt;</code> (System ABI; man pages) or <code class="text-primary">ostk &lt;verb&gt; --help</code> (operator overlay; clap-style). For the full agent-callable schema, <code class="text-primary">ostk abi list</code>. This page is about how the verbs compose.
+  <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-12">
+    The CLI you run in your terminal is the <strong>Operator Overlay</strong>, optimized for human ergonomics, scripting, and visualization. Underneath, all operations go through the <strong>System ABI</strong>, a stable, schema-validated JSON-RPC interface that agents call directly via the MCP bridge or the UNIX domain socket.
   </p>
 
-  <!-- Workflow 01 -->
-  <section class="mb-16">
-    <div class="section-label mb-4">WORKFLOW_01 // BOOT_A_PROJECT</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">First time on a repo. Get a working setup.</h2>
-
-    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      Three commands. <code class="text-primary">ostk init</code> creates <code class="text-primary">.ostk/</code> with a humanfile, an Agentfile, and pin caps. <code class="text-primary">ostk daemon</code> starts the kernel; if it's already running, the next ostk RPC will reuse it. <code class="text-primary">ostk tui</code> attaches and gives you the live window — fleet, work queue, tack input.
-    </p>
-
-    <Terminal>
-      <pre><span class="text-outline">$ </span>cd ~/projects/your-repo
-<span class="text-outline">$ </span>ostk init                <span class="text-outline"># creates .ostk/ — humanfile, agentfile, pin caps</span>
-<span class="text-outline">$ </span>ostk daemon &amp;            <span class="text-outline"># anchor process, holds socket + scheduler + registries</span>
-<span class="text-outline">$ </span>ostk tui                 <span class="text-outline"># attach the terminal UI</span></pre>
-    </Terminal>
-
-    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
-      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
-      <div class="font-body text-xs text-secondary leading-relaxed">
-        <code class="text-primary">init</code> (creates <code class="text-primary">.ostk/</code> substrate) · <code class="text-primary">daemon</code> (formerly <code class="text-primary">listen</code>; the anchor process) · <code class="text-primary">tui</code> (transient client; attach/detach freely).
-      </div>
-    </div>
-    <p class="font-body text-[10px] text-outline max-w-xl">
-      Source: <code class="text-primary">src/commands/init.rs</code>, <code class="text-primary">src/commands_use/listen.rs</code>, <code class="text-primary">src/commands/tui.rs</code>.
-    </p>
-  </section>
-
-  <!-- Workflow 02 -->
-  <section class="mb-16">
-    <div class="section-label mb-4">WORKFLOW_02 // DRIVE_AN_AGENT_OVER_MCP</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You already use Claude Code, Cursor, or another MCP client. Wire ostk in once.</h2>
-
-    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      The kernel exposes itself as an MCP server over stdio. Your agent tool launches <code class="text-primary">ostk mcp</code> as a subprocess and the bridge forwards to the running daemon (or serves in-process if no daemon is up). After restart, the agent's tool surface gains <code class="text-primary">mcp__ostk__bash</code>, <code class="text-primary">fs_ops</code>, <code class="text-primary">read</code>, <code class="text-primary">search</code> and the rest of the kernel verbs — every call audited, every write gen-tracked, every escape pin-checked.
-    </p>
-
-    <Terminal>
-      <pre><span class="text-outline"># in your client's MCP config (e.g. .mcp.json)</span>
-{`{ "mcpServers": { "ostk": { "command": "ostk", "args": ["mcp"] } } }`}
-
-<span class="text-outline">$ </span>ostk mcp diag            <span class="text-outline"># reconcile the kernel's tool surface with CORE_SEED_LANGUAGE</span></pre>
-    </Terminal>
-
-    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
-      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
-      <div class="font-body text-xs text-secondary leading-relaxed">
-        <code class="text-primary">mcp</code> (stdio bridge to the daemon) · the System ABI (the verbs your client sees) · pin caps + gen_table layered transparently. Full wiring guide at <a href="/docs/mcp/" class="text-primary hover:underline">/docs/mcp</a>.
-      </div>
-    </div>
-    <p class="font-body text-[10px] text-outline max-w-xl">
-      Source: <code class="text-primary">src/main.rs</code> (<code>Commands::Mcp</code>), <code class="text-primary">src/serve/server.rs</code> (<code>run_mcp_bridge</code>), <code class="text-primary">src/commands_use/mcp_diag.rs</code>.
-    </p>
-  </section>
-
-  <!-- Workflow 03 -->
-  <section class="mb-16">
-    <div class="section-label mb-4">WORKFLOW_03 // RUN_A_ONE_SHOT</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You have an Agentfile that describes a worker. Run it.</h2>
-
-    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      An Agentfile is a declarative spec: identity, capabilities, model, budget, task. <code class="text-primary">ostk run</code> spawns the worker, applies pin caps from the file, and runs the agent loop until completion or budget cap. Every action lands in <code class="text-primary">.ostk/journal.jsonl</code> attributed to the worker. <code class="text-primary">ostk learn</code> can discover sandbox restrictions by observing the worker's filesystem access — useful when you don't know yet which paths the worker actually needs.
-    </p>
-
-    <Terminal>
-      <pre><span class="text-outline">$ </span>ostk agentfile new fix-bug-27 &gt; .ostk/agents/fix-bug-27.toml
-<span class="text-outline">$ </span>$EDITOR .ostk/agents/fix-bug-27.toml   <span class="text-outline"># declare task, model, budget, pins</span>
-<span class="text-outline">$ </span>ostk run .ostk/agents/fix-bug-27.toml</pre>
-    </Terminal>
-
-    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
-      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
-      <div class="font-body text-xs text-secondary leading-relaxed">
-        <code class="text-primary">agentfile new / lint / show / validate</code> (lifecycle) · <code class="text-primary">run</code> (spawns the agent loop) · pin caps · the agent's drain snapshot at every turn boundary so the worker can be revived if the daemon restarts.
-      </div>
-    </div>
-    <p class="font-body text-[10px] text-outline max-w-xl">
-      Source: <code class="text-primary">src/commands/run.rs</code>, <code class="text-primary">src/commands/agentfile_cmd.rs</code>, <code class="text-primary">src/commands/learn.rs</code>.
-    </p>
-  </section>
-
-  <!-- Workflow 04 -->
-  <section class="mb-16">
-    <div class="section-label mb-4">WORKFLOW_04 // OBSERVE_THE_FLEET</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Fleet's running. What's it doing right now?</h2>
-
-    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      <code class="text-primary">ostk ps</code> gives you the live process table with the Process Identity Quad — pid, ppid, pgid, sid — the same shape POSIX gave you for shell processes. <code class="text-primary">ostk pstree</code> renders the fleet as a tree rooted at live ppid edges. <code class="text-primary">ostk show &lt;keyword&gt;</code> is the universal query — find an agent, a needle, a decision, a commit by name. The audit chain itself is just <code class="text-primary">tail -f .ostk/journal.jsonl</code>.
-    </p>
-
-    <Terminal>
-      <pre><span class="text-outline">$ </span>ostk ps                  <span class="text-outline"># pid ppid pgid sid alias status</span>
-<span class="text-outline">$ </span>ostk pstree              <span class="text-outline"># fleet as a tree</span>
-<span class="text-outline">$ </span>ostk show fix-bug-27     <span class="text-outline"># find anything by name/keyword</span>
-<span class="text-outline">$ </span>tail -f .ostk/journal.jsonl   <span class="text-outline"># the audit chain</span></pre>
-    </Terminal>
-
-    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
-      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
-      <div class="font-body text-xs text-secondary leading-relaxed">
-        Process Identity Quad (invariant VI) makes <code class="text-primary">ps</code>/<code class="text-primary">pstree</code>/<code class="text-primary">pkill</code> mean what they mean in POSIX · the observation substrate projects journal rows onto a VFS namespace · <code class="text-primary">show</code> queries the projection. No polling, no replication.
-      </div>
-    </div>
-    <p class="font-body text-[10px] text-outline max-w-xl">
-      Source: <code class="text-primary">src/commands/ps.rs</code>, <code class="text-primary">src/commands/pstree.rs</code>, <code class="text-primary">src/commands/show.rs</code>.
-    </p>
-  </section>
-
-  <!-- Workflow 05 -->
-  <section class="mb-16">
-    <div class="section-label mb-4">WORKFLOW_05 // SIGN_AND_SHIP</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You want to hand a snapshot to someone else and have them verify it.</h2>
-
-    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      <code class="text-primary">ostk bail pack</code> bundles a signed, portable OS package — Agentfiles, pin caps, the audit chain slice that produced them, your operator signature. Send the bail file. Recipient runs <code class="text-primary">ostk bail verify</code>; the chain replays, the signature checks, and they get a yes/no on whether what's inside matches what you sent. <code class="text-primary">ostk os audit</code> verifies your local journal end-to-end — every prev_hash, every Ed25519 signature.
-    </p>
-    <p class="font-body text-xs text-outline italic max-w-xl mb-4">
-      <code class="text-primary">application/v1</code> generalizes this — a content-addressed signed application directory with declared capabilities and supervisor trees, installed via <code class="text-primary">ostk app *</code> verbs. Spec is <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-application.md" class="text-primary hover:underline">ratified</a>; CLI verbs land in a future release.
-    </p>
-
-    <Terminal>
-      <pre><span class="text-outline">$ </span>ostk bail pack --out fix-bug-27.bail
-<span class="text-outline">$ </span>scp fix-bug-27.bail other-machine:
-<span class="text-outline">other-machine $ </span>ostk bail verify fix-bug-27.bail
-<span class="text-outline">$ </span>ostk os audit            <span class="text-outline"># local: end-to-end journal integrity check</span></pre>
-    </Terminal>
-
-    <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
-      <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
-      <div class="font-body text-xs text-secondary leading-relaxed">
-        <code class="text-primary">bail pack/verify</code> (signed package) · journal hash chain (audit-trail integrity) · Ed25519 in-process signing · <code class="text-primary">os audit</code> (replay verification) · <code class="text-primary">trust</code> namespace for key rotation and revocation.
-      </div>
-    </div>
-    <p class="font-body text-[10px] text-outline max-w-xl">
-      Source: <code class="text-primary">src/commands/bail.rs</code>, <code class="text-primary">src/commands/os.rs</code> (<code>audit</code> subcommand), <code class="text-primary">src/kernel/signing.rs</code>, <code class="text-primary">src/util/audit.rs</code>.
-    </p>
-  </section>
-
-  <!-- The two surfaces -->
+  <!-- The Two Surfaces Comparison -->
   <section class="mb-16">
     <div class="section-label mb-4">THE_TWO_SURFACES</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">System ABI + operator overlay.</h2>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Operator Overlay vs. System ABI</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Every verb above belongs to one of two surfaces. The <strong class="text-on-surface">System ABI</strong> is the agent-callable layer — 27 verbs at v1.0.0, schema'd, hash-stamped, frozen between major releases. Agents reach it through the MCP bridge. The <strong class="text-on-surface">operator overlay</strong> is the human-driver — clap-style commands free to evolve, frequently aliased and renamed (<code class="text-primary">ostk listen</code> → <code class="text-primary">daemon</code>, <code class="text-primary">ostk mcp call</code> → <code class="text-primary">driver call</code>, etc.). Verbs that begin with <code class="text-primary">_</code> (e.g. <code class="text-primary">_agent</code>) are kernel-internal primitives, hidden from <code class="text-primary">--help</code>.
+      This decoupled architecture ensures that developer tools and terminal commands can evolve rapidly without breaking existing agent implementations or custom toolchains.
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-2xl">
       <div class="bg-surface-container p-5">
-        <div class="font-label text-[10px] text-primary mb-2">SYSTEM_ABI</div>
+        <div class="font-label text-[10px] text-primary mb-2">OPERATOR OVERLAY (HUMAN)</div>
         <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-          27 verbs. Agent-callable through MCP. Stable schema between majors.
+          Clap-style terminal commands and interactive UI utilities. Safe to alias, format, and rename.
         </p>
-        <div class="font-body text-[11px] text-secondary space-y-1">
-          <div><code class="text-primary">ostk abi list</code> — all 27 with signatures</div>
-          <div><code class="text-primary">ostk abi show &lt;verb&gt;</code> — full schema</div>
-          <div><code class="text-primary">ostk abi version</code> — current ABI hash</div>
-          <div><code class="text-primary">ostk abi diff &lt;ref&gt;</code> — vs git ref</div>
-          <div><code class="text-primary">ostk help &lt;verb&gt;</code> — man page</div>
+        <div class="font-body text-[11px] text-secondary space-y-2">
+          <div><code class="text-primary">ostk boot</code> — Load the kernel and verify trust anchors</div>
+          <div><code class="text-primary">ostk daemon</code> — Spawn background socket server</div>
+          <div><code class="text-primary">ostk tui</code> — Live dashboard and manual work entry</div>
+          <div><code class="text-primary">ostk ps</code> — POSIX-compliant fleet process tree</div>
+          <div><code class="text-primary">ostk run &lt;file&gt;</code> — Load and execute Agentfile</div>
         </div>
       </div>
       <div class="bg-surface-container p-5">
-        <div class="font-label text-[10px] text-primary mb-2">OPERATOR_OVERLAY</div>
+        <div class="font-label text-[10px] text-primary mb-2">SYSTEM ABI (AGENT)</div>
         <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-          Clap-style operator commands. Evolves freely. Free to alias, rename, deprecate.
+          Strictly typed, version-hashed JSON-RPC schema. Frozen between major releases.
         </p>
-        <div class="font-body text-[11px] text-secondary space-y-1">
-          <div><code class="text-primary">ostk --help</code> — full surface</div>
-          <div><code class="text-primary">ostk &lt;verb&gt; --help</code> — per-verb</div>
-          <div><code class="text-primary">ostk hs &lt;cmd&gt;</code> — short alias</div>
-          <div><code class="text-primary">ostk show &lt;keyword&gt;</code> — universal query</div>
-          <div><code class="text-primary">ostk inspect</code> — runtime introspection</div>
+        <div class="font-body text-[11px] text-secondary space-y-2">
+          <div><code class="text-primary">read</code> — Offset-safe file reads with token estimation</div>
+          <div><code class="text-primary">fs_ops</code> — Generation-tracked atomic write/edit</div>
+          <div><code class="text-primary">bash</code> — Landlock-sandboxed shell command executor</div>
+          <div><code class="text-primary">spawn</code> — Spawn long-lived driver with wait conditions</div>
+          <div><code class="text-primary">interact</code> — Read/write streams of running processes</div>
         </div>
       </div>
     </div>
+  </section>
 
-    <p class="font-body text-xs text-outline mt-6 max-w-xl">
-      The split is what lets the operator surface ship daily improvements while the agent-callable surface stays stable. Agents see ABI, not CLI. Verbs change names; ABI hashes change versions.
+  <!-- Key Verb Deep Dive: fs_ops -->
+  <section class="mb-16">
+    <div class="section-label mb-4">DEEP_DIVE // FS_OPS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">FS_OPS: Atomic Generation-Tracked Edits</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      The most critical verb in the System ABI is <code>fs_ops</code>. Unlike naive file writes, <code>fs_ops</code> integrates with <code>gen_table.jsonl</code> to implement Optimistic Concurrency Control (OCC). It supports two modes:
     </p>
+
+    <div class="space-y-6 max-w-2xl font-mono">
+      <div class="bg-surface-container-low p-5">
+        <h3 class="font-bold text-sm text-primary mb-2">1. Quick Mode (Single File CAS & Writes)</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+          Optimized for single-target changes. Quick mode is triggered by providing a top-level <code>path</code>.
+        </p>
+        <ul class="space-y-2 pl-4 list-disc font-body text-xs text-secondary">
+          <li><strong>Compare-and-Swap (CAS) Edit</strong>: Provide <code>path</code>, <code>old_str</code>, and <code>new_str</code>. The kernel verifies that <code>old_str</code> matches the file content exactly and is unique before replacing it with <code>new_str</code>. If multiple occurrences match and <code>replace_all</code> is not <code>true</code>, the call errors.</li>
+          <li><strong>Full File Write</strong>: Provide <code>path</code> and <code>new_str</code> (omit <code>old_str</code>). The kernel overwrites or creates the file.</li>
+          <li><strong>Directory/File Creation</strong>: Use <code>op: "mkdir"</code> or <code>op: "write"</code> as a discriminator for non-content adjustments.</li>
+        </ul>
+      </div>
+
+      <div class="bg-surface-container-low p-5">
+        <h3 class="font-bold text-sm text-primary mb-2">2. Batch Mode (Multi-File Atomic Transactions)</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+          For multi-file operations (like renaming a module and updating all its import references), pass an array of operations in the <code>ops</code> parameter. All operations run sequentially within a single audit transaction.
+        </p>
+        <div class="font-body text-xs text-outline mb-2">Example batch JSON payload:</div>
+        <pre class="bg-surface-container-high p-4 text-[11px] text-secondary overflow-x-auto border border-surface-variant">
+{`{
+  "ops": [
+    { "method": "shell.run", "cmd": "mv src/old.rs src/new.rs" },
+    { "method": "file.str_replace", "path": "src/lib.rs", "old": "pub mod old;", "new": "pub mod new;" },
+    { "method": "file.str_replace", "path": "src/main.rs", "old": "use crate::old;", "new": "use crate::new;" }
+  ]
+}`}
+        </pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inspecting the Kernel Envelope -->
+  <section class="mb-16">
+    <div class="section-label mb-4">DIAGNOSTICS // KERNEL_ENVELOPE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Inspecting the Kernel Envelope</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+      Every action requested of the microkernel is wrapped in a JSON-RPC 2.0 request envelope. The envelope enforces tracking, permission caps, and concurrency guards. You can interface with it in three ways:
+    </p>
+
+    <div class="space-y-6 max-w-2xl">
+      <!-- Method 1 -->
+      <div class="bg-surface-container-low p-5">
+        <h3 class="font-bold text-sm text-primary font-mono mb-2">1. CLI Dispatch Wrapper</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          Use the <code>ostk dispatch</code> operator command to load a verb and run it directly with arguments as JSON.
+        </p>
+        <Terminal>
+          <pre><span class="text-outline">$ </span>ostk dispatch fs_ops --args '{`{"path": "test.txt", "new_str": "hello world"}`}'
+<span class="text-outline">dispatch:fs_ops ok →
+{`{ "status": "success", "generation": 1 }`}</span></pre>
+        </Terminal>
+      </div>
+
+      <!-- Method 2 -->
+      <div class="bg-surface-container-low p-5">
+        <h3 class="font-bold text-sm text-primary font-mono mb-2">2. UNIX Domain Socket IPC</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          When the kernel is booted, it listens on <code>.ostk/ostk.sock</code>. You can write raw JSON-RPC payloads directly to this socket using <code>netcat</code>.
+        </p>
+        <Terminal>
+          <pre><span class="text-outline">$ </span>echo '{`{"jsonrpc":"2.0","method":"read","params":{"path":"README.md","limit":100},"id":42}`}' | nc -U .ostk/ostk.sock
+<span class="text-outline">{`{"jsonrpc":"2.0","result":{"text":"# ostk-site..."},"id":42}`}</span></pre>
+        </Terminal>
+      </div>
+
+      <!-- Method 3 -->
+      <div class="bg-surface-container-low p-5">
+        <h3 class="font-bold text-sm text-primary font-mono mb-2">3. The Live Kernel Log</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          Every processed envelope registers in the active daemon journal log. You can follow this stream to see live calls, latency, and returned results in real time.
+        </p>
+        <Terminal>
+          <pre><span class="text-outline">$ </span>tail -f .ostk/journal.jsonl
+<span class="text-outline">{`{"seq":84,"timestamp":"2026-05-22T21:34:37Z","verb":"read","args":{"path":"v2/package.json"},"signer":"T0"}`}</span></pre>
+        </Terminal>
+      </div>
+    </div>
+  </section>
+
+  <!-- Complete Command Listing & Interactive Explorer -->
+  <section class="mb-16">
+    <div class="section-label mb-4">COMMAND_EXPLORER</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Interactive Command & ABI Explorer</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
+      Use the explorer below to search all 66 core CLI commands and ABI verbs. Find option flags, discover sandbox boundaries, and generate valid JSON-RPC request structures.
+    </p>
+
+    <!-- Controls -->
+    <div class="max-w-3xl mb-8 space-y-4">
+      <!-- Search Input -->
+      <div class="relative flex items-center bg-surface-container border border-outline">
+        <span class="font-mono text-outline pl-4 select-none">&gt;_</span>
+        <input 
+          type="text" 
+          id="command-search" 
+          placeholder="Search commands, option flags, or descriptions..." 
+          class="w-full bg-transparent border-0 outline-none px-3 py-4 font-mono text-xs text-on-surface placeholder-outline-variant focus:ring-0"
+        />
+        <button 
+          id="search-clear" 
+          class="hidden px-4 text-outline hover:text-primary font-mono text-xs cursor-pointer select-none"
+          title="Clear search"
+        >
+          [CLEAR]
+        </button>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="flex flex-wrap gap-1 bg-surface-container-lowest p-1 border border-surface-variant">
+        {categories.map((cat, i) => (
+          <button
+            class={`category-btn px-3 py-2 font-mono text-[10px] uppercase select-none transition-colors border cursor-pointer ${
+              i === 0 
+                ? 'bg-primary text-on-primary border-primary' 
+                : 'bg-surface-container text-secondary border-surface-variant hover:text-primary hover:border-primary'
+            }`}
+            data-category={cat}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      <!-- Counter -->
+      <div class="flex justify-between items-center font-mono text-[10px] text-outline px-1">
+        <span id="showing-count">Showing {commandsData.length} of {commandsData.length} commands</span>
+        <span>TIP: Click a command header to expand parameters and JSON-RPC equivalents</span>
+      </div>
+    </div>
+
+    <!-- Commands List -->
+    <div class="space-y-2 max-w-3xl">
+      {commandsData.map((cmd) => {
+        const isSystemAbi = cmd.category === "SYSTEM ABI";
+        const cleanMethodName = cmd.name.replace(/-/g, '_');
+        const customRpcParams = jsonRpcExamples[cmd.name]?.params || {};
+        const jsonRpcPayload = {
+          jsonrpc: "2.0",
+          method: cleanMethodName,
+          params: customRpcParams,
+          id: 42
+        };
+
+        return (
+          <div 
+            class="command-card border border-surface-variant bg-surface-container-low transition-colors"
+            data-name={cmd.name}
+            data-category={cmd.category}
+            data-description={cmd.description}
+            data-raw={cmd.raw_help}
+          >
+            <!-- Card Header -->
+            <div class="card-header flex justify-between items-center p-4 cursor-pointer hover:bg-surface-container select-none">
+              <div class="flex items-center gap-3">
+                <span class="expand-indicator font-mono text-[11px] text-outline">[+]</span>
+                <span class="font-mono text-sm font-bold text-primary tracking-tight">
+                  ostk {cmd.name}
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class={`font-mono text-[8px] px-2 py-0.5 border ${
+                  isSystemAbi 
+                    ? 'border-primary text-primary bg-primary/5' 
+                    : 'border-outline text-outline bg-surface-container-lowest'
+                }`}>
+                  {cmd.category}
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Content (Hidden by default) -->
+            <div class="card-content hidden border-t border-surface-variant p-5 space-y-6 bg-surface-container-lowest font-mono">
+              <!-- Description & CLI Template -->
+              <div>
+                <p class="font-mono text-xs text-on-surface mb-3 leading-relaxed">
+                  {cmd.description}
+                </p>
+                <div class="relative bg-surface-container p-3 border border-surface-variant flex justify-between items-center">
+                  <span id={`cli-tmpl-${cmd.name}`} class="text-xs text-primary">{cmd.usage || `ostk ${cmd.name}`}</span>
+                  <button 
+                    class="copy-btn px-2 py-1 border border-outline hover:border-primary hover:text-primary text-[9px]"
+                    data-target={`cli-tmpl-${cmd.name}`}
+                    data-type="cli"
+                  >
+                    COPY_CLI
+                  </button>
+                </div>
+              </div>
+
+              <!-- Arguments / Options -->
+              {cmd.options && cmd.options.length > 0 && (
+                <div>
+                  <h4 class="font-bold text-[10px] text-secondary uppercase tracking-wider mb-2">// Options & Arguments</h4>
+                  <div class="space-y-1.5 pl-3 border-l border-surface-variant">
+                    {cmd.options.map((opt) => (
+                      <div class="text-[11px] leading-relaxed text-on-surface-variant">
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <!-- Interface Boundaries & JSON-RPC Payload -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Sandbox/Permissions details -->
+                <div class="bg-surface-container p-4 border border-surface-variant text-[11px] space-y-2">
+                  <h4 class="font-bold text-[10px] text-secondary uppercase tracking-wider">// Execution Context</h4>
+                  <div class="flex justify-between">
+                    <span class="text-outline">Interface Surface:</span>
+                    <span class={isSystemAbi ? 'text-primary' : 'text-secondary'}>
+                      {isSystemAbi ? 'System ABI Verb' : 'Operator CLI'}
+                    </span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-outline">Privilege Tier:</span>
+                    <span>{isSystemAbi ? 'T1 Capability' : 'T2 Operator'}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-outline">Audit Logging:</span>
+                    <span class="text-secondary">Journaled (gen_table)</span>
+                  </div>
+                  <p class="text-[9px] text-outline leading-normal pt-2 border-t border-surface-variant/40">
+                    {isSystemAbi 
+                      ? 'This verb executes within Landlock sandbox configurations and registers in the audit ledger.'
+                      : 'Operator commands combine multiple ABI primitives and run with human credential authority.'}
+                  </p>
+                </div>
+
+                <!-- JSON-RPC box for ABI, or note for Operator commands -->
+                <div class="bg-surface-container p-4 border border-surface-variant flex flex-col justify-between">
+                  <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-bold text-[10px] text-secondary uppercase tracking-wider">
+                      {isSystemAbi ? '// JSON-RPC Request' : '// Coordination Wrapper'}
+                    </h4>
+                    {isSystemAbi && (
+                      <button 
+                        class="copy-btn px-2 py-0.5 border border-outline hover:border-primary hover:text-primary text-[9px]"
+                        data-target={`rpc-payload-${cmd.name}`}
+                        data-type="rpc"
+                      >
+                        COPY_JSON
+                      </button>
+                    )}
+                  </div>
+                  
+                  {isSystemAbi ? (
+                    <pre 
+                      id={`rpc-payload-${cmd.name}`} 
+                      class="text-[10px] text-secondary overflow-x-auto bg-surface-container-lowest p-2 border border-surface-variant leading-relaxed max-h-36 overflow-y-auto"
+                    >{JSON.stringify(jsonRpcPayload, null, 2)}</pre>
+                  ) : (
+                    <p class="text-[11px] text-outline leading-relaxed italic">
+                      This is a compound operator overlay command. It executes entirely in userspace to configure the environment, spin up TUI dashboard screens, or orchestrate credentials, and does not map to a single JSON-RPC ABI verb.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <!-- Raw help output collapse -->
+              <details class="text-[11px] border-t border-surface-variant/30 pt-3">
+                <summary class="cursor-pointer text-outline hover:text-primary select-none text-[10px]">
+                  View Raw Help Details
+                </summary>
+                <pre class="bg-surface-container-high p-4 text-[10px] text-secondary overflow-x-auto border border-surface-variant mt-2 max-h-60 overflow-y-auto leading-relaxed">
+                  {cmd.raw_help}
+                </pre>
+              </details>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">
@@ -206,3 +530,113 @@ import Terminal from '../../components/Terminal.astro';
     <a href="/docs/session-topology/"><Icon name="hub" size="14" class="align-middle mr-1" />SESSION_TOPOLOGY</a>
   </div>
 </DocsLayout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('command-search');
+    const clearBtn = document.getElementById('search-clear');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const commandCards = document.querySelectorAll('.command-card');
+    const countDisplay = document.getElementById('showing-count');
+    
+    let currentCategory = 'ALL';
+    let searchQuery = '';
+
+    function filterCommands() {
+      let visibleCount = 0;
+      commandCards.forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const desc = card.dataset.description.toLowerCase();
+        const cat = card.dataset.category.toUpperCase();
+        const raw = card.dataset.raw.toLowerCase();
+        
+        const matchesCategory = (currentCategory === 'ALL') || (cat === currentCategory);
+        const matchesSearch = !searchQuery || 
+          name.includes(searchQuery) || 
+          desc.includes(searchQuery) || 
+          raw.includes(searchQuery);
+
+        if (matchesCategory && matchesSearch) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+      countDisplay.textContent = `Showing ${visibleCount} of ${commandCards.length} commands`;
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      clearBtn.style.display = searchQuery ? 'block' : 'none';
+      filterCommands();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      searchQuery = '';
+      clearBtn.style.display = 'none';
+      filterCommands();
+      searchInput.focus();
+    });
+
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryBtns.forEach(b => {
+          b.classList.remove('bg-primary', 'text-on-primary', 'border-primary');
+          b.classList.add('bg-surface-container', 'text-secondary', 'border-surface-variant');
+        });
+        btn.classList.remove('bg-surface-container', 'text-secondary', 'border-surface-variant');
+        btn.classList.add('bg-primary', 'text-on-primary', 'border-primary');
+        
+        currentCategory = btn.dataset.category.toUpperCase();
+        filterCommands();
+      });
+    });
+
+    commandCards.forEach(card => {
+      const header = card.querySelector('.card-header');
+      const content = card.querySelector('.card-content');
+      const indicator = card.querySelector('.expand-indicator');
+
+      header.addEventListener('click', () => {
+        const isOpen = content.classList.contains('hidden');
+        if (isOpen) {
+          content.classList.remove('hidden');
+          indicator.textContent = '[-]';
+          card.classList.add('border-primary');
+          card.classList.remove('border-surface-variant');
+        } else {
+          content.classList.add('hidden');
+          indicator.textContent = '[+]';
+          card.classList.remove('border-primary');
+          card.classList.add('border-surface-variant');
+        }
+      });
+    });
+
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetId = btn.dataset.target;
+        const textElement = document.getElementById(targetId);
+        if (!textElement) return;
+
+        let text = textElement.textContent;
+        if (btn.dataset.type === 'cli') {
+          text = text.replace(/^\s*\$\s*/, '').replace(/^\s*>\s*/, '');
+        }
+
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = btn.textContent;
+          btn.textContent = 'COPIED!';
+          btn.classList.add('text-primary');
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('text-primary');
+          }, 1200);
+        });
+      });
+    });
+  });
+</script>

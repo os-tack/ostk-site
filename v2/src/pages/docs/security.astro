@@ -1,0 +1,373 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import Terminal from '../../components/Terminal.astro';
+---
+
+<DocsLayout
+  title="Security & Trust"
+  description="Comprehensive Security & Trust guide for ostk: Defense-in-Depth, trust tiers, capability pins, secrets management, verifiable audit chains, and portable bail packages."
+  sectionLabel="REFERENCE // SECURITY"
+>
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-12">
+    Every write is signed. Every identity is verified. Every capability is pinned. ostk builds a defense-in-depth model that guarantees security from process sandbox to API boundary.
+  </p>
+
+  <!-- 1. Defense-in-Depth Model -->
+  <section class="mb-16">
+    <div class="section-label mb-4">01 // DEFENSE_LAYERS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Defense-in-Depth Model</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Security in ostk does not rely on a single firewall or sandbox boundary. Instead, four containment and audit layers wrap every agent action:
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-3xl">
+      {[
+        { layer: 'TOOL_LAYER', desc: 'Deny-based capability pins. Every tool call requested by the agent is checked against pin.caps deny tokens and path boundaries before execution.' },
+        { layer: 'SYSCALL_LAYER', desc: 'Process-level sandboxing via Landlock (Linux) and Seatbelt (macOS). Restricts filesystem access at the OS kernel layer, enforcing boundaries even if the agent forks a shell.' },
+        { layer: 'AUDIT_LAYER', desc: 'Append-only JSONL event log. Every action is timestamped, attributed, hash-chained to the previous row, and Ed25519-signed in-process. Replaying the log reconstructs verified state.' },
+        { layer: 'SECRET_LAYER', desc: 'API keys are resolved at execution time from the platform keychain or local secret manager. Values never enter the LLM context and are masked from all stdout/stderr logs.' },
+      ].map(l => (
+        <div class="bg-surface-container p-6">
+          <div class="font-label text-[10px] text-primary mb-2">{l.layer}</div>
+          <div class="font-body text-xs text-secondary leading-relaxed">{l.desc}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- 2. GPG-Rooted Trust Tiers (T0-T3) -->
+  <section class="mb-16">
+    <div class="section-label mb-4">02 // TRUST_TIERS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">GPG-Rooted Trust Tiers</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      The kernel determines your tier at boot based entirely on your GPG keyring and active signatures. Tier defaults set the safety floor for filesystem and command execution:
+    </p>
+
+    <img src="/diagrams/trust-tiers-v2.png" alt="GPG Trust Tiers Hierarchy" class="w-full max-w-2xl border border-surface-variant mb-8" />
+
+    <div class="space-y-px max-w-3xl mb-8">
+      {[
+        { tier: 'T0', meaning: 'Kernel Trust Anchor', how: 'Hardcoded in src/kernel/identity.rs (shipped with binary)', restrictions: 'None — full governance authority' },
+        { tier: 'T1', meaning: 'Cross-Signed Identity', how: 'Your GPG key signed by a T0 key', restrictions: 'Write access to source/needles. Denied: write-kernel, modify-governance' },
+        { tier: 'T2', meaning: 'Unsigned GPG Identity', how: 'GPG key exists but lacks T0/T1 cross-signature', restrictions: 'Read everything. Narrow write exceptions. Denied: write-src, write-kernel, modify-governance' },
+        { tier: 'T3', meaning: 'Anonymous Mode', how: 'host_identity discovers no local GPG keys', restrictions: 'Boots read-only. All writes through the tool layer are denied by default' },
+      ].map(t => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="font-body text-lg font-bold text-primary">{t.tier}</span>
+          </div>
+          <div class="md:col-span-3 px-4 py-4 flex items-center">
+            <span class="font-body text-xs text-on-surface font-bold">{t.meaning}</span>
+          </div>
+          <div class="md:col-span-4 px-4 py-4 flex items-center">
+            <span class="font-body text-xs text-secondary leading-relaxed">{t.how}</span>
+          </div>
+          <div class="md:col-span-4 px-4 py-4 flex items-center">
+            <span class="font-body text-xs text-outline leading-relaxed">{t.restrictions}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Graduating Tiers via Ceremony</h3>
+    <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-4">
+      To transition from anonymous (T3) to a write-capable identity, you generate a GPG key, which moves you to T2. To reach T1, an active T0 or T1 holder must cross-sign your key. The cross-signature is verified at boot:
+    </p>
+
+    <Terminal class="max-w-2xl">
+      <pre><span class="text-outline"># T3 → T2: generate a GPG key</span>
+<span class="text-outline">$ </span>gpg --full-generate-key
+<span class="text-outline">$ </span>ostk boot
+trust: <span class="text-primary">T2</span> (read + narrow exceptions)
+
+<span class="text-outline"># T2 → T1: have a T0 or T1 holder cross-sign your key</span>
+<span class="text-outline">$ </span>ostk trust sign &lt;your-fingerprint&gt;     <span class="text-outline"># run by the cross-signer</span>
+<span class="text-outline">$ </span>ostk boot
+trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
+    </Terminal>
+  </section>
+
+  <!-- 3. Capability Pins -->
+  <section class="mb-16">
+    <div class="section-label mb-4">03 // CAPABILITY_PINS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Capability Pins & Profiles</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Pin caps bound what an agent can touch. While your trust tier sets the floor (you cannot write past it), custom pin profiles set a ceiling on top. The merge is a union of denies—pins can only attenuate capabilities; they can never relax tier defaults.
+    </p>
+
+    <img src="/diagrams/pin-enforcement.svg" alt="Pin Enforcement Flow" class="w-full max-w-2xl border border-surface-variant mb-8" />
+
+    <div class="bg-surface-container-low p-6 max-w-2xl mb-6 overflow-x-auto">
+      <div class="min-w-[420px]">
+        <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-2 mb-3">
+          <div class="font-label text-[10px] text-secondary">CAPABILITY_TOKEN</div>
+          <div class="font-label text-[10px] text-secondary">AFFECTS</div>
+          <div class="font-label text-[10px] text-primary">DESCRIPTION</div>
+        </div>
+        {[
+          { token: 'deny: write-kernel', affects: '.ostk/ state', desc: 'Blocks all writes to internal kernel database and settings' },
+          { token: 'deny: modify-governance', affects: 'Governance files', desc: 'Blocks modifications to .primefile, GOVERNANCE.md, ENTITYFILE, and Agentfiles' },
+          { token: 'deny: write-src', affects: 'Project source', desc: 'Blocks all writes to main project directories and codebase source files' },
+          { token: 'deny-path: <path>', affects: 'Path matching', desc: 'Blocks write, creation, or deletion of files matching prefix or substring' },
+          { token: 'deny-verb: <cmd>', affects: 'Tool commands', desc: 'Blocks execution of exact or prefix-matched CLI or shell verbs' },
+        ].map(row => (
+          <div class="grid grid-cols-3 gap-4 font-body text-xs py-2 border-b border-surface-variant">
+            <div class="text-error font-bold font-mono">{row.token}</div>
+            <div class="text-on-surface">{row.affects}</div>
+            <div class="text-secondary leading-relaxed">{row.desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Bounding a Worker Profile</h3>
+    <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-4">
+      Create custom profiles inside <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code> and activate them via the <code class="text-primary">OSTK_PIN</code> environment variable:
+    </p>
+
+    <Terminal class="max-w-2xl mb-6">
+      <pre><span class="text-outline">$ </span>ostk issue_pin fix-bug
+created: .ostk/pins/fix-bug/pin.caps
+created: .ostk/pins/fix-bug/pin.boot
+
+<span class="text-outline">$ </span>cat .ostk/pins/fix-bug/pin.caps
+<span class="text-error">deny:</span> write-kernel modify-governance
+<span class="text-error">deny-path:</span> infra/ secrets/ .env*
+<span class="text-error">deny-verb:</span> :shutdown
+
+<span class="text-outline"># Execute agent bound to this pin profile</span>
+<span class="text-outline">$ </span>OSTK_PIN=fix-bug ostk run .ostk/agents/fix-bug.af</pre>
+    </Terminal>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Empirical Bounding with ostk learn</h3>
+    <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-4">
+      If you do not know what paths your worker needs, run it in observation mode to extract the minimal required permissions automatically:
+    </p>
+
+    <Terminal class="max-w-2xl">
+      <pre><span class="text-outline">$ </span>ostk learn .ostk/agents/fix-bug.af --duration 120
+<span class="text-secondary">LIMIT</span> read-path src/ tests/ Cargo.toml
+<span class="text-secondary">LIMIT</span> write-path src/ tests/ target/
+<span class="text-secondary">LIMIT</span> verb cargo build cargo test
+
+<span class="text-outline"># Automatically apply the suggested LIMITs back into the Agentfile</span>
+<span class="text-outline">$ </span>ostk learn .ostk/agents/fix-bug.af --apply</pre>
+    </Terminal>
+  </section>
+
+  <!-- 4. Approval Chain -->
+  <section class="mb-16">
+    <div class="section-label mb-4">04 // APPROVAL_CHAIN</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">The Seven-Step Approval Chain</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Every tool call requested by an agent passes through seven ordered validation steps. The chain sequences checks from cheapest/most-certain (pin caps) to most-expensive/ambiguous (human prompt). First match wins:
+    </p>
+
+    <div class="space-y-px max-w-3xl mb-8">
+      {[
+        { step: '01', name: 'PIN_CAPS_HARD_DENY', desc: 'Checks write capabilities against pin.caps. If matching write-kernel, modify-governance, or write-src, it is denied immediately. Fails closed.' },
+        { step: '02', name: 'DESTRUCTIVE_CHECK', desc: 'Runs destructor checks on command strings. Dangerous commands (e.g. rm -rf) or active danger signals override all auto-approval paths and force a prompt.' },
+        { step: '03', name: 'KERNEL_READ_AUTO', desc: 'If the command is exactly a read-only kernel inspect primitive (e.g. ostk ps, ostk clock, ostk show), it is automatically approved without prompts.' },
+        { step: '04', name: 'PERMISSION_MODE_GATE', desc: 'Checks the active permission mode. Autonomous allows all; Auto allows standard reads; Governed and Plan deny all write classes by default.' },
+        { step: '05', name: 'SESSION_ALLOW_LIST', desc: 'Checks transient in-memory approved verbs. If the operator approved a tool class with the "approve all" key, it is auto-approved until the session ends.' },
+        { step: '06', name: 'AGENTFILE_TOOL_PATTERNS', desc: 'Compares the call target against Agentfile TOOL directives. Substring matches approve specific file paths or command classes.' },
+        { step: '07', name: 'USER_PROMPT', desc: 'Falls back to prompting the human operator. Keybindings: y=approve, n=deny, a=approve class, Enter=deny (safety default).' },
+      ].map(s => (
+        <div class="bg-surface-container-low p-6">
+          <div class="flex items-baseline gap-4 mb-2">
+            <span class="serif-text text-2xl font-bold text-primary">{s.step}</span>
+            <h4 class="font-body text-sm text-on-surface font-bold">{s.name}</h4>
+          </div>
+          <p class="font-body text-xs text-secondary leading-relaxed pl-8">{s.desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- 5. Secrets Management -->
+  <section class="mb-16">
+    <div class="section-label mb-4">05 // SECRETS_MANAGEMENT</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Secrets Management & Masking</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      API keys never enter the LLM context. The kernel resolves credentials at execution time and injects them only into the environment of the active subprocess:
+    </p>
+
+    <div class="space-y-px max-w-3xl mb-8">
+      {[
+        { priority: '01', source: 'BYO_SECRET_MANAGER', desc: 'User-defined secret_cmd inside .ostk/config (e.g. bw, op, pass). Env var injections are blocked here to prevent exfiltration.' },
+        { priority: '02', source: 'PLATFORM_KEYCHAIN', desc: 'Uses OS native keychain services: security find-generic-password on macOS, secret-tool lookup on Linux.' },
+        { priority: '03', source: 'ENVIRONMENT_VARIABLES', desc: 'Standard shell environment fallback ($KEY). Least secure—visible in process tables.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
+            <span class="serif-text text-lg font-bold text-primary">{s.priority}</span>
+          </div>
+          <div class="md:col-span-4 px-4 py-4 flex items-center">
+            <span class="font-body text-xs text-on-surface font-bold">{s.source}</span>
+          </div>
+          <div class="md:col-span-7 px-4 py-4 flex items-center font-body text-xs text-secondary leading-relaxed">
+            {s.desc}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Interactive Secrets Administration</h3>
+    <Terminal class="max-w-2xl mb-6">
+      <pre><span class="text-outline"># Securely write a secret to the keychain</span>
+<span class="text-outline">$ </span>ostk secret set ANTHROPIC_API_KEY
+Enter value: ●●●●●●●●
+✓ stored in macOS Keychain (service: ostk, account: ANTHROPIC_API_KEY)
+
+<span class="text-outline"># List stored secrets</span>
+<span class="text-outline">$ </span>ostk secret list
+ANTHROPIC_API_KEY    ✓ keychain
+GEMINI_API_KEY       ✓ keychain
+OPENROUTER_API_KEY   ✗ not found</pre>
+    </Terminal>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Output Masking</h3>
+    <div class="bg-surface-container-high p-6 border-l-2 border-primary max-w-2xl">
+      <p class="font-body text-xs text-secondary leading-relaxed mb-2">
+        To prevent accidental credential leaks in conversation histories or transcripts, all tool outputs (stdin, stdout, stderr, file reads, and errors) are passed through <code class="text-primary">secrets::mask()</code>.
+      </p>
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        Any string matching a known API key structure with length &ge; 8 characters is automatically replaced with <code class="text-primary">●●●● (length)</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- 6. Verifiable Audit Chains -->
+  <section class="mb-16">
+    <div class="section-label mb-4">06 // VERIFIABLE_AUDIT_CHAINS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Verifiable Audit Chains</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Every action executed through a kernel session registers an entry in the append-only journal (<code class="text-primary">.ostk/journal.jsonl</code>). Each row is:
+    </p>
+    <ul class="font-body text-xs text-secondary leading-relaxed max-w-xl space-y-2 list-disc pl-5 mb-6">
+      <li>Hash-chained: Contains the SHA-256 hash of the preceding line (<code class="text-primary">prev_hash</code>).</li>
+      <li>Ed25519-signed: Signed in-process using the operator's session-key.</li>
+      <li>Verifiable: You can replay and cryptographically verify the entire stack history at any time.</li>
+    </ul>
+
+    <Terminal class="max-w-2xl mb-6">
+      <pre><span class="text-outline"># Cryptographically audit the local journal</span>
+<span class="text-outline">$ </span>ostk os audit
+audit: 18,442 rows, hash chain ok, signatures verified
+
+<span class="text-outline"># Inspect the running log</span>
+<span class="text-outline">$ </span>tail -f .ostk/journal.jsonl
+{`{"event":"tool.fs_ops","path":"src/lib.rs","gen_before":4,"gen_after":5,"writer":"claude-code-1","ts":"2026-05-22T21:42:11Z","prev_hash":"...","sig":"..."}
+{"event":"tool.bash","cmd":"cargo test","exit_code":0,"duration_ms":1842,...}`}</pre>
+    </Terminal>
+
+    <div class="bg-surface-container p-6 border-l-2 border-primary max-w-2xl">
+      <div class="font-label text-[10px] text-primary mb-2">CONCURRENCY & OCC INVARIANTS</div>
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        Because writes are audited and tracked, if two agents attempt to edit the same file concurrently, the kernel detects a generation conflict (<code class="text-primary">gen_before</code> mismatch) and rejects the write with an OCC (Optimistic Concurrency Control) error, preventing silent overwrites.
+      </p>
+    </div>
+  </section>
+
+  <!-- 7. Bail Packages -->
+  <section class="mb-16">
+    <div class="section-label mb-4">07 // BAIL_PACKAGES</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Signed Portable State (Bail)</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      A <strong class="text-on-surface">bail</strong> is a signed, compressed archive (<code class="text-primary">.bail</code>) containing identity metadata, INIT sequences, and selective workspace states. It allows operators to transfer state between isolated instances without reliance on shared filesystems or network servers.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-3xl mb-8">
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">PUBLIC_MODE</div>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+          Contains public bootstrap states (<code class="text-primary">.boot/INIT</code>, <code class="text-primary">.primefile</code>, <code class="text-primary">ENTITYFILE</code>). Signed with Ed25519. Safe to share publicly.
+        </p>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">FULL_MODE</div>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+          Adds encrypted internal kernel database (<code class="text-primary">os.bin</code>). Requires recipient key declarations. Unpack is strictly fail-closed on signature mismatches.
+        </p>
+      </div>
+      <div class="bg-surface-container p-6">
+        <div class="font-label text-[10px] text-primary mb-2">EXPORT_MODE</div>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+          Selective export of needles, decisions, and markdown docs. Recipient merges items labeled with <code class="text-primary">[I]</code> import markers. GPG-signed.
+        </p>
+      </div>
+    </div>
+
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Bail Administration Commands</h3>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-6">
+      {[
+        { cmd: 'ostk bail pack', desc: 'Pack full encrypted bundle. Defaults to public mode if no recipient key is configured.' },
+        { cmd: 'ostk bail pack --public', desc: 'Pack public bootstrap files (.boot/INIT, .primefile, ENTITYFILE).' },
+        { cmd: 'ostk bail pack --export @identity', desc: 'Export selective needles, decisions, and docs matching a query.' },
+        { cmd: 'ostk bail verify <file>', desc: 'Cryptographically verify all detached signatures inside the bail without unpacking.' },
+        { cmd: 'ostk bail unpack <file>', desc: 'Verify and merge the bail contents into the local .ostk/ directory.' },
+      ].map(c => (
+        <div class="flex gap-4 text-xs font-body py-3 border-b border-surface-variant last:border-b-0">
+          <code class="text-primary w-60 shrink-0 font-mono">{c.cmd}</code>
+          <span class="text-secondary leading-relaxed">{c.desc}</span>
+        </div>
+      ))}
+    </div>
+
+    <Terminal class="max-w-2xl">
+      <pre><span class="text-outline"># Verify a bail package received from another machine</span>
+<span class="text-outline">$ </span>ostk bail verify project-export.bail
+ostk bail verify: /tmp/project-export.bail
+<span class="text-primary">Ed25519: VERIFIED (inline)</span>
+GPG: no manifest.json.asc in bail
+  created: 2026-05-22T14:23:10Z
+  files:   5</pre>
+    </Terminal>
+  </section>
+
+  <!-- 8. Key Rotation & Revocation -->
+  <section class="mb-16">
+    <div class="section-label mb-4">08 // REVOCATION_AND_ROTATION</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Key Rotation & Revocation</h2>
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      If a private key is compromised, it must be revoked without invalidating historical signatures. Revocation uses the following workflow:
+    </p>
+
+    <div class="space-y-px max-w-3xl mb-8">
+      {[
+        { step: '01', action: 'Execute ostk trust revoke <fingerprint>, signed by a valid authority key (T0 or T1).' },
+        { step: '02', action: 'The revocation event is written to the journal, binding the compromised fingerprint.' },
+        { step: '03', action: 'The kernel reads the revocation list at boot. All actions signed by the key BEFORE the revocation timestamp remain valid; future actions are rejected.' },
+        { step: '04', action: 'The operator generates a fresh GPG key and initiates the cross-signing ceremony to re-establish a T1 identity.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
+            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
+          </div>
+          <div class="md:col-span-11 px-4 py-3 flex items-center font-body text-xs text-secondary leading-relaxed">
+            {s.action}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <Terminal class="max-w-2xl">
+      <pre><span class="text-outline"># Record a key revocation</span>
+<span class="text-outline">$ </span>ostk trust revoke 7141A45868F8295E5BEB6286BAF08C963C7E3184 --reason "leak"
+✓ Revocation registered
+
+<span class="text-outline"># Generate a new key and request cross-signing</span>
+<span class="text-outline">$ </span>gpg --full-generate-key
+<span class="text-outline">$ </span>ostk trust sign &lt;new-fingerprint&gt;</pre>
+    </Terminal>
+  </section>
+
+  <div class="metadata-ribbon border-t border-surface-variant">
+    <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
+    <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
+    <a href="/docs/configuration/"><Icon name="settings" size="14" class="align-middle mr-1" />CONFIGURATION</a>
+    <a href="/docs/agent-lifecycle/"><Icon name="sync" size="14" class="align-middle mr-1" />LIFECYCLE</a>
+    <a href="/docs/coordination-primitives/"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
+  </div>
+</DocsLayout>

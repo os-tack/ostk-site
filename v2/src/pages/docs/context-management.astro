@@ -5,109 +5,212 @@ import Terminal from '../../components/Terminal.astro';
 ---
 
 <DocsLayout
-  title="Context Management"
-  description="How the kernel's context mechanisms compose as a system: preload render, prompt cache, digest envelope, 304 elision, context pressure handoff, and drain snapshots."
-  sectionLabel="REFERENCE // CONTEXT_LIFECYCLE"
+  title="Context & State Management"
+  description="How ostk manages the LLM context window using the Squasher pipeline, prompt caching, digest envelopes, inline diagnostics, skills, and pull-based work filters."
+  sectionLabel="REFERENCE // CONTEXT_MGMT"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Six mechanisms, documented individually elsewhere, compose into a single context lifecycle. This page shows the flow: how a tool response becomes a cached prefix, how the digest prevents redundant reads, and how context pressure triggers graceful handoff instead of mid-turn compaction.
+    LLM context is a finite, expensive resource. The ostk kernel manages it through a multi-layered pipeline: compressing command outputs, caching stable prefixes, providing peripheral awareness via digest envelopes, injecting inline diagnostics, and declaring modular capabilities.
   </p>
 
-  <!-- Turn flow -->
+  <!-- Section 1: The Turn Flow Lifecycle -->
   <section class="mb-16">
-    <h2 class="section-label mb-6">TURN_FLOW</h2>
+    <div class="section-label mb-6">01 // CONTEXT_LIFECYCLE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Context Lifecycle Loop</h2>
     <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Every agent turn passes through six stages. Each stage feeds into the next. Removing any stage degrades the others.
+      Every agent turn passes through six distinct stages. Removing any stage degrades cache performance and inflates context growth.
     </p>
-    <div class="space-y-px">
+    <div class="space-y-px max-w-3xl">
       {[
         {
           num: '01',
           name: 'PRELOAD_RENDER',
-          desc: 'The kernel assembles system blocks: base prompt, identity (.language), registers, Agentfile context. These blocks are byte-stable across turns so the prompt cache can reuse them. Volatile data (kernel digest) is placed in the final block, outside the cache prefix.',
+          desc: 'The kernel compiles the base prompt, identity (.language), registers, and Agentfile context. These blocks are byte-stable across turns to maximize prompt cache hits. Volatile elements are appended after the cache boundaries.',
         },
         {
           num: '02',
           name: 'TOOL_CALL',
-          desc: 'The model issues a tool call. Shell output passes through the squash pipeline (see <a href="/docs/compression/" class="text-primary hover:underline">Compression</a>) before entering context. File reads pass through elision (stage 05). The digest envelope is appended to the tool response.',
+          desc: 'The model invokes a tool. Command output passes through the Squasher pipeline before entering context. File reads pass through elision logic, and the peripheral digest envelope is appended.',
         },
         {
           num: '03',
           name: 'OUTPUT_COMPRESSION',
-          desc: 'The squash pipeline strips ANSI, classifies lines by grammar, deduplicates repetitive output, and enriches errors. Measured savings: 30% average across 1,499 tool calls (2.85M chars → 1.99M). Details at <a href="/docs/compression/" class="text-primary hover:underline">Compression</a>.',
+          desc: 'ANSI progress indicators are stripped, lines are classified by grammatical hazard/outcome/noise rules, and repetitive outputs are collapsed. Average output savings are around 30%.',
         },
         {
           num: '04',
           name: 'DIGEST_INJECTION',
-          desc: 'A 5-line envelope appended to every tool response. Components: [procs], [presence], [files] (stale only), [loadavg], [meminfo]. The agent reads this to decide whether files need re-reading. ~5 tokens of signal replaces ~800 tokens of redundant file content.',
+          desc: 'A 5-line envelope is appended to the tool response containing [procs], [presence], [files] (stale only), [loadavg], and [meminfo]. This signals to the agent whether files need re-reading without re-sending file content.',
         },
         {
           num: '05',
           name: '304_ELISION',
-          desc: 'If the agent reads a file despite the digest showing it current, the kernel checks the gen_table. If the file has not been written since the agent last read it, the kernel returns "[304] path:gen=N (current)" (~5 tokens) instead of the full content. Two layers: digest suppresses the attempt, elision catches it if it happens anyway.',
+          desc: 'If the agent re-reads a file that the digest indicates is unchanged, the kernel checks the generation table and returns a short "[304] path:gen=N (current)" message instead of the full content.',
         },
         {
           num: '06',
           name: 'DRAIN_SNAPSHOT',
-          desc: 'At the turn boundary (after the assistant response completes), the session writes messages + token state + config to .ostk/drain/<lineage_id>.json. Default ON since Wave G.3. This is crash recovery, not context management per se — but it closes the lifecycle loop.',
+          desc: 'At the turn boundary, session messages, token counts, and configuration are persisted to `.ostk/drain/<lineage_id>.json`. This facilitates crash recovery and hot-rehydration.',
         },
       ].map(stage => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
-            <span class="serif-text text-lg font-bold text-primary">{stage.num}</span>
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 border-b border-surface-variant/20">
+          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4 font-bold text-primary serif-text text-lg">
+            {stage.num}
           </div>
-          <div class="md:col-span-3 px-4 py-4">
+          <div class="md:col-span-3 px-4 py-4 border-t md:border-t-0 md:border-l border-surface-variant/20 flex items-center">
             <code class="font-body text-xs text-on-surface font-bold">{stage.name}</code>
           </div>
-          <div class="md:col-span-8 px-4 py-4">
-            <span class="font-body text-xs text-secondary">{stage.desc}</span>
+          <div class="md:col-span-8 px-4 py-4 border-t md:border-t-0 md:border-l border-surface-variant/20">
+            <span class="font-body text-xs text-secondary leading-relaxed">{stage.desc}</span>
           </div>
         </div>
       ))}
     </div>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Stages 01-03 reduce what enters context. Stages 04-05 reduce what the agent needs to re-read. Stage 06 captures state for crash recovery. Together they keep context growth sublinear relative to tool calls.
-    </p>
   </section>
 
-  <!-- Prompt cache as distribution plane -->
+  <!-- Section 2: Prompt Cache & Fleet Economics -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Prompt Cache as Distribution Plane</h2>
-    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
-      <p class="font-body text-sm text-on-surface mb-4">
-        Anthropic's prompt cache is content-addressed and per-organization. Two ostk processes with the same API key share cache entries automatically.
+    <div class="section-label mb-4">02 // PROMPT_CACHE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Prompt Caching & Fleet Economics</h2>
+    
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary max-w-3xl mb-8">
+      <div class="serif-text text-4xl font-bold text-on-surface mb-2">28% Cost Reduction</div>
+      <p class="font-body text-sm text-secondary mb-6 leading-relaxed">
+        Anthropic's prompt cache is content-addressed and per-organization. Multiple ostk agent sessions sharing the same API key reuse cache entries automatically, drastically reducing the cost of parallel workers.
       </p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-4">
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant mb-6">
         <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">CONTENT-ADDRESSED</div>
-          <p class="font-body text-xs text-secondary">The cache key is the hash of the byte content up to each breakpoint. Two processes that send identical system blocks get a cache hit without coordination.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">CONTENT-ADDRESSED</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            The cache key is the hash of the byte content up to the breakpoint. Identical base system blocks yield instant cache hits.
+          </p>
         </div>
         <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">FLEET ECONOMICS</div>
-          <p class="font-body text-xs text-secondary">Adding readers amortizes the cold-write cost. One process pays cache_create; every subsequent process with the same prefix reads at 10% of input price. Fleet cost scales sublinearly.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">FLEET ECONOMICS</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            One process pays the initial `cache_create` write fee; subsequent reader processes access the warm prefix at 10% of the normal input cost.
+          </p>
         </div>
         <div class="bg-surface-container p-4">
-          <div class="font-label text-[10px] text-primary mb-1">TTL: 5 MINUTES</div>
-          <p class="font-body text-xs text-secondary">Cache entries expire after 5 minutes of inactivity. Any read resets the TTL. A fleet of agents making turns every 30-60 seconds keeps the cache perpetually warm.</p>
+          <div class="font-label text-[10px] text-primary mb-1 font-bold">5-MINUTE TTL</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            Cache entries expire after 5 minutes of inactivity. Periodic turns from parallel workers keep the cache warm indefinitely.
+          </p>
         </div>
       </div>
-      <p class="font-body text-xs text-secondary max-w-lg">
-        The kernel places up to four <code class="text-primary">cache_control</code> breakpoints per request: base system prompt, preload context blocks (identity, registers), tool schemas, and the message history watermark. Each breakpoint extends the cacheable prefix. Volatile content (the current-turn digest, the latest user message) sits after all breakpoints, so cache hits are not invalidated by turn-to-turn changes.
+
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        The kernel positions up to four <code class="text-primary">cache_control</code> breakpoints: base system prompt, preload context (identity, registers), tool definitions, and message history watermark. Volatile data is placed at the end to keep the cache prefix stable.
       </p>
     </div>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Measured: <span class="text-primary font-bold">30% output compression</span> in a real Opus session (1,499 squash events, 215k tokens saved). See <a href="/docs/compression/" class="text-primary hover:underline">Compression</a> for the full breakdown.
-    </p>
   </section>
 
-  <!-- Digest envelope -->
+  <!-- Section 3: The Squasher Pipeline -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">DIGEST_ENVELOPE</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      A 5-line envelope appended to every tool response. The digest is the agent's peripheral vision — it tells the agent what changed without forcing a re-read of unchanged files. Full specification at <a href="/docs/coordination-primitives/" class="text-primary hover:underline">Coordination Primitives</a>.
+    <div class="section-label mb-4">03 // SQUASHER_PIPELINE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Output Compression (The Squasher)</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      The Squasher pipeline intercepts shell and subprocess output. It strips progress indicators, classifies lines into priority buckets, collapses repeated sequences, and appends diagnostics.
     </p>
+
+    <img src="/diagrams/compression-pipeline.svg" alt="Prompt Compression Pipeline" class="w-full max-w-2xl border border-surface-variant mb-8" />
+
+    <div class="space-y-4 max-w-3xl mb-8">
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-sm font-bold text-primary mb-3">Stdout vs. Stderr Stream Routing</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          The Squasher handles streams according to their content type. <strong>Stderr is preserved with high fidelity</strong>, bypassing aggressive collapsing to protect warnings and compiler panics. <strong>Stdout is condensed aggressively</strong> using Levenshtein distance matching. On non-zero exit codes, the compression threshold relaxes to provide sufficient surrounding lines for debugging.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-sm font-bold text-primary mb-3 font-mono">Three-Tier Classification</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+          Lines are evaluated against rules and grouped into:
+        </p>
+        <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1 mb-2">
+          <li><strong>HAZARD (High Priority)</strong>: Deprecations, lock timeouts, and warnings. Always preserved.</li>
+          <li><strong>OUTCOME (Medium Priority)</strong>: Build metrics, test counts, and exit states. Preserved verbatim.</li>
+          <li><strong>NOISE (Low Priority)</strong>: Iterative logs, progress bars, and dividers. Subject to immediate Levenshtein collapsing.</li>
+        </ul>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h3 class="font-body text-sm font-bold text-primary mb-3 font-mono">Levenshtein Line Merging (Similarity = 0.85)</h3>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          Adjacent lines with matching structural shape are merged using a sliding window Levenshtein algorithm. Dynamic tokens (versions, hashes, paths) are generalized into tags like <code class="text-primary">{"{hex}"}</code>, <code class="text-primary">{"{path}"}</code>, and <code class="text-primary">{"{ver}"}</code>. If similarity exceeds 0.85, they collapse into <code class="text-primary">[⋯ N similar lines]</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Route Categories -->
+    <h3 class="section-label-secondary mb-4">ROUTE_CATEGORIES</h3>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-8">
+      {[
+        { cat: 'CONDENSE', desc: 'Verbose output → summary. cargo build, npm install.', handler: 'Implicit dedup + hazard/outcome filtering' },
+        { cat: 'NARRATE', desc: 'Silent commands → execution narration. cp, mv, mkdir.', handler: '"→ cp: a.txt → b.txt (ok)"' },
+        { cat: 'PASSTHROUGH', desc: 'Verbatim preservation. cat, grep, ls, jq.', handler: 'Original output + metadata footer' },
+        { cat: 'STRUCTURED', desc: 'Machine-readable → formatted summary. git status, docker ps.', handler: 'Parse into branches, containers, etc.' },
+        { cat: 'DANGEROUS', desc: 'Destructive ops. rm -rf, git push --force.', handler: 'CRITICAL/WARNING severity with context' },
+      ].map(c => (
+        <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant/40">
+          <span class={`w-28 shrink-0 font-bold ${c.cat === 'DANGEROUS' ? 'text-error' : 'text-primary'}`}>{c.cat}</span>
+          <span class="text-secondary flex-1">{c.desc}</span>
+          <span class="text-outline shrink-0">{c.handler}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Embeddings option -->
+    <div class="bg-surface-container p-6 max-w-3xl border border-surface-variant mb-8">
+      <h3 class="font-body text-sm font-bold text-primary mb-2">Semantic Deduplication via Potion-Base</h3>
+      <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+        Optional GPU-accelerated semantic deduplication uses the <code class="text-primary">potion-base-8M</code> embeddings model (256-dimensions) to identify equivalent line semantics. Install via <code class="text-primary">ostk embeddings download</code>.
+      </p>
+      <span class="font-body text-[10px] text-outline">Runs on Metal (Apple Silicon) with CPU fallbacks via Wgpu. Enabled with <code class="text-primary">--features embeddings</code>.</span>
+    </div>
+
+    <!-- Dedup Example -->
+    <h3 class="section-label-secondary mb-4">DEDUP_PATTERN</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-3xl mb-8">
+      <div class="bg-surface-container p-4">
+        <div class="font-label text-[10px] text-error mb-2">RAW TERMINAL STREAM</div>
+        <div class="font-body text-[10px] text-secondary leading-relaxed font-mono">
+          <div>Compiling ostk v3.0.0</div>
+          <div>Compiling tokio v1.38.0</div>
+          <div>Compiling serde v1.0.203</div>
+          <div class="text-outline">... 47 more crate compilations</div>
+          <div>warning: unused import `std::io`</div>
+          <div>warning: 2 warnings generated</div>
+          <div>Finished release in 42.3s</div>
+        </div>
+      </div>
+      <div class="bg-surface-container p-4">
+        <div class="font-label text-[10px] text-primary mb-2">COMPRESSED CONTEXT</div>
+        <div class="font-body text-[10px] text-secondary leading-relaxed font-mono">
+          <div>Compiling ostk v3.0.0</div>
+          <div class="text-outline">[⋯ 49 similar lines]</div>
+          <div class="text-primary">warning: unused import `std::io`</div>
+          <div>warning: 2 warnings generated</div>
+          <div class="text-primary">Finished release in 42.3s</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Digest Envelope and Two-Layer Read Defense -->
+  <section class="mb-16">
+    <div class="section-label mb-4">04 // READ_DEFENSE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Digest Envelopes & Read Prevention</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      To prevent agents from repeatedly reading files to check for external updates, the kernel appends a 5-line status envelope to every tool response.
+    </p>
+
     <Terminal label="EXAMPLE_DIGEST">
-      <div class="text-secondary">
+      <div class="text-secondary font-mono text-xs">
         <div><span class="text-primary">[procs]</span> builder:active:2m:45% reviewer:stale:5m:78%</div>
         <div><span class="text-primary">[presence]</span> :arrived(builder)</div>
         <div><span class="text-primary">[files]</span> src/main.rs:gen=12:reviewer:3m</div>
@@ -115,117 +218,240 @@ import Terminal from '../../components/Terminal.astro';
         <div><span class="text-primary">[meminfo]</span> ctx=45% used=360k/800k buffers=2 calls=14</div>
       </div>
     </Terminal>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mt-6">
-      <div class="font-label text-[10px] text-primary mb-3">HOW THE AGENT USES IT</div>
-      <div class="space-y-3">
-        <div>
-          <span class="font-body text-xs text-primary font-bold">[files] absent = no stale files.</span>
-          <span class="font-body text-xs text-secondary"> If the files section is empty, every file the agent has read is still current. No reason to re-read anything.</span>
-        </div>
-        <div>
-          <span class="font-body text-xs text-primary font-bold">[files] present = specific files changed.</span>
-          <span class="font-body text-xs text-secondary"> Only the listed files are stale. The agent re-reads those, skips everything else. Format: <code class="text-primary">path:gen=N:writer:age</code>.</span>
-        </div>
-        <div>
-          <span class="font-body text-xs text-primary font-bold">[meminfo] = context budget.</span>
-          <span class="font-body text-xs text-secondary"> The agent can see its own context utilization. No surprise context exhaustion.</span>
-        </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mt-6">
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-primary mb-2">Layer 1: Digest Suppression</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          If files haven't changed, they are omitted from the <code class="text-primary">[files]</code> block. Seeing no stale entries, the agent has no reason to issue a read command, avoiding the lookup entirely.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5">
+        <h4 class="font-body text-xs font-bold text-primary mb-2">Layer 2: 304 Elision</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          If the agent attempts to read a file anyway, the kernel queries the generation table. If no writes have occurred since the agent's last read, the kernel overrides the read and returns <code class="text-primary">[304] path:gen=N (current)</code>.
+        </p>
       </div>
     </div>
   </section>
 
-  <!-- Two-layer defense -->
+  <!-- Section 5: Enrichment Hooks -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Two-Layer Read Defense</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Digest suppression and 304 elision are two layers of the same primitive. Both are invisible to the agent — no protocol learning required.
+    <div class="section-label mb-4">05 // ENRICHMENT_HOOKS</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Driver Enrichment Hooks & Diagnostics</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Registered FCP drivers (such as <code class="text-primary">fcp-rust</code> wrapping LSP) intercept file operations to inject compilation diagnostics, outline symbols, and manage type-safe multi-file refactoring.
     </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">LAYER 1 — DIGEST SUPPRESSION</div>
-        <p class="font-body text-xs text-secondary mb-3">Current files are absent from the <code class="text-primary">[files]</code> section. When the agent sees no stale files listed, it has no reason to issue a read. The read never happens.</p>
-        <div class="font-label text-[10px] text-outline">Cost: ~0 tokens (read prevented)</div>
-      </div>
-      <div class="bg-surface-container p-6">
-        <div class="font-label text-[10px] text-primary mb-2">LAYER 2 — 304 ELISION</div>
-        <p class="font-body text-xs text-secondary mb-3">If the agent reads a current file anyway (verification, compacted context), the kernel checks the gen_table. No write since last read = <code class="text-primary">[304] path:gen=N (current)</code> returned instead of full content.</p>
-        <div class="font-label text-[10px] text-outline">Cost: ~5 tokens (vs ~800 for full content)</div>
-      </div>
+
+    <div class="bg-surface-container p-5 max-w-3xl mb-6">
+      <h3 class="font-body text-sm font-bold text-primary mb-2">Inline Diagnostic Injection</h3>
+      <p class="font-body text-xs text-secondary leading-relaxed mb-4">
+        Diagnostics are injected directly as virtual code comments inside the file read response. The agent receives compiler errors inline with the source code, eliminating the need to compile manually to find syntax errors.
+      </p>
+      <Terminal label="enriched read response">
+        <pre class="font-mono text-xs text-secondary">fn main() {"{"}
+    let x = 5;  <span class="text-error">// [error] unused variable `x` (E0001)</span>
+    println!("hello");
+{"}"}</pre>
+      </Terminal>
     </div>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      The digest is the <span class="text-primary">observation</span>; 304 is the <span class="text-primary">response</span>. Layer 1 is advisory (the agent may still read). Layer 2 is mechanical (the kernel intercepts). Together they eliminate most redundant file content from context. See <a href="/docs/coordination-primitives/" class="text-primary hover:underline">Coordination Primitives</a> for the full digest specification.
+
+    <!-- Progressive Disclosure -->
+    <h3 class="section-label-secondary mb-3">PROGRESSIVE_DISCLOSURE</h3>
+    <div class="space-y-px max-w-3xl mb-8">
+      {[
+        { condition: '304 (unchanged)', enrichment: 'None. The model already possesses the file state.' },
+        { condition: 'First read', enrichment: 'Errors only (severity >= error). Hints and warnings are excluded to conserve tokens.' },
+        { condition: 'Explicit enrich=full', enrichment: 'Full diagnostic set, symbol outlines, structural annotations, and reference trees.' },
+        { condition: 'Post-edit checks', enrichment: 'Always enriched. The kernel calls drivers immediately after an edit to check for breakages.' },
+      ].map(s => (
+        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 border-b border-surface-variant/20">
+          <div class="md:col-span-3 bg-surface-container-low px-4 py-4 font-bold text-xs text-primary">
+            {s.condition}
+          </div>
+          <div class="md:col-span-9 px-4 py-4 border-t md:border-t-0 md:border-l border-surface-variant/20">
+            <span class="font-body text-xs text-secondary">{s.enrichment}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Type-Safe Refactoring -->
+    <h3 class="serif-text text-2xl font-medium text-on-surface mb-3">Type-Safe Refactoring via LSP</h3>
+    <p class="font-body text-xs text-secondary max-w-xl mb-4">
+      Drivers expose symbol graphs to support complex, multi-file refactoring verbs. When executing refactorings, the driver computes all edits, and the kernel processes them atomically under OCC CAS rules.
     </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-3xl mb-6">
+      {[
+        { action: 'rename', desc: 'Updates symbol and all references across the codebase safely. Prevents regex search errors.' },
+        { action: 'extract_function', desc: 'Selects code, extracts it, and computes parameters and return structures.' },
+        { action: 'inline', desc: 'Inlines function or variables, validating that visibility and scopes are preserved.' },
+      ].map(a => (
+        <div class="bg-surface-container p-5">
+          <div class="font-label text-[10px] text-primary mb-2 font-bold">{a.action.toUpperCase()}</div>
+          <p class="font-body text-xs text-secondary leading-relaxed">{a.desc}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Embeddings vs Drivers -->
+    <h3 class="section-label-secondary mb-3">EMBEDDINGS_VS_DRIVERS</h3>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl overflow-x-auto mb-8">
+      <table class="w-full font-body text-xs">
+        <thead>
+          <tr class="border-b border-surface-variant">
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-primary uppercase font-bold">Signal</th>
+            <th class="pb-3 pr-4 text-left font-label text-[10px] text-outline uppercase font-bold">Embeddings (Breadth)</th>
+            <th class="pb-3 text-left font-label text-[10px] text-outline uppercase font-bold">Drivers (Precision)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { signal: 'Related function', embed: '~0.75 cosine similarity', driver: 'Exact call graph mapping' },
+            { signal: 'Relevant file', embed: 'Shared vocabulary/topics', driver: 'Direct import dependency' },
+            { signal: 'Dead code detection', embed: 'Cannot determine', driver: 'Zero reference symbols' },
+            { signal: 'Call chain path', embed: 'Co-occurrence heuristics', driver: 'Exact static call-stack traversal' },
+            { signal: 'Test coverage scope', embed: 'Cannot determine', driver: 'Test target reference mapping' },
+          ].map(r => (
+            <tr class="border-b border-surface-variant/30">
+              <td class="py-3 pr-4 font-bold text-on-surface">{r.signal}</td>
+              <td class="py-3 pr-4 text-secondary">{r.embed}</td>
+              <td class="py-3 text-secondary">{r.driver}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Safety & Timeouts -->
+    <h3 class="section-label-secondary mb-3">SAFETY_AND_TIMEOUTS</h3>
+    <div class="bg-surface-container-low p-5 max-w-3xl border border-surface-variant">
+      {[
+        { item: 'Diagnostic Limit', desc: 'Diagnostic messages are truncated to 256 characters; binary codes are stripped.' },
+        { item: 'Path Sandbox', desc: 'Drivers are restricted to authorized workspace paths; leaks outside root are blocked.' },
+        { item: 'Circuit Breaker', desc: 'Three consecutive driver timeouts trigger a 5-minute cooldown period.' },
+        { item: 'Timeout (Warm / Cold)', desc: '100ms for warm calls (falls back to raw read); 2000ms for cold start.' },
+        { item: 'Refactor Timeout', desc: '10s. Fails explicitly instead of falling back to raw edits.' },
+      ].map(s => (
+        <div class="flex gap-4 text-xs font-body py-2 border-b border-surface-variant/30 last:border-b-0">
+          <span class="text-primary w-48 shrink-0 font-bold">{s.item}</span>
+          <span class="text-secondary">{s.desc}</span>
+        </div>
+      ))}
+    </div>
   </section>
 
-  <!-- Context pressure → handoff -->
+  <!-- Section 6: Skills Directive -->
   <section class="mb-16">
-    <h2 class="section-label mb-4">CONTEXT_PRESSURE_HANDOFF</h2>
-    <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      The kernel does not compress context mid-turn. Mutating context would defeat the prompt cache and surprise the model. Instead, context pressure triggers a lifecycle state transition and a structured handoff to a successor agent.
+    <div class="section-label mb-4">06 // SKILLS_BUNDLE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Capabilities & the SKILL Directive</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      The <code class="text-primary">SKILL</code> directive declares named capability bundles within an Agentfile. The parser extracts these into a simple vector, which is resolved at spawn time.
     </p>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-6">
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
-          <span class="text-primary font-bold md:col-span-3">70% context</span>
-          <span class="text-secondary md:col-span-9">State advances to <code class="text-primary">AGING</code>. The kernel begins preparing a handoff record. Agent continues executing normally.</span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
-          <span class="text-primary font-bold md:col-span-3">90% context</span>
-          <span class="text-secondary md:col-span-9">State advances to <code class="text-primary">DYING</code>. No new tool calls beyond the finalization turn. Handoff data is finalized. A sudden jump (60% to 92%) skips AGING entirely.</span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant">
-          <span class="text-primary font-bold md:col-span-3">Finalization</span>
-          <span class="text-secondary md:col-span-9">One last turn in <code class="text-primary">DRAINING</code> state — typically the handoff write. Then <code class="text-primary">DEAD</code>. All tool calls fenced.</span>
-        </div>
-      </div>
-    </div>
-    <p class="font-body text-xs text-secondary max-w-lg">
-      The design choice is explicit: generating a handoff record for a fresh successor preserves cache efficiency. A new agent starts with a clean context window, hits the warm prompt cache on its first turn, and picks up the handoff state from disk. Full state machine at <a href="/docs/agent-lifecycle/" class="text-primary hover:underline">Agent Lifecycle</a>.
-    </p>
-  </section>
 
-  <!-- Drain snapshots -->
-  <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drain Snapshots</h2>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary">
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-6">
       <p class="font-body text-xs text-secondary mb-3">
-        At every turn boundary, the session writes a snapshot to <code class="text-primary">.ostk/drain/&lt;lineage_id&gt;.json</code>. Contains: lineage_id, anchor_id, timestamp, model, cumulative token counts, full message history, and pruned config (tools, permissions, thinking, revival policy).
+        Format: <code class="text-primary">SKILL &lt;bundle_name&gt;</code>. Multiple declarations compile into <code class="text-primary">Agentfile.skills: Vec&lt;String&gt;</code>. Missing skill arguments trigger a <code class="text-primary">ParseError::MissingArgument</code> error.
       </p>
-      <p class="font-body text-xs text-secondary mb-3">
-        Default ON since Wave G.3. Written atomically (tmp + fsync + rename). Errors are logged and discarded — a flaky drain write must not break a working session.
-      </p>
-      <p class="font-body text-xs text-secondary">
-        On daemon restart, orphaned lineages with a drain snapshot are rehydrated: messages and token state restored, config refreshed from the snapshot or the live Agentfile template. After successful rehydration, the snapshot is cleared. The next turn writes a fresh one.
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        At spawn time, the harness maps these identifiers to skill packages (e.g. resolving <code class="text-primary">skills/&lt;name&gt;/SKILL.md</code>) to append system prompt instructions, configure required tools, and establish style conventions.
       </p>
     </div>
-    <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      Drain snapshots are the crash-recovery mechanism, not a context management tool. But they close the lifecycle loop: an agent that dies (from context pressure or process crash) leaves enough state on disk for its successor to continue. Full details at <a href="/docs/agent-lifecycle/" class="text-primary hover:underline">Agent Lifecycle</a>.
-    </p>
+
+    <Terminal label="agents/fixer.af">
+      <pre class="font-mono text-xs text-secondary"><span class="text-primary">FROM</span> claude-sonnet-4-6
+<span class="text-primary">PROMPT</span> You fix bugs and write tests.
+<span class="text-primary">SKILL</span> tdd
+<span class="text-primary">SKILL</span> commit
+<span class="text-primary">TOOL</span> shell
+<span class="text-primary">TOOL</span> file:edit</pre>
+    </Terminal>
   </section>
 
-  <!-- Why this composition -->
+  <!-- Section 7: Pull Model -->
   <section class="mb-16">
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Why This Composition</h2>
-    <div class="bg-surface-container-high p-6 border-t-4 border-primary">
-      <p class="font-body text-sm text-on-surface mb-3">
-        Each mechanism is load-bearing. Removing any one degrades the rest.
+    <div class="section-label mb-4">07 // PULL_MODEL</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Task Eligibility & the WORK Directive</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      Rather than a push-based routing engine, ostk implements a <strong>pull-based task architecture</strong>. Agents declare task eligibility using affinity masks defined via the <code class="text-primary">WORK</code> directive.
+    </p>
+
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl mb-6">
+      <p class="font-body text-xs text-secondary mb-3">
+        Format: <code class="text-primary">WORK &lt;expr&gt; [&lt;expr&gt;...]</code>. Multiple expressions on a single line are space-separated (evaluated as logical AND). An Agentfile can contain at most one <code class="text-primary">WORK</code> directive.
       </p>
-      <div class="space-y-3 font-body text-xs text-secondary">
-        <p>Without <span class="text-primary font-bold">output compression</span>, tool responses bloat context, exhausting the budget faster and reducing cache hit rates (larger volatile suffixes).</p>
-        <p>Without the <span class="text-primary font-bold">digest</span>, the agent re-reads every file on every turn, flooding context with redundant content and defeating the prompt cache.</p>
-        <p>Without <span class="text-primary font-bold">304 elision</span>, the digest's advisory suppression has no mechanical backstop. Agents that ignore the digest (or lose it to compaction) pay full cost for unchanged files.</p>
-        <p>Without the <span class="text-primary font-bold">prompt cache</span>, every turn re-tokenizes the system prompt, identity blocks, tool schemas, and message history. Cost scales linearly with turn count instead of sublinearly.</p>
-        <p>Without <span class="text-primary font-bold">context pressure handoff</span>, agents hit the window limit mid-task. The only recovery is a cold restart with no state transfer.</p>
-        <p>Without <span class="text-primary font-bold">drain snapshots</span>, crashed agents cannot be revived. The daemon can detect orphans but has nothing to rehydrate from.</p>
+      <ul class="font-body text-xs text-secondary list-disc pl-5 space-y-1">
+        <li>Parsed into <code class="text-primary">WorkFilter</code> containing a list of match expressions.</li>
+        <li>If omitted, the agent defaults to <code class="text-primary">work: None</code>, indicating it is eligible to pull any task.</li>
+        <li>Declaring multiple <code class="text-primary">WORK</code> directives triggers a <code class="text-primary">ParseError::MultipleWork</code> error.</li>
+      </ul>
+    </div>
+
+    <h3 class="section-label-secondary mb-3">EXPRESSION_OPERATORS</h3>
+    <div class="bg-surface-container-low p-5 max-w-3xl border border-surface-variant mb-6">
+      {[
+        { op: '=', ex: 'priority=P0', desc: 'Exact match constraint.' },
+        { op: '>=', ex: 'priority>=P1', desc: 'Lower bound mapping (P0 < P1 < P2 < P3).' },
+        { op: '<=', ex: 'priority<=P2', desc: 'Upper bound mapping.' },
+        { op: '=a,b', ex: 'tags=rust,bugfix', desc: 'Comma-separated list (matches if the task has ANY listed tag).' },
+      ].map(e => (
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs font-body py-2 border-b border-surface-variant/30 last:border-b-0">
+          <code class="text-primary md:col-span-1">{e.op}</code>
+          <code class="text-on-surface md:col-span-3 font-mono">{e.ex}</code>
+          <span class="text-secondary md:col-span-8">{e.desc}</span>
+        </div>
+      ))}
+    </div>
+
+    <Terminal label="agents/rust-worker.af">
+      <pre class="font-mono text-xs text-secondary"><span class="text-primary">FROM</span> claude-sonnet-4-6
+<span class="text-primary">WORK</span> tags=rust,bugfix priority&gt;=P1
+<span class="text-primary">TOOL</span> shell
+<span class="text-primary">TOOL</span> file:edit</pre>
+    </Terminal>
+  </section>
+
+  <!-- Section 8: Context Pressure -->
+  <section class="mb-16">
+    <div class="section-label mb-4">08 // CONTEXT_PRESSURE</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Context Pressure & Successor Handoff</h2>
+    
+    <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
+      To preserve prompt caching, the kernel avoids in-turn context compaction. Instead, when context thresholds are crossed, the agent initiates a clean, structured handoff to a fresh successor process.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mb-8">
+      <div class="bg-surface-container p-5 border border-surface-variant">
+        <h4 class="font-body text-xs font-bold text-primary mb-2">70% Threshold (AGING)</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          The kernel signals AGING state. Pre-computations begin to compile the handoff registry, while the current task loop runs unhindered.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5 border border-surface-variant">
+        <h4 class="font-body text-xs font-bold text-primary mb-2">90% Threshold (DYING)</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          State advances to DYING. Future tool calls are blocked. Handoff payloads are finalized. Sudden token jumps bypass AGING directly here.
+        </p>
+      </div>
+
+      <div class="bg-surface-container p-5 border border-surface-variant">
+        <h4 class="font-body text-xs font-bold text-primary mb-2">Handoff (DRAINING/DEAD)</h4>
+        <p class="font-body text-xs text-secondary leading-relaxed">
+          A single finalization turn (DRAINING) commits the handoff to disk, transitioning the session to DEAD. A fresh successor rehydrates the handoff state.
+        </p>
       </div>
     </div>
   </section>
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/compression/"><Icon name="compress" size="14" class="align-middle mr-1" />COMPRESSION</a>
     <a href="/docs/agent-lifecycle/"><Icon name="sync" size="14" class="align-middle mr-1" />AGENT_LIFECYCLE</a>
     <a href="/docs/coordination-primitives/"><Icon name="merge" size="14" class="align-middle mr-1" />COORDINATION</a>
-    <a href="/docs/models/"><Icon name="psychology" size="14" class="align-middle mr-1" />MODELS</a>
+    <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
   </div>
 </DocsLayout>

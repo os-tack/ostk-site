@@ -147,6 +147,65 @@ import { LATEST_TAG } from '../../site-version';
   </section>
 
   <!-- ============================================================ -->
+  <!-- CUSTOM TOOL INTEGRATION -->
+  <!-- ============================================================ -->
+  <section class="mb-16">
+    <div class="border-t border-surface-variant pt-8">
+      <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">DRIVING OSTK FROM CUSTOM TOOLS & SCRIPTS</h2>
+      <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
+        You don't need Claude Code or Cursor to leverage the ostk kernel. You can drive it directly from custom scripts, CI pipelines, or proprietary editor extensions using two transport methods:
+      </p>
+
+      <div class="space-y-6 max-w-2xl">
+        <div class="bg-surface-container-low p-5">
+          <h3 class="font-bold text-sm text-primary font-mono mb-2">1. Subprocess Pipe Transport (Stdio)</h3>
+          <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+            Spawn <code>ostk mcp</code> as a persistent background process. Write JSON-RPC 2.0 messages to its <code>stdin</code> and read structured responses from its <code>stdout</code>.
+          </p>
+          <div class="font-body text-xs text-outline mb-2">Example payload sent to stdio:</div>
+          <pre class="bg-surface-container-high p-4 font-mono text-[11px] text-secondary overflow-x-auto border border-surface-variant">
+{`{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "mcp__ostk__read",
+    "arguments": {
+      "path": "src/main.rs"
+    }
+  },
+  "id": 1
+}`}
+          </pre>
+        </div>
+
+        <div class="bg-surface-container-low p-5">
+          <h3 class="font-bold text-sm text-primary font-mono mb-2">2. UNIX Domain Socket Transport</h3>
+          <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+            For maximum performance and zero process-startup overhead, connect directly to the UNIX domain socket located at <code>.ostk/ostk.sock</code>. This bypasses the MCP abstraction layer entirely and invokes System ABI verbs directly.
+          </p>
+          <div class="font-body text-xs text-outline mb-2">Simple Node.js integration script:</div>
+          <pre class="bg-surface-container-high p-4 font-mono text-[11px] text-secondary overflow-x-auto border border-surface-variant">
+{`const net = require('net');
+const client = net.createConnection('.ostk/ostk.sock', () => {
+  client.write(JSON.stringify({
+    jsonrpc: '2.0',
+    method: 'read',
+    params: { path: 'README.md' },
+    id: 1
+  }) + '\\n');
+});
+
+client.on('data', (data) => {
+  console.log('Kernel Response:', JSON.parse(data.toString()));
+  client.end();
+});`}
+          </pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
   <!-- OUTBOUND PROXY -->
   <!-- ============================================================ -->
   <section class="mb-16">

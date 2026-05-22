@@ -85,13 +85,16 @@ const sidebarGroups = {
 
       <!-- Source availability -->
       <section class="mb-16">
-        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Source Availability</h2>
+        <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Source Availability & Open Source Transition</h2>
         <div class="bg-surface-container-high p-6 border-t-4 border-primary">
           <p class="font-body text-xs text-on-surface mb-3">
-            The kernel source is not currently published. An open source release under a dual license is planned.
+            The <code>ostk</code> framework has transitioned to public repositories on GitHub. 
           </p>
-          <p class="font-body text-xs text-secondary">
-            The binary is free for personal and internal commercial use. Governance documents, signing keys, install script, and this site are public. See <a href="/legal/license/" class="text-primary hover:underline">License</a>.
+          <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
+            The runtime daemons and CLI orchestrators (<code>ostk-core</code>, <code>ostk-cache</code>, and <code>ostk-recall</code>) are open-source under the <strong>GNU Affero General Public License v3.0 (AGPL-3.0)</strong>. This guarantees that modifications to these system elements remain available to the community.
+          </p>
+          <p class="font-body text-xs text-secondary leading-relaxed">
+            The client IPC library (<code>libostk</code>) is released under the permissive <strong>MIT License</strong>. Developers can integrate the library directly into proprietary or closed IDE clients, pipelines, or automation loops without copyleft requirements. See <a href="/legal/license/" class="text-primary hover:underline">License</a>.
           </p>
         </div>
       </section>
