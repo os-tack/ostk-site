@@ -378,7 +378,7 @@ ostk-cache --port 8080 --mode mutate
 
 Redirect agent base URL:
 ```
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8080/v1
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8080
 ```
 
 All requests now pass through the local cache pipeline, automatically ejecting large results (Tier A) and pruning oldest messages (Tier B) to respect budget parameters.
@@ -1169,7 +1169,7 @@ License: AGPL-3.0 | Port: 8080 (default) | Schema: HTTP
 Redirect your client requests to the local proxy. For Claude Code (whose source exposure date is March 31, 2026), export the proxy environment variable:
 
 ```
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8080/v1
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8080
 ```
 
 ## OPERATION MODES
