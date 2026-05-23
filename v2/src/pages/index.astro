@@ -7,13 +7,24 @@ import LiveDemos from '../components/LiveDemos.astro';
 import { LATEST_TAG } from '../site-version';
 
 const sidebarGroups = {
-  items: [
-    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
-    { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
-    { icon: 'extension', label: 'MCP', href: '/docs/mcp/' },
-    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
-    { icon: 'shield', label: 'TRUST_MODEL', href: '/docs/trust-model/' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
+  sections: [
+    {
+      label: 'ABOUT_OSTK',
+      items: [
+        { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+        { icon: 'layers', label: 'THE_STACK', href: '/stack/' },
+        { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+      ],
+    },
+    {
+      label: 'LINEAGE_AND_GOVERNANCE',
+      items: [
+        { icon: 'auto_stories', label: 'DOCTRINE', href: '/doctrine/' },
+        { icon: 'gavel', label: 'GOVERNANCE', href: '/governance/' },
+        { icon: 'info', label: 'ABOUT', href: '/about/' },
+        { icon: 'history', label: 'CHANGELOG', href: '/changelog/' },
+      ],
+    },
   ],
   bottomItems: [
     { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },

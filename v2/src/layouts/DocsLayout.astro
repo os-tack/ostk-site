@@ -13,7 +13,7 @@ interface Props {
 
 const { title, description, sectionLabel, activeTab = 'docs' } = Astro.props;
 
-const canonicalUrl = new URL(Astro.url.pathname, 'https://ostk.ai').href;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",

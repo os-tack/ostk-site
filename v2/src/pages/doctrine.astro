@@ -3,13 +3,24 @@ import Base from '../layouts/Base.astro';
 import Sidebar from '../components/Sidebar.astro';
 
 const sidebarGroups = {
-  items: [
-    { icon: 'auto_stories', label: 'DOCTRINE', href: '/doctrine/' },
-    { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
-    { icon: 'description', label: 'SPECIFICATIONS', href: '/docs/spec/' },
-    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
-    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
+  sections: [
+    {
+      label: 'ABOUT_OSTK',
+      items: [
+        { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+        { icon: 'layers', label: 'THE_STACK', href: '/stack/' },
+        { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+      ],
+    },
+    {
+      label: 'LINEAGE_AND_GOVERNANCE',
+      items: [
+        { icon: 'auto_stories', label: 'DOCTRINE', href: '/doctrine/' },
+        { icon: 'gavel', label: 'GOVERNANCE', href: '/governance/' },
+        { icon: 'info', label: 'ABOUT', href: '/about/' },
+        { icon: 'history', label: 'CHANGELOG', href: '/changelog/' },
+      ],
+    },
   ],
   bottomItems: [
     { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },

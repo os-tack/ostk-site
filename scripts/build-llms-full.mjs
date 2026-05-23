@@ -32,57 +32,36 @@ const PAGES = [
   { path: '/start/local/',                   title: 'Start — Local Model TUI' },
   { path: '/start/server/',                  title: 'Start — Server Mode' },
   // Docs
-  { path: '/docs/',                          title: 'Documentation index' },
-  { path: '/docs/architecture/',             title: 'System Architecture' },
-  { path: '/docs/five-laws/',                title: 'Five Laws' },
-  { path: '/docs/kernel-spec/',              title: 'Kernel Specification' },
-  { path: '/docs/commands/',                 title: 'CLI Surface' },
-  { path: '/docs/mcp/',                      title: 'MCP — both directions' },
-  { path: '/docs/trust-model/',              title: 'Trust Model' },
-  { path: '/docs/pins/',                     title: 'Pin Caps' },
-  { path: '/docs/approval-chain/',           title: 'Approval Chain' },
-  { path: '/docs/isolation-tiers/',          title: 'Isolation Tiers' },
-  { path: '/docs/agentfile/',                title: 'Agentfile' },
-  { path: '/docs/humanfile/',                title: 'HUMANFILE' },
-  { path: '/docs/primefile/',                title: '.primefile' },
-  { path: '/docs/entityfile/',               title: 'ENTITYFILE' },
-  { path: '/docs/ostk-toml/',                title: 'ostk.toml' },
-  { path: '/docs/secrets/',                  title: 'Secrets' },
-  { path: '/docs/bail/',                     title: 'Bail (signed bundles)' },
-  { path: '/docs/session-topology/',         title: 'Session Topology' },
-  { path: '/docs/agent-lifecycle/',          title: 'Agent Lifecycle' },
-  { path: '/docs/coordination-primitives/',  title: 'Coordination Primitives' },
-  { path: '/docs/context-management/',       title: 'Context Management' },
-  { path: '/docs/compression/',              title: 'Compression' },
-  { path: '/docs/boot-sequence/',            title: 'Boot Sequence' },
-  { path: '/docs/enrichment/',               title: 'Enrichment Hooks' },
-  { path: '/docs/pull-model/',               title: 'Pull Model' },
-  { path: '/docs/tack-grammar/',             title: 'Tack Grammar' },
-  { path: '/docs/models/',                   title: 'Models' },
-  { path: '/docs/skills/',                   title: 'Skills' },
-  { path: '/docs/needles/',                  title: 'Needles' },
-  { path: '/docs/sphere-navigator/',         title: 'Sphere Navigator' },
-  { path: '/docs/tui/',                      title: 'TUI' },
-  { path: '/docs/env-vars/',                 title: 'Environment Variables' },
+  { path: '/docs/',                          title: 'Documentation Index' },
   { path: '/docs/downloads/',                title: 'Downloads' },
   { path: '/docs/how-to/learn-sandbox/',     title: 'How-to: Learn a Sandbox Policy' },
   { path: '/docs/faq/',                      title: 'FAQ' },
-  // Features
-  { path: '/features/',                      title: 'Features' },
-  { path: '/features/coordination/',         title: 'AI Agent Coordination' },
-  { path: '/features/invisible-writes/',     title: 'AI Agent File Write Tracking' },
-  { path: '/features/audit-trail/',          title: 'AI Agent Audit Trail' },
-  { path: '/features/context-injection/',    title: 'AI Agent Context Management' },
-  { path: '/features/local-first/',          title: 'Local-First AI Agent Coordination' },
-  { path: '/features/governance/',           title: 'AI Agent Trust Model and Security' },
-  { path: '/features/tack/',                 title: 'Tack — AI Agent Intent Language' },
-  { path: '/features/model-switching/',      title: 'Switch AI Models Mid-Session' },
-  { path: '/features/secret-management/',    title: 'AI Agent API Key Security' },
-  { path: '/features/tui/',                  title: 'AI Agent Terminal Dashboard' },
-  { path: '/features/comparison/',           title: 'How ostk Compares to AI Coding Tools' },
+  // Core Modular Components
+  { path: '/docs/ostk/',                     title: 'ostk (Kernel)' },
+  { path: '/docs/ostk-recall/',              title: 'ostk-recall (Memory)' },
+  { path: '/docs/ostk-cache/',               title: 'ostk-cache (Proxy)' },
+  { path: '/docs/libostk/',                  title: 'libostk (Client)' },
+  // Reference
+  { path: '/docs/commands/',                 title: 'CLI Surface' },
+  { path: '/docs/architecture/',             title: 'System Architecture' },
+  { path: '/docs/boot-sequence/',            title: 'Boot Sequence' },
+  { path: '/docs/agent-lifecycle/',          title: 'Agent Lifecycle' },
+  { path: '/docs/context-management/',       title: 'Context Management' },
+  { path: '/docs/coordination-primitives/',  title: 'Coordination Primitives' },
+  { path: '/docs/mcp/',                      title: 'MCP — both directions' },
+  { path: '/docs/models/',                   title: 'Models' },
+  { path: '/docs/needles/',                  title: 'Needles' },
+  { path: '/docs/sphere-navigator/',         title: 'Sphere Navigator' },
+  { path: '/docs/tack-grammar/',             title: 'Tack Grammar' },
+  { path: '/docs/tui/',                      title: 'TUI' },
+  { path: '/docs/spec/',                     title: 'Specifications Index' },
+  { path: '/docs/spec/posix-kernel/',        title: 'POSIX Kernel Spec' },
+  // Configuration & Governance
+  { path: '/docs/configuration/',            title: 'Configuration Reference' },
+  { path: '/docs/agentfile/',                title: 'Agentfile' },
+  { path: '/docs/security/',                 title: 'Security & Trust' },
   // Optional
   { path: '/about/',                         title: 'About ostk' },
-  { path: '/security/',                      title: 'Security' },
 ];
 
 // HTML entities we need to decode after stripping tags.
@@ -204,6 +183,11 @@ function processPage(page) {
     return null;
   }
   const html = readFileSync(filePath, 'utf8');
+  // Skip Astro redirect pages (they contain meta-refresh tags and do not hold target contents)
+  if (html.includes('http-equiv="refresh"') || html.includes('Redirecting from')) {
+    console.warn(`  [skip] redirect page: ${page.path}`);
+    return null;
+  }
   const main = extractMain(html);
   const text = htmlToText(main);
   if (!text || text.length < 50) {

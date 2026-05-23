@@ -41,13 +41,31 @@ const laws = [
   title="System Architecture"
   description="How ostk's primitives compose to solve the six problems running multiple AI agents creates: crash recovery, agent containment, verifiable history, write coordination, portable deployment, and observation without polling."
   sectionLabel="SECTION_01 // ARCHITECTURE"
-  activeTab="architecture"
+  activeTab="docs"
 >
   <ArchitectureDiagram />
 
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
     Six problems show up the moment you put agents in front of a real codebase. ostk's architecture is the composition that solves them. Each section below names a problem, walks the composition that addresses it, and points at the primitives that compose.
   </p>
+
+  <!-- Table of Contents -->
+  <div class="bg-surface-container-low p-6 mb-16 border-l-2 border-primary max-w-2xl">
+    <div class="font-label text-[10px] text-primary mb-3">SYSTEM_ARCHITECTURE_REFERENCE</div>
+    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 font-body text-xs text-secondary">
+      <li><a href="#your-daemon-crashes-while-an-agent-is-working-what-happens-to-the-work" class="text-primary hover:underline">1. Daemon Crashes & Lineage</a></li>
+      <li><a href="#an-agent-gets-creative-and-writes-outside-its-lane-then-what" class="text-primary hover:underline">2. Sandbox Containment</a></li>
+      <li><a href="#you-need-to-prove-what-an-agent-did-not-just-trust-the-log" class="text-primary hover:underline">3. Verifiable Audit Chain</a></li>
+      <li><a href="#two-agents-edit-the-same-file-at-the-same-time-who-wins" class="text-primary hover:underline">4. Concurrency & CAS Writes</a></li>
+      <li><a href="#you-want-to-hand-your-agent-setup-to-a-different-operator-and-have-it-just-run" class="text-primary hover:underline">5. Declarative Deployment</a></li>
+      <li><a href="#you-want-to-see-what-every-agent-did-in-real-time-without-writing-pollers-or-running-queries" class="text-primary hover:underline">6. Low-Latency Observation</a></li>
+      <li><a href="#the-five-foundational-laws" class="text-primary hover:underline">7. Five Foundational Laws</a></li>
+      <li><a href="#the-unix-substrate" class="text-primary hover:underline">8. The Unix Substrate</a></li>
+      <li><a href="#the-seven-core-primitives" class="text-primary hover:underline">9. Seven Core Primitives</a></li>
+      <li><a href="#the-llm-memory-hierarchy" class="text-primary hover:underline">10. LLM Memory Hierarchy</a></li>
+      <li><a href="#the-dual-cpu-scheduler" class="text-primary hover:underline">11. Dual-CPU Scheduler</a></li>
+    </ul>
+  </div>
 
   <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-16">
     For the verb-by-verb surface, run <code class="text-primary">ostk help</code> or <code class="text-primary">ostk abi list</code>. For normative spec text, see <a href="https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-posix-kernel.md" class="text-primary hover:underline"><code>docs/spec/llmos-posix-kernel.md</code></a>. This page is the operator's reading guide — what composes into what.
@@ -85,7 +103,7 @@ const laws = [
     <div class="bg-surface-container-low p-5 max-w-xl mb-3">
       <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
       <div class="font-body text-xs text-secondary leading-relaxed">
-        <a href="/docs/pins/" class="text-primary hover:underline">pin caps</a> · tool-layer interception · nono sandbox · bypass detection.
+        <a href="/docs/security/#capability-pins-profiles" class="text-primary hover:underline">pin caps</a> · tool-layer interception · nono sandbox · bypass detection.
       </div>
     </div>
     <p class="font-body text-[10px] text-outline max-w-xl">

@@ -5,11 +5,24 @@ import Breadcrumb from '../components/Breadcrumb.astro';
 import Icon from '../components/Icon.astro';
 
 const sidebarGroups = {
-  items: [
-    { icon: 'rocket_launch', label: 'QUICK_START', href: '/start/' },
-    { icon: 'architecture', label: 'ARCHITECTURE', href: '/docs/architecture/' },
-    { icon: 'memory', label: 'KERNEL_SPEC', href: '/docs/kernel-spec/' },
-    { icon: 'gavel', label: 'FIVE_LAWS', href: '/docs/five-laws/' },
+  sections: [
+    {
+      label: 'ABOUT_OSTK',
+      items: [
+        { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
+        { icon: 'layers', label: 'THE_STACK', href: '/stack/' },
+        { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
+      ],
+    },
+    {
+      label: 'LINEAGE_AND_GOVERNANCE',
+      items: [
+        { icon: 'auto_stories', label: 'DOCTRINE', href: '/doctrine/' },
+        { icon: 'gavel', label: 'GOVERNANCE', href: '/governance/' },
+        { icon: 'info', label: 'ABOUT', href: '/about/' },
+        { icon: 'history', label: 'CHANGELOG', href: '/changelog/' },
+      ],
+    },
   ],
   bottomItems: [
     { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
@@ -163,7 +176,7 @@ const groups = [
       <div class="metadata-ribbon border-t border-surface-variant mt-16">
         <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
         <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
-        <a href="/docs/kernel-spec/"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
+        <a href="/docs/architecture/#the-unix-substrate"><Icon name="memory" size="14" class="align-middle mr-1" />KERNEL_SPEC</a>
         <a href="/about/"><Icon name="person" size="14" class="align-middle mr-1" />ABOUT</a>
       </div>
     </div>

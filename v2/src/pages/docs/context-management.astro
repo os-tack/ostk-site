@@ -13,6 +13,21 @@ import Terminal from '../../components/Terminal.astro';
     LLM context is a finite, expensive resource. The ostk kernel manages it through a multi-layered pipeline: compressing command outputs, caching stable prefixes, providing peripheral awareness via digest envelopes, injecting inline diagnostics, and declaring modular capabilities.
   </p>
 
+  <!-- Table of Contents -->
+  <div class="bg-surface-container-low p-6 mb-16 border-l-2 border-primary max-w-2xl">
+    <div class="font-label text-[10px] text-primary mb-3">CONTEXT_AND_STATE_REFERENCE</div>
+    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 font-body text-xs text-secondary">
+      <li><a href="#the-context-lifecycle-loop" class="text-primary hover:underline">1. Context Lifecycle Loop</a></li>
+      <li><a href="#prompt-caching-fleet-economics" class="text-primary hover:underline">2. Prompt Caching & Economics</a></li>
+      <li><a href="#output-compression-the-squasher" class="text-primary hover:underline">3. Output Compression (Squasher)</a></li>
+      <li><a href="#digest-envelopes-read-prevention" class="text-primary hover:underline">4. Digest Envelopes & Read Prevention</a></li>
+      <li><a href="#driver-enrichment-hooks-diagnostics" class="text-primary hover:underline">5. Enrichment Hooks & Diagnostics</a></li>
+      <li><a href="#capabilities-the-skill-directive" class="text-primary hover:underline">6. Capabilities & the SKILL Directive</a></li>
+      <li><a href="#task-eligibility-the-work-directive" class="text-primary hover:underline">7. Task Eligibility & the WORK Directive</a></li>
+      <li><a href="#context-pressure-successor-handoff" class="text-primary hover:underline">8. Context Pressure & Handoff</a></li>
+    </ul>
+  </div>
+
   <!-- Section 1: The Turn Flow Lifecycle -->
   <section class="mb-16">
     <div class="section-label mb-6">01 // CONTEXT_LIFECYCLE</div>

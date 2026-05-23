@@ -136,7 +136,7 @@ import { LATEST_TAG } from '../../site-version';
         { issue: 'Tools listed but every call fails', fix: 'Run `ostk mcp diag` directly. If it errors, check `ostk init` ran in this project — the bridge resolves the project root by walking up from CWD looking for .ostk/.' },
         { issue: 'Writes succeed but no audit row appears', fix: 'You\'re probably writing through the agent\'s native filesystem tools, not the ostk-namespaced ones. Restrict the agent to mcp__ostk__* tools (most MCP clients have an allowlist).' },
         { issue: 'Two daemons fight for the socket', fix: '`ostk daemon restart` (swaps a rebuilt binary cleanly) or `pkill -f "ostk daemon"` then re-invoke. The bridge auto-recovers from a clean socket.' },
-        { issue: 'Permission errors on write', fix: 'Pin caps deny by default. Check `.ostk/pins/default/pin.caps`. T3 (no GPG identity) gets read-only by design — see /docs/trust-model.' },
+        { issue: 'Permission errors on write', fix: 'Pin caps deny by default. Check `.ostk/pins/default/pin.caps`. T3 (no GPG identity) gets read-only by design — see /docs/security/#gpg-rooted-trust-tiers.' },
       ].map(t => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
           <span class="text-error w-56 shrink-0">{t.issue}</span>
@@ -306,9 +306,9 @@ client.on('data', (data) => {
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
     <a href="/start/"><Icon name="rocket_launch" size="14" class="align-middle mr-1" />START_HERE</a>
-    <a href="/docs/humanfile/"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
-    <a href="/docs/pins/"><Icon name="shield" size="14" class="align-middle mr-1" />PIN_CAPS</a>
+    <a href="/docs/configuration/#humanfile"><Icon name="person" size="14" class="align-middle mr-1" />HUMANFILE</a>
+    <a href="/docs/security/#capability-pins-profiles"><Icon name="shield" size="14" class="align-middle mr-1" />PIN_CAPS</a>
     <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>
-    <a href="/docs/secrets/"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
+    <a href="/docs/security/#secrets-management-masking"><Icon name="key" size="14" class="align-middle mr-1" />SECRETS</a>
   </div>
 </DocsLayout>

@@ -53,7 +53,7 @@ import Terminal from '../../../components/Terminal.astro';
         {
           step: '05',
           title: 'Switch to ISOLATION nono',
-          body: 'Add ISOLATION nono to the Agentfile. Now the next ostk run spawns the agent into a Landlock (Linux) or Seatbelt (macOS) sandbox restricted to exactly the paths ostk learn observed. Source: /docs/isolation-tiers.',
+          body: 'Add ISOLATION nono to the Agentfile. Now the next ostk run spawns the agent into a Landlock (Linux) or Seatbelt (macOS) sandbox restricted to exactly the paths ostk learn observed. Source: /docs/security/#capability-pins-profiles.',
         },
         {
           step: '06',
@@ -113,8 +113,8 @@ import Terminal from '../../../components/Terminal.astro';
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/isolation-tiers/"><Icon name="lock" size="14" class="align-middle mr-1" />ISOLATION_TIERS</a>
+    <a href="/docs/security/#capability-pins-profiles"><Icon name="lock" size="14" class="align-middle mr-1" />ISOLATION_TIERS</a>
     <a href="/docs/agentfile/"><Icon name="smart_toy" size="14" class="align-middle mr-1" />AGENTFILE</a>
-    <a href="/docs/approval-chain/"><Icon name="checklist" size="14" class="align-middle mr-1" />APPROVAL_CHAIN</a>
+    <a href="/docs/security/#the-seven-step-approval-chain"><Icon name="checklist" size="14" class="align-middle mr-1" />APPROVAL_CHAIN</a>
   </div>
 </DocsLayout>
