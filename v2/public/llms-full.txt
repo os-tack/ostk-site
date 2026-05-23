@@ -385,9 +385,9 @@ All requests now pass through the local cache pipeline, automatically ejecting l
 
 Read ostk-cache docs → (/docs/ostk-cache/)
 
-### 4. Sandbox-Only Library (`libostk`)
+### 4. Programmatic Client Library (`libostk`)
 
-For developers embedding safe process sandboxing directly into custom client tools, bots, or CI runners. Integrates via pure userspace socket calls.
+For developers building custom kernel clients directly inside IDE overlays, bots, or CI runners. Integrates via pure userspace socket calls.
 
 License: MIT (Permissive) | Target: Rust, Node, Python
 
@@ -717,7 +717,7 @@ Quick Start Zero to running agents in 5 minutes (/start/)Downloads Binary releas
 
 Individual components of the ostk framework.
 
-ostk (Kernel) Optimistic concurrency daemon and terminal interface (/docs/ostk/)ostk-recall (Memory) Autonomous memory and context indexing MCP server (/docs/ostk-recall/)ostk-cache (Proxy) Drop-in LLM proxy with multi-tier prompt compression (/docs/ostk-cache/)libostk (Sandbox) Userspace client library with JSON-RPC interface (/docs/libostk/)
+ostk (Kernel) Optimistic concurrency daemon and terminal interface (/docs/ostk/)ostk-recall (Memory) Autonomous memory and context indexing MCP server (/docs/ostk-recall/)ostk-cache (Proxy) Drop-in LLM proxy with multi-tier prompt compression (/docs/ostk-cache/)libostk (Client) Userspace client library with JSON-RPC interface (/docs/libostk/)
 
 03
 
