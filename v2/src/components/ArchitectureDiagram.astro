@@ -1,71 +1,115 @@
-<div class="relative w-full overflow-hidden border border-surface-variant bg-surface-container-low p-4 md:p-8 mb-6">
-  <div class="absolute top-3 left-4 font-mono text-[9px] text-primary uppercase tracking-widest">
+<div class="relative w-full overflow-hidden border border-surface-variant bg-surface-container-low p-4 md:p-8 mb-6 rounded-lg shadow-lg">
+  <div class="absolute top-3 left-4 font-mono text-[9px] text-primary/80 uppercase tracking-widest flex items-center gap-1.5 select-none">
+    <span class="inline-block w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
     SYSTEM_COORDINATION_FLOW // LIVE_IPC_AND_INFERENCE_ROUTING
   </div>
   
   <div class="w-full overflow-x-auto">
     <div class="min-w-[860px] py-4">
-      <svg viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto select-none">
+      <svg viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto select-none architecture-svg">
         <defs>
+          <!-- Grid Pattern -->
+          <pattern id="diag-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#2a2724" stroke-width="1"/>
+          </pattern>
+
+          <!-- Glow Filters -->
+          <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          
+          <filter id="glow-sage" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <!-- Gradients -->
+          <linearGradient id="card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#24211e" />
+            <stop offset="100%" stop-color="#161412" />
+          </linearGradient>
+
+          <linearGradient id="kernel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffb84d" />
+            <stop offset="100%" stop-color="#c48316" />
+          </linearGradient>
+
+          <linearGradient id="primary-line-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffb84d" stop-opacity="0.9" />
+            <stop offset="100%" stop-color="#c48316" stop-opacity="0.3" />
+          </linearGradient>
+
           <!-- Arrowhead markers -->
           <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#9e8e7d"/>
           </marker>
           <marker id="arrow-primary" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ffc169"/>
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ffb84d"/>
           </marker>
-          <marker id="arrow-double" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c2c9b4"/>
+          <marker id="arrow-sage" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#a4b399"/>
           </marker>
         </defs>
+
+        <!-- Background grid overlay -->
+        <rect width="1000" height="600" fill="url(#diag-grid)" rx="8" />
 
         <!-- Connections (Paths & Labels) -->
         <g class="connections">
           <!-- Human -> messages -> Claude Code -->
           <path d="M 300 85 L 300 132" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
-          <text x="312" y="112" fill="#c2c9b4" class="font-body text-[10px] italic">messages</text>
+          <text x="312" y="112" fill="#a4b399" class="font-mono text-[9px] uppercase tracking-wider">messages</text>
 
-          <!-- Claude Code <-> /api/messages & inference <-> ostk cache -->
-          <path d="M 390 162 L 502 162" stroke="#ffc169" stroke-width="1.5" marker-end="url(#arrow-primary)"/>
-          <text x="450" y="153" fill="#ffc169" text-anchor="middle" class="font-body text-[10px] font-bold">/api/messages</text>
+          <!-- Claude Code -> /api/messages -> ostk cache -->
+          <path d="M 390 162 L 502 162" stroke="#ffb84d" stroke-width="1.5" marker-end="url(#arrow-primary)"/>
+          <text x="446" y="153" fill="#ffb84d" text-anchor="middle" class="font-mono text-[9px] font-bold tracking-wider">/api/messages</text>
 
+          <!-- ostk cache -> inference -> Claude Code -->
           <path d="M 510 192 L 398 192" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
-          <text x="450" y="207" fill="#c2c9b4" text-anchor="middle" class="font-body text-[10px] italic">inference</text>
+          <text x="454" y="207" fill="#a4b399" text-anchor="middle" class="font-mono text-[9px] tracking-wider italic">inference</text>
 
-          <!-- ostk cache <-> projection + context & inference <-> api.anthropic.com -->
-          <path d="M 690 162 L 812 162" stroke="#ffc169" stroke-width="1.5" marker-end="url(#arrow-primary)"/>
-          <text x="750" y="153" fill="#ffc169" text-anchor="middle" class="font-body text-[10px] font-bold">projection + context</text>
+          <!-- ostk cache -> projection + context -> api.anthropic.com -->
+          <path d="M 690 162 L 812 162" stroke="#ffb84d" stroke-width="1.5" marker-end="url(#arrow-primary)"/>
+          <text x="751" y="153" fill="#ffb84d" text-anchor="middle" class="font-mono text-[9px] font-bold tracking-wider">projection + context</text>
 
+          <!-- api.anthropic.com -> inference -> ostk cache -->
           <path d="M 820 192 L 698 192" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
-          <text x="750" y="207" fill="#c2c9b4" text-anchor="middle" class="font-body text-[10px] italic">inference</text>
+          <text x="759" y="207" fill="#a4b399" text-anchor="middle" class="font-mono text-[9px] tracking-wider italic">inference</text>
 
           <!-- Claude Code <-> mcp <-> ostk kernel (bi-directional) -->
-          <path d="M 300 228 L 300 312" stroke="#ffc169" stroke-width="2" marker-end="url(#arrow-primary)" marker-start="url(#arrow-primary)"/>
-          <text x="312" y="275" fill="#ffc169" class="font-body text-[11px] font-bold">mcp (System ABI)</text>
+          <path d="M 300 228 L 300 312" stroke="#ffb84d" stroke-width="2" marker-end="url(#arrow-primary)" marker-start="url(#arrow-primary)" class="glowing-line"/>
+          <text x="312" y="275" fill="#ffb84d" class="font-mono text-[10px] font-bold tracking-wider">mcp (System ABI)</text>
 
           <!-- ostk recall -> Claude Code -->
-          <path d="M 140 320 C 140 250, 190 190, 202 182" stroke="#c2c9b4" stroke-width="1.5" fill="none" marker-end="url(#arrow-double)"/>
+          <path d="M 140 320 C 140 250, 190 190, 202 182" stroke="#a4b399" stroke-width="1.5" fill="none" marker-end="url(#arrow-sage)"/>
           
           <!-- ostk recall -> ostk kernel -->
-          <path d="M 180 360 L 202 360" stroke="#c2c9b4" stroke-width="1.5" marker-end="url(#arrow-double)"/>
+          <path d="M 180 360 L 202 360" stroke="#a4b399" stroke-width="1.5" marker-end="url(#arrow-sage)"/>
 
           <!-- ostk kernel -- kernel projection -->
-          <path d="M 360 320 C 420 280, 480 240, 502 212" stroke="#ffc169" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrow-primary)"/>
-          <text x="460" y="275" fill="#ffc169" class="font-body text-[9px] font-bold" transform="rotate(-30 460 275)">kernel projection</text>
+          <path d="M 360 320 C 420 280, 480 240, 502 212" stroke="#ffb84d" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrow-primary)"/>
+          <text x="460" y="275" fill="#ffb84d" class="font-mono text-[9px] font-bold tracking-wider" transform="rotate(-30 460 275)">kernel projection</text>
 
           <!-- ostk kernel -- conversation context -->
-          <path d="M 390 335 C 470 320, 530 270, 552 222" stroke="#ffc169" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrow-primary)"/>
-          <text x="495" y="305" fill="#ffc169" class="font-body text-[9px] font-bold" transform="rotate(-20 495 305)">conversation context</text>
+          <path d="M 390 335 C 470 320, 530 270, 552 222" stroke="#ffb84d" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrow-primary)"/>
+          <text x="495" y="305" fill="#ffb84d" class="font-mono text-[9px] font-bold tracking-wider" transform="rotate(-20 495 305)">conversation context</text>
 
           <!-- ostk cache -- metrics -->
-          <path d="M 650 220 C 660 300, 680 400, 684 482" stroke="#c2c9b4" stroke-width="1.5" fill="none" marker-end="url(#arrow-double)"/>
-          <text x="678" y="350" fill="#c2c9b4" transform="rotate(78 678 350)" class="font-body text-[10px] italic">metrics</text>
+          <path d="M 650 220 C 660 300, 680 400, 684 482" stroke="#9e8e7d" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+          <text x="678" y="350" fill="#a4b399" transform="rotate(78 678 350)" class="font-mono text-[9px] tracking-wider italic">metrics</text>
 
           <!-- ostk kernel <-> VFS / lock <-> Filesystem (~/project) -->
-          <path d="M 320 400 L 320 482" stroke="#ffc169" stroke-width="1.5" marker-end="url(#arrow-primary)" marker-start="url(#arrow-primary)"/>
-          <text x="330" y="445" fill="#ffc169" class="font-body text-[10px] font-bold">VFS / locks</text>
+          <path d="M 320 400 L 320 482" stroke="#ffb84d" stroke-width="1.5" marker-end="url(#arrow-primary)" marker-start="url(#arrow-primary)"/>
+          <text x="330" y="445" fill="#ffb84d" class="font-mono text-[9px] font-bold tracking-wider">VFS / locks</text>
 
-          <!-- Filesystem watches (dashed lines from bottom looping left and up to recall) -->
+          <!-- Filesystem watches -->
           <!-- ~/.claude to recall -->
           <path d="M 205 570 C 50 630, -20 500, 52 408" stroke="#9e8e7d" stroke-width="1.2" stroke-dasharray="3 3" fill="none" marker-end="url(#arrow)"/>
           <!-- ~/project to recall -->
@@ -77,71 +121,148 @@
           <path d="M 180 490 L 230 225" stroke="#9e8e7d" stroke-width="1" stroke-dasharray="3 3" fill="none" marker-end="url(#arrow)"/>
         </g>
 
-        <!-- Nodes (rects + text) -->
+        <!-- Nodes -->
         <!-- Human Node -->
         <g class="node human">
-          <polygon points="300,20 325,45 300,70 275,45" fill="#100e0c" stroke="#9e8e7d" stroke-width="1.5"/>
-          <circle cx="300" cy="40" r="4" fill="#e7e1de"/>
+          <polygon points="300,20 325,45 300,70 275,45" fill="#1c1a18" stroke="#ffb84d" stroke-width="1.5" filter="url(#glow-amber)" class="interactive-diamond"/>
+          <circle cx="300" cy="40" r="4.5" fill="#e7e1de"/>
           <line x1="300" y1="44" x2="300" y2="56" stroke="#e7e1de" stroke-width="1.5"/>
-          <line x1="295" y1="48" x2="305" y2="48" stroke="#e7e1de" stroke-width="1.5"/>
-          <line x1="300" y1="56" x2="296" y2="64" stroke="#e7e1de" stroke-width="1.5"/>
-          <line x1="300" y1="56" x2="304" y2="64" stroke="#e7e1de" stroke-width="1.5"/>
-          <text x="300" y="83" fill="#e7e1de" text-anchor="middle" class="font-body text-[11px] font-bold">human</text>
+          <line x1="294" y1="49" x2="306" y2="49" stroke="#e7e1de" stroke-width="1.5"/>
+          <line x1="300" y1="56" x2="295" y2="64" stroke="#e7e1de" stroke-width="1.5"/>
+          <line x1="300" y1="56" x2="305" y2="64" stroke="#e7e1de" stroke-width="1.5"/>
+          <text x="300" y="85" fill="#e7e1de" text-anchor="middle" class="font-mono text-[10px] font-bold tracking-widest uppercase">human</text>
         </g>
 
         <!-- Claude Code -->
-        <g class="node claude-code">
-          <rect x="210" y="140" width="180" height="80" fill="#1d1b19" stroke="#514536" stroke-width="1.5" class="hover:stroke-[#ffc169] transition-colors duration-300"/>
-          <text x="300" y="175" fill="#e7e1de" text-anchor="middle" class="font-body text-sm font-bold">claude code</text>
-          <text x="300" y="195" fill="#c2c9b4" text-anchor="middle" class="font-body text-[10px]">(or custom tool)</text>
+        <g class="node interactive-card">
+          <rect x="210" y="140" width="180" height="80" rx="6" fill="url(#card-grad)" stroke="#514536" stroke-width="1.5" class="card-shape" />
+          <rect x="220" y="152" width="12" height="12" rx="2" fill="#ffb84d" opacity="0.8"/>
+          <path d="M 223 158 H 229 M 226 155 V 161" stroke="#161412" stroke-width="1.5"/>
+          <text x="300" y="175" fill="#e7e1de" text-anchor="middle" class="font-sans text-sm font-bold tracking-tight">claude code</text>
+          <text x="300" y="195" fill="#a4b399" text-anchor="middle" class="font-mono text-[9px] tracking-wider uppercase opacity-80">(or custom tool)</text>
         </g>
 
         <!-- ostk cache -->
-        <g class="node ostk-cache">
-          <rect x="510" y="140" width="180" height="80" fill="#1d1b19" stroke="#514536" stroke-width="1.5" class="hover:stroke-[#ffc169] transition-colors duration-300"/>
-          <text x="600" y="175" fill="#ffc169" text-anchor="middle" class="font-body text-sm font-bold">ostk cache</text>
-          <text x="600" y="195" fill="#c2c9b4" text-anchor="middle" class="font-body text-[10px]">localhost:8080</text>
+        <g class="node interactive-card">
+          <rect x="510" y="140" width="180" height="80" rx="6" fill="url(#card-grad)" stroke="#514536" stroke-width="1.5" class="card-shape" />
+          <rect x="520" y="152" width="12" height="12" rx="2" fill="#9e8e7d" opacity="0.8"/>
+          <circle cx="526" cy="158" r="3" stroke="#161412" stroke-width="1.5"/>
+          <text x="600" y="175" fill="#ffb84d" text-anchor="middle" class="font-sans text-sm font-bold tracking-tight">ostk cache</text>
+          <text x="600" y="195" fill="#a4b399" text-anchor="middle" class="font-mono text-[9px] tracking-wider">localhost:8080</text>
         </g>
 
         <!-- API -->
-        <g class="node api">
-          <rect x="820" y="140" width="160" height="80" fill="#100e0c" stroke="#514536" stroke-width="1.5" class="hover:stroke-[#ffc169] transition-colors duration-300"/>
-          <text x="900" y="185" fill="#e7e1de" text-anchor="middle" class="font-body text-xs font-bold">api.anthropic.com</text>
+        <g class="node interactive-card">
+          <rect x="820" y="140" width="160" height="80" rx="6" fill="url(#card-grad)" stroke="#514536" stroke-width="1.5" class="card-shape" />
+          <path d="M 834 154 H 842 M 834 158 H 840 M 834 162 H 842" stroke="#9e8e7d" stroke-width="1.5"/>
+          <text x="900" y="185" fill="#e7e1de" text-anchor="middle" class="font-sans text-xs font-bold tracking-tight">api.anthropic.com</text>
         </g>
 
         <!-- ostk recall -->
-        <g class="node ostk-recall">
-          <rect x="30" y="320" width="150" height="80" fill="#1d1b19" stroke="#514536" stroke-width="1.5" class="hover:stroke-[#ffc169] transition-colors duration-300"/>
-          <text x="105" y="355" fill="#c2c9b4" text-anchor="middle" class="font-body text-xs font-bold">ostk recall</text>
-          <text x="105" y="375" fill="#9e8e7d" text-anchor="middle" class="font-body text-[9px]">memory / vector index</text>
+        <g class="node interactive-card">
+          <rect x="30" y="320" width="150" height="80" rx="6" fill="url(#card-grad)" stroke="#514536" stroke-width="1.5" class="card-shape" />
+          <path d="M 42 334 C 42 332, 48 332, 48 334" stroke="#a4b399" stroke-width="1.5"/>
+          <text x="105" y="355" fill="#a4b399" text-anchor="middle" class="font-sans text-xs font-bold tracking-tight">ostk recall</text>
+          <text x="105" y="375" fill="#9e8e7d" text-anchor="middle" class="font-mono text-[9px] tracking-wider uppercase opacity-85">memory / vector</text>
         </g>
 
         <!-- ostk kernel -->
-        <g class="node ostk-kernel">
-          <rect x="210" y="320" width="180" height="80" fill="#1d1b19" stroke="#ffc169" stroke-width="2" class="hover:stroke-[#ffc169] transition-colors duration-300"/>
-          <text x="300" y="355" fill="#ffc169" text-anchor="middle" class="font-body text-sm font-bold">ostk kernel</text>
-          <text x="300" y="375" fill="#e7e1de" text-anchor="middle" class="font-body text-[9px]">daemon & VFS</text>
+        <g class="node interactive-card active-kernel">
+          <rect x="210" y="320" width="180" height="80" rx="6" fill="url(#card-grad)" stroke="url(#kernel-grad)" stroke-width="2" class="card-shape" />
+          <circle cx="226" cy="336" r="4" fill="#ffb84d" class="blinking-dot"/>
+          <text x="300" y="355" fill="#ffb84d" text-anchor="middle" class="font-sans text-sm font-bold tracking-tight">ostk kernel</text>
+          <text x="300" y="375" fill="#e7e1de" text-anchor="middle" class="font-mono text-[9px] tracking-wider uppercase opacity-90">daemon & VFS</text>
         </g>
 
         <!-- Filesystem -->
         <g class="node filesystem">
           <!-- Container -->
-          <rect x="120" y="490" width="650" height="80" fill="#100e0c" stroke="#514536" stroke-width="1.5"/>
-          <text x="445" y="585" fill="#9e8e7d" text-anchor="middle" class="font-body text-[11px] font-bold uppercase tracking-wider">filesystem</text>
+          <rect x="120" y="490" width="650" height="80" rx="8" fill="#12100e" stroke="#514536" stroke-width="1.5"/>
+          <text x="445" y="585" fill="#9e8e7d" text-anchor="middle" class="font-mono text-[10px] font-bold uppercase tracking-widest">filesystem</text>
 
           <!-- Partition 1: ~/.claude -->
-          <rect x="120" y="490" width="170" height="80" fill="none" stroke="#514536" stroke-width="1"/>
-          <text x="205" y="535" fill="#e7e1de" text-anchor="middle" class="font-body text-xs">~/.claude</text>
+          <line x1="290" y1="490" x2="290" y2="570" stroke="#2a2724" stroke-width="1.5"/>
+          <g class="fs-folder">
+            <path d="M 145 522 H 155 L 158 526 H 175 V 542 H 145 Z" fill="#1c1a18" stroke="#514536" stroke-width="1"/>
+            <text x="215" y="534" fill="#e7e1de" class="font-mono text-xs">~/.claude</text>
+          </g>
 
           <!-- Partition 2: ~/project -->
-          <rect x="290" y="490" width="310" height="80" fill="none" stroke="#514536" stroke-width="1"/>
-          <text x="445" y="535" fill="#e7e1de" text-anchor="middle" class="font-body text-xs font-bold">~/project</text>
+          <line x1="600" y1="490" x2="600" y2="570" stroke="#2a2724" stroke-width="1.5"/>
+          <g class="fs-folder">
+            <path d="M 320 522 H 330 L 333 526 H 350 V 542 H 320 Z" fill="#ffb84d" fill-opacity="0.2" stroke="#ffb84d" stroke-width="1"/>
+            <text x="450" y="534" fill="#e7e1de" text-anchor="middle" class="font-mono text-xs font-bold">~/project</text>
+          </g>
 
           <!-- Partition 3: ~/ostk-cache -->
-          <rect x="600" y="490" width="170" height="80" fill="none" stroke="#514536" stroke-width="1"/>
-          <text x="685" y="535" fill="#e7e1de" text-anchor="middle" class="font-body text-xs">~/-cache</text>
+          <g class="fs-folder">
+            <path d="M 625 522 H 635 L 638 526 H 655 V 542 H 625 Z" fill="#1c1a18" stroke="#514536" stroke-width="1"/>
+            <text x="700" y="534" fill="#e7e1de" class="font-mono text-xs">~/-cache</text>
+          </g>
         </g>
       </svg>
     </div>
   </div>
 </div>
+
+<style>
+  /* Premium Architecture Diagram Styling */
+  .architecture-svg {
+    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  .connections path {
+    transition: stroke 0.3s ease, stroke-width 0.3s ease;
+  }
+  
+  /* Animated Blinking Kernel Dot */
+  @keyframes blink {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; filter: drop-shadow(0 0 2px #ffb84d); }
+  }
+  .blinking-dot {
+    animation: blink 2s infinite ease-in-out;
+  }
+
+  /* Glowing Lines */
+  @keyframes pulse-flow {
+    0% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -20; }
+  }
+  .glowing-line {
+    stroke-dasharray: 6 4;
+    animation: pulse-flow 8s infinite linear;
+  }
+
+  /* Interactive Diamond Hover */
+  .interactive-diamond {
+    transition: fill 0.3s, stroke 0.3s, filter 0.3s;
+    cursor: pointer;
+  }
+  .interactive-diamond:hover {
+    fill: #ffb84d;
+    stroke: #ffffff;
+    filter: url(#glow-amber);
+  }
+
+  /* Interactive Cards Styling */
+  .interactive-card {
+    cursor: pointer;
+  }
+  
+  .interactive-card .card-shape {
+    transition: stroke 0.3s, fill 0.3s, filter 0.3s, transform 0.3s;
+  }
+  
+  .interactive-card:hover .card-shape {
+    stroke: #ffb84d;
+    filter: drop-shadow(0 4px 12px rgba(255, 184, 77, 0.15));
+  }
+
+  .interactive-card.active-kernel .card-shape {
+    filter: drop-shadow(0 4px 16px rgba(255, 184, 77, 0.25));
+  }
+  .interactive-card.active-kernel:hover .card-shape {
+    filter: drop-shadow(0 4px 24px rgba(255, 184, 77, 0.4));
+  }
+</style>
