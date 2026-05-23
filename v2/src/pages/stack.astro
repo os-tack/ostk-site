@@ -57,32 +57,21 @@ const sidebarGroups = {
               </tr>
             </thead>
             <tbody class="divide-y divide-surface-variant">
+              <!-- ostk (kernel) -->
               <tr class="bg-surface">
                 <td class="p-3 border-r border-surface-variant font-bold text-primary">
-                  <a href="/docs/libostk/" class="hover:underline">libostk</a>
-                </td>
-                <td class="p-3 border-r border-surface-variant font-bold text-green-400">MIT</td>
-                <td class="p-3 border-r border-surface-variant">
-                  JSON-RPC 2.0 over<br/>
-                  <code class="text-outline">.ostk/ostk.sock</code>
-                </td>
-                <td class="p-3 text-secondary">
-                  Inode-based log rotation tracking, GPG/Ed25519 signature checks, custom platform envelope parsing.
-                </td>
-              </tr>
-              <tr class="bg-surface">
-                <td class="p-3 border-r border-surface-variant font-bold text-primary">
-                  <a href="/docs/ostk-cache/" class="hover:underline">ostk-cache</a>
+                  <a href="/docs/ostk/" class="hover:underline">ostk (kernel)</a>
                 </td>
                 <td class="p-3 border-r border-surface-variant text-outline">AGPL-3.0</td>
                 <td class="p-3 border-r border-surface-variant">
-                  Transparent HTTP Proxy<br/>
-                  <code class="text-outline">localhost:8080</code>
+                  CLI & Daemon<br/>
+                  <code class="text-outline">ostk boot / run</code>
                 </td>
                 <td class="p-3 text-secondary">
-                  Anthropic/OpenAI wire proxy, synthetic projection mutations, local soft-cap tiering (A-D).
+                  Landlock/Seatbelt process sandbox limits, WAL audit logging, OCC check constraints.
                 </td>
               </tr>
+              <!-- ostk-recall -->
               <tr class="bg-surface">
                 <td class="p-3 border-r border-surface-variant font-bold text-primary">
                   <a href="/docs/ostk-recall/" class="hover:underline">ostk-recall</a>
@@ -96,17 +85,32 @@ const sidebarGroups = {
                   LanceDB vector store + Tantivy BM25, fastembed-rs reranker, debounce file watcher loop.
                 </td>
               </tr>
+              <!-- ostk-cache -->
               <tr class="bg-surface">
                 <td class="p-3 border-r border-surface-variant font-bold text-primary">
-                  <a href="/docs/ostk-core/" class="hover:underline">ostk-core</a>
+                  <a href="/docs/ostk-cache/" class="hover:underline">ostk-cache</a>
                 </td>
                 <td class="p-3 border-r border-surface-variant text-outline">AGPL-3.0</td>
                 <td class="p-3 border-r border-surface-variant">
-                  CLI & Daemon<br/>
-                  <code class="text-outline">ostk boot / run</code>
+                  Transparent HTTP Proxy<br/>
+                  <code class="text-outline">localhost:8080</code>
                 </td>
                 <td class="p-3 text-secondary">
-                  Landlock/Seatbelt process sandbox limits, WAL audit logging, OCC check constraints.
+                  Anthropic/OpenAI wire proxy, synthetic projection mutations, local soft-cap tiering (A-D).
+                </td>
+              </tr>
+              <!-- libostk -->
+              <tr class="bg-surface">
+                <td class="p-3 border-r border-surface-variant font-bold text-primary">
+                  <a href="/docs/libostk/" class="hover:underline">libostk</a>
+                </td>
+                <td class="p-3 border-r border-surface-variant font-bold text-green-400">MIT</td>
+                <td class="p-3 border-r border-surface-variant">
+                  JSON-RPC 2.0 over<br/>
+                  <code class="text-outline">.ostk/ostk.sock</code>
+                </td>
+                <td class="p-3 text-secondary">
+                  Inode-based log rotation tracking, GPG/Ed25519 signature checks, custom platform envelope parsing.
                 </td>
               </tr>
             </tbody>
@@ -117,58 +121,30 @@ const sidebarGroups = {
       <!-- Modular Deep Dives -->
       <div class="space-y-16">
         
-        <!-- libostk -->
-        <section id="libostk" class="scroll-mt-24">
+        <!-- ostk (kernel) -->
+        <section id="ostk" class="scroll-mt-24">
           <div class="flex items-center justify-between border-b border-surface-variant pb-2 mb-4">
-            <h2 class="serif-text text-3xl font-bold text-on-surface">1. libostk Client Library</h2>
-            <span class="font-mono text-xs px-2 py-0.5 bg-green-400/20 text-green-400 font-bold border border-green-400/30">MIT LICENSE</span>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
-            <div class="md:col-span-2 space-y-4">
-              <p>
-                <code>libostk</code> is the foundational client-side layer. Written in pure Rust with lightweight language wrappers, it provides a stable interface to negotiate capability scopes with the ostk daemon. By making <code>libostk</code> completely MIT licensed, developers can build custom integrations inside closed-source IDE overlays or proprietary automation scripts without licensing restrictions.
-              </p>
-              <p>
-                Its core driver <code>audit_tail</code> polls the project's audit logs. Instead of simple timestamp comparisons (which are susceptible to race conditions), <code>audit_tail</code> tracks filesystem <strong>inode values</strong>. If a log is rotated, truncated, or replaced, the tailer auto-reopens the target file, ensuring zero events are dropped.
-              </p>
-            </div>
-            <div class="bg-surface-container-low p-4 border border-surface-variant font-mono space-y-3">
-              <div class="text-primary font-bold text-[10px] tracking-widest uppercase">INTEGRATIONS</div>
-              <ul class="space-y-2 text-[11px] list-disc list-inside">
-                <li>Windmill pipelines</li>
-                <li>Discord bot dispatch</li>
-                <li>Windmill action runners</li>
-                <li>Windmill/Cursor extensions</li>
-              </ul>
-              <a href="/docs/libostk/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View libostk docs →</a>
-            </div>
-          </div>
-        </section>
-
-        <!-- ostk-cache -->
-        <section id="ostk-cache" class="scroll-mt-24">
-          <div class="flex items-center justify-between border-b border-surface-variant pb-2 mb-4">
-            <h2 class="serif-text text-3xl font-bold text-on-surface">2. ostk-cache Proxy</h2>
+            <h2 class="serif-text text-3xl font-bold text-on-surface">1. ostk Kernel & CLI</h2>
             <span class="font-mono text-xs px-2 py-0.5 bg-surface-variant text-outline font-bold border border-surface-variant">AGPL-3.0 LICENSE</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
             <div class="md:col-span-2 space-y-4">
               <p>
-                LLM tokens are expensive, and context drift forces repetitive prompt loads. <code>ostk-cache</code> acts as a local wire-compatible HTTP proxy between your client and providers (like Anthropic or OpenAI). It intercepts request payloads, computes content hashes, and serves cached responses instantly.
+                The central coordinator. <code>ostk</code> is a single Rust binary daemon that manages process sandboxing boundaries using OS-native features like <strong>Landlock</strong> (Linux) and <strong>Seatbelt</strong> (macOS). It intercepts file accesses, reviews signature assertions, and restricts agents from reaching beyond designated directories.
               </p>
               <p>
-                The proxy operates across 4 dynamic reduction tiers (A to D) based on response lengths and confidence metrics. In <code>Rebuild</code> and <code>RebuildKernel</code> modes, the cache coordinates with the daemon via IPC to rebuild projections and invalidate outdated blocks whenever the codebase changes.
+                Its journaling engine enforces strict Write-Ahead Logging (WAL) constraints. Every workspace modification is atomic and is cryptographically signed using GPG or Ed25519 keys, creating a transparent, verifiable audit trail that makes it safe to run untrusted AI agents on local systems.
               </p>
             </div>
             <div class="bg-surface-container-low p-4 border border-surface-variant font-mono space-y-3">
-              <div class="text-primary font-bold text-[10px] tracking-widest uppercase">SPECIFICATIONS</div>
+              <div class="text-primary font-bold text-[10px] tracking-widest uppercase">KERNEL SPECS</div>
               <ul class="space-y-2 text-[11px] list-disc list-inside">
-                <li>Wire formats: Anthropic, OpenAI</li>
-                <li>Default proxy port: 8080</li>
-                <li>Audit logging: .ostk/memory/ledger.jsonl</li>
-                <li>Invalidation: IPC signals</li>
+                <li>Isolation: Landlock / Seatbelt</li>
+                <li>Journal: journal.jsonl (WAL)</li>
+                <li>Coordination: OCC gen_table</li>
+                <li>Security: GPG / Ed25519 signature</li>
               </ul>
-              <a href="/docs/ostk-cache/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View cache docs →</a>
+              <a href="/docs/ostk/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View kernel docs →</a>
             </div>
           </div>
         </section>
@@ -176,7 +152,7 @@ const sidebarGroups = {
         <!-- ostk-recall -->
         <section id="ostk-recall" class="scroll-mt-24">
           <div class="flex items-center justify-between border-b border-surface-variant pb-2 mb-4">
-            <h2 class="serif-text text-3xl font-bold text-on-surface">3. ostk-recall Memory</h2>
+            <h2 class="serif-text text-3xl font-bold text-on-surface">2. ostk-recall Memory</h2>
             <span class="font-mono text-xs px-2 py-0.5 bg-surface-variant text-outline font-bold border border-surface-variant">AGPL-3.0 LICENSE</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
@@ -202,30 +178,58 @@ const sidebarGroups = {
           </div>
         </section>
 
-        <!-- ostk-core -->
-        <section id="ostk-core" class="scroll-mt-24">
+        <!-- ostk-cache -->
+        <section id="ostk-cache" class="scroll-mt-24">
           <div class="flex items-center justify-between border-b border-surface-variant pb-2 mb-4">
-            <h2 class="serif-text text-3xl font-bold text-on-surface">4. ostk-core Daemon & CLI</h2>
+            <h2 class="serif-text text-3xl font-bold text-on-surface">3. ostk-cache Proxy</h2>
             <span class="font-mono text-xs px-2 py-0.5 bg-surface-variant text-outline font-bold border border-surface-variant">AGPL-3.0 LICENSE</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
             <div class="md:col-span-2 space-y-4">
               <p>
-                The central coordinator. <code>ostk-core</code> is a single Rust binary daemon that manages process sandboxing boundaries using OS-native features like <strong>Landlock</strong> (Linux) and <strong>Seatbelt</strong> (macOS). It intercepts file accesses, reviews signature assertions, and restricts agents from reaching beyond designated directories.
+                LLM tokens are expensive, and context drift forces repetitive prompt loads. <code>ostk-cache</code> acts as a local wire-compatible HTTP proxy between your client and providers (like Anthropic or OpenAI). It intercepts request payloads, computes content hashes, and serves cached responses instantly.
               </p>
               <p>
-                Its journaling engine enforces strict Write-Ahead Logging (WAL) constraints. Every workspace modification is atomic and is cryptographically signed using GPG or Ed25519 keys, creating a transparent, verifiable audit trail that makes it safe to run untrusted AI agents on local systems.
+                The proxy operates across 4 dynamic reduction tiers (A to D) based on response lengths and confidence metrics. In <code>Rebuild</code> and <code>RebuildKernel</code> modes, the cache coordinates with the daemon via IPC to rebuild projections and invalidate outdated blocks whenever the codebase changes.
               </p>
             </div>
             <div class="bg-surface-container-low p-4 border border-surface-variant font-mono space-y-3">
-              <div class="text-primary font-bold text-[10px] tracking-widest uppercase">DAEMON SPECS</div>
+              <div class="text-primary font-bold text-[10px] tracking-widest uppercase">SPECIFICATIONS</div>
               <ul class="space-y-2 text-[11px] list-disc list-inside">
-                <li>Isolation: Landlock / Seatbelt</li>
-                <li>Journal: journal.jsonl (WAL)</li>
-                <li>Coordination: OCC gen_table</li>
-                <li>Security: GPG / Ed25519 signature</li>
+                <li>Wire formats: Anthropic, OpenAI</li>
+                <li>Default proxy port: 8080</li>
+                <li>Audit logging: .ostk/memory/ledger.jsonl</li>
+                <li>Invalidation: IPC signals</li>
               </ul>
-              <a href="/docs/ostk-core/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View core docs →</a>
+              <a href="/docs/ostk-cache/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View cache docs →</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- libostk -->
+        <section id="libostk" class="scroll-mt-24">
+          <div class="flex items-center justify-between border-b border-surface-variant pb-2 mb-4">
+            <h2 class="serif-text text-3xl font-bold text-on-surface">4. libostk Client Library</h2>
+            <span class="font-mono text-xs px-2 py-0.5 bg-green-400/20 text-green-400 font-bold border border-green-400/30">MIT LICENSE</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
+            <div class="md:col-span-2 space-y-4">
+              <p>
+                <code>libostk</code> is the foundational client-side layer. Written in pure Rust with lightweight language wrappers, it provides a stable interface to negotiate capability scopes with the ostk daemon. By making <code>libostk</code> completely MIT licensed, developers can build custom integrations inside closed-source IDE overlays or proprietary automation scripts without licensing restrictions.
+              </p>
+              <p>
+                Its core driver <code>audit_tail</code> polls the project's audit logs. Instead of simple timestamp comparisons (which are susceptible to race conditions), <code>audit_tail</code> tracks filesystem <strong>inode values</strong>. If a log is rotated, truncated, or replaced, the tailer auto-reopens the target file, ensuring zero events are dropped.
+              </p>
+            </div>
+            <div class="bg-surface-container-low p-4 border border-surface-variant font-mono space-y-3">
+              <div class="text-primary font-bold text-[10px] tracking-widest uppercase">INTEGRATIONS</div>
+              <ul class="space-y-2 text-[11px] list-disc list-inside">
+                <li>Windmill pipelines</li>
+                <li>Discord bot dispatch</li>
+                <li>Windmill action runners</li>
+                <li>Windmill/Cursor extensions</li>
+              </ul>
+              <a href="/docs/libostk/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View libostk docs →</a>
             </div>
           </div>
         </section>

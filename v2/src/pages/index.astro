@@ -106,34 +106,19 @@ const sidebarGroups = {
         <div class="section-label mb-4">MODULAR_STACK_ARCHITECTURE</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-surface-variant border border-surface-variant">
           
-          <!-- libostk -->
+          <!-- ostk (kernel) -->
           <div class="bg-surface p-6 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="font-label text-[10px] uppercase tracking-widest text-primary">libostk</span>
-                <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">MIT</span>
-              </div>
-              <h3 class="serif-text text-lg font-bold mb-2">Userspace Client</h3>
-              <p class="font-body text-xs text-secondary leading-relaxed">
-                Lightweight library for secure JSON-RPC communication over UNIX socket (<code class="text-[10px]">.ostk/ostk.sock</code>). Handles cryptographic envelope signature verification, GPG key checking, and background audit-tailing.
-              </p>
-            </div>
-            <a href="/docs/libostk/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read libostk docs →</a>
-          </div>
-
-          <!-- ostk-cache -->
-          <div class="bg-surface p-6 flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk-cache</span>
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk (kernel)</span>
                 <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">AGPL-3.0</span>
               </div>
-              <h3 class="serif-text text-lg font-bold mb-2">Transparent Proxy</h3>
+              <h3 class="serif-text text-lg font-bold mb-2">Integrated CLI Suite</h3>
               <p class="font-body text-xs text-secondary leading-relaxed">
-                Port 8080 L1.5 cache proxy for Anthropic & OpenAI wire formats. Implements synthetic projection mutations, kernel-ipc cache rebuild signals, and a 4-tier soft-cap reduction pipeline.
+                Complete CLI and supervisor daemon. Orchestrates multi-agent concurrency, manages state WAL logging, enforces Landlock/Seatbelt isolation, and maintains the GPG audit trail.
               </p>
             </div>
-            <a href="/docs/ostk-cache/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read cache docs →</a>
+            <a href="/docs/ostk/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read kernel docs →</a>
           </div>
 
           <!-- ostk-recall -->
@@ -151,19 +136,34 @@ const sidebarGroups = {
             <a href="/docs/ostk-recall/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read recall docs →</a>
           </div>
 
-          <!-- ostk-core -->
+          <!-- ostk-cache -->
           <div class="bg-surface p-6 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk-core</span>
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">ostk-cache</span>
                 <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">AGPL-3.0</span>
               </div>
-              <h3 class="serif-text text-lg font-bold mb-2">Integrated CLI Suite</h3>
+              <h3 class="serif-text text-lg font-bold mb-2">Transparent Proxy</h3>
               <p class="font-body text-xs text-secondary leading-relaxed">
-                Complete CLI and supervisor daemon. Orchestrates multi-agent concurrency, manages state WAL logging, enforces Landlock/Seatbelt isolation, and maintains the GPG audit trail.
+                Port 8080 L1.5 cache proxy for Anthropic & OpenAI wire formats. Implements synthetic projection mutations, kernel-ipc cache rebuild signals, and a 4-tier soft-cap reduction pipeline.
               </p>
             </div>
-            <a href="/docs/ostk-core/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read core docs →</a>
+            <a href="/docs/ostk-cache/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read cache docs →</a>
+          </div>
+
+          <!-- libostk -->
+          <div class="bg-surface p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-label text-[10px] uppercase tracking-widest text-primary">libostk</span>
+                <span class="font-label text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold">MIT</span>
+              </div>
+              <h3 class="serif-text text-lg font-bold mb-2">Userspace Client</h3>
+              <p class="font-body text-xs text-secondary leading-relaxed">
+                Lightweight library for secure JSON-RPC communication over UNIX socket (<code class="text-[10px]">.ostk/ostk.sock</code>). Handles cryptographic envelope signature verification, GPG key checking, and background audit-tailing.
+              </p>
+            </div>
+            <a href="/docs/libostk/" class="font-body text-[11px] text-primary hover:underline mt-6 block">Read libostk docs →</a>
           </div>
 
         </div>

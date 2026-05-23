@@ -14,6 +14,8 @@ export default defineConfig({
     '/quick-start': '/start/',
     // Renamed routes
     '/docs/osfile': '/docs/configuration/',
+    '/docs/ostk-core': '/docs/ostk/',
+    '/docs/ostk-core/': '/docs/ostk/',
     // Removed pages — redirect to closest match
     '/bench': '/why/',
     '/insights': '/docs/',

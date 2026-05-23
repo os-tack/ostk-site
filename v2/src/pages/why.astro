@@ -42,10 +42,10 @@ const sidebarGroups = {
             Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently overwriting files. The first agent's work is lost, and the system fails silently.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">Modular Solution:</strong> The <code>ostk-core</code> daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
+            <strong class="text-on-surface">Modular Solution:</strong> The <code>ostk</code> daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
           </p>
           <p class="font-body text-xs text-outline">
-            Handled by: <a href="/docs/ostk-core/" class="text-primary hover:underline">ostk-core daemon</a> & <a href="/docs/libostk/" class="text-primary hover:underline">libostk IPC client</a>.
+            Handled by: <a href="/docs/ostk/" class="text-primary hover:underline">ostk daemon</a> & <a href="/docs/libostk/" class="text-primary hover:underline">libostk IPC client</a>.
           </p>
         </div>
       </section>

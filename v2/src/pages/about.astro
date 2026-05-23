@@ -37,7 +37,7 @@ const sidebarGroups = {
           {[
             { label: 'FLEET_COORDINATION', desc: 'Spawn, drain, reap, and rehydrate agents across daemon restarts. Workers crash-recover from drain snapshots automatically.' },
             { label: 'OPTIMISTIC_CONCURRENCY', desc: 'Agents write concurrently. The kernel detects conflicts via generation counters and resolves via Hot PR. No locks during the expensive phase.' },
-            { label: 'COST_REDUCTION', desc: '28% measured cost reduction via prompt cache reuse and shell output compression.' },
+            { label: 'COST_REDUCTION', desc: '81% measured cost reduction via prompt cache reuse and shell output compression.' },
             { label: 'CAPABILITY_ENFORCEMENT', desc: 'Deny-based pins at the tool layer. Process-level sandboxing via Landlock/Seatbelt at the syscall layer. Defense in depth.' },
             { label: 'IDENTITY_AND_TRUST', desc: 'GPG-based trust chain from hardware identity to human attestation. Four tiers. Dual-signed primefile ceremony for governance changes.' },
             { label: 'CACHE_ECONOMICS', desc: 'Byte-stable system prefix shared across the fleet via content-addressed cache. Fleet cost scales sublinearly — adding agents decreases per-agent cost.' },
@@ -91,7 +91,7 @@ const sidebarGroups = {
             The <code>ostk</code> framework has transitioned to public repositories on GitHub. 
           </p>
           <p class="font-body text-xs text-secondary mb-3 leading-relaxed">
-            The runtime daemons and CLI orchestrators (<code>ostk-core</code>, <code>ostk-cache</code>, and <code>ostk-recall</code>) are open-source under the <strong>GNU Affero General Public License v3.0 (AGPL-3.0)</strong>. This guarantees that modifications to these system elements remain available to the community.
+            The runtime daemons and CLI orchestrators (<code>ostk</code>, <code>ostk-cache</code>, and <code>ostk-recall</code>) are open-source under the <strong>GNU Affero General Public License v3.0 (AGPL-3.0)</strong>. This guarantees that modifications to these system elements remain available to the community.
           </p>
           <p class="font-body text-xs text-secondary leading-relaxed">
             The client IPC library (<code>libostk</code>) is released under the permissive <strong>MIT License</strong>. Developers can integrate the library directly into proprietary or closed IDE clients, pipelines, or automation loops without copyleft requirements. See <a href="/legal/license/" class="text-primary hover:underline">License</a>.

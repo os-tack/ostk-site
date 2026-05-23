@@ -4,9 +4,9 @@ import Icon from '../../components/Icon.astro';
 ---
 
 <DocsLayout
-  title="ostk-core"
+  title="ostk (kernel)"
   description="The core daemon execution model, VFS sandboxing, and optimistic concurrency boundaries."
-  sectionLabel="MODULAR_STACK // RUNTIME_CORE"
+  sectionLabel="MODULAR_STACK // RUNTIME_KERNEL"
 >
   <p class="font-body text-sm text-secondary max-w-xl mb-4">
     The central coordinator of the ostk ecosystem. Spawns as a background daemon, virtualizes workspace filesystem boundaries, and orchestrates local agent activities.
@@ -19,7 +19,7 @@ import Icon from '../../components/Icon.astro';
   <section class="mb-16">
     <h2 class="section-label mb-4">OVERVIEW</h2>
     <p class="font-body text-xs text-secondary leading-relaxed mb-4">
-      <code>ostk-core</code> is the binary that runs when you execute <code>ostk boot</code>. It loads your GPG/Ed25519 identity, opens the shared workspace database, spins up the IPC sockets, and spawns internal drivers. It provides the CLI interface (<code>ostk tack</code>, <code>ostk ps</code>) and acts as the gatekeeper supervising all agent tools. Note that <code>ostk do</code> is deprecated; one-shot prompts are instead routed through <code>ostk tack --run</code>.
+      <code>ostk</code> is the binary that runs when you execute <code>ostk boot</code>. It loads your GPG/Ed25519 identity, opens the shared workspace database, spins up the IPC sockets, and spawns internal drivers. It provides the CLI interface (<code>ostk tack</code>, <code>ostk ps</code>) and acts as the gatekeeper supervising all agent tools. Note that <code>ostk do</code> is deprecated; one-shot prompts are instead routed through <code>ostk tack --run</code>.
     </p>
   </section>
 
@@ -27,7 +27,7 @@ import Icon from '../../components/Icon.astro';
   <section class="mb-16">
     <h2 class="section-label mb-4">OS-LEVEL PROCESS SANDBOXING</h2>
     <p class="font-body text-xs text-secondary leading-relaxed mb-4">
-      To prevent untrusted agent tools or generated code from damaging the host operating system, <code>ostk-core</code> runs commands inside platform-native sandboxes based on your HUMANFILE capability pins:
+      To prevent untrusted agent tools or generated code from damaging the host operating system, <code>ostk</code> runs commands inside platform-native sandboxes based on your HUMANFILE capability pins:
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="bg-surface-container p-5">

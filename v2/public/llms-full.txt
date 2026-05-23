@@ -21,21 +21,13 @@ install → curl -fsSL https://ostk.ai/install.sh | sh quick start → (/start/)
 
 MODULAR_STACK_ARCHITECTURE
 
-libostk MIT
+ostk (kernel) AGPL-3.0
 
-### Userspace Client
+### Integrated CLI Suite
 
-Lightweight library for secure JSON-RPC communication over UNIX socket (`.ostk/ostk.sock`). Handles cryptographic envelope signature verification, GPG key checking, and background audit-tailing.
+Complete CLI and supervisor daemon. Orchestrates multi-agent concurrency, manages state WAL logging, enforces Landlock/Seatbelt isolation, and maintains the GPG audit trail.
 
-Read libostk docs → (/docs/libostk/)
-
-ostk-cache AGPL-3.0
-
-### Transparent Proxy
-
-Port 8080 L1.5 cache proxy for Anthropic & OpenAI wire formats. Implements synthetic projection mutations, kernel-ipc cache rebuild signals, and a 4-tier soft-cap reduction pipeline.
-
-Read cache docs → (/docs/ostk-cache/)
+Read kernel docs → (/docs/ostk/)
 
 ostk-recall AGPL-3.0
 
@@ -45,13 +37,21 @@ Hybrid vector + BM25 search server using LanceDB and SQLite. Tracks codebase con
 
 Read recall docs → (/docs/ostk-recall/)
 
-ostk-core AGPL-3.0
+ostk-cache AGPL-3.0
 
-### Integrated CLI Suite
+### Transparent Proxy
 
-Complete CLI and supervisor daemon. Orchestrates multi-agent concurrency, manages state WAL logging, enforces Landlock/Seatbelt isolation, and maintains the GPG audit trail.
+Port 8080 L1.5 cache proxy for Anthropic & OpenAI wire formats. Implements synthetic projection mutations, kernel-ipc cache rebuild signals, and a 4-tier soft-cap reduction pipeline.
 
-Read core docs → (/docs/ostk-core/)
+Read cache docs → (/docs/ostk-cache/)
+
+libostk MIT
+
+### Userspace Client
+
+Lightweight library for secure JSON-RPC communication over UNIX socket (`.ostk/ostk.sock`). Handles cryptographic envelope signature verification, GPG key checking, and background audit-tailing.
+
+Read libostk docs → (/docs/libostk/)
 
 macOS (universal arm64+x86_64), Linux musl arm64/x86_64, Windows x86_64 zip. All on GitHub releases (https://github.com/os-tack/ostk.ai/releases/latest), GPG-signed. ~30 seconds.
 
@@ -256,9 +256,9 @@ PROBLEM_01 // COLLISION
 
 Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently overwriting files. The first agent's work is lost, and the system fails silently.
 
-Modular Solution: The `ostk-core` daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
+Modular Solution: The `ostk` daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
 
-Handled by: ostk-core daemon (/docs/ostk-core/) & libostk IPC client (/docs/libostk/).
+Handled by: ostk daemon (/docs/ostk/) & libostk IPC client (/docs/libostk/).
 
 PROBLEM_02 // DRIFT
 
@@ -324,51 +324,24 @@ ostk is modular. Adopt only the components that match your architecture. The fir
 
 ## SELECT_YOUR_PATHWAY
 
-### 1. Sandbox-Only Library (`libostk`)
+### 1. Full Runtime / CLI Kernel (`ostk`)
 
-For developers embedding safe process sandboxing directly into custom client tools, bots, or CI runners. Integrates via pure userspace socket calls.
+For developers needing full platform supervision, process sandboxing (Landlock/Seatbelt), OCC validation, and GPG-signed audit logging.
 
-License: MIT (Permissive) | Target: Rust, Node, Python
+License: AGPL-3.0 | Interface: CLI / Socket Daemon
 
-DEVELOPER SDK
+FULL RUNTIME
 
-Add client library to Cargo.toml:
+Install runtime binary & boot supervisor:
 ```
-libostk = { version = "6.0" }
-```
-
-Connect to local socket & negotiate permissions:
-```
-use libostk::KernelConnection;
-let client = KernelConnection::connect(".ostk/ostk.sock").await?;
-let session = client.negotiate_pins(&["read_file"]).await?;
+curl -fsSL https://ostk.ai/install.sh | sh
+cd ~/projects/your-repo && ostk init
+ostk boot
 ```
 
-Read libostk integration docs → (/docs/libostk/)
+Read kernel supervisor docs → (/docs/ostk/)
 
-### 2. Cache-Only Proxy (`ostk-cache`)
-
-For operators wanting immediate token savings on OpenAI or Anthropic API transactions. Acts as a transparent proxy on port 8080.
-
-License: AGPL-3.0 | Upstream: Anthropic, OpenAI
-
-API WIRE PROXY
-
-Start proxy daemon:
-```
-ostk-cache --port 8080 --mode mutate
-```
-
-Redirect agent base URL:
-```
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8080/v1
-```
-
-All requests now pass through the local cache pipeline, automatically ejecting large results (Tier A) and pruning oldest messages (Tier B) to respect budget parameters.
-
-Read ostk-cache docs → (/docs/ostk-cache/)
-
-### 3. Memory-Only Retrieval (`ostk-recall`)
+### 2. Memory-Only Retrieval (`ostk-recall`)
 
 For developers integrating memory indices directly into Cursor or Claude Code. Runs LanceDB + Tantivy BM25 locally.
 
@@ -390,28 +363,55 @@ ostk-recall watch &
 
 Read ostk-recall docs → (/docs/ostk-recall/)
 
-### 4. Integrated CLI Suite (`ostk-core`)
+### 3. Cache-Only Proxy (`ostk-cache`)
 
-For developers needing full platform supervision, process sandboxing (Landlock/Seatbelt), OCC validation, and GPG-signed audit logging.
+For operators wanting immediate token savings on OpenAI or Anthropic API transactions. Acts as a transparent proxy on port 8080.
 
-License: AGPL-3.0 | Interface: CLI / Socket Daemon
+License: AGPL-3.0 | Upstream: Anthropic, OpenAI
 
-FULL RUNTIME
+API WIRE PROXY
 
-Install runtime binary & boot supervisor:
+Start proxy daemon:
 ```
-curl -fsSL https://ostk.ai/install.sh | sh
-cd ~/projects/your-repo && ostk init
-ostk boot
+ostk-cache --port 8080 --mode mutate
 ```
 
-Read core supervisor docs → (/docs/ostk-core/)
+Redirect agent base URL:
+```
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8080/v1
+```
 
-Picked one and changed your mind? All stack modules coordinate seamlessly. You can start with `ostk-cache` and add the full `ostk-core` daemon later without rewriting your workflows.
+All requests now pass through the local cache pipeline, automatically ejecting large results (Tier A) and pruning oldest messages (Tier B) to respect budget parameters.
+
+Read ostk-cache docs → (/docs/ostk-cache/)
+
+### 4. Sandbox-Only Library (`libostk`)
+
+For developers embedding safe process sandboxing directly into custom client tools, bots, or CI runners. Integrates via pure userspace socket calls.
+
+License: MIT (Permissive) | Target: Rust, Node, Python
+
+DEVELOPER SDK
+
+Add client library to Cargo.toml:
+```
+libostk = { version = "6.0" }
+```
+
+Connect to local socket & negotiate permissions:
+```
+use libostk::KernelConnection;
+let client = KernelConnection::connect(".ostk/ostk.sock").await?;
+let session = client.negotiate_pins(&["read_file"]).await?;
+```
+
+Read libostk integration docs → (/docs/libostk/)
+
+Picked one and changed your mind? All stack modules coordinate seamlessly. You can start with `ostk-cache` and add the full `ostk` kernel daemon later without rewriting your workflows.
 
 ## AFTER_YOU'RE_RUNNING
 
-TRUST_MODEL Tiers, GPG signing, the four-tier ladder. (/docs/trust-model/) NEEDLES Open questions and decisions across sessions. (/docs/needles/) COMMANDS Full CLI reference. (/docs/commands/)
+SECURITY_AND_TRUST Tiers, GPG signing, pins, sandboxing. (/docs/security/) NEEDLES Open questions and decisions across sessions. (/docs/needles/) COMMANDS Full CLI reference. (/docs/commands/)
 
 ---
 
@@ -717,7 +717,7 @@ Quick Start Zero to running agents in 5 minutes (/start/)Downloads Binary releas
 
 Individual components of the ostk framework.
 
-libostk (Sandbox) Userspace client library with JSON-RPC interface (/docs/libostk/)ostk-cache (Proxy) Drop-in LLM proxy with multi-tier prompt compression (/docs/ostk-cache/)ostk-recall (Memory) Autonomous memory and context indexing MCP server (/docs/ostk-recall/)ostk-core (CLI) Optimistic concurrency daemon and terminal interface (/docs/ostk-core/)
+ostk (Kernel) Optimistic concurrency daemon and terminal interface (/docs/ostk/)ostk-recall (Memory) Autonomous memory and context indexing MCP server (/docs/ostk-recall/)ostk-cache (Proxy) Drop-in LLM proxy with multi-tier prompt compression (/docs/ostk-cache/)libostk (Sandbox) Userspace client library with JSON-RPC interface (/docs/libostk/)
 
 03
 
@@ -6617,9 +6617,9 @@ At the turn boundary, session messages, token counts, and configuration are pers
 
 ## Prompt Caching & Fleet Economics
 
-28% Cost Reduction
+81% Cost Reduction
 
-Anthropic's prompt cache is content-addressed and per-organization. Multiple ostk agent sessions sharing the same API key reuse cache entries automatically, drastically reducing the cost of parallel workers.
+Anthropic's prompt cache is content-addressed and per-organization. Multiple ostk agent sessions sharing the same API key reuse cache entries automatically, drastically reducing the cost of parallel workers. Fleet statistics aggregated from real-world codebase runs (over 1.18 billion tokens) demonstrate an actual 81.0% cost reduction by maintaining high cache read rates.
 
 CONTENT-ADDRESSED
 
@@ -8662,7 +8662,7 @@ Agents write concurrently. The kernel detects conflicts via generation counters 
 
 `COST_REDUCTION`
 
-28% measured cost reduction via prompt cache reuse and shell output compression.
+81% measured cost reduction via prompt cache reuse and shell output compression.
 
 `CAPABILITY_ENFORCEMENT`
 
@@ -8694,7 +8694,7 @@ I've been writing software a long time. The era doesn't matter — the principle
 
 The `ostk` framework has transitioned to public repositories on GitHub.
 
-The runtime daemons and CLI orchestrators (`ostk-core`, `ostk-cache`, and `ostk-recall`) are open-source under the GNU Affero General Public License v3.0 (AGPL-3.0). This guarantees that modifications to these system elements remain available to the community.
+The runtime daemons and CLI orchestrators (`ostk`, `ostk-cache`, and `ostk-recall`) are open-source under the GNU Affero General Public License v3.0 (AGPL-3.0). This guarantees that modifications to these system elements remain available to the community.
 
 The client IPC library (`libostk`) is released under the permissive MIT License. Developers can integrate the library directly into proprietary or closed IDE clients, pipelines, or automation loops without copyleft requirements. See License (/legal/license/).
 
