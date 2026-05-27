@@ -5,7 +5,7 @@
 # After install, run: ostk init (in a git repo)
 #
 # Env overrides:
-#   OSTK_VERSION=4.4.2    pin a version
+#   OSTK_VERSION=7.0.0    pin a version
 #   OSTK_INSTALL_DIR=...  install somewhere else
 set -e
 
@@ -89,11 +89,8 @@ fi
 
 tar -xzf "$tmpdir/$TARBALL" -C "$tmpdir"
 
-BINARY=""
-for name in ostk haystack; do
-  [ -f "$tmpdir/$name" ] && BINARY="$tmpdir/$name" && break
-done
-[ -n "$BINARY" ] || fail "binary not found in release archive"
+BINARY="$tmpdir/ostk"
+[ -f "$BINARY" ] || fail "binary not found in release archive"
 
 # macOS: clear Gatekeeper quarantine
 if [ "$OS_NAME" = "Darwin" ]; then
