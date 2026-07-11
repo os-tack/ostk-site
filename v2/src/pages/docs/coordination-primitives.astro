@@ -6,7 +6,8 @@ import Terminal from '../../components/Terminal.astro';
 
 <DocsLayout
   title="Coordination Primitives"
-  description="How agents coordinate state, files, and workloads using the VFS projection, Optimistic Concurrency Control, Hot PR, digest envelopes, and cross-boundary nudges."
+  seoTitle="Multi-Agent Coding Coordination with ostk"
+  description="Coordinate AI coding agents through project state, file generations, CAS edits, VFS projections, durable queues, and explicit conflict handling."
   sectionLabel="REFERENCE // COORDINATION"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
@@ -112,7 +113,7 @@ EPIC: Observation substrate over VFS namespace</pre>
       Rather than locking files on open (which stalls parallel workflows), ostk uses monotonic generation counters and Compare-and-Swap (CAS) edits.
     </p>
 
-    <img src="/diagrams/write-path.svg" alt="The Write Path (str_replace_cas)" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <img src="/diagrams/write-path.svg" alt="ostk CAS write path from agent request through generation check, merge, audit, and file update" width="620" height="440" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
 
     <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl">
       <div class="space-y-4">

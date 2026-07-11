@@ -53,23 +53,23 @@ const articleSchema = {
 const nonGoals = [
   {
     label: 'NOT_A_MODEL',
-    body: 'ostk does not train, fine-tune, or host language models. It composes with whichever one you run — a frontier endpoint, a local Llama, an in-house fork. The kernel cares about agent identity, file generation, and the audit chain. Which weights answer the prompt is a driver concern, swappable.',
+    body: 'ostk does not train, fine-tune, or host language models. It composes with configured provider and local-model routes listed in the support matrix. The kernel keeps project tasks, decisions, file generations, and audit independent of one model; provider features and full-conversation continuity still vary by integration.',
   },
   {
     label: 'NOT_AN_EDITOR',
-    body: 'ostk does not replace Cursor, Claude Code, Zed, or your terminal. It sits underneath them. The agent surface stays where you like it; the substrate underneath gains coordination, audit, and capability boundaries. If your editor speaks MCP, it composes; if it does not, ostk has a TUI of its own.',
+    body: 'ostk does not replace your editor, coding agent, or terminal. Supported MCP clients can connect to the same local project substrate through ostk connect; clients that use native tools outside that surface also operate outside ostk audit and OCC guarantees. If a client is not a verified integration, ostk has a TUI of its own.',
   },
   {
     label: 'NOT_A_SAAS',
-    body: 'There is no ostk cloud. The kernel is local-first by construction: state lives in .ostk/ on the same disk as the code, not in a vendor account. The only network calls the kernel itself initiates are to your model provider, your registrar, and the update server you point it at. Telemetry is opt-in and off by default.',
+    body: 'ostk has no required hosted control plane. It is local-first by custody: canonical project state and page content remain on local disk. Configured model providers, web and download tools, registrars, updates, outbound drivers, and provider-backed context features can use the network. Anchored Anthropic sessions can make automatic best-effort Anthropic Files copies for context efficiency or cross-host recovery; operational telemetry remains local.',
   },
   {
     label: 'NOT_A_CHAT_WRAPPER',
-    body: 'The kernel sits below the agent surface, not on top of it. ostk does not put a chat panel in front of a model and call that a product. The kernel intercepts file writes, observes audit rows, and coordinates concurrent agents — work the chat layer above could not do even if it tried. Whatever surface the operator prefers stays the surface; the kernel is invisible.',
+    body: 'The kernel sits below the agent surface, not on top of it. Kernel-mediated reads, CAS edits, shell calls, and coordination operations share one project substrate. Supported clients can keep their existing UI, but native client tools bypass those guarantees; the integration is explicit even when the workflow feels familiar.',
   },
   {
     label: 'NOT_A_BENCHMARK',
-    body: 'ostk does not score models, does not publish leaderboards, and does not include an evaluation harness. Models are commodities; the substrate is what we build. If a benchmark is the artifact you want, ostk’s audit chain is a substrate for one, but ostk itself is not it.',
+    body: 'ostk is not a universal model leaderboard. Its benchmark tooling and the separate Needle Bench project test specific model, provider, and harness combinations; those results are evidence for those combinations, not a blanket product promise. The substrate remains the product focus.',
   },
   {
     label: 'NOT_A_DEPLOYMENT_PLATFORM',
@@ -77,11 +77,11 @@ const nonGoals = [
   },
   {
     label: 'NOT_A_GIT_REPLACEMENT',
-    body: 'ostk’s journal is git’s sibling, not its successor. Git tracks the artifact — the source tree as the human chose to commit it. The kernel’s audit chain tracks the process — every agent action, every concurrent edit, every refused write. Both are content-addressed, both are append-only, both compose. ostk does not ask you to give up git; it gives you the second ledger you did not have.',
+    body: 'ostk’s journal is git’s sibling, not its successor. Git tracks committed source. The kernel journal tracks operations routed through ostk, including accepted and refused writes; native client actions remain Git and filesystem concerns. ostk does not ask you to give up Git—it adds a project-local operational ledger.',
   },
   {
     label: 'NOT_A_FRAMEWORK',
-    body: 'There is no SDK to import, no class to subclass, no decorator to apply. Agents do not learn an ostk API — they write files. The kernel observes the writes. “Invisible writes” is the foundational invariant; if a feature requires the agent to call into ostk, the design is wrong.',
+    body: 'There is no application framework or base class to adopt. External clients connect through MCP and use ostk tools; internal agents use the same kernel surface. Ordinary native writes remain possible, but they are not silently intercepted and do not receive ostk audit or OCC guarantees.',
   },
 ];
 
@@ -103,12 +103,12 @@ const heritage = [
   },
   {
     name: 'sigstore',
-    took: 'the doctrine that artifacts should be signed by default, and that verification should be cheap enough to do every time.',
-    didnt: 'adopt the certificate-issuer chain. The kernel uses Ed25519 keys directly, signs in-process at write time, and verifies inline. No subprocess fork; no out-of-band CA to trust.',
+    took: 'the doctrine that governed artifacts should be verifiable and that verification should be cheap enough to perform routinely.',
+    didnt: 'adopt the certificate-issuer chain. Where signing is configured, the kernel uses Ed25519 keys directly and verifies inline. Signing coverage is conditional and unsigned state remains explicit.',
   },
   {
     name: 'Capability-based security',
-    took: 'deny by default, and the principle that authority is a token an agent holds, not an identity it claims. Pin caps are deny tokens scoped to an agent; an action without the right cap is refused at the tool layer before it reaches disk.',
+    took: 'deny by default, and the principle that authority is a capability an agent holds, not an identity it merely claims. Pin caps constrain kernel-mediated actions at the tool boundary before they reach disk.',
     didnt: 'reach for an object-capability language. The kernel is Rust; capabilities live in policy data, not in the type system. The principle composes; the implementation is conventional.',
   },
   {
@@ -123,7 +123,7 @@ const heritage = [
   },
   {
     name: 'git',
-    took: 'content-addressed history. Hashes are identity. The chain of commits cannot be silently rewritten without breaking every downstream reference. The audit ring inherits this property: every row carries the previous row’s signature; replay reconstructs identical state byte-for-byte.',
+    took: 'content-addressed history. Audit rows carry the hash of the previous row and, when a signing key is available, an Ed25519 signature. Replay rebuilds supported registries and projections from their authoritative local sources; runtime state and some derived indexes have separate recovery paths.',
     didnt: 'replace the index. ostk’s journal records what agents did; git’s log records what humans committed. The journal is git’s sibling, not its replacement.',
   },
 ];

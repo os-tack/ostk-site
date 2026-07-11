@@ -7,11 +7,12 @@ import { LATEST_TAG } from '../../site-version';
 
 <DocsLayout
   title="Start // Local Model TUI"
-  description="Run an AI coding agent on your machine using ollama or Apple's mlx, with ostk's terminal UI as the chat surface. No API bill, no telemetry, full audit."
+  seoTitle="Run a Local AI Coding Agent with Ollama or MLX"
+  description="Run an AI coding agent locally with Ollama or MLX while ostk keeps canonical project state on disk and applies configured audit and capability boundaries."
   sectionLabel="START_PATH // LOCAL_TUI"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Point ostk at a model running on your machine. ostk's TUI becomes the chat surface; everything else — audit, capability bounds, secret handling — works the same as the hosted path.
+    Point ostk at a model running on your machine. ostk's TUI becomes the chat surface, while kernel-mediated audit, capability bounds, and local project state remain available. Tool support and context behavior still depend on the selected model and integration.
   </p>
 
   <!-- What this path is -->
@@ -22,7 +23,7 @@ import { LATEST_TAG } from '../../site-version';
         { num: '01', step: 'Verify install and run ostk init in your project (universal steps from /start).' },
         { num: '02', step: 'Pick a backend. ollama is the cross-platform default; mlx is an option on Apple Silicon only (faster on M-series, kernel-managed mlx_lm.server lifecycle).' },
         { num: '03', step: 'Pull or load a model. Tool-capable models recommended — not every local model supports function calling.' },
-        { num: '04', step: 'Spawn an agent with the model alias. ostk routes to the local server; audit + pin caps still apply.' },
+        { num: '04', step: 'Spawn an agent with the model alias. ostk routes inference to the local server; ostk-mediated tools retain audit and pin-cap enforcement.' },
         { num: '05', step: 'Open ostk tui to chat. First response is slower (model warm-up); subsequent calls are fast.' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
@@ -44,7 +45,7 @@ import { LATEST_TAG } from '../../site-version';
   <section class="mb-16">
     <h2 class="section-label mb-4">WHAT_STEP_05_LOOKS_LIKE</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-4">
-      The TUI takes your prompt and routes it to the kernel daemon. The daemon's native MLX driver hands it to a kernel-managed <code class="text-primary">mlx_lm.server</code>, and the response streams back into the chat surface. No API key. No cloud.
+      The TUI takes your prompt and routes it to the kernel daemon. The MLX route hands inference to a kernel-managed <code class="text-primary">mlx_lm.server</code>, and the response streams back into the chat surface. The inference path requires no model API key, and canonical project state remains local. Other configured tools can still use the network; if Anthropic credentials are available, an anchored ostk-managed session can also make best-effort Anthropic Files copies of drains or context pages. Those copies are optional for correctness.
     </p>
     <div class="bg-surface-container-lowest border border-surface-variant max-w-full overflow-hidden">
       <div class="flex items-center gap-2 px-3 py-1 border-b border-surface-variant">
@@ -260,7 +261,7 @@ mlx-community/Qwen2.5-Coder-32B-Instruct-4bit</pre>
         { issue: 'Tool support is per-model', body: 'Some local models (notably reasoning-only models like deepseek-r1) cannot emit tool calls. ostk will report "API error 400: model does not support tools." Switch to a tool-capable model.' },
         { issue: 'Latency is higher', body: 'A 32B-parameter model on a laptop is slower than Sonnet over the wire. First response includes model warm-up. Subsequent calls are fast — mlx tracks a LocalKV prompt cache; ollama relies on its own server-side warmth.' },
         { issue: 'Context window is smaller', body: 'Hosted Sonnet has 200k tokens; ollama models default to 128k (ostk\'s per-driver declared window — effective context depends on model + quantization); mlx Bonsai is 65k declared but lower in practice (see /docs/models). Long sessions hit context limits sooner — type :clear in the TUI to cycle context (tack verbs are TUI commands prefixed with a colon; see /docs/tack-grammar).' },
-        { issue: 'Cache reuse is local-only', body: 'The fleet-shared prompt cache benefit only applies to hosted providers (Anthropic). Local models don\'t share cache across machines. The trade-off is privacy + zero-cost-per-token.' },
+        { issue: 'Local inference is not a global egress switch', body: 'Ollama and MLX keep model inference on this machine, and canonical project state remains local. Web tools, downloads, outbound drivers, or configured provider-backed context features can still use the network. Anthropic-style fleet prompt-cache reuse does not apply to the local model route.' },
         { issue: 'Quantization affects quality', body: 'Generic mlx-2bit quants of full-precision models lose accuracy on coding tasks; prefer mlx-4bit or mlx-fp16 for those. Ternary-Bonsai is different — it is quantization-aware ternary, designed to run at low precision; the 2-bit variant is the intended deployment. ollama defaults to Q4_K_M which is a good general balance.' },
       ].map(c => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">

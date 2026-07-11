@@ -2,55 +2,56 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="Privacy Policy" description="ostk privacy policy. The software collects nothing. The website uses Plausible for aggregate page views only. No cookies, no tracking.">
+<Base title="Privacy Policy" description="How ostk stores canonical project state locally, when configured features make network requests, and what the ostk.ai website measures.">
   <main id="main-content" class="pt-16 pb-12 px-4 md:px-10 max-w-3xl mx-auto">
     <div class="py-12">
       <div class="section-label mb-4">LEGAL // PRIVACY</div>
       <h1 class="serif-text text-5xl font-bold tracking-tighter text-on-surface mb-6">Privacy Policy</h1>
       <p class="font-body text-xs text-outline mb-12">
-        Effective: 2026-03-11 · <a href="mailto:contact@ostk.ai" class="text-primary hover:underline">contact@ostk.ai</a>
+        Effective: 2026-07-11 · <a href="mailto:contact@ostk.ai" class="text-primary hover:underline">contact@ostk.ai</a>
       </p>
 
       <section class="mb-12">
         <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Summary</h2>
         <p class="font-body text-sm text-secondary leading-relaxed">
-          The software collects nothing. It runs locally on your machine — no telemetry, no phone-home. The website uses Plausible Analytics for aggregate page view counts only: no cookies, no personal data.
+          ostk is local-first by custody: canonical project state remains on your filesystem, without requiring an ostk account or hosted control plane. Network activity depends on the providers and tools you configure. The website uses Plausible Analytics for aggregate page-view, tagged-event, outbound-link, and file-download counts without site cookies or cross-site profiles.
         </p>
       </section>
 
       <section class="mb-12">
         <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">The Software</h2>
-        <p class="font-body text-xs text-secondary mb-4">ostk runs entirely on your local machine. It does not:</p>
+        <p class="font-body text-xs text-secondary mb-4">
+          Canonical project state and context-page content are stored locally, normally under <code class="text-primary">.ostk/</code>. Provider credentials, signing keys, and external harness transcripts can live in platform-specific locations outside the project.
+        </p>
         <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-6">
-          <li>Send data to any server</li>
-          <li>Collect usage statistics</li>
-          <li>Phone home for license checks</li>
-          <li>Upload files, logs, or audit trails</li>
-          <li>Require network access for any core functionality</li>
+          <li>Cloud-model requests send prompts and the context required for that request to the provider you configure.</li>
+          <li>Web tools, downloads, updates, registrars, and outbound drivers contact the endpoints you invoke or configure.</li>
+          <li>When Anthropic credentials are configured, anchored ostk-managed sessions can automatically attempt best-effort Anthropic Files uploads of drain snapshots and context pages for context efficiency and cross-host recovery. These copies are optional for correctness; the canonical local content remains on disk, and generic MCP context loads default to inline delivery.</li>
+          <li>Audit, performance, and operational telemetry are written locally. The binary does not require a separate ostk analytics or crash-reporting service.</li>
         </ul>
         <p class="font-body text-xs text-secondary mt-4">
-          All state lives in your filesystem under <code class="text-primary">.ostk/</code> in your repository. You own it. You can read it. You can delete it.
+          You can inspect and back up the local substrate directly. Removing it removes that local history; data already sent to a configured provider is governed by that provider's retention controls.
         </p>
       </section>
 
       <section class="mb-12">
         <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">The Website (ostk.ai)</h2>
         <p class="font-body text-xs text-secondary mb-4">
-          ostk uses Plausible Analytics — a privacy-first analytics tool with no cookies, no cross-site tracking, and full GDPR/CCPA compliance.
+          ostk.ai loads Plausible's tagged-events, outbound-links, and file-downloads analytics script. It is configured without site cookies or cross-site visitor profiles.
         </p>
         <ul class="font-body text-xs text-secondary space-y-2 list-disc pl-6">
-          <li>Does not use cookies</li>
-          <li>Does not track individual visitors</li>
-          <li>Does not collect personal information</li>
-          <li>Records aggregate page view counts and outbound link clicks only</li>
-          <li>Serves static content only</li>
+          <li>Records aggregate page-view counts</li>
+          <li>Records explicitly tagged interface events, such as selected call-to-action clicks</li>
+          <li>Records outbound-link clicks and file-download events</li>
+          <li>Does not use site cookies for analytics</li>
+          <li>The site content itself is statically generated; the analytics script sends these measurements to Plausible</li>
         </ul>
       </section>
 
       <section class="mb-12">
         <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">Third Parties</h2>
         <p class="font-body text-xs text-secondary">
-          The website uses <a href="https://plausible.io" class="text-primary hover:underline">Plausible Analytics</a>, which processes only aggregate, anonymous page view data. No personal data is shared. The software shares no data with any third party.
+          The website uses <a href="https://plausible.io" class="text-primary hover:underline">Plausible Analytics</a> for aggregate page-view, tagged-event, outbound-link, and file-download measurement. The software sends data to third-party services only when a configured provider, tool, download, update, registrar, driver, or provider-backed context feature uses that service; the third party's own terms and privacy policy then apply.
         </p>
       </section>
 

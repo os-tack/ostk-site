@@ -5,7 +5,8 @@ import Icon from '../../components/Icon.astro';
 
 <DocsLayout
   title="Agent Lifecycle & Topology"
-  description="How transient clients, sub-stacks, five-state lifecycles, and turn-boundary drain snapshots compose to enable fault-tolerant agent execution."
+  seoTitle="AI Coding Agent Lifecycle and Recovery in ostk"
+  description="How ostk-managed coding agents spawn, connect, drain, exit, and recover across explicit lifecycle, session, process, and durable-state boundaries."
   sectionLabel="REFERENCE // AGENT_LIFECYCLE"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
@@ -48,7 +49,7 @@ import Icon from '../../components/Icon.astro';
       Once an agent advances state, it cannot regress. State transitions are monitored by the kernel loop on every turn.
     </p>
 
-    <img src="/diagrams/agent-lifecycle.svg" alt="Agent Lifecycle Flow" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <img src="/diagrams/agent-lifecycle.svg" alt="Lifecycle of an ostk-managed AI coding agent from spawn through drain, exit, and recovery" width="600" height="280" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
     <div class="space-y-px max-w-3xl">
       {[
         {

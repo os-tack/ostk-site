@@ -7,11 +7,18 @@ interface Props {
   title: string;
   description?: string;
   activeTab?: 'why' | 'stack' | 'start' | 'docs';
+  marketing?: boolean;
+  noindex?: boolean;
 }
 
-const { title, description, activeTab } = Astro.props;
-const pageTitle = title.includes('ostk') ? title : `${title} — ostk`;
-const metaDescription = description || 'ostk — the open-source sandboxing, caching, and memory stack for AI coding agents (AGPL-3.0 / MIT). Local-first coordination through the filesystem.';
+const { title, description, activeTab, marketing = false, noindex = false } = Astro.props;
+const pageTitle = title.toLowerCase().includes('ostk') ? title : `${title} — ostk`;
+const metaDescription = description || 'Open-source project infrastructure for supported AI coding agents: canonical project state, coordination, and audit that outlive a session.';
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const socialImageUrl = new URL('/og-image.png', Astro.site).href;
+const robotsContent = noindex
+  ? 'noindex,follow'
+  : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 ---
 
 <!DOCTYPE html>
@@ -21,26 +28,30 @@ const metaDescription = description || 'ostk — the open-source sandboxing, cac
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{pageTitle}</title>
   <meta name="description" content={metaDescription} />
-  <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).href} />
+  <meta name="robots" content={robotsContent} />
+  <link rel="canonical" href={canonicalUrl} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="sitemap" href="/sitemap-index.xml" />
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM-readable site index" />
   <!-- Open Graph -->
   <meta property="og:site_name" content="ostk" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:title" content={pageTitle} />
   <meta property="og:description" content={metaDescription} />
-  <meta property="og:image" content="https://ostk.ai/og-image.png" />
-  <meta property="og:image:alt" content="ostk — like containers, for AI agents" />
+  <meta property="og:image" content={socialImageUrl} />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:alt" content="ostk — project state that outlives the agent" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
+  <meta property="og:url" content={canonicalUrl} />
   <meta property="og:type" content="website" />
   <!-- Twitter/X -->
   <meta name="twitter:card" content="summary_large_image" />
   {/* TODO: confirm @ostkai twitter/X handle exists; add `<meta name="twitter:site" content="@ostkai" />` when confirmed. */}
   <meta name="twitter:title" content={pageTitle} />
   <meta name="twitter:description" content={metaDescription} />
-  <meta name="twitter:image" content="https://ostk.ai/og-image.png" />
-  <meta name="twitter:image:alt" content="ostk — like containers, for AI agents" />
+  <meta name="twitter:image" content={socialImageUrl} />
+  <meta name="twitter:image:alt" content="ostk — project state that outlives the agent" />
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,9 +63,9 @@ const metaDescription = description || 'ostk — the open-source sandboxing, cac
 
 </head>
 <body class="flex flex-col min-h-screen">
-  <Header activeTab={activeTab} />
+  <Header activeTab={activeTab} marketing={marketing} />
   <slot />
-  <Footer />
+  <Footer compact={marketing} />
   <slot name="schema" />
   <script is:inline>
     document.addEventListener('click', (e) => {

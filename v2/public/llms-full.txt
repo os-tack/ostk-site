@@ -9,232 +9,241 @@
 
 URL: https://ostk.ai/
 
-SYSTEM_MANIFEST // OSTK
+PROJECT STATE YOU OWN
 
-# ostk
+# Your agents change. Your work stays.
 
-Run AI agents like production infrastructure.
+A new agent can enter work it did not start.
 
-Local-first, audited, and filesystem-coordinated. Adopt the open-source sandboxing library, the drop-in prompt cache, the context-drift memory engine, or the full integrated CLI suite.
+Keep canonical tasks, decisions, and working state with the project—not dependent on one chat or provider. Continue in another supported coding agent without re-briefing it.
 
-install → curl -fsSL https://ostk.ai/install.sh | sh quick start → (/start/)
+The model can change. Canonical project state remains yours.
 
-MODULAR_STACK_ARCHITECTURE
+See the 60-second handoff Try the first win (/start/)
 
-ostk (kernel) AGPL-3.0
+v7.7.7 Open source Integration-specific support
 
-### Integrated CLI Suite
+CODING AGENT 01
 
-Complete CLI and supervisor daemon. Orchestrates multi-agent concurrency, manages state WAL logging, enforces Landlock/Seatbelt isolation, and maintains the GPG audit trail.
+Session complete configured client
 
-Read kernel docs → (/docs/ostk/)
+CODING AGENT 02
 
-ostk-recall AGPL-3.0
+Entering project configured client
 
-### Memory Engine
+CODING AGENT 03
 
-Hybrid vector + BM25 search server using LanceDB and SQLite. Tracks codebase context changes via filesystem watcher socket (`recall.sock`) with debouncing.
+Available configured client
 
-Read recall docs → (/docs/ostk-recall/)
+INFERENCE ROUTE
 
-ostk-cache AGPL-3.0
+Available configured route
 
-### Transparent Proxy
+PERSISTENT PROJECT PLANE
 
-Port 8080 L1.5 cache proxy for Anthropic & OpenAI wire formats. Implements synthetic projection mutations, kernel-ipc cache rebuild signals, and a 4-tier soft-cap reduction pipeline.
+## .ostk / project
 
-Read cache docs → (/docs/ostk-cache/)
+state available
 
-libostk MIT
+TASK Refine retry boundary
 
-### Userspace Client
+DECISION Backoff stays at adapter
 
-Lightweight library for secure JSON-RPC communication over UNIX socket (`.ostk/ostk.sock`). Handles cryptographic envelope signature verification, GPG key checking, and background audit-tailing.
+CHANGED src/retry.rs
 
-Read libostk docs → (/docs/libostk/)
+NEXT Run focused tests
 
-macOS (universal arm64+x86_64), Linux musl arm64/x86_64, Windows x86_64 zip. All on GitHub releases (https://github.com/os-tack/ostk.ai/releases/latest), GPG-signed. ~30 seconds.
+NEW AGENT
 
-BINARY: ONE_RUST_EXECUTABLE
+“What am I walking into?”
 
-DEPS: NONE_AT_RUNTIME
+Context restored from project state
 
-RUNTIME: LOCAL_ONLY
+THE INTERFACE CHANGES. THE PROJECT PLANE PERSISTS.
 
-TRUST: GPG_SIGNED_AUDIT
+THE BREAK IN TODAY'S WORKFLOW
 
-WHERE_OSTK_FITS
+## The expensive part is not starting.It is starting over.
 
-ostk is one layer down from the AI coding tools you already use.
-
-AGENT_SURFACES
-
-Cursor · Claude Code · Continue · Aider · your CLI · local models (Ollama, MLX)
-
-↓
-
-KERNEL
-
-ostk: state envelope · CAS writes · audit chain · capability pins · identity · fleet coordination
-
-↓
-
-SUBSTRATE
-
-your codebase · your filesystem · your machine
-
-The agent surface is what you type into. The kernel is what keeps multiple of them from stepping on each other, what signs every action, and what ensures your agents stay oriented across thousands of turns. ostk doesn't replace your editor or your model. It sits underneath them.
-
-compose with Claude Code, Cursor, or MCP → (/docs/mcp/) read the architecture → (/docs/architecture/)
-
-WHAT_THE_KERNEL_LOOKS_LIKE
-
-## Real ostk sessions, live-typed and on-device. Not screenshots. Not reenactments.
-
-Day one: `ostk init`
-then
-`ostk boot`.
-Fresh repo to validated kernel in seven seconds.
-
-FIRST_RUN
-
-Real session. No edits. Bottom-text annotation by the kernel itself.
-
-$ ostk tack --llm "..."
-
-OSTK_MODEL
-
-Local model on Apple silicon. Ternary-Bonsai-8B-mlx-2bit lazy-spawns mlx_lm.server, returns a real response. Zero API keys.
-
-$ ostk os clock
-
-OSTK_CLOCK
-
-Kernel has a clock. Session, swap, audit events, focus.
-
-$ ostk tack ':needle 1' --json
-
-OSTK_TACK
-
-Kernel as language. Every tack expression resolves to a typed verb.
-
-$ ostk os journal verify
-
-OSTK_JOURNAL
-
-Audit chain integrity. Hash-chained rows, signed seals, Merkle continuity.
-
-HOW_THE_KERNEL_KEEPS_THE_FRAME
-
-Three failure modes show up the moment LLM agents touch real codebases. ostk addresses each one structurally — at the kernel layer, in the envelope you saw above — not as application-layer hacks bolted onto a chat loop.
+Coding agents can move quickly inside one session. The fracture appears between sessions, tools, people, and providers—exactly where project work needs to remain coherent.
 
 01
 
-### They collide.
+### Every fresh session starts too cold.
 
-Two agents edit the same file. Last write wins. Silently. Kernel-mediated CAS writes catch every conflict before it lands. Nothing disappears; the second writer sees a clean error.
-
-→ Read why (/why/#collision)
+The task is still real, but its rationale, open questions, and next move are scattered across a chat the new agent cannot see.
 
 02
 
-### They drift.
+### Tool choice becomes a trap.
 
-Each agent has its own context. They re-discover the same things. They forget what was decided. Every syscall returns the working state envelope, so the agent re-grounds each turn — the project develops a memory the fleet shares.
-
-→ Read why (/why/#drift)
+A better model or a different coding agent is available, but switching means briefing it from scratch and hoping nothing important gets lost.
 
 03
 
-### They leave no trace.
+### Fast agents create invisible work.
 
-You can't replay, audit, or prove what shipped. The kernel records every action in an append-only, hash-chained, Ed25519-signed audit trail. Replay any session, byte for byte.
+More changes arrive faster, while decisions, handoffs, and conflicting edits become harder for a person or team to reconstruct.
 
-→ Read why (/why/#trace)
+THE 60-SECOND DEMO
 
-Want the substrate spec underneath all of this? Read the canonical specifications → (/docs/spec/)
+## A new agent can enter work it did not start.
 
-CONTAINERS_VS_OSTK
+This is the cold-orientation test: end one connected agent session, open a fresh session—optionally in another harness—and ask one question.
 
-Containers gave processes isolation. They didn't ship coordination. ostk does.
+COLD SESSION HANDOFF PROJECT STATE READY
 
-PROBLEM
+00:00 AGENT A
 
-CONTAINERS
+Connected agent A
 
-OSTK
+Session exits with work in flight
 
-Isolation
+- Task opened
+- Decision recorded
+- Partial edit present
 
-cgroups + namespaces
+→
 
-Capability pins + scoped agent stacks
+00:24 PROJECT
 
-Packaging
+Working state persists
 
-OCI image
+Task, rationale, file generation, and next move remain available outside the first conversation.
 
-Agentfile + signed release package
+taskdecisionfiletrace
 
-Coordination across instances
+→
 
-Bolt-on (Kubernetes, etc.)
+00:60 AGENT B
 
-Built into the kernel
+Fresh agent session
 
-Audit of actions
+Fresh session enters
 
-Out of band
+YOU What am I walking into?
 
-Hash-chained event log per project
+ORIENTATION RESULT
 
-Identity & trust
+01 / TASK Refine the retry boundary.
 
-Image signing (sigstore, etc.)
+02 / WHY Backoff belongs at the adapter.
 
-GPG web of trust, four signing tiers
+03 / NEXT Review src/retry.rs, then run the focused tests.
 
-Reproducibility
+No pasted transcript—a run condition. Second harness optional. One project-owned canonical state.
 
-Image digest
+WHAT MAKES THE HANDOFF POSSIBLE
 
-journal.jsonl replay + signed claims
+## Own your substrate.
 
-Resource bounds
+The substrate is the durable project layer beneath the agent: working state, decisions, coordination, and trace. Agents can come and go; this layer remains under your control.
 
-CPU/memory limits
+Why ownership matters (/why/)
 
-Token/turn budgets per agent
+IS PROJECT INFRASTRUCTURE
 
-Not a wrapper around containers. Containers contain processes; ostk contains agents.
+### The part of agent work that should outlive a session.
 
-WHAT_YOU_GET
+- Durable tasks and decisions
+- Shared orientation for supported agents
+- Inspectable coordination and trace
 
-NO_LOST_WRITES
+IS NOT ANOTHER PLACE TO WORK
 
-Compare-and-swap file edits. Conflicts surface; silent overwrites don't happen.
+### Not a model, router, chat interface, or cloud workspace.
 
-EVERY_ACTION_AUDITED
+ostk does not ask you to replace the coding surface you prefer. It sits below supported tools and keeps the project frame available between them.
 
-Append-only events, hash-chained, Ed25519-signed. Replay any session.
+MODEL PROVIDER ROUTER HARNESS
 
-CAPABILITY_BOUNDS
+01
 
-Capability pins deny by default. Agents that try to escape get a hard no, logged.
+### Custody
 
-NO_KEYS_IN_CONTEXT
+Canonical working state is kept with the project instead of belonging to one chat account.
 
-API keys resolved from keychain at call time. Never in the agent's prompt.
+02
 
-SHARED_CACHE
+### Legibility
 
-Prompt cache shared across the fleet. One fetch, many agents.
+Tasks, decisions, and traces remain inspectable by people and supported agents.
 
-LOCAL_FIRST
+03
 
-No cloud sync, no telemetry. Works offline. Your code stays on your machine.
+### Exit
 
-START_HERE (/start/) VIEW_SOURCE (https://github.com/os-tack/ostk.ai)
+Change the model, provider, router, or coding surface without abandoning the work already captured.
+
+START FROM YOUR ACTUAL GOAL
+
+## One product.Three useful entrances.
+
+You should not need to understand the internal modules before getting value. Choose the failure you want to remove first.
+
+01 I already use a coding agent ### Carry the work into the next session. Start with the tool you use today. Give a fresh supported agent the task, decisions, and next step without pasting the old chat. Start the handoff path (/start/)02 I want local or private inference ### Change where the model runs, not how the project remembers. Connect a configured local-model route while the durable working state remains with the same project. Start the local path (/start/local/)03 I am coordinating a team or CI ### Give parallel agents a shared frame. Surface in-flight work and conflicting writes so agents and people can coordinate without relying on one private conversation. Start the team path (/start/server/)
+
+EVIDENCE BEFORE CLAIMS
+
+## Proof you can inspect, repeat, and compare.
+
+Portability is a behavior, not a slogan. Each claim should resolve to a configured client, a repeatable handoff, or a published measurement.
+
+01
+
+Continuity
+
+### Repeat the handoff.
+
+The first-win path has a visible pass condition: a new supported agent names the task, rationale, changed file, and next action.
+
+See the first win (/start/)
+
+02
+
+Performance
+
+### Compare combinations, not slogans.
+
+Needle Bench publishes model-and-harness outcomes separately. Results are provider-specific; there is no universal savings claim.
+
+Open Needle Bench (https://needle-bench.cc/)
+
+03
+
+Compatibility
+
+### Know what is supported.
+
+Support is integration-specific. Check the model and endpoint matrix before treating portability as a product promise.
+
+View supported models (/docs/models/)
+
+BEFORE YOU INSTALL
+
+### The boundaries should be legible.
+
+What works? Support is integration-specific. The compatibility matrix names supported models and endpoints.
+
+Where is state? Canonical project state is kept with the project. Some continuity modes send conversation history or context to the configured provider; anchored Anthropic sessions can use Anthropic Files.
+
+What does it cost? Token, latency, and solve-rate effects vary by combination and are reported separately.
+
+Can I inspect it? The implementation, project artifacts, and operational trace remain available for review.
+
+FIRST WIN
+
+## Keep the work.Change the agent when you need to.
+
+Start in an isolated project, complete the cold-orientation handoff, then bring the same durable frame to your own repository.
+
+Try the first-win path (/start/) Read the field guide (/docs/)
+
+INSTALL OSTK v7.7.7
+
+$ `curl -fsSL https://ostk.ai/install.sh | sh` COPY
+
+Review compatibility and the per-integration data path above before installing on macOS or Linux.
 
 ---
 
@@ -246,9 +255,9 @@ DIAGNOSIS // 01
 
 # Why ostk
 
-ostk is a modular local-first runtime that sits underneath whatever drives your agents. Three things break without it.
+ostk is a modular, local-first-by-custody runtime that connects supported agent surfaces to project state you control. Three common failure modes appear as agent work scales.
 
-You're using AI agents to code. ostk resolves the three core failure modes of autonomous coding using a decoupled, open-source stack.
+You're using AI agents to code. ostk addresses collision, context drift, and missing trace through a decoupled stack whose guarantees apply at explicit integration boundaries.
 
 PROBLEM_01 // COLLISION
 
@@ -256,7 +265,7 @@ PROBLEM_01 // COLLISION
 
 Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently overwriting files. The first agent's work is lost, and the system fails silently.
 
-Modular Solution: The `ostk` daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
+Modular Solution: `fs_ops` CAS edits declare the text an agent expects. If current content differs, ostk can auto-merge a safe non-overlapping change, return a suggested merge, or fail visibly for review. Native client and raw-shell writes remain outside that CAS contract.
 
 Handled by: ostk daemon (/docs/ostk/) & libostk IPC client (/docs/libostk/).
 
@@ -266,7 +275,7 @@ PROBLEM_02 // DRIFT
 
 Each agent session runs in its own context window. They re-discover codebase details. They forget previous decisions. They don't see concurrent actions, forcing you to manually copy and paste context across chats.
 
-Modular Solution: The `ostk-recall` memory MCP server watches the workspace via socket notifications, indexing changes incrementally to a local LanceDB vector store. Built-in tools let the agent retrieve real-time context without wasting context window or suffering drift.
+Modular Solution: `ostk-recall` can incrementally index configured workspace and transcript formats into a local hybrid search corpus. A supported client can retrieve that evidence through MCP; indexing and retrieval improve orientation but do not make every harness transcript or decision automatically visible.
 
 Handled by: ostk-recall MCP server (/docs/ostk-recall/) with local embeddings.
 
@@ -276,9 +285,9 @@ PROBLEM_03 // NO_TRACE
 
 Something went wrong. There's no auditable record of what prompt generated a command, what files were read, or who authorized the action. Security reviews stall because proprietary binary wrappers hide agent execution.
 
-Modular Solution: Every action is logged to a structured, append-only Write-Ahead Log (WAL) that is cryptographically signed. Because our client integration layer — `libostk` — is **MIT licensed and fully open-source**, operators can audit the socket communication directly. There are no opaque binary wrappers: you get absolute visibility and total control.
+Modular Solution: Kernel-mediated dispatches append structured rows to a local, hash-chained journal. Rows are Ed25519-signed when a signing key is available, and the open client/kernel code lets operators inspect that path. Native client actions and external-service behavior require their own audit evidence.
 
-Handled by: libostk client library (/docs/libostk/) & GPG signature chains.
+Handled by: the kernel journal and libostk client path (/docs/libostk/); GPG release/governance signatures are a separate trust layer.
 
 ## THE_SHAPE
 
@@ -316,102 +325,208 @@ For the philosophy underneath these failures and the trajectory ahead, see /doct
 
 URL: https://ostk.ai/start/
 
-INITIALIZATION // MODULAR_PATHWAYS
+FIRST-WIN DEMO / FIVE MINUTES
 
-# Start here.
+# Can a fresh agent pick up work it did not start?
 
-ostk is modular. Adopt only the components that match your architecture. The first ten minutes differ by path.
+Run one tiny, deliberately broken project through two fresh conversations. The second agent gets no transcript or prose handoff. It must recover the task, rationale, changed file, and next action from project state before it edits source.
 
-## SELECT_YOUR_PATHWAY
+Start the demo Future canonical tree (https://github.com/os-tack/ostk.ai/tree/main/demo/first-win)
 
-### 1. Full Runtime / CLI Kernel (`ostk`)
+The `demo/first-win` path is the canonical destination, but it may not be published on the `main` branch yet. If you have the current source checkout, use the local demo there.
 
-For developers needing full platform supervision, process sandboxing (Landlock/Seatbelt), OCC validation, and GPG-signed audit logging.
+THE PASS CONDITION
 
-License: AGPL-3.0 | Interface: CLI / Socket Daemon
+## Four facts, recovered before the fix.
 
-FULL RUNTIME
+Agent B writes its orientation evidence before changing source or task state. The checker compares each answer with the live task, decision log, source diff, and recorded next action.
 
-Install runtime binary & boot supervisor:
-```
-curl -fsSL https://ostk.ai/install.sh | sh
-cd ~/projects/your-repo && ostk init
-ostk boot
-```
+01
 
-Read kernel supervisor docs → (/docs/ostk/)
+### Active task
 
-### 2. Memory-Only Retrieval (`ostk-recall`)
+The single open task and its acceptance condition.
 
-For developers integrating memory indices directly into Cursor or Claude Code. Runs LanceDB + Tantivy BM25 locally.
+02
 
-License: AGPL-3.0 | Interface: stdio MCP / UNIX Socket
+### Decision + rationale
 
-MCP MEMORY SERVER
+The recorded rounding policy and why it was chosen.
 
-Initialize codebase search index:
-```
-ostk-recall init
-ostk-recall scan
-```
+03
 
-Spawn debounce watcher & register stdio MCP:
-```
-ostk-recall watch &
-# add "ostk-recall" command: "ostk-recall serve --stdio" to your MCP config
-```
+### Changed file state
 
-Read ostk-recall docs → (/docs/ostk-recall/)
+The partial edit and handoff marker in src/pricing.py.
 
-### 3. Cache-Only Proxy (`ostk-cache`)
+04
 
-For operators wanting immediate token savings on OpenAI or Anthropic API transactions. Acts as a transparent proxy on port 8080.
+### Exact next action
 
-License: AGPL-3.0 | Upstream: Anthropic, OpenAI
+The remaining implementation, test, and close sequence.
 
-API WIRE PROXY
+RUN THE DEMO
 
-Start proxy daemon:
-```
-ostk-cache --port 8080 --mode mutate
-```
+## One controlled handoff, step by step.
 
-Redirect agent base URL:
-```
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8080
-```
+The preparation script keeps the exercise away from the `ostk.ai` trust-root repository. Every agent action happens inside a new temporary Git repository.
 
-All requests now pass through the local cache pipeline, automatically ejecting large results (Tier A) and pruning oldest messages (Tier B) to respect budget parameters.
+REQUIRES ostk 7.7.3 · Git · Python 3 · mktemp
 
-Read ostk-cache docs → (/docs/ostk-cache/)
+AGENT CONNECTION A harness with the ostk MCP tools exposed
 
-### 4. Programmatic Client Library (`libostk`)
+01
 
-For developers building custom kernel clients directly inside IDE overlays, bots, or CI runners. Integrates via pure userspace socket calls.
+PREPARE AN ISOLATED REPOSITORY
 
-License: MIT (Permissive) | Target: Rust, Node, Python
+### Let the script create a clean place to work.
 
-DEVELOPER SDK
+From the `demo/first-win` directory in your source checkout, run the preparation script:
 
-Add client library to Cargo.toml:
-```
-libostk = { version = "6.0" }
-```
+$ `./scripts/prepare.sh` COPY
 
-Connect to local socket & negotiate permissions:
-```
-use libostk::KernelConnection;
-let client = KernelConnection::connect(".ostk/ostk.sock").await?;
-let session = client.negotiate_pins(&["read_file"]).await?;
-```
+The script creates a fresh repository under `${TMPDIR:-/tmp}`, commits the clean demo baseline, then runs the verified initialization and boot commands inside that temporary repository. It does not initialize `ostk.ai`.
 
-Read libostk integration docs → (/docs/libostk/)
+Keep the printed temporary path. Both sessions must open that exact repository.
 
-Picked one and changed your mind? All stack modules coordinate seamlessly. You can start with `ostk-cache` and add the full `ostk` kernel daemon later without rewriting your workflows.
+02
 
-## AFTER_YOU'RE_RUNNING
+CONNECT YOUR CODING AGENT
 
-SECURITY_AND_TRUST Tiers, GPG signing, pins, sandboxing. (/docs/security/) NEEDLES Open questions and decisions across sessions. (/docs/needles/) COMMANDS Full CLI reference. (/docs/commands/)
+### Expose the project tools through the supported MCP surface.
+
+In your harness's MCP configuration, set the server command to:
+
+$ `ostk connect` COPY
+
+Confirm the harness exposes ostk `read`, `fs_ops`, `search`, and `bash`. If those tools are missing, stop rather than substituting native file-edit tools.
+
+03
+
+SESSION A / LEAVE REAL WORK IN FLIGHT
+
+### Give the first fresh session its bounded instructions.
+
+Open your connected coding agent in the printed temporary repository and give it:
+
+`.first-win/prompts/agent-a.md`
+
+Agent A verifies the failing tests, opens one task, records one decision, makes a deliberate partial edit, records the exact next action, and checks the handoff stage. It must leave the actual fix unfinished.
+
+04
+
+END THE CONVERSATION
+
+### Choose how strong you want the handoff test to be.
+
+End Session A completely. Do not pass its transcript, generated summary, or a prose handoff into the next conversation.
+
+DEFAULT / ONE PROVIDER
+
+#### Same coding agent, fresh conversation
+
+Start a genuinely new conversation in the same connected harness. This is the lowest-friction recovery test and requires only one provider account.
+
+Proves bounded cross-session recovery
+
+STRONGER / OPTIONAL
+
+#### Different connected harness
+
+Open a fresh session in another supported harness against the same temporary repository. Do not give it anything from Session A.
+
+Adds cross-harness continuity evidence
+
+If your harness injects its own persistent project memory into new conversations, the same-agent path is less isolated. The checker cannot distinguish that context from ostk-provided orientation.
+
+05
+
+SESSION B / COLD ORIENTATION
+
+### Ask the question, then let the new agent inspect live state.
+
+YOU What am I walking into?
+
+Give the fresh session the bounded Agent B instructions:
+
+`.first-win/prompts/agent-b.md`
+
+Before it edits source, Agent B must write the four facts to `evidence/agent-b-orientation.json`. Its prompt runs the orientation checker and proceeds only when the result reports `"ok": true`.
+
+01 Active task
+
+02 Decision + rationale
+
+03 Changed file state
+
+04 Exact next action
+
+06
+
+COMPLETE AND CAPTURE THE RESULT
+
+### Let Agent B finish, then save the machine-readable evidence.
+
+Agent B completes the recorded next action, runs the task's acceptance command, and closes the task only after it passes. To capture the final checker result:
+
+evidence/acceptance.json" aria-label="Copy final checker command" data-astro-cid-6vq2egjc> $ `python3 .first-win/check.py --stage complete --json > evidence/acceptance.json` COPY
+
+ACCEPTANCE EVIDENCE `evidence/acceptance.json`
+
+- The code tests pass.
+- The task closes only after its recorded acceptance condition passes.
+- Agent B's four-fact orientation was recorded before its source edit.
+- Required journal rows contain signature and previous-hash fields.
+
+READ THE RESULT HONESTLY
+
+## What this demo does—and does not—establish.
+
+The output is useful evidence because the scenario is deterministic and the checks are machine-readable. Its scope is intentionally narrow.
+
+ESTABLISHES
+
+### Project-state continuity across a cold conversation boundary.
+
+- Task, decision, and journal exist as ordinary files under `.ostk/`.
+- Agent A leaves a specific failing source state and exact next action.
+- Agent B records all four orientation facts before completing the task.
+- The final acceptance condition gates task closure.
+
+DOES NOT ESTABLISH
+
+### Universal provider, router, identity, or privacy claims.
+
+- —The checker validates a bounded continuity run. It is not an adversarial identity proof.
+- —Journal fields do not independently attest that an external process was a particular named coding agent.
+- —The no-transcript condition is enforced by the person running the demo; the checker cannot prove that nothing was pasted.
+- —A pass does not establish provider or router failover, fresh-machine restore, projection rebuilds, data-egress policy, or concurrent-edit behavior.
+
+Provider data path
+
+Canonical task, decision, and journal state is stored in the temporary project. That does not make every integration offline: configured providers may receive prompts or context, and anchored Anthropic sessions can use Anthropic Files. Review the integration's data path before using private code.
+
+CLEAN UP
+
+## Close the kernel, keep or discard the evidence.
+
+From the temporary demo repository, terminate the running kernel cleanly:
+
+$ `ostk shutdown` COPY
+
+Then delete the printed temporary directory when you no longer need its evidence. Cleanup is intentionally manual; the demo does not remove the repository for you.
+
+AFTER THE FIRST WIN
+
+## Choose the next useful boundary.
+
+Activation starts with a user outcome. Component details belong in the docs and “How it works,” once you need them.
+
+### Use local inference Continue with a configured local-model route and its explicit capability limits. Open the local path (/start/local/)### Coordinate a team or CI Move from a two-session demo into shared-agent and automation patterns. Open the team path (/start/server/)### Understand the system Read how the project layer, integrations, and internal components fit together. See how it works (/stack/)
+
+Looking for commands, configuration, or internal component references?
+
+Open the documentation (/docs/)
 
 ---
 
@@ -423,7 +538,7 @@ START_PATH // LOCAL_TUI
 
 # Start // Local Model TUI
 
-Point ostk at a model running on your machine. ostk's TUI becomes the chat surface; everything else — audit, capability bounds, secret handling — works the same as the hosted path.
+Point ostk at a model running on your machine. ostk's TUI becomes the chat surface, while kernel-mediated audit, capability bounds, and local project state remain available. Tool support and context behavior still depend on the selected model and integration.
 
 ## WHAT_YOU'LL_DO
 
@@ -441,17 +556,17 @@ Pull or load a model. Tool-capable models recommended — not every local model 
 
 04
 
-Spawn an agent with the model alias. ostk routes to the local server; audit + pin caps still apply.
+Spawn an agent with the model alias. ostk routes inference to the local server; ostk-mediated tools retain audit and pin-cap enforcement.
 
 05
 
 Open ostk tui to chat. First response is slower (model warm-up); subsequent calls are fast.
 
-Total time: ~15 minutes (most of it is model download). You need ostk v6.0.5+ and either ollama or mlx_lm installed locally.
+Total time: ~15 minutes (most of it is model download). You need ostk v7.7.7+ and either ollama or mlx_lm installed locally.
 
 ## WHAT_STEP_05_LOOKS_LIKE
 
-The TUI takes your prompt and routes it to the kernel daemon. The daemon's native MLX driver hands it to a kernel-managed `mlx_lm.server`, and the response streams back into the chat surface. No API key. No cloud.
+The TUI takes your prompt and routes it to the kernel daemon. The MLX route hands inference to a kernel-managed `mlx_lm.server`, and the response streams back into the chat surface. The inference path requires no model API key, and canonical project state remains local. Other configured tools can still use the network; if Anthropic credentials are available, an anchored ostk-managed session can also make best-effort Anthropic Files copies of drains or context pages. Those copies are optional for correctness.
 
 OSTK_TUI
 
@@ -605,7 +720,7 @@ Latency is higher A 32B-parameter model on a laptop is slower than Sonnet over t
 
 Context window is smaller Hosted Sonnet has 200k tokens; ollama models default to 128k (ostk's per-driver declared window — effective context depends on model + quantization); mlx Bonsai is 65k declared but lower in practice (see /docs/models). Long sessions hit context limits sooner — type :clear in the TUI to cycle context (tack verbs are TUI commands prefixed with a colon; see /docs/tack-grammar).
 
-Cache reuse is local-only The fleet-shared prompt cache benefit only applies to hosted providers (Anthropic). Local models don't share cache across machines. The trade-off is privacy + zero-cost-per-token.
+Local inference is not a global egress switch Ollama and MLX keep model inference on this machine, and canonical project state remains local. Web tools, downloads, outbound drivers, or configured provider-backed context features can still use the network. Anthropic-style fleet prompt-cache reuse does not apply to the local model route.
 
 Quantization affects quality Generic mlx-2bit quants of full-precision models lose accuracy on coding tasks; prefer mlx-4bit or mlx-fp16 for those. Ternary-Bonsai is different — it is quantization-aware ternary, designed to run at low precision; the 2-bit variant is the intended deployment. ollama defaults to Q4_K_M which is a good general balance.
 
@@ -645,7 +760,7 @@ The kernel daemon listens on a local Unix socket. Drive it from CI, a remote she
 
 DOCUMENTATION_STATUS
 
-This walkthrough is in progress. The pieces below are real and shipped at v6.0.5; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
+This walkthrough is in progress. The pieces below are real and shipped at v7.7.7; the connecting narrative for CI and remote workflows is being written. Follow up on the linked references for the current state.
 
 If you've wired ostk into CI or a Discord bot already and have notes that would help others, send them to os-tack/ostk-site issues (https://github.com/os-tack/ostk-site/issues).
 
@@ -697,7 +812,7 @@ RELATED: START_HERE (/start/) MCP_BRIDGE (/docs/mcp/) AGENT_LIFECYCLE (/docs/age
 
 URL: https://ostk.ai/docs/
 
-ARCHIVE_INDEX // v6.0.5
+ARCHIVE_INDEX // v7.7.7
 
 # Documentation Archive
 
@@ -898,7 +1013,7 @@ Common questions from developers evaluating or getting started with ostk.
 
 01 How do multiple AI agents edit the same file without conflicts?
 
-ostk uses optimistic concurrency control. Every file:edit() specifies the text the agent expects. If another agent changed it, the kernel detects the mismatch and resolves it through a 3-tier system: auto-merge for non-overlapping edits, mechanical rebase for nearby edits, and manual escalation for structural conflicts. No locking, no blocking.
+CAS edits made through ostk fs_ops include the text the agent expects. If the file changed, non-overlapping edits can auto-merge, nearby edits return a suggested merge, and structural conflicts fail for review. Native client writes and raw shell writes bypass this CAS contract.
 
 READ_MORE → (/docs/coordination-primitives)
 
@@ -910,7 +1025,7 @@ READ_MORE → (/start)
 
 03 Do I need to modify my AI agents to work with ostk?
 
-No. The write path is invisible — agents edit files with their normal tools. The OS intercepts writes at the tool layer, coordinates between agents, and maintains an audit trail. Agents never know ostk is there. This is the first of the Five Laws.
+You keep the client UI you already use, but the integration must be configured. MCP-capable clients launch ostk connect and use the ostk-namespaced tools for audited reads, CAS edits, and policy checks. A client's native filesystem or shell tools remain outside those guarantees.
 
 READ_MORE → (/docs/coordination-primitives/#vfs-the-observation-substrate)
 
@@ -928,25 +1043,25 @@ READ_MORE → (/docs/security/#gpg-rooted-trust-tiers)
 
 06 Can AI agents work on the same repository without conflicts?
 
-Yes. ostk coordinates file access across agents through optimistic concurrency. Each agent gets a workspace boundary. Generation counters track every file write. When conflicts occur, the kernel resolves them mechanically — no LLM is called for conflict resolution. In practice, conflicts drop to near zero.
+Yes, when their writes go through ostk. Kernel-mediated CAS edits use generation history and expected text to detect stale or overlapping work. Non-overlapping changes can auto-merge; ambiguous conflicts fail visibly. Native client writes are still ordinary filesystem writes and require normal Git or workspace coordination.
 
 READ_MORE → (/docs/coordination-primitives)
 
 07 How do I track what changes AI agents made?
 
-Every agent action is logged to an append-only audit trail (.ostk/journal.jsonl). File edits, shell commands, tool calls, spawns, approvals — all timestamped and attributed. Run ostk os audit check to verify trail integrity. The process table is reconstructible from the audit log at any point.
+Kernel-mediated tool dispatches append timestamped, attributed rows to .ostk/journal.jsonl. Rows are hash-chained and are Ed25519-signed when a signing key is available. Native client actions that bypass ostk do not become ostk audit rows; inspect and verify the journal when audit coverage matters.
 
 READ_MORE → (/docs/architecture/#the-unix-substrate)
 
 08 Does ostk require a cloud connection?
 
-No. ostk is local-first. Agent coordination happens through local files. The only network calls are to LLM providers when you run agents. The kernel itself is entirely offline. No telemetry, no analytics, no cloud sync.
+ostk is local-first by custody: canonical project state and page content stay on local disk, and no ostk account or hosted control plane is required. Configured model providers, web/download tools, updates, registrars, outbound drivers, and provider-backed context features can use the network. Anchored Anthropic sessions can automatically make best-effort Anthropic Files copies for context efficiency or cross-host recovery. Operational telemetry stays local.
 
 READ_MORE → (/why)
 
 09 What happens if an agent crashes?
 
-Agents are ephemeral — crashes are the expected operating condition. The kernel writes drain snapshots at every turn boundary. On daemon restart, fold(journal.jsonl) reconstructs the fleet and rehydrates sessions from snapshots. Mid-flight, the heartbeat monitor detects crashed workers and hot-rehydrates them.
+For anchored ostk-managed sessions, turn boundaries write best-effort local drain snapshots. On restart, durable registries rebuild from their local JSONL sources and eligible managed sessions can rehydrate from a compatible snapshot. Work after the last completed snapshot, runtime-only state, and sessions owned by an external harness have separate recovery boundaries.
 
 READ_MORE → (/docs/agent-lifecycle)
 
@@ -964,7 +1079,7 @@ READ_MORE → (/docs/tack-grammar)
 
 12 How does ostk differ from Cursor, Devin, or Aider?
 
-ostk is an OS, not an IDE or agent. It coordinates multiple agents from any provider (Claude, Gemini, Mistral) on the same codebase simultaneously. Cursor and Aider are single-agent tools. Devin is a cloud-hosted agent. ostk runs locally, is agent-agnostic, and provides trust governance, audit trails, and crash recovery that none of these tools offer.
+ostk is a project-state and coordination layer, not an IDE or model. Verified integrations can use the same local task, decision, audit, and CAS surfaces through ostk. Provider routes and external harnesses have separate compatibility boundaries, so check the support matrix instead of assuming every client or model behaves identically.
 
 READ_MORE → (/about/)
 
@@ -978,7 +1093,7 @@ Key terms used throughout the documentation.
 
 `tack` The operator intent language used in the TUI. Commands prefixed with : dispatch to the kernel. Bare text files as hay.
 
-`drain snapshot` Session state written to .ostk/drain/<lineage_id>.json at every turn boundary. Contains conversation history, token accounting, and config. Enables crash recovery.
+`drain snapshot` Best-effort local snapshot for an anchored ostk-managed session. Contains conversation history, token accounting, and compatible config for recovery after a completed turn.
 
 `anchor` The long-lived daemon process started by ostk listen. Holds the socket, process table, and scheduler. Survives client disconnects.
 
@@ -988,17 +1103,17 @@ Key terms used throughout the documentation.
 
 `Hot PR` The kernel's 3-tier conflict resolution system. Tier 1: auto-merge (non-overlapping). Tier 2: mechanical rebase (nearby). Tier 3: manual escalation.
 
-`generation counter` A monotonic counter incremented on every file write. Used for optimistic concurrency — if the counter changed, another agent modified the file.
+`generation counter` A monotonic counter updated by kernel-mediated file operations. CAS edits combine it with expected text to detect stale or conflicting work.
 
 `bail` A portable, signed OS bundle. Named for a bail of hay — what you extract from a haystack. Contains public identity (.primefile, ENTITYFILE), boot state, and optionally encrypted internal kernel state or selective exported content. Three modes: public, full, export. See /docs/security/#signed-portable-state-bail.
 
-`fold(journal.jsonl)` Replaying the append-only audit log to reconstruct fleet state. The process table is a projection of the audit log — the daemon is a cache, not a ledger.
+`fold(journal.jsonl)` Replaying supported audit events to rebuild durable registries and projections. Session runtime and some derived indexes have separate recovery paths.
 
 `.language` A pipe-delimited table of verbs, their tiers, layers, and usage momentum. The kernel loads high-momentum verbs at boot and demand-spawns the rest.
 
 `sub-stack` An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels. Created by the scheduler for multi-worker tasks.
 
-`OCC` Optimistic Concurrency Control. Agents write freely; the kernel detects conflicts via generation counters at commit time, not lock time.
+`OCC` Optimistic Concurrency Control for kernel-mediated CAS edits. It detects stale expected text or overlapping changes without holding a long-lived file lock.
 
 ---
 
@@ -5979,7 +6094,7 @@ PROBLEM_01 // DAEMON_DIES_MID_TASK
 
 ## Your daemon crashes while an agent is working. What happens to the work?
 
-Nothing is lost. ostk writes the audit ring (`.ostk/journal.jsonl`) as a write-ahead log; every turn boundary writes a drain snapshot of the agent's state. When the daemon comes back up, `fold(journal.jsonl)` replays the log and rehydrates each session from its last drain. The client reconnects on the same socket; from the agent's perspective, the disconnect was a long pause.
+Durable project registries rebuild from their local JSONL sources. Anchored ostk-managed sessions write a best-effort drain snapshot after completed turns, and eligible sessions can rehydrate from a compatible snapshot after restart. Work after the last snapshot, runtime-only state, and sessions owned by an external harness are not covered by that promise; client reconnection also depends on the harness.
 
 COMPOSES_FROM
 
@@ -5991,7 +6106,7 @@ PROBLEM_02 // AGENT_TRIES_TO_ESCAPE
 
 ## An agent gets creative and writes outside its lane. Then what?
 
-Three layers compose. Pin caps deny by default at the tool layer — every `fs_ops` or `bash` call is checked before bytes hit disk. The OS sandbox (Landlock on Linux, Seatbelt on macOS) physically blocks writes outside allowed paths regardless of how the agent tries. Bypass detection flags any file that changed outside the kernel surface on next read. Tool-layer covers the expected path; the sandbox covers the escape path; bypass detection covers the unexpected. No single layer is load-bearing.
+Three layers compose for kernel-launched work. Pin caps check `fs_ops` and `bash` calls routed through the kernel. The OS sandbox can add Landlock restrictions on Linux or Seatbelt restrictions on macOS when that platform and launch path support them. Bypass detection reports external file changes when the kernel next observes them; it does not retroactively prevent a native client write.
 
 COMPOSES_FROM
 
@@ -6003,11 +6118,11 @@ PROBLEM_03 // PROVE_WHAT_SHIPPED
 
 ## You need to prove what an agent did, not just trust the log.
 
-The audit chain isn't a log — it's the substrate's only truth. Every kernel-mediated action is an append-only event in `.ostk/journal.jsonl`, hash-chained against the previous row's signature. Each row is Ed25519-signed in-process at write time using the operator's identity key (no GPG subprocess, no signing latency). Replay reconstructs identical state byte-for-byte. The daemon is a cache; the journal is the ledger.
+The journal is an authoritative source for supported audit-derived registries and projections. Kernel-mediated dispatch rows are append-only and carry the hash of the previous row. When a signing key is available they are also Ed25519-signed; otherwise the signature field remains empty and visibly unverified. Replay rebuilds supported state from local sources, not every byte of session runtime or every derived index.
 
 COMPOSES_FROM
 
-WAL append → hash chain (`prev_hash`) → Ed25519 sign (`sig`) → replay reconstructs state. Owned State (II) makes the writer unique; Anchor Exclusivity (VIII) keeps two daemons from forking the chain.
+WAL append → hash chain (`prev_hash`) → optional Ed25519 signature (`sig`) → rebuild supported registries and projections. Owned State (II) binds daemon authority; Anchor Exclusivity (VIII) prevents two daemon anchors from writing independently.
 
 Source: `src/util/audit.rs`, `src/kernel/signing.rs`.
 
@@ -6015,7 +6130,7 @@ PROBLEM_04 // TWO_AGENTS_ONE_FILE
 
 ## Two agents edit the same file at the same time. Who wins?
 
-The second writer always sees the conflict. Every file carries a generation counter in `.ostk/gen_table.jsonl`. Edits are compare-and-swap: the agent declares the counter it read; if another agent has bumped it, the write fails loudly with a diff. For non-overlapping edits, Hot PR auto-merges; for overlapping edits, the second agent re-reads and re-tries. Nothing disappears between you and what your agents actually did.
+A stale `fs_ops` CAS edit sees the conflict instead of silently overwriting current content. The edit supplies expected text; generation history and the current file let ostk auto-merge safe non-overlapping changes, suggest a nearby merge, or fail for review. Native client writes, raw shell writes, and overwrite-style operations do not inherit this CAS guarantee.
 
 COMPOSES_FROM
 
@@ -6027,7 +6142,7 @@ PROBLEM_05 // SHIP_TO_SOMEONE_ELSE
 
 ## You want to hand your agent setup to a different operator and have it just run.
 
-`application/v1` packages an agent system as a content-addressed, signed directory with declared capabilities, supervisor trees, and a manifest of claims. The receiving operator runs `ostk app install`; the substrate validates the signature, registers the capability declarations, and the supervisor starts. The application's runtime existence IS its slice of the claim graph keyed by `(app_id, install_id, start_id)`. When the run finishes, the original publisher can verify what happened against the audit chain the receiving operator publishes.
+`application/v1` is a design trajectory for packaging an agent system as a content-addressed, signed directory with declared capabilities and supervisor metadata. It is not currently a shipped, acceptance-tested cross-machine install workflow. Today, portable claims should be limited to the specific bail/export and integration paths that have their own verification evidence.
 
 "I can hand you my application as a signed file. You install it. You start it. It runs. When it finishes, I can verify what happened against the audit chain you publish." — application/v1 §1
 
@@ -6041,7 +6156,7 @@ PROBLEM_06 // SEE_EVERYTHING_WITHOUT_POLLING
 
 ## You want to see what every agent did, in real time, without writing pollers or running queries.
 
-The kernel writes the audit ring; indexers tap it as logical-decoding subscribers (Postgres-style); projections land at stable paths in a VFS namespace. You query a directory listing, not a log. `cat /fleet/proc` gives you the live process table; `ls /needles` gives you open work; every projection rebuilds from journal replay if it goes stale. No polling, no replication, no separate truth source.
+The kernel writes the journal; supported indexers consume its rows and project selected state at stable VFS paths. A client can query those projections without maintaining its own polling loop. Rebuild coverage is projection-specific: project registries recover from local JSONL, while commit-graph and embedding artifacts currently have separate or incomplete rebuild paths.
 
 COMPOSES_FROM
 
@@ -6053,7 +6168,7 @@ THE_COMPOSITION
 
 ## Six problems, one shape.
 
-Each answer above is two or three primitives composed against a clear failure mode. The kernel makes the composition mechanically possible — bounded waits, owned state, dead-process reaping, namespace isolation, handle uniqueness, anchor exclusivity, connection continuity, and four others (the ten invariants). The substrate makes the kernel queryable. The daemon makes it long-lived. The ABI makes it agent-callable. Drivers extend it. `application/v1` makes it portable.
+Each answer above composes a few primitives against a clear failure mode. The substrate makes supported project state queryable, the daemon makes it long-lived, the ABI makes it agent-callable, and drivers extend it. Portability remains integration-specific: current bails, provider routes, MCP clients, and the proposed `application/v1` do not share one blanket support status.
 
 What you don't have to know: which file holds which counter, which subsystem listens on which signal, which invariant is implemented in which phase. Those live in the kernel and the spec. The architecture is the composition story above; the rest is implementation.
 
@@ -6067,19 +6182,19 @@ These are not guidelines. They are load-bearing constraints. Every design decisi
 
 01
 
-### The write path is invisible
+### The project surface stays familiar
 
-Agents edit files normally. They use whatever tools their model provider gives them. The OS coordinates underneath. No new API. No coordination protocol. No SDK.
+Supported clients keep their normal UI while routing audited reads, CAS edits, and shell calls through ostk. Native client tools are not silently intercepted and remain outside kernel audit and OCC.
 
-IN_PRACTICE Your agents never learn a new API. They write files. That's it.
+IN_PRACTICE Configure the integration once, then use the ostk tool surface when its guarantees matter.
 
 02
 
-### Agents are ephemeral
+### Durable state outlives a process
 
-Agents crash. They hit context limits. They lose memory. They get killed. This is the expected operating condition. State lives in the filesystem. When an agent dies, nothing is lost.
+Agents crash, hit context limits, or get killed. Canonical project records live on disk, and anchored ostk-managed sessions write best-effort drain snapshots at completed turn boundaries. In-flight runtime state and external harness sessions have separate recovery boundaries.
 
-IN_PRACTICE Session death does not mean work death. The OS survives its agents.
+IN_PRACTICE A replacement agent can recover durable tasks and decisions; it should still verify what completed before the failure.
 
 03
 
@@ -6093,17 +6208,17 @@ IN_PRACTICE The filesystem IS the communication channel. Every coordination arti
 
 ### Optimistic concurrency
 
-No locks. No mutexes. Agents write freely and concurrently. When two agents edit the same file, the kernel detects the conflict via generation counters and resolves it. Conflict resolution, not conflict prevention.
+Kernel-mediated CAS edits do not hold a long-lived file lock. They combine expected text with generation history, auto-merge safe non-overlapping changes, and fail visibly when intent is ambiguous. Native and raw-shell writes use ordinary filesystem and Git coordination.
 
-IN_PRACTICE Agents never block each other. Two agents can edit the same file at the same time. The OS handles it.
+IN_PRACTICE Parallel work is safe when it uses the CAS contract; overlapping edits still require review.
 
 05
 
-### Invisible infrastructure, always
+### Infrastructure should stay inspectable
 
-If you have to think about the OS, the OS failed. No config files to learn. No YAML to write. No dashboard to check. The install is one command. Init is one command. Boot is one command.
+Install, init, and boot are short commands, while HUMANFILE, Agentfiles, pin caps, and MCP configuration make important boundaries explicit. The project substrate is readable on disk instead of hidden behind a hosted dashboard.
 
-IN_PRACTICE Zero config, zero learning curve for agents. The OS works or it doesn't.
+IN_PRACTICE Keep the common path short and the exceptional path observable.
 
 SPECIFICATION // KERNEL_SUBSTRATE
 
@@ -6211,7 +6326,7 @@ Swap
 
 boot.md, history Cold conversation history Zero token cost
 
-The prompt cache at the model endpoint (such as Anthropic's edge) is content-addressed. Therefore, multiple concurrent agent processes using the same API key automatically hit the same prompt cache, driving down marginal token costs as fleet density increases.
+Some model endpoints, notably Anthropic, can reuse byte-identical prompt prefixes across compatible requests. The benefit depends on provider cache semantics, account scope, request shape, and model version; Needle Bench reports it per tested model and harness rather than as a universal fleet saving.
 
 SPECIFICATION // DUAL_CPU_SCHEDULER
 
@@ -6856,23 +6971,23 @@ At the turn boundary, session messages, token counts, and configuration are pers
 
 ## Prompt Caching & Fleet Economics
 
-81% Cost Reduction
+Measure the route, not a universal percentage.
 
-Anthropic's prompt cache is content-addressed and per-organization. Multiple ostk agent sessions sharing the same API key reuse cache entries automatically, drastically reducing the cost of parallel workers. Fleet statistics aggregated from real-world codebase runs (over 1.18 billion tokens) demonstrate an actual 81.0% cost reduction by maintaining high cache read rates.
+Prompt caching and output compression can reduce repeated input on routes that support them. The result depends on provider pricing, cache eligibility and lifetime, message stability, model behavior, and harness integration. Needle Bench (https://needle-bench.cc/) reports model-and-harness outcomes separately; use a measured combination instead of a blanket savings claim.
 
-CONTENT-ADDRESSED
+STABLE_PREFIX
 
-The cache key is the hash of the byte content up to the breakpoint. Identical base system blocks yield instant cache hits.
+Supported provider routes can reuse an identical stable prompt prefix. Volatile project and turn data belongs after the cacheable boundary.
 
-FLEET ECONOMICS
+ROUTE_SPECIFIC
 
-One process pays the initial `cache_create` write fee; subsequent reader processes access the warm prefix at 10% of the normal input cost.
+Cache writes, reads, token accounting, and prices vary across providers, models, API versions, and configured gateways.
 
-5-MINUTE TTL
+PROVIDER_LIFETIME
 
-Cache entries expire after 5 minutes of inactivity. Periodic turns from parallel workers keep the cache warm indefinitely.
+Cache lifetime and refresh behavior are provider-controlled. A warm prefix is an optimization, not part of ostk's continuity contract.
 
-The kernel positions up to four `cache_control` breakpoints: base system prompt, preload context (identity, registers), tool definitions, and message history watermark. Volatile data is placed at the end to keep the cache prefix stable.
+On compatible routes, ostk positions cache-control boundaries around stable system, preload, tool-definition, and message-history regions. Unsupported routes continue without this provider-side optimization.
 
 03 // SQUASHER_PIPELINE
 
@@ -7331,11 +7446,11 @@ REFERENCE // MCP
 
 # MCP — both directions
 
-ostk speaks MCP in both directions. Inbound: an external client (Claude Code, Cursor, anything) drives ostk as an MCP server. Outbound: ostk-driven agents call external MCP services (linear, github, postgres, etc.) via a userspace proxy.
+ostk speaks MCP in both directions. Inbound: a configured MCP client drives the kernel through `ostk connect`. Outbound: ostk-driven agents can call configured, compatible MCP services through a userspace proxy. Client and server compatibility is integration-specific.
 
 ## QUICK_REFERENCE
 
-`ostk mcp` Run the stdio MCP bridge. Invoked by external MCP clients as a subprocess. Forwards to a running daemon, falls back to in-process serve.
+`ostk connect` Run the canonical stdio MCP bridge. It connects to the project daemon, starting it when possible, and refuses if no anchored daemon can be reached. There is no write-capable in-process fallback.
 
 `ostk mcp diag` Reconcile the kernel's MCP tool surface against `CORE_SEED_LANGUAGE`. Exits 1 on drift.
 
@@ -7345,19 +7460,19 @@ ostk speaks MCP in both directions. Inbound: an external client (Claude Code, Cu
 
 `ostk driver serve ` Run an outbound MCP subprocess persistently on a Unix domain socket.
 
-The outbound verbs were renamed from `ostk mcp {list,call,serve}` to `ostk driver {list,call,serve}` when `ostk mcp` (no subcommand) was reclaimed for the inbound bridge. Legacy `ostk mcp ...` still routes to the new `ostk driver ...` via `McpLegacy` dispatch in `src/main.rs`.
+`ostk connect` is the canonical inbound bridge command. The older bare `ostk mcp` spelling is a transitional alias; `ostk mcp diag` remains the diagnostic command. Outbound services use `ostk driver list`, `call`, and `serve`.
 
 DIRECTION_01 // INBOUND_BRIDGE
 
 ## Drive ostk from an external MCP client
 
-Your agent tool (Claude Code, Cursor, your own client) launches `ostk mcp` as a subprocess and speaks the MCP JSON-RPC protocol over stdio. The bridge translates that into kernel calls. Your agent gets gen-tracked writes, hash-chained audit, and pin-cap enforcement without changing its UI.
+A supported MCP client launches `ostk connect` and speaks MCP JSON-RPC over stdio. Calls made through ostk tools receive generation tracking, hash-chained audit, and pin-cap enforcement. The client's native filesystem and shell tools remain outside that surface, so configure an allowlist when complete coverage matters.
 
-Source: `src/main.rs` (`Commands::Mcp { command: None }` branch — runs `run_mcp_bridge`), `src/serve/server.rs` (`run_mcp_bridge`, `bridge_stdio_to_daemon`). The bridge resolved the "two isolated kernels" problem (→1309 Phase 2B) — the Claude Code MCP process and `ostk daemon` used to have separate `ServerState`s that couldn't see each other's work.
+Source: `src/main.rs` (`Commands::Connect` — runs `run_mcp_bridge`), `src/serve/server.rs` (`run_mcp_bridge`, `bridge_stdio_to_daemon`). The bridge resolved the "two isolated kernels" problem (→1309 Phase 2B) — the Claude Code MCP process and `ostk daemon` used to have separate `ServerState`s that couldn't see each other's work.
 
 ### Configuration
 
-Most MCP clients use the same `mcpServers` shape. Add this entry to your client's MCP config:
+Many MCP clients use an `mcpServers`-style configuration, but paths and field names vary. Use the current documentation for your verified client and point it at:
 
 TERMINAL
 
@@ -7366,7 +7481,7 @@ TERMINAL
 "mcpServers": {
 "ostk": {
 "command": "ostk",
-"args": ["mcp"]
+"args": ["connect"]
 }
 }
 }
@@ -7378,7 +7493,7 @@ Claude Code (global) `~/.claude/settings.json`
 
 Cursor `~/.cursor/mcp.json`
 
-Other clients consult their MCP docs — schema is consistent
+Other clients consult the client's current MCP documentation and verify the integration
 
 ### Verify the surface
 
@@ -7410,7 +7525,7 @@ $ tail -f .ostk/journal.jsonl
 {"event":"tool.bash","cmd":"cargo check","exit_code":0,"duration_ms":2841,...}
 ```
 
-Each row is hash-chained against the previous (`prev_hash`) and Ed25519-signed in-process (`sig`). Two agents editing the same file get a CAS conflict instead of a silent overwrite. Capability boundaries from `.ostk/pins//pin.caps` apply uniformly.
+Kernel-mediated dispatch rows are hash-chained through `prev_hash` and are Ed25519-signed when a signing key is available; unsigned rows remain visibly unsigned. CAS conflict handling applies to `fs_ops` edits that provide expected text. Pin caps apply to calls routed through the kernel, not to a client's native tools.
 
 ### Inbound troubleshooting
 
@@ -7426,11 +7541,11 @@ Permission errors on write Pin caps deny by default. Check `.ostk/pins/default/p
 
 ## DRIVING OSTK FROM CUSTOM TOOLS & SCRIPTS
 
-You don't need Claude Code or Cursor to leverage the ostk kernel. You can drive it directly from custom scripts, CI pipelines, or proprietary editor extensions using two transport methods:
+Custom clients and CI can use the documented MCP bridge. Direct socket clients are an advanced, versioned System ABI integration and must implement the required initialization, identity, and request contracts; the snippets below are protocol sketches, not a universal client SDK.
 
 ### 1. Subprocess Pipe Transport (Stdio)
 
-Spawn `ostk mcp` as a persistent background process. Write JSON-RPC 2.0 messages to its `stdin` and read structured responses from its `stdout`.
+Spawn `ostk connect` as the stdio bridge. Write MCP JSON-RPC messages to its `stdin` and read structured responses from its `stdout`; the bridge requires the daemon-owned kernel.
 
 Example payload sent to stdio:
 
@@ -7439,7 +7554,7 @@ Example payload sent to stdio:
 "jsonrpc": "2.0",
 "method": "tools/call",
 "params": {
-"name": "mcp__ostk__read",
+"name": "read",
 "arguments": {
 "path": "src/main.rs"
 }
@@ -7451,7 +7566,7 @@ Example payload sent to stdio:
 
 ### 2. UNIX Domain Socket Transport
 
-For maximum performance and zero process-startup overhead, connect directly to the UNIX domain socket located at `.ostk/ostk.sock`. This bypasses the MCP abstraction layer entirely and invokes System ABI verbs directly.
+Advanced clients can connect to the project UNIX domain socket at `.ostk/ostk.sock` and invoke version-compatible System ABI verbs directly. This bypasses MCP translation, but it does not bypass daemon identity, initialization, policy, or schema requirements.
 
 Simple Node.js integration script:
 
@@ -7477,9 +7592,9 @@ DIRECTION_02 // OUTBOUND_PROXY
 
 ## Call external MCP services from ostk-driven agents
 
-Your ostk-driven agent needs to talk to Linear, GitHub, Postgres, or any other MCP-speaking service. ostk's `driver` subcommand is a userspace proxy — agents invoke `ostk driver call ` and the proxy connects, sends one JSON-RPC request, prints the response, exits.
+An ostk-driven agent can talk to a configured MCP service whose stdio and JSON-RPC behavior is compatible with the proxy. The `driver` subcommand connects, sends one request, prints the response, and exits. Compatibility and authentication must be verified per service.
 
-Deliberately at arm's length: the kernel never speaks MCP protocol bytes. Output flows through the same compression + audit pipeline as any shell output. Source: `src/commands/mcp_proxy.rs` (`run_list`, `run_call`, `run_serve`, `run_persistent_call`, `run_ephemeral_call`, `run_jsonrpc_session`).
+Deliberately at arm's length: the kernel never speaks the outbound service's MCP protocol bytes. The configured subprocess can access the network and is not constrained by ostk pin caps; its invocation appears through the normal shell compression and audit path. Source: `src/commands/mcp_proxy.rs` (`run_list`, `run_call`, `run_serve`, `run_persistent_call`, `run_ephemeral_call`, `run_jsonrpc_session`).
 
 ### Configuration
 
@@ -7528,13 +7643,13 @@ ostk driver connects to the server over stdio, sends one JSON-RPC request, reads
 
 04
 
-Compare to built-in tools (file:edit, shell, etc.) which DO route through the kernel directly. Outbound MCP is deliberately at arm's length.
+Compare with ostk tools such as fs_ops and bash, which route through the kernel directly. The outbound service itself remains outside ostk pin-cap enforcement.
 
 ## DIRECTIONS_AT_A_GLANCE
 
 ASPECT
 
-INBOUND (ostk mcp)
+INBOUND (ostk connect)
 
 OUTBOUND (ostk driver)
 
@@ -7558,9 +7673,9 @@ Whatever the external server exposes
 
 Audit path
 
-Kernel-direct (every call → audit row)
+Kernel-mediated calls append dispatch rows
 
-Shell wrapper (call appears as bash row + nested response)
+Shell wrapper (invocation appears as a bash row; remote behavior is external)
 
 Pin cap enforcement
 
@@ -7592,7 +7707,9 @@ GET_STARTED // MODEL_SELECTION
 
 # Models
 
-ostk is model-agnostic. Six production providers, one local runtime, one on-device path. Every provider speaks through the same CpuDriver trait — but they don't all support the same features. This page tells you what works where.
+ostk has a provider-neutral scheduling interface with direct, gateway, and local routes. A route existing in code is not the same as every model version being verified: tool schemas, streaming, reasoning, and usage accounting vary by integration.
+
+Canonical project tasks, decisions, pages, and audit remain local across routes. Full conversation continuity is a separate capability. Generic MCP clients load stored pages inline; Anthropic sessions can additionally use Anthropic Files for context efficiency and cross-host recovery. Check the route status and last-verified evidence before treating a model switch as a product guarantee.
 
 ## PROVIDERS
 
@@ -7600,7 +7717,7 @@ Anthropic FULL
 
 MODELS
 
-`claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5`
+`claude-* models supported by the configured Anthropic API version`
 
 CONTEXT / WIRE
 
@@ -7622,11 +7739,11 @@ Google Gemini FULL
 
 MODELS
 
-`gemini-2.5-pro, gemini-2.0-flash, gemini-3.1-pro, gemini-3-flash`
+`gemini-* models supported by the configured Google API version`
 
 CONTEXT / WIRE
 
-1M tokens — OpenAI-compat
+1M tokens — Gemini API adapter
 
 FEATURES
 
@@ -7644,7 +7761,7 @@ Mistral FULL
 
 MODELS
 
-`mistral-large-latest, codestral-latest, devstral-small, devstral-medium-2507, magistral-*`
+`mistral-*, codestral*, ministral*, devstral*, magistral*`
 
 CONTEXT / WIRE
 
@@ -7662,19 +7779,19 @@ SOURCE
 
 `src/cpu/mistral.rs:24–45, 145–220`
 
-OpenAI PRODUCTION
+OpenAI IMPLEMENTED
 
 MODELS
 
-`gpt-4o, o1-*, o3-pro, o4-*`
+`gpt-*, o1*, o3*, o4*`
 
 CONTEXT / WIRE
 
-128k–200k tokens — OpenAI-compat
+Model/version-dependent — Native Responses API
 
 FEATURES
 
-Tool use, streaming. No prompt caching, no token counting. Reasoning models (o1/o3/o4) have built-in thinking — not controlled by ostk.
+Tool use, streaming, encrypted reasoning continuity where supported. Verify the exact model/version in the compatibility evidence.
 
 API KEY
 
@@ -7682,21 +7799,21 @@ API KEY
 
 SOURCE
 
-`src/cpu/openrouter.rs (shared driver), model_registry.rs:84–117`
+`src/cpu/openai.rs, src/cpu/providers.rs:111–120`
 
 OpenRouter GATEWAY
 
 MODELS
 
-`Any provider/model (meta-llama/*, deepseek/*, etc.)`
+`Explicit openrouter// and supported org/model routes`
 
 CONTEXT / WIRE
 
-Model-dependent — OpenAI-compat
+Model-dependent — OpenAI-compatible gateway
 
 FEATURES
 
-Tool use, streaming. Fallback for any model not matched by a dedicated driver. Sends HTTP-Referer: https://ostk.ai.
+Tool use and streaming when the selected upstream preserves the expected OpenAI-compatible semantics. Not a universal fallback or feature-parity promise.
 
 API KEY
 
@@ -7706,19 +7823,19 @@ SOURCE
 
 `src/cpu/openrouter.rs:12–51`
 
-Ollama (local) LOCAL
+Ollama (local) LOCAL / MODEL-SPECIFIC
 
 MODELS
 
-`local/codestral:22b, local/qwen2.5-coder:32b, local/llama3.3:70b, local/deepseek-r1:70b, local/gemma3:27b`
+`local/, ollama/, or model:tag`
 
 CONTEXT / WIRE
 
-Model-dependent — OpenAI-compat
+Model-dependent — OpenAI-compatible local endpoint
 
 FEATURES
 
-Tool use, streaming. No prompt caching, no token counting. Models with ":" separator auto-route here.
+Tool use and streaming depend on the loaded model and Ollama build. Models with a ":" separator auto-route here.
 
 API KEY
 
@@ -7749,6 +7866,10 @@ API KEY
 SOURCE
 
 `src/cpu/mod.rs:439–446, model_registry.rs:196–201`
+
+ADDITIONAL_IMPLEMENTED_ROUTES
+
+The current kernel also contains direct bare-prefix routes for DeepSeek, Moonshot/Kimi, and xAI, plus an Apple-Silicon MLX route with a managed `mlx_lm.server` lifecycle. These are implemented code paths, not a claim that every current model version has passed an end-to-end acceptance run. Consult dated compatibility evidence before publishing a supported badge.
 
 ## How `FROM auto` Picks a Model
 
@@ -7814,7 +7935,7 @@ Speed mode ✓ — — — —
 
 Citations ✓ — — — —
 
-✓ = ostk driver implements it. — = not available in the driver. server = handled server-side, no client config. built-in* = reasoning is a model behavior, not a driver feature (o1/o3/o4 always think). model = depends on the specific model loaded in Ollama.
+✓ = the selected driver implements a translation path, not that every current model version is acceptance-tested. — = not available in that driver. server = provider-managed. built-in* = reasoning is model behavior. model = depends on the loaded Ollama model. Direct DeepSeek, Moonshot, xAI, OpenRouter, and MLX routes require their own compatibility evidence and are not implied by this selected-driver table.
 
 ## MODEL_SPECIFIC_NOTES
 
@@ -7824,9 +7945,9 @@ Mistral tool ID remapping: Mistral requires tool call IDs to be exactly 9 alphan
 
 Ollama auto-detection: Any model name containing a colon (e.g., `codestral:22b`) is auto-routed to Ollama without the `local/` prefix. Source: `model_registry.rs:251–253`.
 
-OpenAI via OpenRouter: If `OPENAI_API_KEY` is not set but `OPENROUTER_API_KEY` is, OpenAI models (gpt-4o, o1-*, o3-*) route through OpenRouter automatically. Source: `providers.rs:76–81`.
+OpenAI routing: Bare `gpt-*` and o-series names use the native OpenAI Responses driver and fail if its required key is unavailable. Use an explicit `openrouter/...` model identifier when you intend to route through OpenRouter. Source: `providers.rs:111–120`.
 
-DeepSeek R1: Reasoning model routed via OpenRouter with special format mapping at `model_registry.rs:391–398`. Handles the reasoning_content field in responses.
+DeepSeek routing: Bare `deepseek-*` identifiers use the direct DeepSeek endpoint and fail closed without `DEEPSEEK_API_KEY`. Slash-form `deepseek/...` identifiers remain explicit OpenRouter routes. Moonshot/Kimi and xAI have analogous direct bare-prefix routes.
 
 ## QUICK_EXAMPLE
 
@@ -7846,7 +7967,7 @@ TOOL shell
 LIMIT budget_usd 0
 ```
 
-The HUMANFILE sets the project default (Sonnet) with a fallback (Gemini). The lint agent pins a local model via `FROM` — free, fast, and sufficient for the task. The budget is $0 because local models have no API cost. Model mixing is the normal case, not an edge case.
+The HUMANFILE declares a project default and fallback; the lint agent pins a local route with `FROM`. Local inference has no provider token charge, although hardware and operational costs remain. Multiple routes can coexist, but preserving canonical project state is not the same as guaranteeing full conversation or feature continuity between them.
 
 RELATED: QUICK_START (/start/) AGENTFILE (/docs/agentfile/) HUMANFILE (/docs/configuration/#humanfile) ENV_VARS (/docs/configuration/#envvars)
 
@@ -9531,7 +9652,7 @@ Ambient configuration options that live in the shell environment. Most are optio
 
 ### DRAIN_RECOVERY
 
-`OSTK_DRAIN_SNAPSHOT` Controls drain snapshot writes. Set to 0 to disable. Enabled (v6.0.5+)
+`OSTK_DRAIN_SNAPSHOT` Controls drain snapshot writes. Set to 0 to disable. Enabled (v7.7.7+)
 
 04
 
@@ -9712,7 +9833,7 @@ REFERENCE // SECURITY
 
 # Security & Trust
 
-Every write is signed. Every identity is verified. Every capability is pinned. ostk builds a defense-in-depth model that guarantees security from process sandbox to API boundary.
+ostk layers policy, process isolation, local audit, and identity evidence around operations routed through the kernel. Coverage depends on the integration: native client tools bypass the kernel, audit signing requires a key, and process identity is stronger than a self-asserted client name.
 
 SECURITY_AND_TRUST_REFERENCE
 
@@ -9729,23 +9850,23 @@ SECURITY_AND_TRUST_REFERENCE
 
 ## Defense-in-Depth Model
 
-Security in ostk does not rely on a single firewall or sandbox boundary. Instead, four containment and audit layers wrap every agent action:
+Security in ostk does not rely on one boundary. Four containment and audit layers apply where the selected platform and client route an operation through the kernel:
 
 TOOL_LAYER
 
-Deny-based capability pins. Every tool call requested by the agent is checked against pin.caps deny tokens and path boundaries before execution.
+Deny-based capability pins check kernel-mediated calls against configured tokens and path boundaries before execution.
 
 SYSCALL_LAYER
 
-Process-level sandboxing via Landlock (Linux) and Seatbelt (macOS). Restricts filesystem access at the OS kernel layer, enforcing boundaries even if the agent forks a shell.
+When enabled and supported, Landlock (Linux) or Seatbelt (macOS) adds process-level filesystem restrictions. Platform and launch path determine coverage.
 
 AUDIT_LAYER
 
-Append-only JSONL event log. Every action is timestamped, attributed, hash-chained to the previous row, and Ed25519-signed in-process. Replaying the log reconstructs verified state.
+Kernel dispatches append local JSONL rows. Rows are hash-chained and are Ed25519-signed when a signing key is available; unsigned rows remain explicit.
 
 SECRET_LAYER
 
-API keys are resolved at execution time from the platform keychain or local secret manager. Values never enter the LLM context and are masked from all stdout/stderr logs.
+The kernel secret resolver avoids injecting values into model context and masks known values from kernel-mediated output. Native shell access and external services remain separate boundaries.
 
 02 // TRUST_TIERS
 
@@ -9885,7 +10006,7 @@ $ ostk learn .ostk/agents/fix-bug.af --apply
 
 ## The Seven-Step Approval Chain
 
-Every tool call requested by an agent passes through seven ordered validation steps. The chain sequences checks from cheapest/most-certain (pin caps) to most-expensive/ambiguous (human prompt). First match wins:
+Tool calls routed through the kernel pass through ordered validation steps, from pin caps to any required operator approval. Native client tools do not enter this chain. First matching rule wins:
 
 01
 
@@ -9980,18 +10101,18 @@ Any string matching a known API key structure with length &ge; 8 characters is a
 
 ## Verifiable Audit Chains
 
-Every action executed through a kernel session registers an entry in the append-only journal (`.ostk/journal.jsonl`). Each row is:
+Kernel-mediated dispatches append entries to the local journal (`.ostk/journal.jsonl`). Native client actions that bypass ostk are not covered. Appended rows are:
 
 - Hash-chained: Contains the SHA-256 hash of the preceding line (`prev_hash`).
-- Ed25519-signed: Signed in-process using the operator's session-key.
-- Verifiable: You can replay and cryptographically verify the entire stack history at any time.
+- Conditionally signed: Ed25519-signed in process when the kernel signing key is available; otherwise `sig` is empty.
+- Verifiable within scope: The hash chain and present signatures can be checked. Replay rebuilds supported registries and projections, not every byte of runtime history.
 
 TERMINAL
 
 ```
 # Cryptographically audit the local journal
-$ ostk os audit
-audit: 18,442 rows, hash chain ok, signatures verified
+$ ostk audit check
+audit: 18,442 rows, hash chain ok, present signatures verified, unsigned rows reported
 
 # Inspect the running log
 $ tail -f .ostk/journal.jsonl
@@ -10001,13 +10122,13 @@ $ tail -f .ostk/journal.jsonl
 
 CONCURRENCY & OCC INVARIANTS
 
-Because writes are audited and tracked, if two agents attempt to edit the same file concurrently, the kernel detects a generation conflict (`gen_before` mismatch) and rejects the write with an OCC (Optimistic Concurrency Control) error, preventing silent overwrites.
+`fs_ops` CAS edits provide expected text and use generation history to detect stale or overlapping work. Safe non-overlapping changes may auto-merge; ambiguous changes fail visibly. Native client writes, raw shell writes, and overwrite-style operations do not inherit this OCC guarantee.
 
 07 // BAIL_PACKAGES
 
 ## Signed Portable State (Bail)
 
-A bail is a signed, compressed archive (`.bail`) containing identity metadata, INIT sequences, and selective workspace states. It allows operators to transfer state between isolated instances without reliance on shared filesystems or network servers.
+A bail is a signed, compressed archive (`.bail`) whose contents depend on the selected public, full, or export mode. It can transfer the state explicitly included in that package between instances; it is not a blanket export of external harness sessions, runtime-only state, or every derived index.
 
 PUBLIC_MODE
 
@@ -10091,33 +10212,33 @@ LINEAGE // ABOUT
 
 # About ostk
 
-Not a framework. Not a wrapper. A distributed operating system — the kind that disappears the moment it works.
+Open-source project infrastructure for AI coding agents: durable working state, coordination, and trace that remain with the codebase.
 
 ## WHAT_IT_DOES
 
+`PROJECT_CONTINUITY`
+
+Keep durable tasks, decisions, context pages, and audit records with the project so supported agents can reorient across sessions.
+
 `FLEET_COORDINATION`
 
-Spawn, drain, reap, and rehydrate agents across daemon restarts. Workers crash-recover from drain snapshots automatically.
+Coordinate ostk-managed agents through supervised lifecycles, durable project records, and explicit drain and recovery boundaries.
 
 `OPTIMISTIC_CONCURRENCY`
 
-Agents write concurrently. The kernel detects conflicts via generation counters and resolves via Hot PR. No locks during the expensive phase.
+Kernel-mediated CAS edits detect stale generations and surface conflicts. Native client and raw-shell writes remain outside that boundary.
 
-`COST_REDUCTION`
+`CONTEXT_EFFICIENCY`
 
-81% measured cost reduction via prompt cache reuse and shell output compression.
+Prompt caching and output compression can reduce repeated context work on supported routes; measured outcomes vary by model and harness.
 
-`CAPABILITY_ENFORCEMENT`
+`CAPABILITY_BOUNDARIES`
 
-Deny-based pins at the tool layer. Process-level sandboxing via Landlock/Seatbelt at the syscall layer. Defense in depth.
+Configured pins and process sandboxes bound kernel-mediated work, with guarantees stated at the integration boundary.
 
 `IDENTITY_AND_TRUST`
 
-GPG-based trust chain from hardware identity to human attestation. Four tiers. Dual-signed primefile ceremony for governance changes.
-
-`CACHE_ECONOMICS`
-
-Byte-stable system prefix shared across the fleet via content-addressed cache. Fleet cost scales sublinearly — adding agents decreases per-agent cost.
+Project identity, trust tiers, and conditional signing make the provenance of governed and kernel-mediated work inspectable.
 
 ## The Story
 
@@ -10125,17 +10246,17 @@ ostk wasn't designed in a planning meeting. It was extracted from the problem it
 
 The kernel started as a coordination layer for AI agents on the same codebase. First version handled file conflicts. Then process supervision. Then output compression. Then identity, heartbeat, audit trails, scheduling, drain snapshots, crash recovery, sub-stacks, and fleet-wide cache sharing.
 
-At some point the tool stack disappeared. No more Jira for tracking. No more Slack for coordination. No more separate CI. The OS absorbed it all — not by replacing each tool deliberately, but because each problem had a simpler solution when the OS already knew about every agent, every file, and every write.
+The system grew through real multi-agent work. Each subsystem exists because a handoff, collision, recovery, context, or trust boundary failed in practice and needed a project-owned answer.
 
 ## Built By
 
 Scott Meyer.
 
-I've been writing software a long time. The era doesn't matter — the principles do. ostk is built on the ones that survived: local-first, single-binary, signed by default, comprehensible by reading the source.
+I've been writing software a long time. The era doesn't matter — the principles do. ostk is built around local custody, explicit boundaries, durable state, and behavior you can inspect in the source and project artifacts.
 
 ## Source Availability & Open Source Transition
 
-The `ostk` framework has transitioned to public repositories on GitHub.
+The ostk source is published in public repositories on GitHub.
 
 The runtime daemons and CLI orchestrators (`ostk`, `ostk-cache`, and `ostk-recall`) are open-source under the GNU Affero General Public License v3.0 (AGPL-3.0). This guarantees that modifications to these system elements remain available to the community.
 

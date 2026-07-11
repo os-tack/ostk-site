@@ -7,11 +7,12 @@ import { LATEST_TAG } from '../../site-version';
 
 <DocsLayout
   title="MCP — both directions"
-  description="ostk speaks MCP in both directions: inbound (your agent tool drives ostk) and outbound (ostk-driven agents call external MCP services). One bridge, one proxy, one configuration model."
+  seoTitle="MCP Integration for AI Coding Agents in ostk"
+  description="Connect configured MCP clients to the ostk kernel and route ostk-managed agents to compatible MCP services with explicit audit, policy, and egress boundaries."
   sectionLabel="REFERENCE // MCP"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    ostk speaks MCP in both directions. <strong class="text-on-surface">Inbound</strong>: an external client (Claude Code, Cursor, anything) drives ostk as an MCP server. <strong class="text-on-surface">Outbound</strong>: ostk-driven agents call external MCP services (linear, github, postgres, etc.) via a userspace proxy.
+    ostk speaks MCP in both directions. <strong class="text-on-surface">Inbound</strong>: a configured MCP client drives the kernel through <code class="text-primary">ostk connect</code>. <strong class="text-on-surface">Outbound</strong>: ostk-driven agents can call configured, compatible MCP services through a userspace proxy. Client and server compatibility is integration-specific.
   </p>
 
   <!-- Quick reference -->
@@ -20,8 +21,8 @@ import { LATEST_TAG } from '../../site-version';
     <div class="bg-surface-container-low p-6 max-w-2xl">
       <div class="space-y-3 font-body text-xs">
         <div class="flex gap-4">
-          <code class="text-primary w-40 shrink-0">ostk mcp</code>
-          <span class="text-secondary">Run the stdio MCP bridge. Invoked by external MCP clients as a subprocess. Forwards to a running daemon, falls back to in-process serve.</span>
+          <code class="text-primary w-40 shrink-0">ostk connect</code>
+          <span class="text-secondary">Run the canonical stdio MCP bridge. It connects to the project daemon, starting it when possible, and refuses if no anchored daemon can be reached. There is no write-capable in-process fallback.</span>
         </div>
         <div class="flex gap-4">
           <code class="text-primary w-40 shrink-0">ostk mcp diag</code>
@@ -42,7 +43,7 @@ import { LATEST_TAG } from '../../site-version';
       </div>
     </div>
     <p class="font-body text-[10px] text-outline mt-3 max-w-xl">
-      The outbound verbs were renamed from <code class="text-primary">ostk mcp {`{list,call,serve}`}</code> to <code class="text-primary">ostk driver {`{list,call,serve}`}</code> when <code class="text-primary">ostk mcp</code> (no subcommand) was reclaimed for the inbound bridge. Legacy <code class="text-primary">ostk mcp ...</code> still routes to the new <code class="text-primary">ostk driver ...</code> via <code class="text-primary">McpLegacy</code> dispatch in <code class="text-primary">src/main.rs</code>.
+      <code class="text-primary">ostk connect</code> is the canonical inbound bridge command. The older bare <code class="text-primary">ostk mcp</code> spelling is a transitional alias; <code class="text-primary">ostk mcp diag</code> remains the diagnostic command. Outbound services use <code class="text-primary">ostk driver list</code>, <code class="text-primary">call</code>, and <code class="text-primary">serve</code>.
     </p>
   </section>
 
@@ -54,24 +55,24 @@ import { LATEST_TAG } from '../../site-version';
       <div class="section-label mb-4">DIRECTION_01 // INBOUND_BRIDGE</div>
       <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Drive ostk from an external MCP client</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-        Your agent tool (Claude Code, Cursor, your own client) launches <code class="text-primary">ostk mcp</code> as a subprocess and speaks the MCP JSON-RPC protocol over stdio. The bridge translates that into kernel calls. Your agent gets gen-tracked writes, hash-chained audit, and pin-cap enforcement without changing its UI.
+        A supported MCP client launches <code class="text-primary">ostk connect</code> and speaks MCP JSON-RPC over stdio. Calls made through ostk tools receive generation tracking, hash-chained audit, and pin-cap enforcement. The client's native filesystem and shell tools remain outside that surface, so configure an allowlist when complete coverage matters.
       </p>
       <p class="font-body text-xs text-outline max-w-xl mb-8">
-        Source: <code class="text-primary">src/main.rs</code> (<code>Commands::Mcp {`{ command: None }`}</code> branch — runs <code>run_mcp_bridge</code>), <code class="text-primary">src/serve/server.rs</code> (<code>run_mcp_bridge</code>, <code>bridge_stdio_to_daemon</code>). The bridge resolved the "two isolated kernels" problem (→1309 Phase 2B) — the Claude Code MCP process and <code>ostk daemon</code> used to have separate <code>ServerState</code>s that couldn't see each other's work.
+        Source: <code class="text-primary">src/main.rs</code> (<code>Commands::Connect</code> — runs <code>run_mcp_bridge</code>), <code class="text-primary">src/serve/server.rs</code> (<code>run_mcp_bridge</code>, <code>bridge_stdio_to_daemon</code>). The bridge resolved the "two isolated kernels" problem (→1309 Phase 2B) — the Claude Code MCP process and <code>ostk daemon</code> used to have separate <code>ServerState</code>s that couldn't see each other's work.
       </p>
     </div>
 
     <!-- Configuration -->
     <h3 class="serif-text text-xl font-medium text-on-surface mb-3">Configuration</h3>
     <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      Most MCP clients use the same <code class="text-primary">mcpServers</code> shape. Add this entry to your client's MCP config:
+      Many MCP clients use an <code class="text-primary">mcpServers</code>-style configuration, but paths and field names vary. Use the current documentation for your verified client and point it at:
     </p>
     <Terminal>
       <pre>{`{
   "mcpServers": {
     "ostk": {
       "command": "ostk",
-      "args": ["mcp"]
+      "args": ["connect"]
     }
   }
 }`}</pre>
@@ -91,7 +92,7 @@ import { LATEST_TAG } from '../../site-version';
       </div>
       <div class="flex justify-between">
         <span class="text-secondary">Other clients</span>
-        <span class="text-outline">consult their MCP docs — schema is consistent</span>
+        <span class="text-outline">consult the client's current MCP documentation and verify the integration</span>
       </div>
     </div>
 
@@ -125,7 +126,7 @@ import { LATEST_TAG } from '../../site-version';
 {"event":"tool.bash","cmd":"cargo check","exit_code":0,"duration_ms":2841,...}`}</pre>
     </Terminal>
     <p class="font-body text-xs text-secondary mt-3 max-w-lg">
-      Each row is hash-chained against the previous (<code class="text-primary">prev_hash</code>) and Ed25519-signed in-process (<code class="text-primary">sig</code>). Two agents editing the same file get a CAS conflict instead of a silent overwrite. Capability boundaries from <code class="text-primary">.ostk/pins/&lt;name&gt;/pin.caps</code> apply uniformly.
+      Kernel-mediated dispatch rows are hash-chained through <code class="text-primary">prev_hash</code> and are Ed25519-signed when a signing key is available; unsigned rows remain visibly unsigned. CAS conflict handling applies to <code class="text-primary">fs_ops</code> edits that provide expected text. Pin caps apply to calls routed through the kernel, not to a client's native tools.
     </p>
 
     <!-- Inbound troubleshooting -->
@@ -153,14 +154,14 @@ import { LATEST_TAG } from '../../site-version';
     <div class="border-t border-surface-variant pt-8">
       <h2 class="serif-text text-2xl font-medium text-on-surface mb-4">DRIVING OSTK FROM CUSTOM TOOLS & SCRIPTS</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-        You don't need Claude Code or Cursor to leverage the ostk kernel. You can drive it directly from custom scripts, CI pipelines, or proprietary editor extensions using two transport methods:
+        Custom clients and CI can use the documented MCP bridge. Direct socket clients are an advanced, versioned System ABI integration and must implement the required initialization, identity, and request contracts; the snippets below are protocol sketches, not a universal client SDK.
       </p>
 
       <div class="space-y-6 max-w-2xl">
         <div class="bg-surface-container-low p-5">
           <h3 class="font-bold text-sm text-primary font-mono mb-2">1. Subprocess Pipe Transport (Stdio)</h3>
           <p class="font-body text-xs text-secondary leading-relaxed mb-3">
-            Spawn <code>ostk mcp</code> as a persistent background process. Write JSON-RPC 2.0 messages to its <code>stdin</code> and read structured responses from its <code>stdout</code>.
+            Spawn <code>ostk connect</code> as the stdio bridge. Write MCP JSON-RPC messages to its <code>stdin</code> and read structured responses from its <code>stdout</code>; the bridge requires the daemon-owned kernel.
           </p>
           <div class="font-body text-xs text-outline mb-2">Example payload sent to stdio:</div>
           <pre class="bg-surface-container-high p-4 font-mono text-[11px] text-secondary overflow-x-auto border border-surface-variant">
@@ -168,7 +169,7 @@ import { LATEST_TAG } from '../../site-version';
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "mcp__ostk__read",
+    "name": "read",
     "arguments": {
       "path": "src/main.rs"
     }
@@ -181,7 +182,7 @@ import { LATEST_TAG } from '../../site-version';
         <div class="bg-surface-container-low p-5">
           <h3 class="font-bold text-sm text-primary font-mono mb-2">2. UNIX Domain Socket Transport</h3>
           <p class="font-body text-xs text-secondary leading-relaxed mb-3">
-            For maximum performance and zero process-startup overhead, connect directly to the UNIX domain socket located at <code>.ostk/ostk.sock</code>. This bypasses the MCP abstraction layer entirely and invokes System ABI verbs directly.
+            Advanced clients can connect to the project UNIX domain socket at <code>.ostk/ostk.sock</code> and invoke version-compatible System ABI verbs directly. This bypasses MCP translation, but it does not bypass daemon identity, initialization, policy, or schema requirements.
           </p>
           <div class="font-body text-xs text-outline mb-2">Simple Node.js integration script:</div>
           <pre class="bg-surface-container-high p-4 font-mono text-[11px] text-secondary overflow-x-auto border border-surface-variant">
@@ -213,10 +214,10 @@ client.on('data', (data) => {
       <div class="section-label mb-4">DIRECTION_02 // OUTBOUND_PROXY</div>
       <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Call external MCP services from ostk-driven agents</h2>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-        Your ostk-driven agent needs to talk to Linear, GitHub, Postgres, or any other MCP-speaking service. ostk's <code class="text-primary">driver</code> subcommand is a userspace proxy — agents invoke <code class="text-primary">ostk driver call &lt;name&gt; &lt;tool&gt;</code> and the proxy connects, sends one JSON-RPC request, prints the response, exits.
+        An ostk-driven agent can talk to a configured MCP service whose stdio and JSON-RPC behavior is compatible with the proxy. The <code class="text-primary">driver</code> subcommand connects, sends one request, prints the response, and exits. Compatibility and authentication must be verified per service.
       </p>
       <p class="font-body text-xs text-outline max-w-xl mb-8">
-        Deliberately at arm's length: the kernel never speaks MCP protocol bytes. Output flows through the same compression + audit pipeline as any shell output. Source: <code class="text-primary">src/commands/mcp_proxy.rs</code> (<code>run_list</code>, <code>run_call</code>, <code>run_serve</code>, <code>run_persistent_call</code>, <code>run_ephemeral_call</code>, <code>run_jsonrpc_session</code>).
+        Deliberately at arm's length: the kernel never speaks the outbound service's MCP protocol bytes. The configured subprocess can access the network and is not constrained by ostk pin caps; its invocation appears through the normal shell compression and audit path. Source: <code class="text-primary">src/commands/mcp_proxy.rs</code> (<code>run_list</code>, <code>run_call</code>, <code>run_serve</code>, <code>run_persistent_call</code>, <code>run_ephemeral_call</code>, <code>run_jsonrpc_session</code>).
       </p>
     </div>
 
@@ -259,7 +260,7 @@ client.on('data', (data) => {
         { num: '01', step: 'Operator declares servers in HUMANFILE mcp: section. No kernel registration, no boot-time discovery.' },
         { num: '02', step: 'Agent calls shell("ostk driver call linear list-issues"). The shell command runs as userspace subprocess.' },
         { num: '03', step: 'ostk driver connects to the server over stdio, sends one JSON-RPC request, reads the response, exits. Output flows through the normal compression + audit pipeline as any shell output does.' },
-        { num: '04', step: 'Compare to built-in tools (file:edit, shell, etc.) which DO route through the kernel directly. Outbound MCP is deliberately at arm\'s length.' },
+        { num: '04', step: 'Compare with ostk tools such as fs_ops and bash, which route through the kernel directly. The outbound service itself remains outside ostk pin-cap enforcement.' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
@@ -280,14 +281,14 @@ client.on('data', (data) => {
       <div class="min-w-[520px]">
       <div class="grid grid-cols-3 gap-4 font-body text-xs border-b border-surface-variant pb-3 mb-3">
         <div class="font-label text-[10px] text-secondary">ASPECT</div>
-        <div class="font-label text-[10px] text-primary">INBOUND (ostk mcp)</div>
+        <div class="font-label text-[10px] text-primary">INBOUND (ostk connect)</div>
         <div class="font-label text-[10px] text-primary">OUTBOUND (ostk driver)</div>
       </div>
       {[
         ['Direction', 'External client → ostk', 'Ostk-driven agent → external service'],
         ['Transport', 'stdio (subprocess)', 'stdio (subprocess) or unix socket (persistent)'],
         ['Tool scope', 'Kernel verbs (bash, fs_ops, read, search, ...)', 'Whatever the external server exposes'],
-        ['Audit path', 'Kernel-direct (every call → audit row)', 'Shell wrapper (call appears as bash row + nested response)'],
+        ['Audit path', 'Kernel-mediated calls append dispatch rows', 'Shell wrapper (invocation appears as a bash row; remote behavior is external)'],
         ['Pin cap enforcement', 'Yes (kernel-mediated)', 'No (the proxy does not impose ostk policy on the remote server)'],
         ['Compression', 'Yes (uniform)', 'Yes (output passes through shell compressor)'],
         ['Configuration', 'Client\'s MCP config (mcpServers)', '.ostk/HUMANFILE mcp: section'],

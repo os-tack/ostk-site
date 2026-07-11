@@ -1,224 +1,1501 @@
 ---
 import Base from '../layouts/Base.astro';
-import Sidebar from '../components/Sidebar.astro';
 import Icon from '../components/Icon.astro';
-import { LATEST_TAG } from '../site-version';
 
-const sidebarGroups = {
-  sections: [
-    {
-      label: 'ABOUT_OSTK',
-      items: [
-        { icon: 'help_outline', label: 'WHY_OSTK', href: '/why/' },
-        { icon: 'layers', label: 'THE_STACK', href: '/stack/' },
-        { icon: 'rocket_launch', label: 'START_HERE', href: '/start/' },
-      ],
-    },
-    {
-      label: 'LINEAGE_AND_GOVERNANCE',
-      items: [
-        { icon: 'auto_stories', label: 'DOCTRINE', href: '/doctrine/' },
-        { icon: 'gavel', label: 'GOVERNANCE', href: '/governance/' },
-        { icon: 'info', label: 'ABOUT', href: '/about/' },
-        { icon: 'history', label: 'CHANGELOG', href: '/changelog/' },
-      ],
-    },
-  ],
-  bottomItems: [
-    { icon: 'menu_book', label: 'ALL_DOCS', href: '/docs/' },
-    { icon: 'code', label: 'SOURCE', href: 'https://github.com/os-tack/ostk.ai' },
-  ],
-};
+const orientationChecks = [
+  {
+    number: '01',
+    label: 'Active task',
+    body: 'The single open task and its acceptance condition.',
+  },
+  {
+    number: '02',
+    label: 'Decision + rationale',
+    body: 'The recorded rounding policy and why it was chosen.',
+  },
+  {
+    number: '03',
+    label: 'Changed file state',
+    body: 'The partial edit and handoff marker in src/pricing.py.',
+  },
+  {
+    number: '04',
+    label: 'Exact next action',
+    body: 'The remaining implementation, test, and close sequence.',
+  },
+];
+
+const limitations = [
+  'The checker validates a bounded continuity run. It is not an adversarial identity proof.',
+  'Journal fields do not independently attest that an external process was a particular named coding agent.',
+  'The no-transcript condition is enforced by the person running the demo; the checker cannot prove that nothing was pasted.',
+  'A pass does not establish provider or router failover, fresh-machine restore, projection rebuilds, data-egress policy, or concurrent-edit behavior.',
+];
+
+const nextPaths = [
+  {
+    icon: 'cpu',
+    title: 'Use local inference',
+    body: 'Continue with a configured local-model route and its explicit capability limits.',
+    href: '/start/local/',
+    action: 'Open the local path',
+  },
+  {
+    icon: 'users',
+    title: 'Coordinate a team or CI',
+    body: 'Move from a two-session demo into shared-agent and automation patterns.',
+    href: '/start/server/',
+    action: 'Open the team path',
+  },
+  {
+    icon: 'layers',
+    title: 'Understand the system',
+    body: 'Read how the project layer, integrations, and internal components fit together.',
+    href: '/stack/',
+    action: 'See how it works',
+  },
+];
 ---
 
-<Base title="Start here — pick your onboarding pathway" description="Four modular ways to adopt ostk: safe userspace sandbox library (libostk), transparent prompt cache proxy (ostk-cache), semantic memory engine (ostk-recall), or the full integrated CLI suite.">
-  <Sidebar title="START" subtitle={LATEST_TAG} groups={sidebarGroups} />
+<Base
+  marketing
+  activeTab="start"
+  title="AI Coding Agent Handoff Demo — ostk"
+  description="Run a five-minute AI coding agent handoff demo and verify that a fresh supported session can recover the task, rationale, changed file, and next action."
+>
+  <main id="main-content" class="start-page flex-1">
+    <section class="start-hero">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-glow" aria-hidden="true"></div>
 
-  <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
-    <div class="max-w-4xl mx-auto py-12">
-      <div class="section-label mb-4">INITIALIZATION // MODULAR_PATHWAYS</div>
-      <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Start here.</h1>
-
-      <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-16">
-        ostk is modular. Adopt only the components that match your architecture. The first ten minutes differ by path.
-      </p>
-
-      <!-- Pathway Grid -->
-      <section class="mb-16">
-        <h2 id="pick-a-path" class="section-label mb-6 scroll-mt-24">SELECT_YOUR_PATHWAY</h2>
-
-        <div class="grid grid-cols-1 gap-6">
-          
-          <!-- Path 1: ostk (kernel) -->
-          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
-            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div class="flex items-start gap-4">
-                <div class="p-2 bg-primary/10 border border-primary/20 text-primary">
-                  <Icon name="terminal" size="24" />
-                </div>
-                <div>
-                  <h3 class="font-headline text-lg font-bold text-primary">1. Full Runtime / CLI Kernel (<code class="text-primary">ostk</code>)</h3>
-                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
-                    For developers needing full platform supervision, process sandboxing (Landlock/Seatbelt), OCC validation, and GPG-signed audit logging.
-                  </p>
-                  <p class="font-body text-[10px] text-outline mt-2">
-                    License: <span class="text-outline font-bold font-mono">AGPL-3.0</span> | Interface: CLI / Socket Daemon
-                  </p>
-                </div>
-              </div>
-              <div class="text-right">
-                <span class="font-label text-[10px] text-secondary">FULL RUNTIME</span>
-              </div>
-            </div>
-
-            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Install runtime binary & boot supervisor:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">curl -fsSL https://ostk.ai/install.sh | sh
-cd ~/projects/your-repo && ostk init
-ostk boot</pre>
-              </div>
-              <a href="/docs/ostk/" class="font-body text-xs text-primary hover:underline block">Read kernel supervisor docs →</a>
-            </div>
+      <div class="page-wrap hero-layout">
+        <div>
+          <div class="eyebrow">
+            <span aria-hidden="true"></span>
+            FIRST-WIN DEMO / FIVE MINUTES
           </div>
 
-          <!-- Path 2: ostk-recall -->
-          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
-            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div class="flex items-start gap-4">
-                <div class="p-2 bg-primary/10 border border-primary/20 text-primary">
-                  <Icon name="memory" size="24" />
-                </div>
-                <div>
-                  <h3 class="font-headline text-lg font-bold text-primary">2. Memory-Only Retrieval (<code class="text-primary">ostk-recall</code>)</h3>
-                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
-                    For developers integrating memory indices directly into Cursor or Claude Code. Runs LanceDB + Tantivy BM25 locally.
-                  </p>
-                  <p class="font-body text-[10px] text-outline mt-2">
-                    License: <span class="text-outline font-bold font-mono">AGPL-3.0</span> | Interface: stdio MCP / UNIX Socket
-                  </p>
-                </div>
-              </div>
-              <div class="text-right">
-                <span class="font-label text-[10px] text-secondary">MCP MEMORY SERVER</span>
-              </div>
-            </div>
+          <h1>Can a fresh agent pick up work it did not start?</h1>
 
-            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Initialize codebase search index:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">ostk-recall init
-ostk-recall scan</pre>
-              </div>
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Spawn debounce watcher & register stdio MCP:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">ostk-recall watch &
-# add "ostk-recall" command: "ostk-recall serve --stdio" to your MCP config</pre>
-              </div>
-              <a href="/docs/ostk-recall/" class="font-body text-xs text-primary hover:underline block">Read ostk-recall docs →</a>
-            </div>
+          <p class="hero-lede">
+            Run one tiny, deliberately broken project through two fresh conversations. The second agent gets no transcript or prose handoff. It must recover the task, rationale, changed file, and next action from project state before it edits source.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#prepare" class="primary-action">
+              Start the demo
+              <Icon name="chevron-right" size="17" />
+            </a>
+            <a
+              href="https://github.com/os-tack/ostk.ai/tree/main/demo/first-win"
+              class="secondary-action"
+            >
+              Future canonical tree
+            </a>
           </div>
 
-          <!-- Path 3: ostk-cache -->
-          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
-            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div class="flex items-start gap-4">
-                <div class="p-2 bg-primary/10 border border-primary/20 text-primary">
-                  <Icon name="compress" size="24" />
-                </div>
-                <div>
-                  <h3 class="font-headline text-lg font-bold text-primary">3. Cache-Only Proxy (<code class="text-primary">ostk-cache</code>)</h3>
-                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
-                    For operators wanting immediate token savings on OpenAI or Anthropic API transactions. Acts as a transparent proxy on port 8080.
-                  </p>
-                  <p class="font-body text-[10px] text-outline mt-2">
-                    License: <span class="text-outline font-bold font-mono">AGPL-3.0</span> | Upstream: Anthropic, OpenAI
-                  </p>
-                </div>
-              </div>
-              <div class="text-right">
-                <span class="font-label text-[10px] text-secondary">API WIRE PROXY</span>
-              </div>
-            </div>
-
-            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Start proxy daemon:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">ostk-cache --port 8080 --mode mutate</pre>
-              </div>
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Redirect agent base URL:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">export ANTHROPIC_BASE_URL=http://127.0.0.1:8080</pre>
-              </div>
-              <p class="font-body text-xs text-outline leading-relaxed">
-                All requests now pass through the local cache pipeline, automatically ejecting large results (Tier A) and pruning oldest messages (Tier B) to respect budget parameters.
-              </p>
-              <a href="/docs/ostk-cache/" class="font-body text-xs text-primary hover:underline block">Read ostk-cache docs →</a>
-            </div>
-          </div>
-
-          <!-- Path 4: libostk -->
-          <div class="bg-surface-container border border-surface-variant p-6 hover:border-primary transition-colors">
-            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div class="flex items-start gap-4">
-                <div class="p-2 bg-green-400/10 border border-green-400/20 text-green-400">
-                  <Icon name="extension" size="24" />
-                </div>
-                <div>
-                  <h3 class="font-headline text-lg font-bold text-primary">4. Programmatic Client Library (<code class="text-green-400">libostk</code>)</h3>
-                  <p class="font-body text-xs text-secondary mt-1 max-w-xl">
-                    For developers building custom kernel clients directly inside IDE overlays, bots, or CI runners. Integrates via pure userspace socket calls.
-                  </p>
-                  <p class="font-body text-[10px] text-outline mt-2">
-                    License: <span class="text-green-400 font-bold font-mono">MIT (Permissive)</span> | Target: Rust, Node, Python
-                  </p>
-                </div>
-              </div>
-              <div class="text-right">
-                <span class="font-label text-[10px] text-secondary">DEVELOPER SDK</span>
-              </div>
-            </div>
-            
-            <div class="mt-6 space-y-4 border-t border-surface-variant pt-4">
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Add client library to Cargo.toml:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">libostk = {"{"} version = "6.0" {"}"}</pre>
-              </div>
-              <div class="font-mono text-xs text-secondary">
-                <span class="text-outline block mb-1">Connect to local socket & negotiate permissions:</span>
-                <pre class="bg-surface-container-lowest p-3 border border-surface-variant">use libostk::KernelConnection;
-let client = KernelConnection::connect(".ostk/ostk.sock").await?;
-let session = client.negotiate_pins(&["read_file"]).await?;</pre>
-              </div>
-              <a href="/docs/libostk/" class="font-body text-xs text-primary hover:underline block">Read libostk integration docs →</a>
-            </div>
-          </div>
-
+          <p class="publication-note">
+            The <code>demo/first-win</code> path is the canonical destination, but it may not be published on the <code>main</code> branch yet. If you have the current source checkout, use the local demo there.
+          </p>
         </div>
 
-        <p class="font-body text-xs text-outline mt-6 max-w-xl">
-          Picked one and changed your mind? All stack modules coordinate seamlessly. You can start with `ostk-cache` and add the full `ostk` kernel daemon later without rewriting your workflows.
+        <aside class="run-contract" aria-label="First-win run contract">
+          <div class="contract-topline">
+            <span>RUN CONTRACT</span>
+            <span class="ready-state"><i></i> BOUNDED TEST</span>
+          </div>
+
+          <div class="contract-question">
+            <span>FRESH SESSION</span>
+            <strong>“What am I walking into?”</strong>
+          </div>
+
+          <div class="contract-metrics">
+            <div>
+              <strong>05</strong>
+              <span>minutes</span>
+            </div>
+            <div>
+              <strong>02</strong>
+              <span>fresh sessions</span>
+            </div>
+            <div>
+              <strong>01</strong>
+              <span>provider required</span>
+            </div>
+            <div>
+              <strong>04</strong>
+              <span>facts checked</span>
+            </div>
+          </div>
+
+          <div class="contract-foot">
+            <span>No transcript copy</span>
+            <span>Disposable repository</span>
+            <span>Machine-readable result</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page-wrap orientation-section">
+      <div class="section-heading">
+        <div>
+          <div class="section-kicker">THE PASS CONDITION</div>
+          <h2>Four facts, recovered before the fix.</h2>
+        </div>
+        <p>
+          Agent B writes its orientation evidence before changing source or task state. The checker compares each answer with the live task, decision log, source diff, and recorded next action.
         </p>
-      </section>
+      </div>
 
-      <!-- Where to go after -->
-      <section class="mb-8">
-        <h2 class="section-label mb-4">AFTER_YOU'RE_RUNNING</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-2xl">
-          <a href="/docs/security/" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
-            <div class="font-body text-xs text-primary font-bold mb-1">SECURITY_AND_TRUST</div>
-            <p class="font-body text-[10px] text-secondary">Tiers, GPG signing, pins, sandboxing.</p>
-          </a>
-          <a href="/docs/needles/" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
-            <div class="font-body text-xs text-primary font-bold mb-1">NEEDLES</div>
-            <p class="font-body text-[10px] text-secondary">Open questions and decisions across sessions.</p>
-          </a>
-          <a href="/docs/commands/" class="bg-surface-container-high p-4 hover:bg-surface-container transition-colors">
-            <div class="font-body text-xs text-primary font-bold mb-1">COMMANDS</div>
-            <p class="font-body text-[10px] text-secondary">Full CLI reference.</p>
-          </a>
+      <div class="check-grid">
+        {orientationChecks.map((check) => (
+          <article>
+            <span>{check.number}</span>
+            <h3>{check.label}</h3>
+            <p>{check.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="prepare" class="journey-section">
+      <div class="page-wrap">
+        <div class="journey-heading">
+          <div class="section-kicker">RUN THE DEMO</div>
+          <h2>One controlled handoff, step by step.</h2>
+          <p>
+            The preparation script keeps the exercise away from the <code>ostk.ai</code> trust-root repository. Every agent action happens inside a new temporary Git repository.
+          </p>
         </div>
-      </section>
-    </div>
+
+        <div class="prerequisites">
+          <div>
+            <span>REQUIRES</span>
+            <strong>ostk 7.7.3 · Git · Python 3 · mktemp</strong>
+          </div>
+          <div>
+            <span>AGENT CONNECTION</span>
+            <strong>A harness with the ostk MCP tools exposed</strong>
+          </div>
+        </div>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-marker">
+              <span>01</span>
+              <i aria-hidden="true"></i>
+            </div>
+            <div class="step-content">
+              <div class="step-label">PREPARE AN ISOLATED REPOSITORY</div>
+              <h3>Let the script create a clean place to work.</h3>
+              <p>
+                From the <code>demo/first-win</code> directory in your source checkout, run the preparation script:
+              </p>
+
+              <button
+                type="button"
+                class="command-block"
+                data-copy="./scripts/prepare.sh"
+                aria-label="Copy prepare command"
+              >
+                <span class="command-prompt">$</span>
+                <code>./scripts/prepare.sh</code>
+                <span class="copy-label">COPY</span>
+              </button>
+
+              <div class="step-note">
+                <Icon name="shield" size="19" />
+                <p>
+                  The script creates a fresh repository under <code>{'${TMPDIR:-/tmp}'}</code>, commits the clean demo baseline, then runs the verified initialization and boot commands inside that temporary repository. It does not initialize <code>ostk.ai</code>.
+                </p>
+              </div>
+
+              <p class="instruction">Keep the printed temporary path. Both sessions must open that exact repository.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-marker">
+              <span>02</span>
+              <i aria-hidden="true"></i>
+            </div>
+            <div class="step-content">
+              <div class="step-label">CONNECT YOUR CODING AGENT</div>
+              <h3>Expose the project tools through the supported MCP surface.</h3>
+              <p>
+                In your harness's MCP configuration, set the server command to:
+              </p>
+
+              <button
+                type="button"
+                class="command-block command-short"
+                data-copy="ostk connect"
+                aria-label="Copy MCP bridge command"
+              >
+                <span class="command-prompt">$</span>
+                <code>ostk connect</code>
+                <span class="copy-label">COPY</span>
+              </button>
+
+              <p class="instruction">
+                Confirm the harness exposes ostk <code>read</code>, <code>fs_ops</code>, <code>search</code>, and <code>bash</code>. If those tools are missing, stop rather than substituting native file-edit tools.
+              </p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-marker">
+              <span>03</span>
+              <i aria-hidden="true"></i>
+            </div>
+            <div class="step-content">
+              <div class="step-label">SESSION A / LEAVE REAL WORK IN FLIGHT</div>
+              <h3>Give the first fresh session its bounded instructions.</h3>
+              <p>
+                Open your connected coding agent in the printed temporary repository and give it:
+              </p>
+
+              <div class="file-card">
+                <Icon name="file-text" size="20" />
+                <code>.first-win/prompts/agent-a.md</code>
+              </div>
+
+              <p class="instruction">
+                Agent A verifies the failing tests, opens one task, records one decision, makes a deliberate partial edit, records the exact next action, and checks the handoff stage. It must leave the actual fix unfinished.
+              </p>
+            </div>
+          </article>
+
+          <article class="step proof-choice-step">
+            <div class="step-marker">
+              <span>04</span>
+              <i aria-hidden="true"></i>
+            </div>
+            <div class="step-content">
+              <div class="step-label">END THE CONVERSATION</div>
+              <h3>Choose how strong you want the handoff test to be.</h3>
+              <p>
+                End Session A completely. Do not pass its transcript, generated summary, or a prose handoff into the next conversation.
+              </p>
+
+              <div class="proof-choice">
+                <article class="choice-primary">
+                  <div class="choice-badge">DEFAULT / ONE PROVIDER</div>
+                  <h4>Same coding agent, fresh conversation</h4>
+                  <p>
+                    Start a genuinely new conversation in the same connected harness. This is the lowest-friction recovery test and requires only one provider account.
+                  </p>
+                  <span>Proves bounded cross-session recovery</span>
+                </article>
+
+                <article>
+                  <div class="choice-badge">STRONGER / OPTIONAL</div>
+                  <h4>Different connected harness</h4>
+                  <p>
+                    Open a fresh session in another supported harness against the same temporary repository. Do not give it anything from Session A.
+                  </p>
+                  <span>Adds cross-harness continuity evidence</span>
+                </article>
+              </div>
+
+              <p class="instruction">
+                If your harness injects its own persistent project memory into new conversations, the same-agent path is less isolated. The checker cannot distinguish that context from ostk-provided orientation.
+              </p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-marker">
+              <span>05</span>
+              <i aria-hidden="true"></i>
+            </div>
+            <div class="step-content">
+              <div class="step-label">SESSION B / COLD ORIENTATION</div>
+              <h3>Ask the question, then let the new agent inspect live state.</h3>
+
+              <div class="prompt-card">
+                <span>YOU</span>
+                <strong>What am I walking into?</strong>
+              </div>
+
+              <p>
+                Give the fresh session the bounded Agent B instructions:
+              </p>
+
+              <div class="file-card">
+                <Icon name="file-text" size="20" />
+                <code>.first-win/prompts/agent-b.md</code>
+              </div>
+
+              <p class="instruction">
+                Before it edits source, Agent B must write the four facts to <code>evidence/agent-b-orientation.json</code>. Its prompt runs the orientation checker and proceeds only when the result reports <code>"ok": true</code>.
+              </p>
+
+              <div class="fact-strip">
+                {orientationChecks.map((check) => (
+                  <div>
+                    <span>{check.number}</span>
+                    <strong>{check.label}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-marker">
+              <span>06</span>
+            </div>
+            <div class="step-content">
+              <div class="step-label">COMPLETE AND CAPTURE THE RESULT</div>
+              <h3>Let Agent B finish, then save the machine-readable evidence.</h3>
+              <p>
+                Agent B completes the recorded next action, runs the task's acceptance command, and closes the task only after it passes. To capture the final checker result:
+              </p>
+
+              <button
+                type="button"
+                class="command-block"
+                data-copy="python3 .first-win/check.py --stage complete --json > evidence/acceptance.json"
+                aria-label="Copy final checker command"
+              >
+                <span class="command-prompt">$</span>
+                <code>python3 .first-win/check.py --stage complete --json &gt; evidence/acceptance.json</code>
+                <span class="copy-label">COPY</span>
+              </button>
+
+              <div class="result-card">
+                <div class="result-topline">
+                  <span class="ready-state"><i></i> ACCEPTANCE EVIDENCE</span>
+                  <code>evidence/acceptance.json</code>
+                </div>
+                <ul>
+                  <li>The code tests pass.</li>
+                  <li>The task closes only after its recorded acceptance condition passes.</li>
+                  <li>Agent B's four-fact orientation was recorded before its source edit.</li>
+                  <li>Required journal rows contain signature and previous-hash fields.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-wrap boundaries-section">
+      <div class="section-heading">
+        <div>
+          <div class="section-kicker">READ THE RESULT HONESTLY</div>
+          <h2>What this demo does—and does not—establish.</h2>
+        </div>
+        <p>
+          The output is useful evidence because the scenario is deterministic and the checks are machine-readable. Its scope is intentionally narrow.
+        </p>
+      </div>
+
+      <div class="boundary-grid">
+        <article class="establishes">
+          <div class="boundary-label">ESTABLISHES</div>
+          <h3>Project-state continuity across a cold conversation boundary.</h3>
+          <ul>
+            <li><Icon name="verified" size="17" /> Task, decision, and journal exist as ordinary files under <code>.ostk/</code>.</li>
+            <li><Icon name="verified" size="17" /> Agent A leaves a specific failing source state and exact next action.</li>
+            <li><Icon name="verified" size="17" /> Agent B records all four orientation facts before completing the task.</li>
+            <li><Icon name="verified" size="17" /> The final acceptance condition gates task closure.</li>
+          </ul>
+        </article>
+
+        <article class="limits">
+          <div class="boundary-label">DOES NOT ESTABLISH</div>
+          <h3>Universal provider, router, identity, or privacy claims.</h3>
+          <ul>
+            {limitations.map((item) => (
+              <li><span aria-hidden="true">—</span>{item}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+
+      <div class="data-boundary">
+        <Icon name="alert-triangle" size="20" />
+        <div>
+          <strong>Provider data path</strong>
+          <p>
+            Canonical task, decision, and journal state is stored in the temporary project. That does not make every integration offline: configured providers may receive prompts or context, and anchored Anthropic sessions can use Anthropic Files. Review the integration's data path before using private code.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cleanup-section">
+      <div class="page-wrap cleanup-layout">
+        <div>
+          <div class="section-kicker">CLEAN UP</div>
+          <h2>Close the kernel, keep or discard the evidence.</h2>
+          <p>
+            From the temporary demo repository, terminate the running kernel cleanly:
+          </p>
+
+          <button
+            type="button"
+            class="command-block command-short"
+            data-copy="ostk shutdown"
+            aria-label="Copy shutdown command"
+          >
+            <span class="command-prompt">$</span>
+            <code>ostk shutdown</code>
+            <span class="copy-label">COPY</span>
+          </button>
+
+          <p class="cleanup-note">
+            Then delete the printed temporary directory when you no longer need its evidence. Cleanup is intentionally manual; the demo does not remove the repository for you.
+          </p>
+        </div>
+
+        <aside>
+          <span>WHAT REMAINS</span>
+          <div>
+            <strong>Acceptance evidence</strong>
+            <code>evidence/acceptance.json</code>
+          </div>
+          <div>
+            <strong>Orientation evidence</strong>
+            <code>evidence/agent-b-orientation.json</code>
+          </div>
+          <div>
+            <strong>Project trace</strong>
+            <code>.ostk/</code>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page-wrap next-section">
+      <div class="section-heading">
+        <div>
+          <div class="section-kicker">AFTER THE FIRST WIN</div>
+          <h2>Choose the next useful boundary.</h2>
+        </div>
+        <p>
+          Activation starts with a user outcome. Component details belong in the docs and “How it works,” once you need them.
+        </p>
+      </div>
+
+      <div class="next-grid">
+        {nextPaths.map((path) => (
+          <a href={path.href}>
+            <Icon name={path.icon} size="23" />
+            <h3>{path.title}</h3>
+            <p>{path.body}</p>
+            <span>{path.action} <Icon name="chevron-right" size="15" /></span>
+          </a>
+        ))}
+      </div>
+
+      <div class="docs-link">
+        <p>Looking for commands, configuration, or internal component references?</p>
+        <a href="/docs/">Open the documentation <Icon name="chevron-right" size="15" /></a>
+      </div>
+    </section>
   </main>
 </Base>
+
+<style>
+  :global(html) {
+    scroll-behavior: smooth;
+  }
+
+  .start-page {
+    overflow: hidden;
+    color: #e7e1de;
+    background: #151311;
+  }
+
+  .page-wrap {
+    width: min(100%, 1120px);
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  .start-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 9rem 0 7rem;
+    isolation: isolate;
+    border-bottom: 1px solid rgba(255, 193, 105, 0.16);
+    background:
+      radial-gradient(circle at 80% 22%, rgba(229, 164, 67, 0.13), transparent 28rem),
+      linear-gradient(112deg, rgba(16, 14, 12, 0.98), rgba(33, 25, 16, 0.88));
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      linear-gradient(rgba(255, 193, 105, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 193, 105, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, black 10%, transparent 96%);
+  }
+
+  .hero-glow {
+    position: absolute;
+    z-index: -1;
+    width: 30rem;
+    height: 30rem;
+    right: 8%;
+    top: 13%;
+    border-radius: 999px;
+    background: rgba(229, 164, 67, 0.18);
+    filter: blur(100px);
+  }
+
+  .hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
+    align-items: center;
+    gap: clamp(3rem, 8vw, 8rem);
+  }
+
+  .eyebrow,
+  .section-kicker,
+  .step-label,
+  .boundary-label {
+    color: #ffc169;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .eyebrow > span {
+    width: 2.5rem;
+    height: 1px;
+    background: #ffc169;
+    box-shadow: 0 0 10px rgba(255, 193, 105, 0.7);
+  }
+
+  .start-hero h1 {
+    max-width: 720px;
+    margin-top: 2rem;
+    color: #f3ece7;
+    font-family: 'Newsreader', serif;
+    font-size: clamp(3.75rem, 7.2vw, 6.8rem);
+    font-weight: 520;
+    letter-spacing: -0.06em;
+    line-height: 0.92;
+    text-wrap: balance;
+  }
+
+  .hero-lede {
+    max-width: 680px;
+    margin-top: 1.7rem;
+    color: #d5c4b1;
+    font-size: clamp(1rem, 1.4vw, 1.15rem);
+    line-height: 1.75;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2rem;
+  }
+
+  .primary-action,
+  .secondary-action {
+    display: inline-flex;
+    min-height: 3.2rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.85rem 1.2rem;
+    border: 1px solid transparent;
+    font-size: 0.84rem;
+    font-weight: 650;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  .primary-action {
+    color: #291800;
+    background: #ffc169;
+  }
+
+  .secondary-action {
+    color: #ffc169;
+    border-color: rgba(255, 193, 105, 0.3);
+    background: rgba(16, 14, 12, 0.6);
+  }
+
+  .primary-action:hover,
+  .secondary-action:hover {
+    transform: translateY(-2px);
+  }
+
+  .secondary-action:hover {
+    border-color: #ffc169;
+  }
+
+  .publication-note {
+    max-width: 680px;
+    margin-top: 1.2rem;
+    color: #9e8e7d;
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+
+  code {
+    color: #ffddb4;
+    font-family: 'Space Grotesk', monospace;
+  }
+
+  .run-contract {
+    border: 1px solid rgba(255, 193, 105, 0.3);
+    background:
+      linear-gradient(145deg, rgba(44, 41, 39, 0.9), rgba(16, 14, 12, 0.94));
+    box-shadow: 0 36px 90px rgba(0, 0, 0, 0.4);
+  }
+
+  .contract-topline,
+  .result-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    color: #9e8e7d;
+    border-bottom: 1px solid rgba(81, 69, 54, 0.7);
+    font-size: 0.62rem;
+    letter-spacing: 0.11em;
+  }
+
+  .ready-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #c2c9b4;
+  }
+
+  .ready-state i {
+    width: 0.43rem;
+    height: 0.43rem;
+    border-radius: 999px;
+    background: #c2c9b4;
+    box-shadow: 0 0 9px rgba(194, 201, 180, 0.65);
+  }
+
+  .contract-question {
+    padding: 2.2rem 1.5rem;
+    border-bottom: 1px solid rgba(81, 69, 54, 0.7);
+    background: rgba(255, 193, 105, 0.055);
+  }
+
+  .contract-question span {
+    display: block;
+    color: #9e8e7d;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+  }
+
+  .contract-question strong {
+    display: block;
+    margin-top: 0.65rem;
+    color: #ffddb4;
+    font-family: 'Newsreader', serif;
+    font-size: clamp(1.6rem, 2.8vw, 2.25rem);
+    font-style: italic;
+    font-weight: 440;
+  }
+
+  .contract-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(81, 69, 54, 0.65);
+  }
+
+  .contract-metrics div {
+    padding: 1.2rem;
+    background: #1d1b19;
+  }
+
+  .contract-metrics strong {
+    display: block;
+    color: #ffc169;
+    font-family: 'Newsreader', serif;
+    font-size: 2.1rem;
+    font-style: italic;
+    font-weight: 480;
+  }
+
+  .contract-metrics span {
+    display: block;
+    margin-top: 0.2rem;
+    color: #9e8e7d;
+    font-size: 0.66rem;
+  }
+
+  .contract-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 1rem;
+    padding: 1rem;
+    color: #9e8e7d;
+    font-size: 0.62rem;
+  }
+
+  .contract-foot span + span::before {
+    content: '·';
+    margin-right: 1rem;
+    color: #514536;
+  }
+
+  .orientation-section,
+  .boundaries-section,
+  .next-section {
+    padding-block: clamp(6rem, 10vw, 9rem);
+  }
+
+  .section-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(280px, 0.82fr);
+    align-items: end;
+    gap: clamp(2.5rem, 8vw, 8rem);
+  }
+
+  .section-heading h2,
+  .journey-heading h2,
+  .cleanup-layout h2 {
+    color: #f3ece7;
+    font-family: 'Newsreader', serif;
+    font-size: clamp(2.7rem, 5.2vw, 5rem);
+    font-weight: 510;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .section-kicker {
+    margin-bottom: 1rem;
+  }
+
+  .section-heading > p,
+  .journey-heading > p {
+    color: #d5c4b1;
+    font-size: 0.96rem;
+    line-height: 1.75;
+  }
+
+  .check-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin-top: 4rem;
+    background: rgba(81, 69, 54, 0.6);
+    border: 1px solid rgba(81, 69, 54, 0.6);
+  }
+
+  .check-grid article {
+    min-height: 235px;
+    padding: 1.6rem;
+    background: linear-gradient(145deg, #211f1d, #1d1b19);
+  }
+
+  .check-grid article > span {
+    color: #ffc169;
+    font-family: 'Newsreader', serif;
+    font-size: 2rem;
+    font-style: italic;
+  }
+
+  .check-grid h3 {
+    margin-top: 2.3rem;
+    color: #e7e1de;
+    font-family: 'Newsreader', serif;
+    font-size: 1.35rem;
+  }
+
+  .check-grid p {
+    margin-top: 0.65rem;
+    color: #9e8e7d;
+    font-size: 0.76rem;
+    line-height: 1.65;
+  }
+
+  .journey-section {
+    padding-block: clamp(6rem, 10vw, 9rem);
+    border-block: 1px solid rgba(81, 69, 54, 0.56);
+    background:
+      radial-gradient(circle at 50% 15%, rgba(229, 164, 67, 0.06), transparent 32rem),
+      #100e0c;
+  }
+
+  .journey-heading {
+    max-width: 850px;
+  }
+
+  .journey-heading > p {
+    max-width: 720px;
+    margin-top: 1.4rem;
+  }
+
+  .prerequisites {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-top: 3.5rem;
+    background: rgba(81, 69, 54, 0.65);
+    border: 1px solid rgba(81, 69, 54, 0.65);
+  }
+
+  .prerequisites > div {
+    padding: 1rem 1.25rem;
+    background: #1d1b19;
+  }
+
+  .prerequisites span {
+    display: block;
+    color: #9e8e7d;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+  }
+
+  .prerequisites strong {
+    display: block;
+    margin-top: 0.35rem;
+    color: #e7e1de;
+    font-size: 0.78rem;
+    font-weight: 520;
+  }
+
+  .steps {
+    margin-top: 4rem;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .step + .step {
+    margin-top: 0;
+  }
+
+  .step-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .step-marker span {
+    display: flex;
+    width: 3.6rem;
+    height: 3.6rem;
+    align-items: center;
+    justify-content: center;
+    color: #291800;
+    border-radius: 999px;
+    background: #ffc169;
+    font-family: 'Newsreader', serif;
+    font-size: 1.25rem;
+    font-style: italic;
+    box-shadow: 0 0 28px rgba(229, 164, 67, 0.16);
+  }
+
+  .step-marker i {
+    width: 1px;
+    min-height: 100%;
+    flex: 1;
+    background: linear-gradient(#ffc169, rgba(81, 69, 54, 0.45));
+  }
+
+  .step-content {
+    max-width: 860px;
+    padding: 0.4rem 0 5.5rem;
+  }
+
+  .step-content h3 {
+    max-width: 780px;
+    margin-top: 0.75rem;
+    color: #f3ece7;
+    font-family: 'Newsreader', serif;
+    font-size: clamp(1.85rem, 3.7vw, 3rem);
+    line-height: 1.08;
+  }
+
+  .step-content > p {
+    max-width: 760px;
+    margin-top: 1rem;
+    color: #b9aa9b;
+    font-size: 0.9rem;
+    line-height: 1.72;
+  }
+
+  .command-block {
+    display: grid;
+    width: min(100%, 760px);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.2rem;
+    padding: 1rem 1.1rem;
+    text-align: left;
+    border: 1px solid rgba(81, 69, 54, 0.85);
+    background: #151311;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+
+  .command-block:hover {
+    border-color: rgba(255, 193, 105, 0.65);
+  }
+
+  .command-short {
+    width: min(100%, 470px);
+  }
+
+  .command-prompt {
+    color: #ffc169;
+  }
+
+  .command-block code {
+    overflow: hidden;
+    color: #e7e1de;
+    font-size: clamp(0.72rem, 1.4vw, 0.84rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .copy-label {
+    color: #ffc169;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+
+  .step-note,
+  .data-boundary {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    width: min(100%, 760px);
+    margin-top: 1rem;
+    padding: 1rem;
+    color: #d5c4b1;
+    border: 1px solid rgba(255, 193, 105, 0.2);
+    background: rgba(255, 193, 105, 0.055);
+  }
+
+  .step-note :global(svg),
+  .data-boundary :global(svg) {
+    flex: 0 0 auto;
+    color: #ffc169;
+  }
+
+  .step-note p,
+  .data-boundary p {
+    font-size: 0.75rem;
+    line-height: 1.68;
+  }
+
+  .instruction {
+    padding-left: 1rem;
+    border-left: 1px solid #514536;
+  }
+
+  .file-card {
+    display: flex;
+    width: min(100%, 650px);
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    color: #ffc169;
+    border: 1px solid rgba(81, 69, 54, 0.8);
+    background: #1d1b19;
+  }
+
+  .file-card code {
+    font-size: 0.82rem;
+  }
+
+  .proof-choice {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    width: min(100%, 820px);
+    margin-top: 1.5rem;
+    background: rgba(81, 69, 54, 0.65);
+    border: 1px solid rgba(81, 69, 54, 0.65);
+  }
+
+  .proof-choice article {
+    min-height: 285px;
+    padding: 1.5rem;
+    background: #1d1b19;
+  }
+
+  .proof-choice .choice-primary {
+    background:
+      radial-gradient(circle at 0 0, rgba(229, 164, 67, 0.1), transparent 17rem),
+      #211f1d;
+  }
+
+  .choice-badge {
+    color: #ffc169;
+    font-size: 0.61rem;
+    font-weight: 650;
+    letter-spacing: 0.11em;
+  }
+
+  .proof-choice h4 {
+    margin-top: 2.4rem;
+    color: #e7e1de;
+    font-family: 'Newsreader', serif;
+    font-size: 1.6rem;
+    line-height: 1.1;
+  }
+
+  .proof-choice p {
+    margin-top: 0.8rem;
+    color: #9e8e7d;
+    font-size: 0.76rem;
+    line-height: 1.65;
+  }
+
+  .proof-choice article > span {
+    display: block;
+    margin-top: 1.2rem;
+    color: #c2c9b4;
+    font-size: 0.68rem;
+  }
+
+  .prompt-card {
+    width: min(100%, 650px);
+    margin-top: 1.4rem;
+    padding: 1.3rem;
+    border-left: 2px solid #ffc169;
+    background: rgba(255, 193, 105, 0.07);
+  }
+
+  .prompt-card span {
+    display: block;
+    color: #9e8e7d;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+  }
+
+  .prompt-card strong {
+    display: block;
+    margin-top: 0.5rem;
+    color: #ffddb4;
+    font-family: 'Newsreader', serif;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-style: italic;
+    font-weight: 450;
+  }
+
+  .fact-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    width: min(100%, 760px);
+    margin-top: 1.3rem;
+    background: rgba(81, 69, 54, 0.65);
+  }
+
+  .fact-strip > div {
+    padding: 0.8rem;
+    background: #1d1b19;
+  }
+
+  .fact-strip span {
+    display: block;
+    color: #ffc169;
+    font-size: 0.6rem;
+  }
+
+  .fact-strip strong {
+    display: block;
+    margin-top: 0.3rem;
+    color: #d5c4b1;
+    font-size: 0.66rem;
+    font-weight: 520;
+  }
+
+  .result-card {
+    width: min(100%, 760px);
+    margin-top: 1rem;
+    border: 1px solid rgba(194, 201, 180, 0.24);
+    background: #1d1b19;
+  }
+
+  .result-topline {
+    color: #9e8e7d;
+  }
+
+  .result-card ul {
+    display: grid;
+    gap: 0.7rem;
+    padding: 1.2rem;
+    color: #d5c4b1;
+    font-size: 0.76rem;
+  }
+
+  .result-card li::before {
+    content: '✓';
+    margin-right: 0.65rem;
+    color: #c2c9b4;
+  }
+
+  .boundary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-top: 4rem;
+    background: rgba(81, 69, 54, 0.65);
+    border: 1px solid rgba(81, 69, 54, 0.65);
+  }
+
+  .boundary-grid article {
+    min-height: 500px;
+    padding: clamp(1.6rem, 4vw, 3rem);
+    background: #1d1b19;
+  }
+
+  .boundary-grid .establishes {
+    background:
+      radial-gradient(circle at 0 0, rgba(194, 201, 180, 0.08), transparent 20rem),
+      #211f1d;
+  }
+
+  .boundary-grid h3 {
+    max-width: 510px;
+    margin-top: 2rem;
+    color: #f3ece7;
+    font-family: 'Newsreader', serif;
+    font-size: clamp(1.8rem, 3.2vw, 2.7rem);
+    line-height: 1.08;
+  }
+
+  .boundary-grid ul {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2rem;
+    color: #b9aa9b;
+    font-size: 0.78rem;
+    line-height: 1.65;
+  }
+
+  .establishes li,
+  .limits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .establishes li :global(svg) {
+    flex: 0 0 auto;
+    margin-top: 0.12rem;
+    color: #c2c9b4;
+  }
+
+  .limits li span {
+    color: #514536;
+  }
+
+  .data-boundary {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .data-boundary strong {
+    color: #e7e1de;
+    font-size: 0.82rem;
+  }
+
+  .data-boundary p {
+    margin-top: 0.35rem;
+    color: #b9aa9b;
+  }
+
+  .cleanup-section {
+    padding-block: clamp(6rem, 10vw, 8rem);
+    border-block: 1px solid rgba(255, 193, 105, 0.15);
+    background:
+      linear-gradient(115deg, rgba(33, 24, 15, 0.9), #100e0c 65%);
+  }
+
+  .cleanup-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: clamp(3rem, 8vw, 8rem);
+  }
+
+  .cleanup-layout > div > p {
+    max-width: 650px;
+    margin-top: 1.2rem;
+    color: #b9aa9b;
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+
+  .cleanup-note {
+    padding-left: 1rem;
+    border-left: 1px solid #514536;
+  }
+
+  .cleanup-layout aside {
+    border: 1px solid rgba(81, 69, 54, 0.8);
+    background: rgba(16, 14, 12, 0.65);
+  }
+
+  .cleanup-layout aside > span {
+    display: block;
+    padding: 0.8rem 1rem;
+    color: #9e8e7d;
+    border-bottom: 1px solid #514536;
+    font-size: 0.61rem;
+    letter-spacing: 0.12em;
+  }
+
+  .cleanup-layout aside > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .cleanup-layout aside > div + div {
+    border-top: 1px solid rgba(81, 69, 54, 0.65);
+  }
+
+  .cleanup-layout aside strong {
+    color: #d5c4b1;
+    font-size: 0.75rem;
+    font-weight: 520;
+  }
+
+  .cleanup-layout aside code {
+    font-size: 0.68rem;
+  }
+
+  .next-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    margin-top: 4rem;
+    background: rgba(81, 69, 54, 0.65);
+    border: 1px solid rgba(81, 69, 54, 0.65);
+  }
+
+  .next-grid > a {
+    display: flex;
+    min-height: 330px;
+    flex-direction: column;
+    padding: 2rem;
+    color: inherit;
+    background: #1d1b19;
+    transition: background 160ms ease;
+  }
+
+  .next-grid > a:hover {
+    background: #2c2927;
+  }
+
+  .next-grid > a > :global(svg) {
+    color: #ffc169;
+  }
+
+  .next-grid h3 {
+    margin-top: 3rem;
+    color: #e7e1de;
+    font-family: 'Newsreader', serif;
+    font-size: 1.65rem;
+  }
+
+  .next-grid p {
+    margin-top: 0.8rem;
+    color: #9e8e7d;
+    font-size: 0.76rem;
+    line-height: 1.65;
+  }
+
+  .next-grid a > span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 1.5rem;
+    color: #ffc169;
+    font-size: 0.72rem;
+    font-weight: 650;
+  }
+
+  .docs-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1.2rem;
+    border: 1px solid rgba(81, 69, 54, 0.7);
+  }
+
+  .docs-link p {
+    color: #9e8e7d;
+    font-size: 0.74rem;
+  }
+
+  .docs-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #ffc169;
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+
+  .primary-action:focus-visible,
+  .secondary-action:focus-visible,
+  .command-block:focus-visible,
+  .next-grid a:focus-visible,
+  .docs-link a:focus-visible {
+    outline: 2px solid #ffc169;
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 900px) {
+    .hero-layout,
+    .section-heading,
+    .cleanup-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .run-contract {
+      width: min(100%, 620px);
+    }
+
+    .section-heading {
+      align-items: start;
+      gap: 1.4rem;
+    }
+
+    .check-grid,
+    .fact-strip {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .boundary-grid,
+    .next-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .boundary-grid article {
+      min-height: 0;
+    }
+
+    .next-grid > a {
+      min-height: 280px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .page-wrap {
+      padding-inline: 1rem;
+    }
+
+    .start-hero {
+      padding: 7.5rem 0 5rem;
+    }
+
+    .start-hero h1 {
+      font-size: clamp(3.1rem, 15vw, 4.6rem);
+    }
+
+    .hero-actions {
+      flex-direction: column;
+    }
+
+    .primary-action,
+    .secondary-action {
+      width: 100%;
+    }
+
+    .contract-metrics,
+    .check-grid,
+    .prerequisites,
+    .proof-choice,
+    .fact-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .contract-foot {
+      flex-direction: column;
+    }
+
+    .contract-foot span + span::before {
+      display: none;
+    }
+
+    .step {
+      grid-template-columns: 46px minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .step-marker span {
+      width: 2.8rem;
+      height: 2.8rem;
+      font-size: 1rem;
+    }
+
+    .step-content {
+      padding-bottom: 4rem;
+    }
+
+    .command-block {
+      grid-template-columns: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .copy-label {
+      display: none;
+    }
+
+    .step-note {
+      flex-direction: column;
+    }
+
+    .proof-choice article {
+      min-height: 0;
+    }
+
+    .docs-link {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html) {
+      scroll-behavior: auto;
+    }
+
+    .primary-action,
+    .secondary-action,
+    .next-grid > a {
+      transition: none;
+    }
+  }
+</style>

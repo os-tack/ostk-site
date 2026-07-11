@@ -5,7 +5,7 @@ import Icon from '../../components/Icon.astro';
 const faqs = [
   {
     q: 'How do multiple AI agents edit the same file without conflicts?',
-    a: 'ostk uses optimistic concurrency control. Every file:edit() specifies the text the agent expects. If another agent changed it, the kernel detects the mismatch and resolves it through a 3-tier system: auto-merge for non-overlapping edits, mechanical rebase for nearby edits, and manual escalation for structural conflicts. No locking, no blocking.',
+    a: 'CAS edits made through ostk fs_ops include the text the agent expects. If the file changed, non-overlapping edits can auto-merge, nearby edits return a suggested merge, and structural conflicts fail for review. Native client writes and raw shell writes bypass this CAS contract.',
     link: '/docs/coordination-primitives',
   },
   {
@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     q: 'Do I need to modify my AI agents to work with ostk?',
-    a: 'No. The write path is invisible — agents edit files with their normal tools. The OS intercepts writes at the tool layer, coordinates between agents, and maintains an audit trail. Agents never know ostk is there. This is the first of the Five Laws.',
+    a: 'You keep the client UI you already use, but the integration must be configured. MCP-capable clients launch ostk connect and use the ostk-namespaced tools for audited reads, CAS edits, and policy checks. A client\'s native filesystem or shell tools remain outside those guarantees.',
     link: '/docs/coordination-primitives/#vfs-the-observation-substrate',
   },
   {
@@ -30,22 +30,22 @@ const faqs = [
   },
   {
     q: 'Can AI agents work on the same repository without conflicts?',
-    a: 'Yes. ostk coordinates file access across agents through optimistic concurrency. Each agent gets a workspace boundary. Generation counters track every file write. When conflicts occur, the kernel resolves them mechanically — no LLM is called for conflict resolution. In practice, conflicts drop to near zero.',
+    a: 'Yes, when their writes go through ostk. Kernel-mediated CAS edits use generation history and expected text to detect stale or overlapping work. Non-overlapping changes can auto-merge; ambiguous conflicts fail visibly. Native client writes are still ordinary filesystem writes and require normal Git or workspace coordination.',
     link: '/docs/coordination-primitives',
   },
   {
     q: 'How do I track what changes AI agents made?',
-    a: 'Every agent action is logged to an append-only audit trail (.ostk/journal.jsonl). File edits, shell commands, tool calls, spawns, approvals — all timestamped and attributed. Run ostk os audit check to verify trail integrity. The process table is reconstructible from the audit log at any point.',
+    a: 'Kernel-mediated tool dispatches append timestamped, attributed rows to .ostk/journal.jsonl. Rows are hash-chained and are Ed25519-signed when a signing key is available. Native client actions that bypass ostk do not become ostk audit rows; inspect and verify the journal when audit coverage matters.',
     link: '/docs/architecture/#the-unix-substrate',
   },
   {
     q: 'Does ostk require a cloud connection?',
-    a: 'No. ostk is local-first. Agent coordination happens through local files. The only network calls are to LLM providers when you run agents. The kernel itself is entirely offline. No telemetry, no analytics, no cloud sync.',
+    a: 'ostk is local-first by custody: canonical project state and page content stay on local disk, and no ostk account or hosted control plane is required. Configured model providers, web/download tools, updates, registrars, outbound drivers, and provider-backed context features can use the network. Anchored Anthropic sessions can automatically make best-effort Anthropic Files copies for context efficiency or cross-host recovery. Operational telemetry stays local.',
     link: '/why',
   },
   {
     q: 'What happens if an agent crashes?',
-    a: 'Agents are ephemeral — crashes are the expected operating condition. The kernel writes drain snapshots at every turn boundary. On daemon restart, fold(journal.jsonl) reconstructs the fleet and rehydrates sessions from snapshots. Mid-flight, the heartbeat monitor detects crashed workers and hot-rehydrates them.',
+    a: 'For anchored ostk-managed sessions, turn boundaries write best-effort local drain snapshots. On restart, durable registries rebuild from their local JSONL sources and eligible managed sessions can rehydrate from a compatible snapshot. Work after the last completed snapshot, runtime-only state, and sessions owned by an external harness have separate recovery boundaries.',
     link: '/docs/agent-lifecycle',
   },
   {
@@ -60,7 +60,7 @@ const faqs = [
   },
   {
     q: 'How does ostk differ from Cursor, Devin, or Aider?',
-    a: 'ostk is an OS, not an IDE or agent. It coordinates multiple agents from any provider (Claude, Gemini, Mistral) on the same codebase simultaneously. Cursor and Aider are single-agent tools. Devin is a cloud-hosted agent. ostk runs locally, is agent-agnostic, and provides trust governance, audit trails, and crash recovery that none of these tools offer.',
+    a: 'ostk is a project-state and coordination layer, not an IDE or model. Verified integrations can use the same local task, decision, audit, and CAS surfaces through ostk. Provider routes and external harnesses have separate compatibility boundaries, so check the support matrix instead of assuming every client or model behaves identically.',
     link: '/about/',
   },
 ];
@@ -68,7 +68,8 @@ const faqs = [
 
 <DocsLayout
   title="FAQ"
-  description="Frequently asked questions about ostk: multi-agent coordination, installation, trust tiers, secret management, and crash recovery."
+  seoTitle="ostk FAQ for AI Coding Agent Projects"
+  description="Answers about ostk project state, AI coding agent handoffs, supported integrations, local custody, installation, coordination, security, and recovery."
   sectionLabel="REFERENCE // FAQ"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
@@ -102,17 +103,17 @@ const faqs = [
         { term: 'needle', def: 'An atomic, executable work item with acceptance criteria. Stored as YAML frontmatter + markdown in .ostk/needles/. The unit of work in ostk.' },
         { term: 'hay', def: 'Raw unstructured intent captured for later compilation into needles. Filed via bare text in the tack bar or ostk hay "...".' },
         { term: 'tack', def: 'The operator intent language used in the TUI. Commands prefixed with : dispatch to the kernel. Bare text files as hay.' },
-        { term: 'drain snapshot', def: 'Session state written to .ostk/drain/<lineage_id>.json at every turn boundary. Contains conversation history, token accounting, and config. Enables crash recovery.' },
+        { term: 'drain snapshot', def: 'Best-effort local snapshot for an anchored ostk-managed session. Contains conversation history, token accounting, and compatible config for recovery after a completed turn.' },
         { term: 'anchor', def: 'The long-lived daemon process started by ostk listen. Holds the socket, process table, and scheduler. Survives client disconnects.' },
         { term: 'lineage', def: 'A stable identity for an ongoing piece of work (e.g., "scheduler", "worker-a"). Outlives both the client that spawned it and the anchor that ran it.' },
         { term: 'FCP', def: 'File Context Protocol — the interface for drivers that extend the kernel with domain capabilities. MCP servers that let LLMs interact with complex file formats.' },
         { term: 'Hot PR', def: 'The kernel\'s 3-tier conflict resolution system. Tier 1: auto-merge (non-overlapping). Tier 2: mechanical rebase (nearby). Tier 3: manual escalation.' },
-        { term: 'generation counter', def: 'A monotonic counter incremented on every file write. Used for optimistic concurrency — if the counter changed, another agent modified the file.' },
+        { term: 'generation counter', def: 'A monotonic counter updated by kernel-mediated file operations. CAS edits combine it with expected text to detect stale or conflicting work.' },
         { term: 'bail', def: 'A portable, signed OS bundle. Named for a bail of hay — what you extract from a haystack. Contains public identity (.primefile, ENTITYFILE), boot state, and optionally encrypted internal kernel state or selective exported content. Three modes: public, full, export. See /docs/security/#signed-portable-state-bail.' },
-        { term: 'fold(journal.jsonl)', def: 'Replaying the append-only audit log to reconstruct fleet state. The process table is a projection of the audit log — the daemon is a cache, not a ledger.' },
+        { term: 'fold(journal.jsonl)', def: 'Replaying supported audit events to rebuild durable registries and projections. Session runtime and some derived indexes have separate recovery paths.' },
         { term: '.language', def: 'A pipe-delimited table of verbs, their tiers, layers, and usage momentum. The kernel loads high-momentum verbs at boot and demand-spawns the rest.' },
         { term: 'sub-stack', def: 'An isolated group of sessions with its own audit log, drain directory, token budget, and IPC channels. Created by the scheduler for multi-worker tasks.' },
-        { term: 'OCC', def: 'Optimistic Concurrency Control. Agents write freely; the kernel detects conflicts via generation counters at commit time, not lock time.' },
+        { term: 'OCC', def: 'Optimistic Concurrency Control for kernel-mediated CAS edits. It detects stale expected text or overlapping changes without holding a long-lived file lock.' },
       ].map(g => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant">
           <code class="text-primary w-40 shrink-0">{g.term}</code>

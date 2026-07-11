@@ -3,11 +3,12 @@ import DocsLayout from '../../../layouts/DocsLayout.astro';
 import Terminal from '../../../components/Terminal.astro';
 
 const title = "POSIX Kernel Specification";
-const description = "RFC-style specification of the ostk POSIX kernel: bounded waits, owned state, dead-owner reaping, namespace isolation, the signal table, anchor exclusivity, and handle generations.";
+const description = "RFC-style specification of ostk's POSIX-shaped kernel invariants: owned state, bounded waits, reaping, isolation, signals, anchors, and handle generations.";
 ---
 
 <DocsLayout
   title={title}
+  seoTitle="ostk POSIX Kernel Specification"
   description={description}
   sectionLabel="REFERENCE // POSIX_KERNEL_SPEC"
 >

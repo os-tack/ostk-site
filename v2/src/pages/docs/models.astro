@@ -6,11 +6,15 @@ import Terminal from '../../components/Terminal.astro';
 
 <DocsLayout
   title="Models"
-  description="Which LLM providers ostk supports, what features each driver exposes, and how to configure model selection — from HUMANFILE MODEL to FROM auto to OSTK_MODEL override."
+  seoTitle="AI Model and Provider Support in ostk"
+  description="Compare ostk model and provider integrations, driver features, local routes, configuration precedence, and verified portability boundaries."
   sectionLabel="GET_STARTED // MODEL_SELECTION"
 >
-  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    ostk is model-agnostic. Six production providers, one local runtime, one on-device path. Every provider speaks through the same CpuDriver trait — but they don't all support the same features. This page tells you what works where.
+  <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-4">
+    ostk has a provider-neutral scheduling interface with direct, gateway, and local routes. A route existing in code is not the same as every model version being verified: tool schemas, streaming, reasoning, and usage accounting vary by integration.
+  </p>
+  <p class="font-body text-xs text-secondary leading-relaxed max-w-2xl mb-12">
+    Canonical project tasks, decisions, pages, and audit remain local across routes. Full conversation continuity is a separate capability. Generic MCP clients load stored pages inline; Anthropic sessions can additionally use Anthropic Files for context efficiency and cross-host recovery. Check the route status and last-verified evidence before treating a model switch as a product guarantee.
   </p>
 
   <!-- Provider table -->
@@ -20,7 +24,7 @@ import Terminal from '../../components/Terminal.astro';
       {[
         {
           name: 'Anthropic',
-          models: 'claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5',
+          models: 'claude-* models supported by the configured Anthropic API version',
           context: '200k tokens',
           wire: 'Native',
           level: 'FULL',
@@ -30,9 +34,9 @@ import Terminal from '../../components/Terminal.astro';
         },
         {
           name: 'Google Gemini',
-          models: 'gemini-2.5-pro, gemini-2.0-flash, gemini-3.1-pro, gemini-3-flash',
+          models: 'gemini-* models supported by the configured Google API version',
           context: '1M tokens',
-          wire: 'OpenAI-compat',
+          wire: 'Gemini API adapter',
           level: 'FULL',
           features: 'Tool use, thinking (auto for 3.x models, thinkingLevel: HIGH), streaming. No client-side prompt caching — server-side only.',
           key: 'GEMINI_API_KEY (or GOOGLE_API_KEY)',
@@ -40,7 +44,7 @@ import Terminal from '../../components/Terminal.astro';
         },
         {
           name: 'Mistral',
-          models: 'mistral-large-latest, codestral-latest, devstral-small, devstral-medium-2507, magistral-*',
+          models: 'mistral-*, codestral*, ministral*, devstral*, magistral*',
           context: '256k tokens',
           wire: 'OpenAI-compat',
           level: 'FULL',
@@ -50,31 +54,31 @@ import Terminal from '../../components/Terminal.astro';
         },
         {
           name: 'OpenAI',
-          models: 'gpt-4o, o1-*, o3-pro, o4-*',
-          context: '128k–200k tokens',
-          wire: 'OpenAI-compat',
-          level: 'PRODUCTION',
-          features: 'Tool use, streaming. No prompt caching, no token counting. Reasoning models (o1/o3/o4) have built-in thinking — not controlled by ostk.',
+          models: 'gpt-*, o1*, o3*, o4*',
+          context: 'Model/version-dependent',
+          wire: 'Native Responses API',
+          level: 'IMPLEMENTED',
+          features: 'Tool use, streaming, encrypted reasoning continuity where supported. Verify the exact model/version in the compatibility evidence.',
           key: 'OPENAI_API_KEY',
-          src: 'src/cpu/openrouter.rs (shared driver), model_registry.rs:84–117',
+          src: 'src/cpu/openai.rs, src/cpu/providers.rs:111–120',
         },
         {
           name: 'OpenRouter',
-          models: 'Any provider/model (meta-llama/*, deepseek/*, etc.)',
+          models: 'Explicit openrouter/<provider>/<model> and supported org/model routes',
           context: 'Model-dependent',
-          wire: 'OpenAI-compat',
+          wire: 'OpenAI-compatible gateway',
           level: 'GATEWAY',
-          features: 'Tool use, streaming. Fallback for any model not matched by a dedicated driver. Sends HTTP-Referer: https://ostk.ai.',
+          features: 'Tool use and streaming when the selected upstream preserves the expected OpenAI-compatible semantics. Not a universal fallback or feature-parity promise.',
           key: 'OPENROUTER_API_KEY',
           src: 'src/cpu/openrouter.rs:12–51',
         },
         {
           name: 'Ollama (local)',
-          models: 'local/codestral:22b, local/qwen2.5-coder:32b, local/llama3.3:70b, local/deepseek-r1:70b, local/gemma3:27b',
+          models: 'local/<model>, ollama/<model>, or model:tag',
           context: 'Model-dependent',
-          wire: 'OpenAI-compat',
-          level: 'LOCAL',
-          features: 'Tool use, streaming. No prompt caching, no token counting. Models with ":" separator auto-route here.',
+          wire: 'OpenAI-compatible local endpoint',
+          level: 'LOCAL / MODEL-SPECIFIC',
+          features: 'Tool use and streaming depend on the loaded model and Ollama build. Models with a ":" separator auto-route here.',
           key: 'None required (OLLAMA_HOST to override endpoint)',
           src: 'src/cpu/mod.rs:437–454, providers.rs:62–68',
         },
@@ -122,6 +126,12 @@ import Terminal from '../../components/Terminal.astro';
           </div>
         </div>
       ))}
+    </div>
+    <div class="bg-surface-container-low p-5 border-l-2 border-primary mt-6 max-w-2xl">
+      <div class="font-label text-[10px] text-primary mb-2">ADDITIONAL_IMPLEMENTED_ROUTES</div>
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        The current kernel also contains direct bare-prefix routes for DeepSeek, Moonshot/Kimi, and xAI, plus an Apple-Silicon MLX route with a managed <code class="text-primary">mlx_lm.server</code> lifecycle. These are implemented code paths, not a claim that every current model version has passed an end-to-end acceptance run. Consult dated compatibility evidence before publishing a supported badge.
+      </p>
     </div>
   </section>
 
@@ -220,7 +230,7 @@ import Terminal from '../../components/Terminal.astro';
       </table>
     </div>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      <span class="text-primary">✓</span> = ostk driver implements it. <span class="text-primary">—</span> = not available in the driver. <span class="text-primary">server</span> = handled server-side, no client config. <span class="text-primary">built-in*</span> = reasoning is a model behavior, not a driver feature (o1/o3/o4 always think). <span class="text-primary">model</span> = depends on the specific model loaded in Ollama.
+      <span class="text-primary">✓</span> = the selected driver implements a translation path, not that every current model version is acceptance-tested. <span class="text-primary">—</span> = not available in that driver. <span class="text-primary">server</span> = provider-managed. <span class="text-primary">built-in*</span> = reasoning is model behavior. <span class="text-primary">model</span> = depends on the loaded Ollama model. Direct DeepSeek, Moonshot, xAI, OpenRouter, and MLX routes require their own compatibility evidence and are not implied by this selected-driver table.
     </p>
   </section>
 
@@ -239,10 +249,10 @@ import Terminal from '../../components/Terminal.astro';
           <span class="text-primary font-bold">Ollama auto-detection:</span> Any model name containing a colon (e.g., <code class="text-primary">codestral:22b</code>) is auto-routed to Ollama without the <code class="text-primary">local/</code> prefix. Source: <code class="text-primary">model_registry.rs:251–253</code>.
         </div>
         <div>
-          <span class="text-primary font-bold">OpenAI via OpenRouter:</span> If <code class="text-primary">OPENAI_API_KEY</code> is not set but <code class="text-primary">OPENROUTER_API_KEY</code> is, OpenAI models (gpt-4o, o1-*, o3-*) route through OpenRouter automatically. Source: <code class="text-primary">providers.rs:76–81</code>.
+          <span class="text-primary font-bold">OpenAI routing:</span> Bare <code class="text-primary">gpt-*</code> and o-series names use the native OpenAI Responses driver and fail if its required key is unavailable. Use an explicit <code class="text-primary">openrouter/...</code> model identifier when you intend to route through OpenRouter. Source: <code class="text-primary">providers.rs:111–120</code>.
         </div>
         <div>
-          <span class="text-primary font-bold">DeepSeek R1:</span> Reasoning model routed via OpenRouter with special format mapping at <code class="text-primary">model_registry.rs:391–398</code>. Handles the reasoning_content field in responses.
+          <span class="text-primary font-bold">DeepSeek routing:</span> Bare <code class="text-primary">deepseek-*</code> identifiers use the direct DeepSeek endpoint and fail closed without <code class="text-primary">DEEPSEEK_API_KEY</code>. Slash-form <code class="text-primary">deepseek/...</code> identifiers remain explicit OpenRouter routes. Moonshot/Kimi and xAI have analogous direct bare-prefix routes.
         </div>
       </div>
     </div>
@@ -262,7 +272,7 @@ import Terminal from '../../components/Terminal.astro';
 <span class="text-primary">LIMIT</span> budget_usd 0</pre>
     </Terminal>
     <p class="font-body text-xs text-secondary mt-4 max-w-lg">
-      The HUMANFILE sets the project default (Sonnet) with a fallback (Gemini). The lint agent pins a local model via <code class="text-primary">FROM</code> — free, fast, and sufficient for the task. The budget is $0 because local models have no API cost. Model mixing is the normal case, not an edge case.
+      The HUMANFILE declares a project default and fallback; the lint agent pins a local route with <code class="text-primary">FROM</code>. Local inference has no provider token charge, although hardware and operational costs remain. Multiple routes can coexist, but preserving canonical project state is not the same as guaranteeing full conversation or feature continuity between them.
     </p>
   </section>
 

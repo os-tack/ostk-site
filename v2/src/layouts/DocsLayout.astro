@@ -6,12 +6,13 @@ import { LATEST_TAG } from '../site-version';
 
 interface Props {
   title: string;
+  seoTitle?: string;
   description?: string;
   sectionLabel?: string;
   activeTab?: 'why' | 'start' | 'docs' | 'features' | 'architecture' | 'commands' | 'trust';
 }
 
-const { title, description, sectionLabel, activeTab = 'docs' } = Astro.props;
+const { title, seoTitle, description, sectionLabel, activeTab = 'docs' } = Astro.props;
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 const breadcrumbSchema = {
@@ -29,13 +30,16 @@ const articleSchema = {
   "headline": title,
   "description": description,
   "image": "https://ostk.ai/og-image.png",
-  "author": { "@type": "Organization", "name": "ostk", "url": "https://ostk.ai" },
+  "author": { "@type": "Organization", "@id": "https://ostk.ai/#organization", "name": "ostk", "url": "https://ostk.ai/" },
   "publisher": {
     "@type": "Organization",
+    "@id": "https://ostk.ai/#organization",
     "name": "ostk",
-    "url": "https://ostk.ai",
-    "logo": { "@type": "ImageObject", "url": "https://ostk.ai/og-image.png" },
+    "url": "https://ostk.ai/",
+    "logo": { "@type": "ImageObject", "url": "https://ostk.ai/og-image.png", "width": 1200, "height": 630 },
   },
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
   "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
 };
 
@@ -101,7 +105,7 @@ const sidebarGroups = {
 };
 ---
 
-<Base title={title} description={description} activeTab={activeTab}>
+<Base title={seoTitle || title} description={description} activeTab={activeTab}>
   <script slot="schema" type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <script slot="schema" type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
   <Sidebar title="DOCUMENTATION" subtitle={`${LATEST_TAG} STABLE`} groups={sidebarGroups} />

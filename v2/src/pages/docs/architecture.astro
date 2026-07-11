@@ -6,15 +6,15 @@ import ArchitectureDiagram from '../../components/ArchitectureDiagram.astro';
 const laws = [
   {
     num: '01',
-    title: 'The write path is invisible',
-    body: 'Agents edit files normally. They use whatever tools their model provider gives them. The OS coordinates underneath. No new API. No coordination protocol. No SDK.',
-    practice: 'Your agents never learn a new API. They write files. That\'s it.',
+    title: 'The project surface stays familiar',
+    body: 'Supported clients keep their normal UI while routing audited reads, CAS edits, and shell calls through ostk. Native client tools are not silently intercepted and remain outside kernel audit and OCC.',
+    practice: 'Configure the integration once, then use the ostk tool surface when its guarantees matter.',
   },
   {
     num: '02',
-    title: 'Agents are ephemeral',
-    body: 'Agents crash. They hit context limits. They lose memory. They get killed. This is the expected operating condition. State lives in the filesystem. When an agent dies, nothing is lost.',
-    practice: 'Session death does not mean work death. The OS survives its agents.',
+    title: 'Durable state outlives a process',
+    body: 'Agents crash, hit context limits, or get killed. Canonical project records live on disk, and anchored ostk-managed sessions write best-effort drain snapshots at completed turn boundaries. In-flight runtime state and external harness sessions have separate recovery boundaries.',
+    practice: 'A replacement agent can recover durable tasks and decisions; it should still verify what completed before the failure.',
   },
   {
     num: '03',
@@ -25,21 +25,22 @@ const laws = [
   {
     num: '04',
     title: 'Optimistic concurrency',
-    body: 'No locks. No mutexes. Agents write freely and concurrently. When two agents edit the same file, the kernel detects the conflict via generation counters and resolves it. Conflict resolution, not conflict prevention.',
-    practice: 'Agents never block each other. Two agents can edit the same file at the same time. The OS handles it.',
+    body: 'Kernel-mediated CAS edits do not hold a long-lived file lock. They combine expected text with generation history, auto-merge safe non-overlapping changes, and fail visibly when intent is ambiguous. Native and raw-shell writes use ordinary filesystem and Git coordination.',
+    practice: 'Parallel work is safe when it uses the CAS contract; overlapping edits still require review.',
   },
   {
     num: '05',
-    title: 'Invisible infrastructure, always',
-    body: 'If you have to think about the OS, the OS failed. No config files to learn. No YAML to write. No dashboard to check. The install is one command. Init is one command. Boot is one command.',
-    practice: 'Zero config, zero learning curve for agents. The OS works or it doesn\'t.',
+    title: 'Infrastructure should stay inspectable',
+    body: 'Install, init, and boot are short commands, while HUMANFILE, Agentfiles, pin caps, and MCP configuration make important boundaries explicit. The project substrate is readable on disk instead of hidden behind a hosted dashboard.',
+    practice: 'Keep the common path short and the exceptional path observable.',
   },
 ];
 ---
 
 <DocsLayout
   title="System Architecture"
-  description="How ostk's primitives compose to solve the six problems running multiple AI agents creates: crash recovery, agent containment, verifiable history, write coordination, portable deployment, and observation without polling."
+  seoTitle="AI Coding Agent Runtime Architecture"
+  description="How ostk stores project state, coordinates concurrent AI coding agents, bounds capabilities, and records kernel-mediated work in an auditable local runtime."
   sectionLabel="SECTION_01 // ARCHITECTURE"
   activeTab="docs"
 >
@@ -77,7 +78,7 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Your daemon crashes while an agent is working. What happens to the work?</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      Nothing is lost. ostk writes the audit ring (<code class="text-primary">.ostk/journal.jsonl</code>) as a write-ahead log; every turn boundary writes a drain snapshot of the agent's state. When the daemon comes back up, <code class="text-primary">fold(journal.jsonl)</code> replays the log and rehydrates each session from its last drain. The client reconnects on the same socket; from the agent's perspective, the disconnect was a long pause.
+      Durable project registries rebuild from their local JSONL sources. Anchored ostk-managed sessions write a best-effort drain snapshot after completed turns, and eligible sessions can rehydrate from a compatible snapshot after restart. Work after the last snapshot, runtime-only state, and sessions owned by an external harness are not covered by that promise; client reconnection also depends on the harness.
     </p>
 
     <div class="bg-surface-container-low p-5 max-w-xl mb-3">
@@ -97,7 +98,7 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">An agent gets creative and writes outside its lane. Then what?</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      Three layers compose. <strong class="text-on-surface">Pin caps</strong> deny by default at the tool layer — every <code class="text-primary">fs_ops</code> or <code class="text-primary">bash</code> call is checked before bytes hit disk. <strong class="text-on-surface">The OS sandbox</strong> (Landlock on Linux, Seatbelt on macOS) physically blocks writes outside allowed paths regardless of how the agent tries. <strong class="text-on-surface">Bypass detection</strong> flags any file that changed outside the kernel surface on next read. Tool-layer covers the expected path; the sandbox covers the escape path; bypass detection covers the unexpected. No single layer is load-bearing.
+      Three layers compose for kernel-launched work. <strong class="text-on-surface">Pin caps</strong> check <code class="text-primary">fs_ops</code> and <code class="text-primary">bash</code> calls routed through the kernel. <strong class="text-on-surface">The OS sandbox</strong> can add Landlock restrictions on Linux or Seatbelt restrictions on macOS when that platform and launch path support them. <strong class="text-on-surface">Bypass detection</strong> reports external file changes when the kernel next observes them; it does not retroactively prevent a native client write.
     </p>
 
     <div class="bg-surface-container-low p-5 max-w-xl mb-3">
@@ -117,13 +118,13 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You need to prove what an agent did, not just trust the log.</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      The audit chain isn't a log — it's the substrate's only truth. Every kernel-mediated action is an append-only event in <code class="text-primary">.ostk/journal.jsonl</code>, hash-chained against the previous row's signature. Each row is Ed25519-signed in-process at write time using the operator's identity key (no GPG subprocess, no signing latency). Replay reconstructs identical state byte-for-byte. The daemon is a cache; the journal is the ledger.
+      The journal is an authoritative source for supported audit-derived registries and projections. Kernel-mediated dispatch rows are append-only and carry the hash of the previous row. When a signing key is available they are also Ed25519-signed; otherwise the signature field remains empty and visibly unverified. Replay rebuilds supported state from local sources, not every byte of session runtime or every derived index.
     </p>
 
     <div class="bg-surface-container-low p-5 max-w-xl mb-3">
       <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
       <div class="font-body text-xs text-secondary leading-relaxed">
-        WAL append → hash chain (<code class="text-primary">prev_hash</code>) → Ed25519 sign (<code class="text-primary">sig</code>) → replay reconstructs state. Owned State (II) makes the writer unique; Anchor Exclusivity (VIII) keeps two daemons from forking the chain.
+        WAL append → hash chain (<code class="text-primary">prev_hash</code>) → optional Ed25519 signature (<code class="text-primary">sig</code>) → rebuild supported registries and projections. Owned State (II) binds daemon authority; Anchor Exclusivity (VIII) prevents two daemon anchors from writing independently.
       </div>
     </div>
     <p class="font-body text-[10px] text-outline max-w-xl">
@@ -137,7 +138,7 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Two agents edit the same file at the same time. Who wins?</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      The second writer always sees the conflict. Every file carries a generation counter in <code class="text-primary">.ostk/gen_table.jsonl</code>. Edits are compare-and-swap: the agent declares the counter it read; if another agent has bumped it, the write fails loudly with a diff. For non-overlapping edits, Hot PR auto-merges; for overlapping edits, the second agent re-reads and re-tries. Nothing disappears between you and what your agents actually did.
+      A stale <code class="text-primary">fs_ops</code> CAS edit sees the conflict instead of silently overwriting current content. The edit supplies expected text; generation history and the current file let ostk auto-merge safe non-overlapping changes, suggest a nearby merge, or fail for review. Native client writes, raw shell writes, and overwrite-style operations do not inherit this CAS guarantee.
     </p>
 
     <div class="bg-surface-container-low p-5 max-w-xl mb-3">
@@ -157,7 +158,7 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You want to hand your agent setup to a different operator and have it just run.</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      <code class="text-primary">application/v1</code> packages an agent system as a content-addressed, signed directory with declared capabilities, supervisor trees, and a manifest of claims. The receiving operator runs <code class="text-primary">ostk app install</code>; the substrate validates the signature, registers the capability declarations, and the supervisor starts. The application's runtime existence IS its slice of the claim graph keyed by <code class="text-primary">(app_id, install_id, start_id)</code>. When the run finishes, the original publisher can verify what happened against the audit chain the receiving operator publishes.
+      <code class="text-primary">application/v1</code> is a design trajectory for packaging an agent system as a content-addressed, signed directory with declared capabilities and supervisor metadata. It is not currently a shipped, acceptance-tested cross-machine install workflow. Today, portable claims should be limited to the specific bail/export and integration paths that have their own verification evidence.
     </p>
     <p class="font-body text-xs text-outline italic max-w-xl mb-4">
       "I can hand you my application as a signed file. You install it. You start it. It runs. When it finishes, I can verify what happened against the audit chain you publish." — application/v1 §1
@@ -180,7 +181,7 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">You want to see what every agent did, in real time, without writing pollers or running queries.</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      The kernel writes the audit ring; indexers tap it as logical-decoding subscribers (Postgres-style); projections land at stable paths in a VFS namespace. You query a directory listing, not a log. <code class="text-primary">cat /fleet/proc</code> gives you the live process table; <code class="text-primary">ls /needles</code> gives you open work; every projection rebuilds from journal replay if it goes stale. No polling, no replication, no separate truth source.
+      The kernel writes the journal; supported indexers consume its rows and project selected state at stable VFS paths. A client can query those projections without maintaining its own polling loop. Rebuild coverage is projection-specific: project registries recover from local JSONL, while commit-graph and embedding artifacts currently have separate or incomplete rebuild paths.
     </p>
 
     <div class="bg-surface-container-low p-5 max-w-xl mb-3">
@@ -200,7 +201,7 @@ const laws = [
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Six problems, one shape.</h2>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
-      Each answer above is two or three primitives composed against a clear failure mode. The kernel makes the composition mechanically possible — bounded waits, owned state, dead-process reaping, namespace isolation, handle uniqueness, anchor exclusivity, connection continuity, and four others (the ten invariants). The substrate makes the kernel queryable. The daemon makes it long-lived. The ABI makes it agent-callable. Drivers extend it. <code class="text-primary">application/v1</code> makes it portable.
+      Each answer above composes a few primitives against a clear failure mode. The substrate makes supported project state queryable, the daemon makes it long-lived, the ABI makes it agent-callable, and drivers extend it. Portability remains integration-specific: current bails, provider routes, MCP clients, and the proposed <code class="text-primary">application/v1</code> do not share one blanket support status.
     </p>
 
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-4">
@@ -351,7 +352,7 @@ const laws = [
       ))}
     </div>
     <p class="font-body text-xs text-secondary leading-relaxed max-w-xl">
-      The prompt cache at the model endpoint (such as Anthropic's edge) is content-addressed. Therefore, multiple concurrent agent processes using the same API key automatically hit the same prompt cache, driving down marginal token costs as fleet density increases.
+      Some model endpoints, notably Anthropic, can reuse byte-identical prompt prefixes across compatible requests. The benefit depends on provider cache semantics, account scope, request shape, and model version; Needle Bench reports it per tested model and harness rather than as a universal fleet saving.
     </p>
   </section>
 

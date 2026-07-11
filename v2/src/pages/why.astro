@@ -29,7 +29,7 @@ const sidebarGroups = {
 };
 ---
 
-<Base title="Why ostk — the three problems it solves" description="You're using AI agents to code. Three things break: they collide, they drift, they leave no trace. ostk fixes all three from underneath, without changing how you drive your agents.">
+<Base title="Project State for AI Coding Agents: Why ostk" description="Why AI coding agents collide, lose project context, and leave incomplete traces, and where ostk's local state, CAS edits, recall, and audit boundaries help.">
   <Sidebar title="WHY_OSTK" subtitle="THE_PROBLEM" groups={sidebarGroups} />
 
   <main id="main-content" class="flex-1 md:ml-64 pt-16 pb-12 px-4 md:px-10">
@@ -38,10 +38,10 @@ const sidebarGroups = {
       <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">Why ostk</h1>
 
       <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
-        ostk is a modular local-first runtime that sits underneath whatever drives your agents. Three things break without it.
+        ostk is a modular, local-first-by-custody runtime that connects supported agent surfaces to project state you control. Three common failure modes appear as agent work scales.
       </p>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-16">
-        You're using AI agents to code. ostk resolves the three core failure modes of autonomous coding using a decoupled, open-source stack.
+        You're using AI agents to code. ostk addresses collision, context drift, and missing trace through a decoupled stack whose guarantees apply at explicit integration boundaries.
       </p>
 
       <!-- Problem 1 -->
@@ -53,7 +53,7 @@ const sidebarGroups = {
             Two agents edit the same file. One finishes a second after the other. Whose version wins is whoever wrote last — silently overwriting files. The first agent's work is lost, and the system fails silently.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">Modular Solution:</strong> The <code>ostk</code> daemon manages workspace paths using Optimistic Concurrency Control (OCC). Any agent write that conflicts with concurrent modifications gets a descriptive JSON-RPC error, letting the agent abort or run a merge conflict resolution handler automatically.
+            <strong class="text-on-surface">Modular Solution:</strong> <code>fs_ops</code> CAS edits declare the text an agent expects. If current content differs, ostk can auto-merge a safe non-overlapping change, return a suggested merge, or fail visibly for review. Native client and raw-shell writes remain outside that CAS contract.
           </p>
           <p class="font-body text-xs text-outline">
             Handled by: <a href="/docs/ostk/" class="text-primary hover:underline">ostk daemon</a> & <a href="/docs/libostk/" class="text-primary hover:underline">libostk IPC client</a>.
@@ -70,7 +70,7 @@ const sidebarGroups = {
             Each agent session runs in its own context window. They re-discover codebase details. They forget previous decisions. They don't see concurrent actions, forcing you to manually copy and paste context across chats.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">Modular Solution:</strong> The <code>ostk-recall</code> memory MCP server watches the workspace via socket notifications, indexing changes incrementally to a local LanceDB vector store. Built-in tools let the agent retrieve real-time context without wasting context window or suffering drift.
+            <strong class="text-on-surface">Modular Solution:</strong> <code>ostk-recall</code> can incrementally index configured workspace and transcript formats into a local hybrid search corpus. A supported client can retrieve that evidence through MCP; indexing and retrieval improve orientation but do not make every harness transcript or decision automatically visible.
           </p>
           <p class="font-body text-xs text-outline">
             Handled by: <a href="/docs/ostk-recall/" class="text-primary hover:underline">ostk-recall MCP server</a> with local embeddings.
@@ -87,10 +87,10 @@ const sidebarGroups = {
             Something went wrong. There's no auditable record of what prompt generated a command, what files were read, or who authorized the action. Security reviews stall because proprietary binary wrappers hide agent execution.
           </p>
           <p class="font-body text-sm text-secondary leading-relaxed">
-            <strong class="text-on-surface">Modular Solution:</strong> Every action is logged to a structured, append-only Write-Ahead Log (WAL) that is cryptographically signed. Because our client integration layer — <code>libostk</code> — is **MIT licensed and fully open-source**, operators can audit the socket communication directly. There are no opaque binary wrappers: you get absolute visibility and total control.
+            <strong class="text-on-surface">Modular Solution:</strong> Kernel-mediated dispatches append structured rows to a local, hash-chained journal. Rows are Ed25519-signed when a signing key is available, and the open client/kernel code lets operators inspect that path. Native client actions and external-service behavior require their own audit evidence.
           </p>
           <p class="font-body text-xs text-outline">
-            Handled by: <a href="/docs/libostk/" class="text-primary hover:underline">libostk client library</a> & GPG signature chains.
+            Handled by: the kernel journal and <a href="/docs/libostk/" class="text-primary hover:underline">libostk client path</a>; GPG release/governance signatures are a separate trust layer.
           </p>
         </div>
       </section>

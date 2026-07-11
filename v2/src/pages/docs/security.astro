@@ -6,11 +6,12 @@ import Terminal from '../../components/Terminal.astro';
 
 <DocsLayout
   title="Security & Trust"
-  description="Comprehensive Security & Trust guide for ostk: Defense-in-Depth, trust tiers, capability pins, secrets management, verifiable audit chains, and portable bail packages."
+  seoTitle="AI Coding Agent Security and Trust in ostk"
+  description="How ostk applies capability pins, process sandboxes, secrets handling, trust tiers, and verifiable audit chains at kernel-mediated boundaries."
   sectionLabel="REFERENCE // SECURITY"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-12">
-    Every write is signed. Every identity is verified. Every capability is pinned. ostk builds a defense-in-depth model that guarantees security from process sandbox to API boundary.
+    ostk layers policy, process isolation, local audit, and identity evidence around operations routed through the kernel. Coverage depends on the integration: native client tools bypass the kernel, audit signing requires a key, and process identity is stronger than a self-asserted client name.
   </p>
 
   <!-- Table of Contents -->
@@ -33,15 +34,15 @@ import Terminal from '../../components/Terminal.astro';
     <div class="section-label mb-4">01 // DEFENSE_LAYERS</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Defense-in-Depth Model</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Security in ostk does not rely on a single firewall or sandbox boundary. Instead, four containment and audit layers wrap every agent action:
+      Security in ostk does not rely on one boundary. Four containment and audit layers apply where the selected platform and client route an operation through the kernel:
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant max-w-3xl">
       {[
-        { layer: 'TOOL_LAYER', desc: 'Deny-based capability pins. Every tool call requested by the agent is checked against pin.caps deny tokens and path boundaries before execution.' },
-        { layer: 'SYSCALL_LAYER', desc: 'Process-level sandboxing via Landlock (Linux) and Seatbelt (macOS). Restricts filesystem access at the OS kernel layer, enforcing boundaries even if the agent forks a shell.' },
-        { layer: 'AUDIT_LAYER', desc: 'Append-only JSONL event log. Every action is timestamped, attributed, hash-chained to the previous row, and Ed25519-signed in-process. Replaying the log reconstructs verified state.' },
-        { layer: 'SECRET_LAYER', desc: 'API keys are resolved at execution time from the platform keychain or local secret manager. Values never enter the LLM context and are masked from all stdout/stderr logs.' },
+        { layer: 'TOOL_LAYER', desc: 'Deny-based capability pins check kernel-mediated calls against configured tokens and path boundaries before execution.' },
+        { layer: 'SYSCALL_LAYER', desc: 'When enabled and supported, Landlock (Linux) or Seatbelt (macOS) adds process-level filesystem restrictions. Platform and launch path determine coverage.' },
+        { layer: 'AUDIT_LAYER', desc: 'Kernel dispatches append local JSONL rows. Rows are hash-chained and are Ed25519-signed when a signing key is available; unsigned rows remain explicit.' },
+        { layer: 'SECRET_LAYER', desc: 'The kernel secret resolver avoids injecting values into model context and masks known values from kernel-mediated output. Native shell access and external services remain separate boundaries.' },
       ].map(l => (
         <div class="bg-surface-container p-6">
           <div class="font-label text-[10px] text-primary mb-2">{l.layer}</div>
@@ -59,7 +60,7 @@ import Terminal from '../../components/Terminal.astro';
       The kernel determines your tier at boot based entirely on your GPG keyring and active signatures. Tier defaults set the safety floor for filesystem and command execution:
     </p>
 
-    <img src="/diagrams/trust-tiers-v2.png" alt="GPG Trust Tiers Hierarchy" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <img src="/diagrams/trust-tiers-v2.jpg" alt="ostk GPG trust tiers from untrusted agent to operator-governed project identity" width="1024" height="1024" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
 
     <div class="space-y-px max-w-3xl mb-8">
       {[
@@ -111,7 +112,7 @@ trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
       Pin caps bound what an agent can touch. While your trust tier sets the floor (you cannot write past it), custom pin profiles set a ceiling on top. The merge is a union of denies—pins can only attenuate capabilities; they can never relax tier defaults.
     </p>
 
-    <img src="/diagrams/pin-enforcement.svg" alt="Pin Enforcement Flow" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <img src="/diagrams/pin-enforcement.svg" alt="ostk capability pin enforcement flow for kernel-mediated AI coding agent actions" width="640" height="400" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
 
     <div class="bg-surface-container-low p-6 max-w-2xl mb-6 overflow-x-auto">
       <div class="min-w-[420px]">
@@ -176,7 +177,7 @@ created: .ostk/pins/fix-bug/pin.boot
     <div class="section-label mb-4">04 // APPROVAL_CHAIN</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">The Seven-Step Approval Chain</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Every tool call requested by an agent passes through seven ordered validation steps. The chain sequences checks from cheapest/most-certain (pin caps) to most-expensive/ambiguous (human prompt). First match wins:
+      Tool calls routed through the kernel pass through ordered validation steps, from pin caps to any required operator approval. Native client tools do not enter this chain. First matching rule wins:
     </p>
 
     <div class="space-y-px max-w-3xl mb-8">
@@ -258,18 +259,18 @@ OPENROUTER_API_KEY   ✗ not found</pre>
     <div class="section-label mb-4">06 // VERIFIABLE_AUDIT_CHAINS</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Verifiable Audit Chains</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Every action executed through a kernel session registers an entry in the append-only journal (<code class="text-primary">.ostk/journal.jsonl</code>). Each row is:
+      Kernel-mediated dispatches append entries to the local journal (<code class="text-primary">.ostk/journal.jsonl</code>). Native client actions that bypass ostk are not covered. Appended rows are:
     </p>
     <ul class="font-body text-xs text-secondary leading-relaxed max-w-xl space-y-2 list-disc pl-5 mb-6">
       <li>Hash-chained: Contains the SHA-256 hash of the preceding line (<code class="text-primary">prev_hash</code>).</li>
-      <li>Ed25519-signed: Signed in-process using the operator's session-key.</li>
-      <li>Verifiable: You can replay and cryptographically verify the entire stack history at any time.</li>
+      <li>Conditionally signed: Ed25519-signed in process when the kernel signing key is available; otherwise <code class="text-primary">sig</code> is empty.</li>
+      <li>Verifiable within scope: The hash chain and present signatures can be checked. Replay rebuilds supported registries and projections, not every byte of runtime history.</li>
     </ul>
 
     <Terminal class="max-w-2xl mb-6">
       <pre><span class="text-outline"># Cryptographically audit the local journal</span>
-<span class="text-outline">$ </span>ostk os audit
-audit: 18,442 rows, hash chain ok, signatures verified
+<span class="text-outline">$ </span>ostk audit check
+audit: 18,442 rows, hash chain ok, present signatures verified, unsigned rows reported
 
 <span class="text-outline"># Inspect the running log</span>
 <span class="text-outline">$ </span>tail -f .ostk/journal.jsonl
@@ -280,7 +281,7 @@ audit: 18,442 rows, hash chain ok, signatures verified
     <div class="bg-surface-container p-6 border-l-2 border-primary max-w-2xl">
       <div class="font-label text-[10px] text-primary mb-2">CONCURRENCY & OCC INVARIANTS</div>
       <p class="font-body text-xs text-secondary leading-relaxed">
-        Because writes are audited and tracked, if two agents attempt to edit the same file concurrently, the kernel detects a generation conflict (<code class="text-primary">gen_before</code> mismatch) and rejects the write with an OCC (Optimistic Concurrency Control) error, preventing silent overwrites.
+        <code class="text-primary">fs_ops</code> CAS edits provide expected text and use generation history to detect stale or overlapping work. Safe non-overlapping changes may auto-merge; ambiguous changes fail visibly. Native client writes, raw shell writes, and overwrite-style operations do not inherit this OCC guarantee.
       </p>
     </div>
   </section>
@@ -290,7 +291,7 @@ audit: 18,442 rows, hash chain ok, signatures verified
     <div class="section-label mb-4">07 // BAIL_PACKAGES</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Signed Portable State (Bail)</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      A <strong class="text-on-surface">bail</strong> is a signed, compressed archive (<code class="text-primary">.bail</code>) containing identity metadata, INIT sequences, and selective workspace states. It allows operators to transfer state between isolated instances without reliance on shared filesystems or network servers.
+      A <strong class="text-on-surface">bail</strong> is a signed, compressed archive (<code class="text-primary">.bail</code>) whose contents depend on the selected public, full, or export mode. It can transfer the state explicitly included in that package between instances; it is not a blanket export of external harness sessions, runtime-only state, or every derived index.
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-3xl mb-8">

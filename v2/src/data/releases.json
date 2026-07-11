@@ -1,5 +1,86 @@
 [
   {
+    "tag": "v7.7.7",
+    "name": "v7.7.7",
+    "date": "2026-07-11T09:34:59Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.7.7",
+    "body": "## Changes since v7.7.5\n\n- fix(cpu): round-trip reasoning_content for thinking-mode OpenAI-compat endpoints (140f470c)\n- chore(release): bump to v7.7.7 (fa50a12f)\n- fix(bench): kernel-arm wire truth — own-endpoint models escape the OpenRouter wrap; executed_provider becomes an observation (97d1a8a7)\n- feat(cpu): moonshot + xai own-endpoint providers — kimi-*/grok-* route to vendor APIs (7f027cf6)\n- chore(release): bump to v7.7.6 (e19e7613)\n- feat(cpu): deepseek-* kernel routes to own endpoint (api.deepseek.com) — v7.7.6 (dfa8d326)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.7.5",
+    "name": "v7.7.5",
+    "date": "2026-07-10T20:54:19Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.7.5",
+    "body": "## Changes since v7.7.1\n\n- fix(release): ungate KILL_GRACE for Windows builds; align bd-208 with delta-only envelope (85a56715)\n- chore(release): bump to v7.7.5 (cc02ebbe)\n- test: align page-path assertions with hashed page store; gate debug-only schema panic test (a5688698)\n- Merge openai-driver-v774: native OpenAI Responses driver + bench receipt hardening (4b819a01)\n- fix: harden live MCP response and lifecycle contracts (b8356db3)\n- feat(bench): stamp executed_provider into score.json [F5b] (45b7e6ca)\n- fix(bench): junk-tolerant native CLI result parsing [F1-AC5] (72bca595)\n- fix: align context paging and MCP agent contracts (0f2bd51e)\n- feat(cpu): native OpenAI Responses API driver — v7.7.4 (5171d4d4)\n- docs(bench-dossier): §9 correction + §10 — honest v7.7.3 board (fable-kernel 24→17) (5d45ee46)\n- feat: session shutdown: state verified (6159a3b8)\n- fix(bench): trust-critical scoring — exit-code oracle, unmask refusals, revert harmful persona [v7.7.3] (6269e5d6)\n- chore(churn): .ostk journal churn from v7.7.2 capture day (19668714)\n- docs(bench): dossier §9 — v7.7.2 day: classifier verdict, four harness bugs, cost-axis correction (21fd2ac4)\n- feat(bench): refusal as first-class exit code 3 (c856592a)\n- chore(release): bump version to 7.7.2 (fe8cc709)\n- chore(churn): .ostk journal/attestation churn (0620435b)\n- fix(guard): honest dangerous-command warnings across all three classifiers (4b4320fc)\n- feat(cpu): claude-sonnet-5 model entry + supports_adaptive_thinking gate (533a7bc2)\n- fix(cpu): recover from undeclared tool_use instead of killing the agent (fb7e0dcd)\n- fix(bench): bounded docker exec + deterministic teardown — the 20-min hang dead at root (ebcbe2b0)\n- docs(bench): fable-5 v7.7.1 capture results + squasher-refusal root cause (ee6d227f)\n- chore(churn) commit journal churn (c286562b)\n- docs(release-hygiene): state-of-the-os 2026-07-08 + bench dossier 2026-07-09 (243e689c)\n- style(fmt): rustfmt fixups over bench-lane test code (69780cc8)\n- feat(cpu): claude-fable-5 model entry — pricing, context window, output cap (c8e13be9)\n- fix(bench): dispatch kernel-arm agents with --profile oneshot (→862) (1e7bcbb7)\n- feat(bench): score payloads carry arm receipts + binary identity (ce5b0ff9)\n- fix(kernel): bound + audit the end_turn nudge park; plumb --profile through spawn (→862, →1340) (3f6edaed)\n- chore(churn) commit journal churn (f66d3026)\n- fix(ontology): untrack runtime file_cache.jsonl; gitignore + acknowledge (372f7ab1)\n- chore(housekeeping): journal churn + gemini cache-floor decisions + swept WIP (127b4e13)\n- feat(rewrite): record page uploads in file_cache.jsonl (→2080) (d5ce22eb)\n- feat(envelope): flip OSTK_HEALTH_V2 + OSTK_VOLATILE_TRAILER_PRUNE default to ON (→2079) (e059d85b)\n- docs(abi): reconcile frozen spec to v1.3.0 (→2078) (d7698f04)\n- merge(2046): journaled page coherence — AC-J2..J7 delta journal, structural-reset wiring, client contract (939a3e1f)\n- docs(2046): AC-J7 client-coherence contract + AC-J2..J6 implementation addendum (c44f7f94)\n- feat(2046): AC-J2 structural-reset wiring — auto-compact consolidates journaled pages (3721d824)\n- feat(2046): AC-J2..J4/J6 delta journal — append-only page coherence via gen_table hook (538c4f21)\n- fix(kernel): bound shell exec waits and clean up clippy warnings (51dd2237)\n- chore(housekeeping) commit journal and other kernel churn (fe1d2ff4)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.7.1",
+    "name": "v7.7.1",
+    "date": "2026-06-18T20:52:13Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.7.1",
+    "body": "## Changes since v7.7.0\n\n- chore(release): v7.7.1 (6df27286)\n- fix(test): accept org-qualified model in affinity-key shape assertion (30a1325d)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.6.0",
+    "name": "v7.6.0",
+    "date": "2026-06-13T03:57:34Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.6.0",
+    "body": "## Changes since v7.5.2\n\n- ci(release): bump windows build timeout 20→30 (1935afbf)\n- docs(spec) + chore(state): →2051 cross-harness transcript-tail spec + trailing kernel state (e95daaa7)\n- test(ontology): ledger decisions.jsonl.1 + prefix-skip exec-handoff-*.json (→2060) (de8b0024)\n- docs(spec): regenerate llmos-system-abi.md §5 for fs_ops path? signature (34961bdf)\n- fix(2054): release-gate test failures — ctx_gen observer effect + fs_ops signature drift (1621310e)\n- feat(metrics): →2055 follow-on — surface pre/post squash tokens in os metrics (2c6eedba)\n- feat(metrics): →2055 pre/post squash token absolutes on metric.squash rows + cache totals (2677e021)\n- test(2046): align duplicate-store integration test with AC-J1 I3 preservation contract (4ed76674)\n- docs: fleet retro 2026-06-12 — four-seat retrospective + trailing state (a6af5439)\n- chore(state): post-shutdown trailing kernel state (journal seals, attestations, needle ledger) (3c144916)\n- chore(release): v7.6.0 (950266b5)\n- docs(draft): →2047 dossier §5 — Phase 2 capture checks ALL RESOLVED at first light (dd67fd06)\n- feat: session shutdown: state verified (62c57cbf)\n- docs(draft): →2045 addendum — three-row per-harness wake-layer table (claude-code/codex/antigravity, fleet-complete AC-D1) + live AC-L3 salvage receipt (p20521 stranded mail → p25627) (eee73250)\n- docs(draft): →2045 AC-D2 addendum — harness wake layer for Claude Code seats (kernel doorbell + dumb monitor composition) (1f17eab6)\n- fix(monitor): gpt anomaly watcher — idle-gap pairs reclassify as cold_start, not persistent_dip (694d5153)\n- fix(2045): codex key-2 REVISE — P1 doorbell lost-wake + P2 TTL clamp bypass (c5c2b0cc)\n- feat(2045): AC-D1 in-daemon doorbell ring — deliver-hook release of inbox-<canonical> (2eea7989)\n- fix(locks): →2044 — CLI lock verb probes daemon in-memory namespace before file mutation (e527ecde)\n- wip: snapshot in-flight cross-lane kernel work (operator-directed commit) (fb32272c)\n- docs+scripts: cross-provider cache-lane session artifacts — →2043/→2046/→2047 (98a90c9a)\n- feat(2046): AC-J1 page lifecycle contract — subscriptions, boundaries, I1-I8 (13c06746)\n- docs(2046): AC-J1 page lifecycle contract draft — gate review target (5879c648)\n- feat: session shutdown: state verified (958e4e52)\n- fix(replay): →2032 — track uncached input in sim + per-model accounting (matches soak uncached-input/call diagnostic) (e908b9cb)\n- docs(draft): →2032 live-soak — churn root-cause + 81f0f34 verification (§6: AC-1/3/4 PASS, 24-call exact reuse chain, steady-state churn 0%); soak + projection-measure scripts (9309dce5)\n- docs(draft): →2032 spec §4/§5 — harness TTL-floor + flag-dark-equivalence constraints; log flag-on 400 + churn finding, add churn-share diagnostic (d0fc5a67)\n- chore(clippy): clear warnings across lib, bins, and tests (e4ef0a89)\n- fix(replay): →2032 follow-up (b) — gate on restated AC set (7dc1d382)\n- docs(draft): →2032 spec — fold p29952 seq-28 amendments (1985 restated, pricing basis pinned, sub-500 non-comparable, p95 diagnostic) (c19ea43a)\n- docs(draft): →2032 restated-AC spec — absolute write-band/ceiling ACs superseding →2030 write-share ratio (pending p29952 review) (d8dbfad4)\n- docs(draft): →2032 AC-1 offline replay — harness + results (791-call Jun-10 boot wave, 93.1% hit, 7.9x write reduction) (5e302d32)\n- docs(draft): 20260610 wave retro — scoreboard, cost lines, incident arc, doctrine; + receipts (→2038/→2039 minted, decisions) (371e9da4)\n- chore: drop tracked __pycache__ artifact (now gitignored) (a1ab43f8)\n- docs(draft): →2012 verify + →2034 review (codex p20208), codex seat onboarding, →2030a proxy TTL forecast spec (adaafbc7)\n- chore(receipts): 20260610 outage state — epoch seals 1480-1488, decisions snapshot cut, →2023/→2032 evidence dirs (1ac35093)\n- fix(store): →2037 decide verb routes through StateStore + active-overlay parse cache (f60d6242)\n- fix(scripts): →2036 cache_truth divergence mode — suggestion filter, stream split, actual-tokens-only, cch class (b0b86122)\n- feat: session shutdown: state verified (774167ea)\n- feat(scripts): →2012 cache-truth harness — 5m/1h TTL breakdown pricing, selftest, 20260610 baseline (→2012) (ceb03aa4)\n- docs(draft): continuity-seat runbook — resume protocol, →1929/→2024 semantics, cost doctrine, handoff ledger (71922099)\n- fix(serve): →2024 follow-up — tombstone-before-notify ordering in TTL sweep + wave test cleanup (641be87f)\n- chore(receipts): epoch seals 1475+ , journal/needle/attestation receipts through →2023 close (004fe9e6)\n- fix(serve): fs_ops batch-mode contract — ops precedence over quick mode, path no longer required (f55238a9)\n- feat(kernel): →2023 gen-encoded [ctx] delta serving behind OSTK_CTX_GEN (87c029bc)\n- fix(serve): →2024 →2026 — lock tombstones: notify says EXPIRED vs RELEASED; free-name watch arms (59462180)\n- fix(roster): →2027 — IMPOSTOR[session-mismatch] verdict printed truncated-equal strings (09c79b12)\n- fix(agentfile): →2022 — OAE mismatch triage: silence AC5 test-fixture audit pollution (b0c68914)\n- fix(needles): →2020 — route direct issues.jsonl readers through snapshot+overlay store (bf2e1df4)\n- fix(kernel): →2019 — loadavg envelope counted 0 needles forever: pass project root, not ostk_dir (9e9ffe8f)\n- fix(needles): →2009 — bare-int id schema at store boundary + loadavg count repair (eb967e0e)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.5.2",
+    "name": "v7.5.2",
+    "date": "2026-06-08T00:50:07Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.5.2",
+    "body": "## Changes since v7.5.1\n\n- chore(release): v7.5.2 (eb1e4a61)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.3.0",
+    "name": "v7.3.0",
+    "date": "2026-06-06T17:22:44Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.3.0",
+    "body": "## Changes since v7.2.1\n\n- chore(release): v7.3.0 (e21ce0b1)\n- feat: epoch 5 — session close: →1900 sniffer family, →1911 watch-with-claim, →1914 fixture-class extinction (93/93 sites), liveness stack v2 (ac7f42fc)\n- feat: epoch 4 complete — →1492 epic closed, test isolation (→1892), search clip (→1907), cost attribution + token-true calibration (→1904/→1912) (ccf90cd6)\n- feat: squasher →1492 arc (shape_detect registry, register-dump renderer, envelope conformance, CI token corpus, cargo-build classifier fix) (0494822c)\n- feat: squasher phase-2 (canonicalize_tool, output-shape-first, keyword-leak fix, fixtures) + coordination protocol v2 (lock list/refresh, peer-pid   aliases, inbox migration, team board) (62729355)\n- feat: session shutdown: state verified (2e5400ea)\n- feat: session shutdown: state verified (933801b2)\n- feat: session shutdown: state verified (c119ed68)\n- chore(gitignore): ignore live .ostk runtime non-regular files (VFS mount + sockets) (f3eba784)\n- test(substrate): close 3 mutation-testing gaps in gen_table + store (bd437d74)\n- style(primefile): .truncate(false) on anchor.lock opens — silence suspicious_open_options (d547bd4a)\n- chore: remove dead code — orphan palette module + 2 unused test helpers (c3c9e0bb)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.2.1",
+    "name": "v7.2.1",
+    "date": "2026-06-05T17:00:10Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.2.1",
+    "body": "## Changes since v7.2.0\n\n- chore(release): v7.2.1 — gen_table git-reconcile + macOS CI unblock (5ceed9cd)\n- fix(ci): unblock macOS release — scope to --lib, move integration suite off the release gate (207cd8f5)\n- fix(gen_table): reconcile against git at boot — prune raw-git-commit ghosts (755762cd)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.1.0",
+    "name": "v7.1.0",
+    "date": "2026-06-03T16:08:04Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.1.0",
+    "body": "## Changes since v7.0.0\n\n- release: v7.1.0 — VFS NFS-loopback backend + execution-path reliability (958c7400)\n- fix: test isolation — machined OSTK_HOME race + vfs::nfs canary false-positive (bbf9b1b4)\n- fix: repair create-on-exists overwrite + 4 red backlog_e2e tests (4097ec8f)\n- feat: session shutdown: state verified (46ba9bde)\n- feat: session shutdown: state verified (80f0a353)\n- fix: resolve Cow<str> type inference ambiguity on macOS symlink join (fe6fcb94)\n- Merge fix-branch (8b233ef6)\n- fix: anchor MCP client identity into PIQ journal (3888bb3e)\n- feat: session shutdown: state verified (02573026)\n- fix: robust auto-repair for execution paths, daemon flakiness, and I/O bottlenecks (30af00ec)\n- feat: session shutdown: state verified (9422dc20)\n- feat: session shutdown: state verified (b1a73c75)\n- feat: session shutdown: state verified (9d8ad64e)\n- feat: session shutdown: state verified (670e3d9a)\n- feat: session shutdown: state verified (b74bb5d9)\n- feat: session shutdown: state verified (c1ef870d)\n- feat: session shutdown: state verified (c05db790)\n- feat: session shutdown: state verified (3f10086c)\n- feat: session shutdown: state verified (44d92c94)\n- fix: resolve concurrent locking, gen_table optimization, envelope nits, and boot footprint (1492bf41)\n- feat: session shutdown: state verified (217df2ea)\n- fix: quality of life issues (v7 init, agent identity) (a17faf8a)\n- feat: session shutdown: state verified (58267ff2)\n- feat: session shutdown: state verified (c52a21b2)\n- chore(journal) commit kernel journal (a3048eb1)\n- Merge: vfs NFS-loopback backend (Phases A-D) (5d581e6f)\n- feat(vfs): NFS-loopback backend (Phase D) — default to NFS, keep FUSE fallback (8ee06c67)\n- feat(vfs): NFS-loopback backend (Phase C) — live mount + kill-test + status (84bde286)\n- feat(vfs): NFS-loopback backend (Phase B) — ensure_mounted dispatch (c336cf85)\n- feat(vfs): NFS-loopback backend (Phase A) — content + identity layer (4ae11170)\n- feat(templates): canonicalize bail templates in haystack + drift sentinel (3525984a)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
+    "tag": "v7.0.0",
+    "name": "v7.0.0",
+    "date": "2026-05-27T03:14:40Z",
+    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v7.0.0",
+    "body": "## Changes since v6.0.5\n\n- test(registry): migrate fixtures to agents.jsonl live-set contract (a514fdca)\n- docs(man): regen synopses for v7.0.0 CLI surface (0d2c9fa5)\n- chore(release): v7.0.0 (2b066176)\n- chore(substrate): kernel churn + delete superseded .ostk/boot.md (d944a34a)\n- fix(fs_ops): add missing --replace-all shell-binding flag (f54d27ac)\n- docs(man): accuracy audit + project-history leakage cleanup + drift gate (da63aa29)\n- feat(spec): autogen §3.2 namespaces from CLI_SURFACE + drift test (0d1ba3ea)\n- docs(spec): fold abi-cli-conventions.md into cli-hierarchy.md §10 (0fa6c581)\n- docs(spec): fold llmos-cli-operator-overlay.md classification into cli-hierarchy.md §5 (d3c17e00)\n- docs(spec): delete stale cli-surface.md (7fc0d3ab)\n- docs(evidence): record destination-surface migration progress (3f77fc2f)\n- feat(kernel): teach resolve and verb_namespace the new canonical work verbs (f6636c9c)\n- docs(spec): update cli-hierarchy for destination-surface cuts (ac1bd3d4)\n- feat(cli-surface): depends/sphere/radiate/near -> work show --variants — eighth cut (de749520)\n- feat(cli-surface): compile+refine+compound -> work triage — seventh cut (10a63832)\n- feat(cli-surface): hay+idea -> work capture — sixth cut (92ae3003)\n- feat(cli-surface): work.next -> work pull --peek — fifth cut (f044f3d4)\n- docs(threads): weave projection-eliminates-drift (0f9c5d22)\n- feat(cli-surface): work.promote -> work.edit --priority — fourth cut (d3407b90)\n- feat(cli-surface): run -> agentfile.run — third destination cut (c2c2c308)\n- feat(cli-surface): seal -> recovery.seal — second destination cut (7202a02c)\n- feat(cli-surface): remove `should` — first destination-surface cut (b37012b7)\n- feat(cli): admit `ostk shutdown` as top-level (Class 2 Lifecycle) (dc85d48f)\n- feat(cli-surface): migrate admission test + apply_core_markers + seal classification (3d28886d)\n- feat(cli-surface): CLI_SURFACE canonical table — foundation + boot consumes it (58c467ba)\n- docs(decision): CLI surface canonical destination + single-source migration (3ceef26e)\n- feat(language): CORE_SEED_LANGUAGE drives core_resident markers (067c8437)\n- feat: session shutdown: state verified (88e76bc6)\n- feat(language): drivers in projector inventory + boot-time validator (67b51e8f)\n- feat(language): boot-time projector — .language is a projection, not a residue (d0e18030)\n- fix(registry): /vfs/proc tombstone leak + host metadata + stable claude-code alias (b9affbc3)\n- feat(threads): workbench thread — operator-facing surface of the substrate (→1872) (2d479347)\n- refactor(thinking-partner): daemons fleet replaces tier roadmap (→1872) (0ea13006)\n- feat(substrate): thinking-partner substrate Tier-0 seed (→1872 EPIC) (e4eeb5b1)\n- docs(spec): refresh version headers + tense alignment + cross-ref repairs (spec-drift sweep) (6810c279)\n- chore(docs): archive 26 superseded/closed spec+draft files (spec-drift sweep) (e810f6a0)\n- docs(spec): refresh ABI header v1.1.0→v1.2.0 + archive 2 superseded predecessors (dc5140bc)\n- chore(substrate): journal tail after release-hygiene pipeline (epoch-1448+) (15932abf)\n- chore(docs): cross-ref updates + 8 recon reports (release-hygiene) (eb507391)\n- chore(needles+substrate): backlog hygiene pass 2026-05-22 (release-hygiene) (4a283694)\n- chore(code): clippy clean + workspace test green (release-hygiene) (9e06f036)\n- chore(release-prep): OSS hygiene files + on-ramp docs (AGPL-3.0) (836dae2d)\n- chore(substrate): seal epoch-1448, normalize gitignore, untrack ledger (7f5e80c6)\n- docs(AGENTS.md): agent-facing kernel reference (mirrors CLAUDE.md) (a89a62f0)\n- chore(gitignore): exclude memory/ledger.jsonl, http-capture, substrate/ (03a88b41)\n- feat(recall): tool:<tag> address resolver for transcript tool_use blocks (496e019b)\n- test(abi): close →1821 — strict gate un-ignored, doc cleanup (fc04f5da)\n- refactor(cache_amp): realign to per-process counter (→1859) (1f77bb59)\n- Commit kernel churn (a3044efc)\n- feat(squasher+dispatch): retire →1855 verb rule + add kernel/templates telemetry (→1856) (4ab339c8)\n- feat(recall+dispatch): MCP envelope truncation + kernel/templates verb (→1856 P1.C+D) (7454c197)\n- feat(squasher): wire ostk-template into the pipeline (→1856 P1.B) (314e0ee8)\n- feat(ostk-template): template inference primitive (→1856 P1.A) (1b7ab778)\n- feat: amend →1856 EPIC + handoff plan with ostk-cache proxy connection (cabb8065)\n- feat: session checkpoint: →1492 complete, →1856 EPIC filed for next session (2437a9e7)\n- feat(squasher): transitive-verb tokenizer + SemanticDedup wiring (→1855) (ed26153c)\n- feat(tests): squasher token-budget regression harness + fixture corpus (→1492 P6) (f58e4848)\n- docs(envelope-grammar): canonical close-envelope vocabulary (→1492 P5) (63c0cb90)\n- feat: session checkpoint: →1492 P1+P3 + →1849-→1853 verified (5eaff0f3)\n- fix(squasher): bypass grammar pipeline on inputs below 512 bytes (→1492 P3#3) (6873d559)\n- feat(search): envelope-conformant search output + plumb --limit (→1492 P3#2) (fae21f96)\n- feat(squasher): route `ostk <verb>` to Passthrough (→1492 P3#1) (0f103a7e)\n- feat(profile): cost-attribution flags on `ostk profile offenders` (→1492 P1) (04c150a5)\n- fix(kernel): tool-name canonicalization across schema-emission paths (→1849/1850/1851/1852/1853) (b1430719)\n- feat: session shutdown: state verified (e58f546d)\n- fix(auto): refresh model candidates — claude-opus-4-7, google/gemini-3-flash-preview (614db2dc)\n- feat(agentfile): STRICT directive + lowercase TOOL aliases close the whitelist gate (→1849) (6da41a35)\n- feat: session shutdown: state verified (896c6911)\n- feat: session shutdown: state verified (5f144aba)\n- feat: session shutdown: state verified (8413adb6)",
+    "prerelease": false,
+    "assetCount": 28
+  },
+  {
     "tag": "v6.0.5",
     "name": "v6.0.5",
     "date": "2026-05-12T19:54:53Z",
@@ -7,86 +88,5 @@
     "body": "## Changes since v6.0.4\n\n- release: v6.0.5 — seal verb in operator-overlay spec doc (d2c17c71)",
     "prerelease": false,
     "assetCount": 28
-  },
-  {
-    "tag": "v6.0.0",
-    "name": "v6.0.0",
-    "date": "2026-05-10T00:51:33Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v6.0.0",
-    "body": "## Changes since v5.2.0\n\n- release: v6.0.0 — daemonize recall, drop lance/datafusion (87M → 22M, -75%) (57b52d4f)\n- v6.0.0 — daemonize recall, drop lance/datafusion from haystack binary (ce5a848b)\n- feat: session shutdown: state verified (335ee6da)\n- feat: session shutdown: state verified (6e42c115)\n- feat: session shutdown: state verified (53cf6b80)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.9.0",
-    "name": "v4.9.0",
-    "date": "2026-05-05T23:44:35Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.9.0",
-    "body": "## Changes since v4.8.0\n\n- test: update human_experience + integration to post-v1.3.0 surface (310d6363)\n- release: v4.9.0 — CLI brand language + ostk abi regression fix (7a44476f)\n- session state: kernel journal seals + epoch state from CLI help-text rewrite (47633896)\n- feat(cli): brand language for nested sub-verb help (Phase 3 wave 2) (1c27cf71)\n- spec(cli): sync cli-hierarchy.md to v1.3.0 + post-2026-05-05 reality (3b281c36)\n- test(cli): brand-language gate for user-facing CLI strings (2d8fee69)\n- feat(cli): brand language + sectioned blurbs for top-level help (31ad91bf)\n- fix(cli): restore hidden `ostk abi` (regression from v1.3.0 sweep) (e30cfb7d)\n- feat: session shutdown: state verified (2e7249f8)\n- session state: kernel journal seals + memory pages from v1.1.0→v1.3.0 work (7cb06ce8)\n- feat(cli): v1.3.0 v5 sweep — hard-remove 21 deprecated Commands variants (closes →1591/→1617) (a64fe9b7)\n- feat(cli): v1.2.0 trim — hide guide/hs/repl/abi/learn from operator surface (b120bf4e)\n- test(cli): v1.2.0 admission gate (cli-hierarchy.md §6) (0696dacf)\n- feat(cli): v1.2.0 hide os/kernel parents (Gemini-overshoot folders) (2b9e0058)\n- feat(cli): v1.2.0 namespace folds — lineage/attestation/migrate/embeddings/related/compounds/mount (8b0a024f)\n- feat(cli): sectioned `--help` editorial grouping (v1.1.0; →1751) (86c377be)\n- feat(cli): land `serve --transport {mcp,uds}` (v1.1.0; →1594) (1b6fad61)\n- spec(cli): ratify Position F — CLI cohesion round-table (R1+R2) (d5a8b448)\n- Merge branch 'cli-polish-1755-1757-1758': v1.1.0 polish (18 needles) (dfcca405)\n- feat(abi): v1.1.0 polish — close 18 needles from independent review (816eb9fa)\n- feat(abi): v1.1.0 — system ABI freeze + professional CLI surface (f9bacf22)\n- needles: round-2 refinement of →1590 + new →1751 polish pass + →1613 alignment (587f217c)\n- needles: refine →1589 EPIC + 7 children with current state for next session (46851578)\n- audit: track .ostk/journal.jsonl (operator decision) (fa4e0e1b)\n- feat: checkpoint: closed →1601 (EventKind::Claim) + →1602 (Ownership::CacheTTL) — sovereign substrate v0.1 SP-1 + Gemini HB-2 closure; 24 P0s closed this session, v4.8.0 mac tests restored, hay reconnected to sealed epochs, .gitignore corrected (inline-comment bug + 10 host-runtime files uncached) (ca7c5cb6)\n- kernel: EventKind::Claim + Ownership::CacheTTL (→1601, →1602) (8fbf0efd)\n- audit: extend journal-seals chain — epochs 0350–0356 (50d54486)\n- chore: stop tracking host-local runtime state (6569fa7f)\n- fix(.gitignore): inline `#` comments don't work in gitignore patterns (17b62b20)\n- docs(.gitignore): clarify why .ostk/state/ is ignored (6825f84b)\n- chore: gitignore .ostk/hook/last_turn_* (claude-code session scratch) (35e38f68)\n- chore: gitignore transient .ostk/ runtime + drop strays (0c11d682)\n- state: needle closures + epoch-0349 seal + anchor.json genesis (25b6f4e8)\n- audit: extend journal-seals chain — epochs 0319–0347 (df7deb86)\n- chore: ignore .ostk/vfs/ (runtime projection, not source-of-truth) (c92575a3)\n- fix(post-v4.8.0): hay reads sealed epochs, ontology whitelist, hermetic auto-model test (c1e5a8be)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.8.0",
-    "name": "v4.8.0",
-    "date": "2026-05-04T20:38:31Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.8.0",
-    "body": "## Changes since v4.7.1\n\n- fix(test): v22_journal_reset_anchor expects CHAIN_RESUME_EVENT (3912504c)\n- release: v4.8.0 — mac integration tests 17/17 + Windows compile clean (f695dbc2)\n- fix(journal): wire global sealer + canonical chain.resume + epoch.state (4e8cbe96)\n- v4.8.0: gate Windows-failing tests + ipc::sync_stream_roundtrip cfg(unix) (ad621e62)\n- fix(openrouter): correct body shape + wire §6.1a/§6.1b preload split (84a42b2a)\n- feat(cpu/cache): broad upstream cache support across drivers (e8b0f8f0)\n- v4.8.0: cfg(unix) gate on machined + 3 unrelated unix-API leaks (e19f8b12)\n- v4.8.0 prep: close →1745 (mac integration tests 17/17) + drop unused sentencepiece dep (3a4e7817)\n- feat(profiler/tokens): unstub TurnFrame.tokens (§5.5.1) breakdown (3363f938)\n- feat(profiler,cpu,spec): unblock profile {ttft,gen,offenders,cache} + ISA §2.2 LocalKV / §5.0 StreamingGranularity / §6.2 compaction split (→1495, →1508, →1510, →1514) (b064ff68)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.6.1",
-    "name": "v4.6.1",
-    "date": "2026-04-28T16:23:29Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.6.1",
-    "body": "## Changes since v4.6.0\n\n- v4.6.1 — wire EMBED index to `search --mode embedding`, embeddings on Windows CI (067efb57)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.6.0",
-    "name": "v4.6.0",
-    "date": "2026-04-28T15:25:19Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.6.0",
-    "body": "## Changes since v4.5.0\n\n- ci: serialize verify dup-keyid test, relax fleet hot_files count (07837a39)\n- ci: allowlist ENTITYFILE_claude_opus_4_7.md in ontology invariant (efa0d121)\n- v4.6.0 — daemon-only dispatch, Bounded Wait, FD ceiling raised (a3db0965)\n- init: seed .boot/INIT after fresh ostk init (b75ae299)\n- kernel: demote ndarray embeddings INFO to debug (fdfa611d)\n- →1664 DRAFT: concurrency paradigm evolution (writer is observer) (da9451e2)\n- →1664 dispatch: batch HWM read+write into one acquisition per row (24583045)\n- →1664 Tier-4 cleanups: HUMANFILE mount_point + serial_test + audit allowlist (ae0e75eb)\n- →1664 Tier-3 inbox follow-ups: peek_count cache + cur/ GC (ef99e237)\n- →1664 Tier-1 renderer fidelity: [files] glyph + [ctx] v2 + [attention] signals (cce301c8)\n- merge: →1678 VFS auto-mount lifecycle (POSIX init pattern, daemon-owned mount) (c9d232c6)\n- merge: →1679 inbox Maildir migration (post-1677 doctrine impl) (bae752c6)\n- →1679 InboxMessage handle path round-trip test (90b7bbb4)\n- →1679 daemon-boot migration + integration tests (46d11062)\n- →1678 integration tests for boot-time reconcile + sidecar (6f9508e2)\n- →1679 nudge.rs Maildir frontend + VFS resolution + self-relative /inbox/ (633f4086)\n- →1678 vfs/* RPC + auto_mount guard + status declared/actual/reconciled triplet (ae1a4dfb)\n- →1678 daemon boot reconcile + signal handlers + signal-shutdown audit row (07a6ef54)\n- →1679 NudgeRegistry + ProjectionLattice impl (412ca6af)\n- →1678 reconcile_mounts + is_mount_healthy + signal-shutdown handlers (b4e868c4)\n- merge: →1677 inbox-doctrine reconciliation — canonical /ostk/proc/<alias>/inbox/ (2845842b)\n- merge: →1676 glyph-aware envelope rendering under OSTK_GLYPHS flag (32df3328)\n- merge: →1675 projection lattice + remove standalone :ls/:cat/:tree (82f0c973)\n- merge: →1674 /fleet/<alias>/ operator-facing per-agent namespace (8ddbbc0a)\n- →1677 inbox-doctrine reconciliation — canonical /ostk/proc/<alias>/inbox/ (b632bd1d)\n- →1676 glyph-aware envelope rendering — four-class attention taxonomy (a3c0d585)\n- →1675 projection lattice — three-tier path doctrine + remove standalone :ls/:cat/:tree (23e9a437)\n- →1674 /fleet/<alias>/ — operator-facing per-agent namespace (2de13925)\n- merge: →1671 polish — dedupe :search scope=vfs AC tests (3ff452ca)\n- merge: →1666 [attention] envelope under OSTK_ATTENTION flag (0c11d9f1)\n- →1671 dedupe :search scope=vfs AC tests — drop broken duplicates (bbd6475e)\n- merge: →1667 [ctx] v2 redesign under OSTK_CTX_V2 flag (cadfbded)\n- merge: →1665 [health] envelope under OSTK_HEALTH_V2 flag (5c3c4c2d)\n- merge: →1669 CacheAmpRegistry + cherry-picks of 1670/1668 (already merged) (38b77f40)\n- merge: →1671 :search scope=vfs impl + AC tests (ec382253)\n- merge: →1668 FleetSnapshotRegistry + fleet_leaves_resolve test (8e40b97f)\n- merge: →1670 VFS-only renderer migration (3 commits) (f8dfb52d)\n- →1671 add :search scope=vfs AC tests (ed38eef7)\n- →1666 [attention] envelope — event-driven coordination signals under OSTK_ATTENTION flag (adbc3a0d)\n- →1667 [ctx] v2 — closed_recent + peer_activity + fleet_calls + cache panel under OSTK_CTX_V2 flag (93afb12e)\n- →1673 schema: validate property names against Anthropic API regex (7f6ff73f)\n- →1664 spec: v2 EXTENSION — fleet-aware envelope architecture (7d8e7784)\n- →1664 spec: v2 EXTENSION — fleet-aware envelope architecture (330c9da9)\n- →1665 [health] envelope (one-line) replacing [procs]/[loadavg]/[meminfo] under OSTK_HEALTH_V2 flag (c0013229)\n- →1669 CacheAmpRegistry — attribute volatile-region cache misses to peer writes (c7869de3)\n- →1668 add kernel::vfs::namespace::tests::fleet_leaves_resolve (5ee6511e)\n- →1668 FleetSnapshotRegistry — audit-subscriber + VFS leaves under /ostk/fleet/<leaf> (58b3ffa4)\n- →1670 Add conformance test for VFS substrate boundary (7c5abacc)\n- →1670 Migrate build_volatile_envelopes to VFS read (af89407f)\n- →1670 EXTEND kernel::vfs::namespace to expose .language leaf (98bd5e09)\n- →1671 WIP :search scope=vfs — walk_namespace + run_vfs_search impl (c941bc84)\n- →1668 FleetSnapshotRegistry — audit-subscriber + VFS leaves under /ostk/fleet/<leaf> (e8e5eaaf)\n- merge: complete vfs bypass surface (->1672) (bc6ba1ff)\n- kernel: momentum bumps in .language (auto-bumped by running daemon) (2a547722)\n- vfs: complete bypass surface - tack response shape + grammar registration (->1672) (817d1d85)\n- →1670 Add conformance test for VFS substrate boundary (09ee8904)\n- →1670 Migrate build_volatile_envelopes to VFS read (156b26ab)\n- →1670 EXTEND kernel::vfs::namespace to expose .language leaf (aabcf172)\n- merge: vfs bypass + project-local FUSE (->1662 + ->1663) (03982198)\n- vfs: bypass FUSE for agents + project-local mounts only (->1662 + ->1663) (5674b73d)\n- entityfile: @claude.opus.4_7 — first since the graveyard (aa74f6c0)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.5.0",
-    "name": "v4.5.0",
-    "date": "2026-04-27T12:52:30Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.5.0",
-    "body": "## Changes since v4.4.6\n\n- release: v4.5.0 — substrate boundary as type-system invariant (→1652) (e870ff60)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.4.2",
-    "name": "v4.4.2",
-    "date": "2026-04-27T00:00:02Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.4.2",
-    "body": "## Changes since v4.4.1\n\n- ci(release): unbreak v4.4 release — Windows checkout + macOS universal (5e2d45d3)",
-    "prerelease": false,
-    "assetCount": 20
-  },
-  {
-    "tag": "v4.3.2",
-    "name": "v4.3.2",
-    "date": "2026-04-26T17:59:37Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.3.2",
-    "body": "## Changes since v4.3.1\n\n- release: v4.3.2 — first-true-node ergonomics finishing (EPIC →1624) (fbed85c2)",
-    "prerelease": false,
-    "assetCount": 16
-  },
-  {
-    "tag": "v4.3.1",
-    "name": "v4.3.1",
-    "date": "2026-04-26T16:49:14Z",
-    "url": "https://github.com/os-tack/ostk.ai/releases/tag/v4.3.1",
-    "body": "## Changes since v4.3.0\r\n\r\n- release: v4.3.1 — Trust + release hardening (first-true-node patch) (1e4c04d0)",
-    "prerelease": false,
-    "assetCount": 12
   }
 ]

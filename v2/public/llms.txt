@@ -1,8 +1,10 @@
 # ostk
 
-> Local-first kernel for AI coding agents. Run multiple agents (Claude, Cursor, local models) on the same codebase without write collisions, with capability bounds and a hash-chained, Ed25519-signed audit trail. One Rust binary, no runtime dependencies, ~30 second install.
+> A local-first-by-custody project-state layer for AI coding agents. Canonical tasks, decisions, context pages, file generations, and audit remain on disk under your control. Supported MCP clients and configured model routes can work against that same substrate.
 
-ostk treats AI coding agents like containers — packaging, isolation, and coordination — plus the kernel underneath that signs the audit chain. It composes with any MCP-capable tool (Claude Code, Cursor, etc.) while keeping every action local, signed, and replayable. Three problems break the moment you run more than one agent: they collide (last-write-wins on shared files), they drift (each agent re-discovers the same context), they leave no trace. ostk fixes all three at the kernel layer without changing how you drive your agents.
+ostk's audit, capability, and OCC guarantees apply to operations routed through the kernel. Kernel dispatch rows are hash-chained and are Ed25519-signed when a signing key is available; native client tools bypass those guarantees. CAS conflict handling applies to fs_ops edits that provide expected text, not every filesystem write.
+
+ostk requires no hosted ostk control plane, but local-first does not mean zero network activity. Configured model providers, web/download tools, updates, registrars, outbound drivers, and provider-backed context features can use the network. Anchored Anthropic sessions can automatically make best-effort Anthropic Files copies of drains or context pages for efficiency and cross-host recovery; canonical local content and provider-neutral inline loading remain available without those copies.
 
 ## Start here
 
