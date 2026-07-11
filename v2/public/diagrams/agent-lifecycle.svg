@@ -1,54 +1,71 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 280" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" role="img" aria-labelledby="title desc">
+  <title id="title">ostk context-pressure lifecycle</title>
+  <desc id="desc">When supported execution reports context pressure, the lifecycle advances without regression from Healthy through Aging, Dying, Draining, and Dead. A jump to ninety percent can skip Aging. Dying attempts a structured handoff, Draining allows one finalization, and Dead fences later tool calls.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#9e8e7d"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#ffc169"/>
+    </marker>
+  </defs>
   <style>
-    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
-    .phase { font-size: 15px; font-weight: 600; }
-    .phase-sub { fill: #a0a0aa; font-size: 11px; font-weight: 400; }
-    .cycle-label { fill: #606068; font-size: 11px; font-weight: 400; font-style: italic; }
-    .box { rx: 6; ry: 6; }
+    text{font-family:"Space Grotesk",ui-sans-serif,system-ui,sans-serif}
+    .label{font-size:11px;font-weight:700;letter-spacing:1.6px;fill:#ffc169}
+    .title{font-size:24px;font-weight:650;fill:#e7e1de}
+    .state{font-size:16px;font-weight:750;fill:#e7e1de}
+    .meta{font-size:11px;font-weight:700;letter-spacing:.7px;fill:#ffc169}
+    .body{font-size:12px;fill:#c2c9b4}
+    .note{font-size:11px;fill:#9e8e7d}
   </style>
+  <rect width="900" height="320" fill="#100e0c"/>
+  <path d="M0 0H900V78H0Z" fill="#151311"/>
+  <text x="30" y="27" class="label">CONTEXT PRESSURE / NO-REGRESS STATE MACHINE</text>
+  <text x="30" y="58" class="title">Hand off before context runs out</text>
 
-  <!-- Phase 1: boot -->
-  <rect class="box" x="40" y="80" width="110" height="56" fill="#1a1a1e" stroke="#d4a054" stroke-width="1.5"/>
-  <text class="phase" x="95" y="106" text-anchor="middle" fill="#d4a054">boot</text>
-  <text class="phase-sub" x="95" y="124" text-anchor="middle">load state</text>
+  <path d="M174 160H205" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M349 160H380" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M524 160H555" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M699 160H730" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <!-- Arrow: boot -> POST -->
-  <line x1="150" y1="108" x2="180" y2="108" stroke="#3a3a42" stroke-width="1.5"/>
-  <polygon points="180,103 192,108 180,113" fill="#3a3a42"/>
+  <g>
+    <rect x="30" y="101" width="144" height="116" fill="#1d1b19" stroke="#7fb88a" stroke-width="1.5"/>
+    <text x="46" y="124" class="meta">01 / &lt;70%</text>
+    <text x="46" y="153" class="state">HEALTHY</text>
+    <text x="46" y="178" class="body">Normal work</text>
+    <text x="46" y="198" class="body">No lifecycle action</text>
+  </g>
+  <g>
+    <rect x="205" y="101" width="144" height="116" fill="#211f1d" stroke="#d4a457" stroke-width="1.5"/>
+    <text x="221" y="124" class="meta">02 / 70–89%</text>
+    <text x="221" y="153" class="state">AGING</text>
+    <text x="221" y="178" class="body">Periodic nudges</text>
+    <text x="221" y="198" class="body">Record decisions</text>
+  </g>
+  <g>
+    <rect x="380" y="101" width="144" height="116" fill="#211f1d" stroke="#ffc169" stroke-width="1.5"/>
+    <text x="396" y="124" class="meta">03 / ≥90%</text>
+    <text x="396" y="153" class="state">DYING</text>
+    <text x="396" y="178" class="body">Attempt handoff</text>
+    <text x="396" y="198" class="body">Warn before drain</text>
+  </g>
+  <g>
+    <rect x="555" y="101" width="144" height="116" fill="#211f1d" stroke="#ffc169" stroke-width="1.5"/>
+    <text x="571" y="124" class="meta">04 / GRACE</text>
+    <text x="571" y="153" class="state">DRAINING</text>
+    <text x="571" y="178" class="body">One finalization</text>
+    <text x="571" y="198" class="body">response remains</text>
+  </g>
+  <g>
+    <rect x="730" y="101" width="140" height="116" fill="#211f1d" stroke="#ffb4ab" stroke-width="1.5"/>
+    <text x="746" y="124" class="meta" fill="#ffb4ab">05 / FENCED</text>
+    <text x="746" y="153" class="state">DEAD</text>
+    <text x="746" y="178" class="body">Later tool calls</text>
+    <text x="746" y="198" class="body">do not execute</text>
+  </g>
 
-  <!-- Phase 2: POST -->
-  <rect class="box" x="195" y="80" width="110" height="56" fill="#1a1a1e" stroke="#3a3a42" stroke-width="1"/>
-  <text class="phase" x="250" y="106" text-anchor="middle" fill="#e8e8ec">POST</text>
-  <text class="phase-sub" x="250" y="124" text-anchor="middle">orient, verify</text>
-
-  <!-- Arrow: POST -> work -->
-  <line x1="305" y1="108" x2="335" y2="108" stroke="#3a3a42" stroke-width="1.5"/>
-  <polygon points="335,103 347,108 335,113" fill="#3a3a42"/>
-
-  <!-- Phase 3: work -->
-  <rect class="box" x="350" y="80" width="110" height="56" fill="#1a1a1e" stroke="#5a9a6a" stroke-width="1.5"/>
-  <text class="phase" x="405" y="106" text-anchor="middle" fill="#5a9a6a">work</text>
-  <text class="phase-sub" x="405" y="124" text-anchor="middle">execute needles</text>
-
-  <!-- Arrow: work -> shutdown -->
-  <line x1="460" y1="108" x2="490" y2="108" stroke="#3a3a42" stroke-width="1.5"/>
-  <polygon points="490,103 502,108 490,113" fill="#3a3a42"/>
-
-  <!-- Phase 4: shutdown -->
-  <rect class="box" x="505" y="80" width="110" height="56" fill="#1a1a1e" stroke="#b85450" stroke-width="1" stroke-opacity="0.6"/>
-  <text class="phase" x="560" y="106" text-anchor="middle" fill="#e8e8ec">shutdown</text>
-  <text class="phase-sub" x="560" y="124" text-anchor="middle">persist state</text>
-
-  <!-- Cycle arrow: shutdown -> boot (bottom path) -->
-  <!-- Down from shutdown -->
-  <line x1="560" y1="136" x2="560" y2="200" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
-  <!-- Across bottom -->
-  <line x1="560" y1="200" x2="95" y2="200" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
-  <!-- Up to boot -->
-  <line x1="95" y1="200" x2="95" y2="141" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
-  <!-- Arrow head -->
-  <polygon points="90,141 95,130 100,141" fill="#d4a054" fill-opacity="0.4"/>
-
-  <!-- Cycle label -->
-  <text class="cycle-label" x="300" y="220" text-anchor="middle">next session</text>
+  <rect x="30" y="241" width="840" height="52" fill="#151311" stroke="#373432"/>
+  <text x="48" y="263" class="label">TRANSITIONS</text>
+  <text x="151" y="263" class="body">70% → 90% → next supported response → after one finalization</text>
+  <text x="48" y="282" class="note">A jump to ≥90% may skip Aging. State only advances; a later lower reading does not reverse it.</text>
 </svg>

@@ -1,77 +1,114 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 440" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 680" role="img" aria-labelledby="title desc">
+  <title id="title">ostk kernel-mediated compare-and-swap edit path</title>
+  <desc id="desc">A file edit passes policy, holds an exclusive target lock, reads current bytes, and counts occurrences of the expected text. One match proceeds directly; multiple matches stop as ambiguous; zero matches alone trigger comparison with recorded generation history and a shadow base. Only a safe non-overlap auto-merge writes. Successful edits append an audit row before generation, shadow, and byte updates; suggestions and conflicts do not write.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#9e8e7d"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#7fb88a"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#ff8a80"/>
+    </marker>
+  </defs>
   <style>
-    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
-    .label { fill: #e8e8ec; font-size: 13px; font-weight: 600; }
-    .sublabel { fill: #a0a0aa; font-size: 11px; font-weight: 400; }
-    .step-num { fill: #4ade80; font-size: 12px; font-weight: 700; }
-    .deny { fill: #ef4444; font-size: 11px; font-weight: 600; }
+    text{font-family:"Space Grotesk",ui-sans-serif,system-ui,sans-serif}
+    .label{font-size:11px;font-weight:700;letter-spacing:1.5px;fill:#ffc169}
+    .title{font-size:24px;font-weight:650;fill:#e7e1de}
+    .step{font-size:15px;font-weight:750;fill:#e7e1de}
+    .body{font-size:12px;fill:#c2c9b4}
+    .minor{font-size:11px;fill:#9e8e7d}
+    .number{font-size:10px;font-weight:750;letter-spacing:1px;fill:#ffc169}
+    .branch{font-size:10px;font-weight:750;letter-spacing:1px}
   </style>
+  <rect width="900" height="680" fill="#100e0c"/>
+  <path d="M0 0H900V78H0Z" fill="#151311"/>
+  <text x="28" y="27" class="label">FS_OPS / COMPARE-AND-SWAP EDIT</text>
+  <text x="28" y="58" class="title">Apply safely or surface the conflict</text>
 
-  <rect width="620" height="440" fill="#111114" rx="8"/>
-  <text x="310" y="28" text-anchor="middle" fill="#e8e8ec" font-size="14" font-weight="700">The Write Path (str_replace_cas)</text>
+  <g>
+    <rect x="270" y="98" width="360" height="54" fill="#1d1b19" stroke="#514536"/>
+    <text x="290" y="121" class="number">01 / REQUEST</text>
+    <text x="290" y="141" class="body">path + expected text + replacement + writer</text>
+  </g>
+  <path d="M450 152V173" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <!-- Agent -->
-  <rect x="220" y="44" width="180" height="32" rx="4" fill="#1a1a1e" stroke="#60a5fa" stroke-width="1"/>
-  <text x="310" y="64" text-anchor="middle" class="label">Agent calls file:edit</text>
-  <line x1="310" y1="76" x2="310" y2="90" stroke="#3a3a42" stroke-width="1"/>
-  <polygon points="306,88 314,88 310,94" fill="#3a3a42"/>
+  <g>
+    <rect x="270" y="174" width="360" height="54" fill="#211f1d" stroke="#ffc169"/>
+    <text x="290" y="197" class="number">02 / POLICY</text>
+    <text x="290" y="217" class="body">evaluate effective caps before opening the target</text>
+  </g>
+  <path d="M630 201H702" stroke="#ff8a80" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <g>
+    <rect x="702" y="174" width="168" height="54" fill="#2a1716" stroke="#ff8a80"/>
+    <text x="786" y="197" text-anchor="middle" class="step">DENY</text>
+    <text x="786" y="217" text-anchor="middle" class="minor">matched reason</text>
+  </g>
+  <path d="M450 228V249" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <!-- Step 1: Pin check -->
-  <rect x="120" y="94" width="380" height="40" rx="4" fill="#1a1a1e" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="140" y="114" class="step-num">1</text>
-  <text x="160" y="114" class="label">Pin check</text>
-  <text x="160" y="128" class="sublabel">trust tier + deny tokens + path match (policy.rs)</text>
-  <text x="520" y="118" class="deny" text-anchor="end">silent block</text>
-  <line x1="310" y1="134" x2="310" y2="146" stroke="#3a3a42" stroke-width="1"/>
-  <polygon points="306,144 314,144 310,150" fill="#3a3a42"/>
+  <g>
+    <rect x="240" y="250" width="420" height="62" fill="#1d1b19" stroke="#d4a457"/>
+    <text x="260" y="274" class="number">03 / TARGET CRITICAL SECTION</text>
+    <text x="260" y="298" class="step">Exclusive flock → read current bytes</text>
+  </g>
+  <path d="M450 312V333" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <!-- Step 2: flock -->
-  <rect x="120" y="150" width="380" height="40" rx="4" fill="#1a1a1e" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="140" y="170" class="step-num">2</text>
-  <text x="160" y="170" class="label">Exclusive flock</text>
-  <text x="160" y="184" class="sublabel">lock_exclusive() — one writer at a time (fs2)</text>
-  <line x1="310" y1="190" x2="310" y2="202" stroke="#3a3a42" stroke-width="1"/>
-  <polygon points="306,200 314,200 310,206" fill="#3a3a42"/>
+  <g>
+    <rect x="240" y="334" width="420" height="66" fill="#151311" stroke="#9e8e7d"/>
+    <text x="450" y="360" text-anchor="middle" class="step">Count the expected text in current bytes</text>
+    <text x="450" y="384" text-anchor="middle" class="minor">history is not consulted until the count is zero</text>
+  </g>
 
-  <!-- Step 3: Read + CAS -->
-  <rect x="120" y="206" width="380" height="40" rx="4" fill="#1a1a1e" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="140" y="226" class="step-num">3</text>
-  <text x="160" y="226" class="label">Read + CAS check</text>
-  <text x="160" y="240" class="sublabel">read under lock, old_str must match (file.rs)</text>
-  <text x="520" y="232" class="deny" text-anchor="end">Hot PR</text>
-  <line x1="310" y1="246" x2="310" y2="258" stroke="#3a3a42" stroke-width="1"/>
-  <polygon points="306,256 314,256 310,262" fill="#3a3a42"/>
+  <path d="M330 400V425H150V446" fill="none" stroke="#7fb88a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="177" y="420" class="branch" fill="#9bd3a4">COUNT = 1</text>
+  <path d="M450 400V446" stroke="#ffc169" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="462" y="426" class="branch" fill="#ffc169">COUNT = 0</text>
+  <path d="M570 400V425H750V446" fill="none" stroke="#ff8a80" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text x="652" y="420" class="branch" fill="#ffb4ab">COUNT &gt; 1</text>
 
-  <!-- Step 4: gen_table + shadow -->
-  <rect x="120" y="262" width="380" height="40" rx="4" fill="#1a1a1e" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="140" y="282" class="step-num">4</text>
-  <text x="160" y="282" class="label">gen_table + shadow</text>
-  <text x="160" y="296" class="sublabel">generation++, writer, mtime; old content to .ostk/shadows/</text>
-  <line x1="310" y1="302" x2="310" y2="314" stroke="#3a3a42" stroke-width="1"/>
-  <polygon points="306,312 314,312 310,318" fill="#3a3a42"/>
+  <g>
+    <rect x="28" y="447" width="244" height="76" fill="#122318" stroke="#7fb88a"/>
+    <text x="46" y="472" class="number" fill="#9bd3a4">DIRECT PATH</text>
+    <text x="46" y="498" class="step">Prepare direct CAS</text>
+    <text x="46" y="516" class="minor">exactly one unambiguous match</text>
+  </g>
+  <g>
+    <rect x="328" y="447" width="244" height="76" fill="#211f1d" stroke="#ffc169"/>
+    <text x="346" y="472" class="number">RECOVERY PATH</text>
+    <text x="346" y="498" class="step">Compare recorded base</text>
+    <text x="346" y="516" class="minor">generation history + shadow</text>
+  </g>
+  <g>
+    <rect x="628" y="447" width="244" height="76" fill="#2a1716" stroke="#ff8a80"/>
+    <text x="646" y="472" class="number" fill="#ffb4ab">AMBIGUOUS</text>
+    <text x="646" y="498" class="step">Stop visibly</text>
+    <text x="646" y="516" class="minor">multiple matches · no write</text>
+  </g>
 
-  <!-- Step 5: Write + audit -->
-  <rect x="120" y="318" width="380" height="40" rx="4" fill="#1a1a1e" stroke="#4ade80" stroke-width="1" stroke-opacity="0.5"/>
-  <text x="140" y="338" class="step-num">5</text>
-  <text x="160" y="338" class="label">Write in place + audit</text>
-  <text x="160" y="352" class="sublabel">seek(0), write, truncate; audit.jsonl append</text>
+  <path d="M390 523V548H322" fill="none" stroke="#7fb88a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M510 523V548H579" fill="none" stroke="#ff8a80" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text x="288" y="545" class="branch" fill="#9bd3a4">SAFE NON-OVERLAP</text>
+  <text x="592" y="545" class="branch" fill="#ffb4ab">NEARBY / CONFLICT</text>
 
-  <!-- flock release -->
-  <line x1="310" y1="358" x2="310" y2="374" stroke="#4ade80" stroke-width="1"/>
-  <polygon points="306,372 314,372 310,378" fill="#4ade80"/>
-  <text x="310" y="393" text-anchor="middle" class="label" fill="#4ade80">flock released on drop</text>
+  <g>
+    <rect x="220" y="550" width="250" height="54" fill="#122318" stroke="#7fb88a"/>
+    <text x="345" y="574" text-anchor="middle" class="step">Prepare auto-merge</text>
+    <text x="345" y="594" text-anchor="middle" class="minor">deterministic, non-overlapping</text>
+  </g>
+  <g>
+    <rect x="520" y="550" width="250" height="54" fill="#2a1716" stroke="#ff8a80"/>
+    <text x="645" y="574" text-anchor="middle" class="step">Suggest or conflict</text>
+    <text x="645" y="594" text-anchor="middle" class="minor">return details · no write</text>
+  </g>
 
-  <!-- Success -->
-  <line x1="310" y1="398" x2="310" y2="412" stroke="#4ade80" stroke-width="1"/>
-  <polygon points="306,410 314,410 310,416" fill="#4ade80"/>
-  <text x="310" y="433" text-anchor="middle" class="label" fill="#4ade80">file written</text>
+  <path d="M150 523V620H250" fill="none" stroke="#7fb88a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M345 604V620" stroke="#7fb88a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <g>
+    <rect x="250" y="612" width="400" height="48" fill="#211f1d" stroke="#ffc169" stroke-width="1.5"/>
+    <text x="270" y="633" class="number">04 / COMMIT UNDER TARGET LOCK</text>
+    <text x="270" y="651" class="body">audit row first (fail closed) → generation + shadow → bytes → release</text>
+  </g>
 
-  <!-- Hot PR branch from step 3 -->
-  <line x1="500" y1="232" x2="545" y2="232" stroke="#f59e0b" stroke-width="1"/>
-  <rect x="515" y="244" width="100" height="72" rx="3" fill="#1f1a0f" stroke="#f59e0b" stroke-width="0.5"/>
-  <text x="565" y="258" text-anchor="middle" class="sublabel" fill="#f59e0b">Hot PR tiers:</text>
-  <text x="565" y="272" text-anchor="middle" class="sublabel" fill="#f59e0b">Tier 1: auto-merge</text>
-  <text x="565" y="286" text-anchor="middle" class="sublabel" fill="#f59e0b">Tier 2: assisted</text>
-  <text x="565" y="300" text-anchor="middle" class="sublabel" fill="#f59e0b">Tier 3: rebase</text>
-  <text x="565" y="314" text-anchor="middle" class="sublabel" fill="#f59e0b">Tier 4: diagnostic</text>
+  <text x="450" y="675" text-anchor="middle" class="minor">Applies to kernel-mediated CAS edits on tracked files; native and raw-shell writes use ordinary filesystem and Git coordination.</text>
 </svg>

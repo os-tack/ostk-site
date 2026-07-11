@@ -10,7 +10,7 @@ import Terminal from '../../components/Terminal.astro';
   description="Define repeatable AI coding agents with Agentfiles: choose a model, task, limits, tools, context, sandbox policy, and supervised lifecycle."
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-8">
-    An Agentfile is a Dockerfile for agents. Plain-text directives in a stable order; the kernel reads it once, signs it, and supervises everything that follows. Below: four problems an operator has when authoring one, and the compositions that answer them.
+    An Agentfile is a local, plain-text recipe for a repeatable worker: model, task, resource limits, tools, and optional isolation policy. ostk parses and validates supported launch paths; signing and supervision depend on the selected workflow rather than happening universally.
   </p>
 
   <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-12">
@@ -44,7 +44,7 @@ created: .ostk/agents/fix-bug-27.Agentfile
     <div class="bg-surface-container-low p-5 max-w-xl mt-4 mb-3">
       <div class="font-label text-[10px] text-primary mb-2">COMPOSES_FROM</div>
       <div class="font-body text-xs text-secondary leading-relaxed">
-        <code class="text-primary">agentfile new</code> (scaffolder) · the FROM/LIMIT/TASK directives (the spec) · <code class="text-primary">run</code> (spawns the agent loop) · pin caps from <code class="text-primary">OSTK_PIN</code> or tier-default · drain snapshots at every turn.
+        <code class="text-primary">agentfile new</code> (scaffolder) · the FROM/LIMIT/TASK directives (the spec) · <code class="text-primary">run</code> (spawns the supported agent loop) · pin caps from <code class="text-primary">OSTK_PIN</code> or tier defaults · best-effort drain snapshots after completed managed turns.
       </div>
     </div>
     <p class="font-body text-[10px] text-outline max-w-xl">
@@ -179,7 +179,7 @@ ok: 5 directives, 0 lint failures
 
   <div class="metadata-ribbon border-t border-surface-variant">
     <span class="font-label text-[10px] text-secondary mr-4">RELATED:</span>
-    <a href="/docs/security/#gpg-rooted-trust-tiers"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
+    <a href="/docs/security/#identity-derived-trust-tiers"><Icon name="shield" size="14" class="align-middle mr-1" />TRUST_MODEL</a>
     <a href="/docs/security/#capability-pins-profiles"><Icon name="lock" size="14" class="align-middle mr-1" />PIN_CAPS</a>
     <a href="/docs/commands/"><Icon name="terminal" size="14" class="align-middle mr-1" />CLI</a>
     <a href="/docs/architecture/"><Icon name="architecture" size="14" class="align-middle mr-1" />ARCHITECTURE</a>

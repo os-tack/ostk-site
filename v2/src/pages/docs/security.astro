@@ -2,6 +2,8 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Terminal from '../../components/Terminal.astro';
+import TechnicalDiagram from '../../components/TechnicalDiagram.astro';
+import SystemReadingPath from '../../components/SystemReadingPath.astro';
 ---
 
 <DocsLayout
@@ -13,13 +15,14 @@ import Terminal from '../../components/Terminal.astro';
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-2xl mb-12">
     ostk layers policy, process isolation, local audit, and identity evidence around operations routed through the kernel. Coverage depends on the integration: native client tools bypass the kernel, audit signing requires a key, and process identity is stronger than a self-asserted client name.
   </p>
+  <SystemReadingPath current="trust" />
 
   <!-- Table of Contents -->
   <div class="bg-surface-container-low p-6 mb-16 border-l-2 border-primary max-w-2xl">
     <div class="font-label text-[10px] text-primary mb-3">SECURITY_AND_TRUST_REFERENCE</div>
     <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 font-body text-xs text-secondary">
       <li><a href="#defense-in-depth-model" class="text-primary hover:underline">1. Defense-in-Depth Model</a></li>
-      <li><a href="#gpg-rooted-trust-tiers" class="text-primary hover:underline">2. GPG-Rooted Trust Tiers</a></li>
+      <li><a href="#identity-derived-trust-tiers" class="text-primary hover:underline">2. Identity-Derived Trust Tiers</a></li>
       <li><a href="#capability-pins-profiles" class="text-primary hover:underline">3. Capability Pins & Profiles</a></li>
       <li><a href="#the-seven-step-approval-chain" class="text-primary hover:underline">4. Seven-Step Approval Chain</a></li>
       <li><a href="#secrets-management-masking" class="text-primary hover:underline">5. Secrets Management & Masking</a></li>
@@ -52,22 +55,30 @@ import Terminal from '../../components/Terminal.astro';
     </div>
   </section>
 
-  <!-- 2. GPG-Rooted Trust Tiers (T0-T3) -->
+  <!-- 2. Identity-Derived Trust Tiers (T0-T3) -->
   <section class="mb-16">
     <div class="section-label mb-4">02 // TRUST_TIERS</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">GPG-Rooted Trust Tiers</h2>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Identity-Derived Trust Tiers</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      The kernel determines your tier at boot based entirely on your GPG keyring and active signatures. Tier defaults set the safety floor for filesystem and command execution:
+      At boot, ostk resolves <code class="text-primary">SIGN</code> evidence from the HUMANFILE together with verified primefile identity evidence, then uses legacy GPG resolution as a fallback. The resulting T0–T3 tier supplies the default posture for kernel-mediated operations:
     </p>
 
-    <img src="/diagrams/trust-tiers-v2.jpg" alt="ostk GPG trust tiers from untrusted agent to operator-governed project identity" width="1024" height="1024" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <TechnicalDiagram
+      src="/diagrams/trust-tiers.svg"
+      alt="Identity evidence mapped to ostk T0 through T3 default postures without exposing real keys or operator fingerprints"
+      width={900}
+      height={520}
+      eyebrow="IDENTITY_DEFAULTS"
+      caption="Identity selects a default posture; configured write: prefixes can declare explicit path exceptions."
+      scope="Boot-time T0–T3 resolution from HUMANFILE and verified primefile evidence, with GPG as a fallback."
+    />
 
     <div class="space-y-px max-w-3xl mb-8">
       {[
-        { tier: 'T0', meaning: 'Kernel Trust Anchor', how: 'Hardcoded in src/kernel/identity.rs (shipped with binary)', restrictions: 'None — full governance authority' },
-        { tier: 'T1', meaning: 'Cross-Signed Identity', how: 'Your GPG key signed by a T0 key', restrictions: 'Write access to source/needles. Denied: write-kernel, modify-governance' },
-        { tier: 'T2', meaning: 'Unsigned GPG Identity', how: 'GPG key exists but lacks T0/T1 cross-signature', restrictions: 'Read everything. Narrow write exceptions. Denied: write-src, write-kernel, modify-governance' },
-        { tier: 'T3', meaning: 'Anonymous Mode', how: 'host_identity discovers no local GPG keys', restrictions: 'Boots read-only. All writes through the tool layer are denied by default' },
+        { tier: 'T0', meaning: 'Verified Trust Root', how: 'A verified self-sovereign primefile or a trusted Ed25519/GPG anchor', restrictions: 'No tier-default restrictions — full governance authority' },
+        { tier: 'T1', meaning: 'T0-Endorsed Identity', how: 'Verified delegated evidence or a legacy T0 cross-signature', restrictions: 'Source writes with kernel-state and governance restrictions by default' },
+        { tier: 'T2', meaning: 'Identity Without T0 Endorsement', how: 'Identity evidence resolves without trusted endorsement', restrictions: 'The governed src/ root, kernel state, and governance are denied by default' },
+        { tier: 'T3', meaning: 'Anonymous Mode', how: 'No identity resolves from HUMANFILE, verified primefile, or keyring', restrictions: 'Kernel-mediated writes denied by default' },
       ].map(t => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-4">
@@ -86,22 +97,15 @@ import Terminal from '../../components/Terminal.astro';
       ))}
     </div>
 
-    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Graduating Tiers via Ceremony</h3>
-    <p class="font-body text-xs text-secondary leading-relaxed max-w-xl mb-4">
-      To transition from anonymous (T3) to a write-capable identity, you generate a GPG key, which moves you to T2. To reach T1, an active T0 or T1 holder must cross-sign your key. The cross-signature is verified at boot:
-    </p>
-
-    <Terminal class="max-w-2xl">
-      <pre><span class="text-outline"># T3 → T2: generate a GPG key</span>
-<span class="text-outline">$ </span>gpg --full-generate-key
-<span class="text-outline">$ </span>ostk boot
-trust: <span class="text-primary">T2</span> (read + narrow exceptions)
-
-<span class="text-outline"># T2 → T1: have a T0 or T1 holder cross-sign your key</span>
-<span class="text-outline">$ </span>ostk trust sign &lt;your-fingerprint&gt;     <span class="text-outline"># run by the cross-signer</span>
-<span class="text-outline">$ </span>ostk boot
-trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
-    </Terminal>
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-4">How Identity Is Admitted</h3>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-2xl">
+      <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+        A new project can establish a verified local root through the self-sovereign primefile created by <code class="text-primary">ostk init</code>. Current identity evidence uses Ed25519/DSSE-compatible verification where available; existing environments can retain the legacy GPG fallback.
+      </p>
+      <p class="font-body text-xs text-secondary leading-relaxed">
+        On the legacy GPG fallback, a verified T0 cross-signature yields T1 and an unendorsed key yields T2. T3 applies only when no verified primefile or other recognized identity evidence resolves. Revocation remains a policy state for historical verification; the boot resolver itself reports T0–T3.
+      </p>
+    </div>
   </section>
 
   <!-- 3. Capability Pins -->
@@ -109,10 +113,18 @@ trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
     <div class="section-label mb-4">03 // CAPABILITY_PINS</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Capability Pins & Profiles</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Pin caps bound what an agent can touch. While your trust tier sets the floor (you cannot write past it), custom pin profiles set a ceiling on top. The merge is a union of denies—pins can only attenuate capabilities; they can never relax tier defaults.
+      Trust tiers provide the default posture, while an operator-authored pin profile can add deny tokens and verb rules or declare narrow <code class="text-primary">write:</code> prefixes as explicit path carve-outs. Enforcement depends on the execution surface; for <code class="text-primary">fs_ops</code>, an active pin that cannot be read makes writes fail closed.
     </p>
 
-    <img src="/diagrams/pin-enforcement.svg" alt="ostk capability pin enforcement flow for kernel-mediated AI coding agent actions" width="640" height="400" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <TechnicalDiagram
+      src="/diagrams/pin-enforcement.svg"
+      alt="Effective ostk capability policy branching into file-write checks, kernel-verb denies, and shell containment rather than one universal allow-or-deny path"
+      width={900}
+      height={590}
+      eyebrow="CAPABILITY_SURFACES"
+      caption="The effective policy is enforced differently by write, verb, and shell surfaces."
+      scope="Kernel-mediated operations only; native client tools remain outside this boundary."
+    />
 
     <div class="bg-surface-container-low p-6 max-w-2xl mb-6 overflow-x-auto">
       <div class="min-w-[420px]">
@@ -122,11 +134,11 @@ trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
           <div class="font-label text-[10px] text-primary">DESCRIPTION</div>
         </div>
         {[
-          { token: 'deny: write-kernel', affects: '.ostk/ state', desc: 'Blocks all writes to internal kernel database and settings' },
-          { token: 'deny: modify-governance', affects: 'Governance files', desc: 'Blocks modifications to .primefile, GOVERNANCE.md, ENTITYFILE, and Agentfiles' },
-          { token: 'deny: write-src', affects: 'Project source', desc: 'Blocks all writes to main project directories and codebase source files' },
-          { token: 'deny-path: <path>', affects: 'Path matching', desc: 'Blocks write, creation, or deletion of files matching prefix or substring' },
-          { token: 'deny-verb: <cmd>', affects: 'Tool commands', desc: 'Blocks execution of exact or prefix-matched CLI or shell verbs' },
+          { token: 'deny: write-kernel', affects: '.ostk/ state', desc: 'Blocks canonical kernel-state writes; derived index and round-table paths have explicit exceptions' },
+          { token: 'deny: modify-governance', affects: 'Governance files', desc: 'Blocks .primefile, HUMANFILE, GOVERNANCE.md, ENTITYFILE, Agentfiles, and agent definitions' },
+          { token: 'deny: write-src', affects: 'Project source', desc: 'Blocks writes under the governed project root\'s src/ tree' },
+          { token: 'write: <path>', affects: 'Path prefix', desc: 'Declares an operator-authored allow override for the listed prefix' },
+          { token: 'deny-verb: <cmd>', affects: 'Kernel verbs', desc: 'Blocks an exact invocation or a prefix match at a word boundary' },
         ].map(row => (
           <div class="grid grid-cols-3 gap-4 font-body text-xs py-2 border-b border-surface-variant">
             <div class="text-error font-bold font-mono">{row.token}</div>
@@ -144,15 +156,17 @@ trust: <span class="text-primary">T1</span> (cross-signed, write access)</pre>
 
     <Terminal class="max-w-2xl mb-6">
       <pre><span class="text-outline">$ </span>ostk issue_pin fix-bug
-created: .ostk/pins/fix-bug/pin.caps
-created: .ostk/pins/fix-bug/pin.boot
+pin fix-bug issued
+  .ostk/pins/fix-bug/pin.boot
+  .ostk/pins/fix-bug/pin.caps
 
 <span class="text-outline">$ </span>cat .ostk/pins/fix-bug/pin.caps
+<span class="text-secondary">read:</span> .ostk/ .language
+<span class="text-primary">write:</span> .ostk/store/fix-bug/
+<span class="text-secondary">execute:</span> shell(readonly)
 <span class="text-error">deny:</span> write-kernel modify-governance
-<span class="text-error">deny-path:</span> infra/ secrets/ .env*
-<span class="text-error">deny-verb:</span> :shutdown
 
-<span class="text-outline"># Execute agent bound to this pin profile</span>
+<span class="text-outline"># Activate this profile for a supported launch path</span>
 <span class="text-outline">$ </span>OSTK_PIN=fix-bug ostk run .ostk/agents/fix-bug.af</pre>
     </Terminal>
 
@@ -177,7 +191,7 @@ created: .ostk/pins/fix-bug/pin.boot
     <div class="section-label mb-4">04 // APPROVAL_CHAIN</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">The Seven-Step Approval Chain</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Tool calls routed through the kernel pass through ordered validation steps, from pin caps to any required operator approval. Native client tools do not enter this chain. First matching rule wins:
+      The embedded CPU agent loop uses this ordered approval chain for its tool calls, from pin caps to any required operator approval. It is not the universal dispatch path for every System ABI verb, and native client tools do not enter it. First matching rule wins within that loop:
     </p>
 
     <div class="space-y-px max-w-3xl mb-8">
@@ -185,7 +199,7 @@ created: .ostk/pins/fix-bug/pin.boot
         { step: '01', name: 'PIN_CAPS_HARD_DENY', desc: 'Checks write capabilities against pin.caps. If matching write-kernel, modify-governance, or write-src, it is denied immediately. Fails closed.' },
         { step: '02', name: 'DESTRUCTIVE_CHECK', desc: 'Runs destructor checks on command strings. Dangerous commands (e.g. rm -rf) or active danger signals override all auto-approval paths and force a prompt.' },
         { step: '03', name: 'KERNEL_READ_AUTO', desc: 'If the command is exactly a read-only kernel inspect primitive (e.g. ostk ps, ostk clock, ostk show), it is automatically approved without prompts.' },
-        { step: '04', name: 'PERMISSION_MODE_GATE', desc: 'Checks the active permission mode. Autonomous allows all; Auto allows standard reads; Governed and Plan deny all write classes by default.' },
+        { step: '04', name: 'PERMISSION_MODE_GATE', desc: 'Checks the active permission mode. Autonomous allows all; Auto allows standard reads plus ordinary edit/write classes; Governed and Plan deny write classes by default.' },
         { step: '05', name: 'SESSION_ALLOW_LIST', desc: 'Checks transient in-memory approved verbs. If the operator approved a tool class with the "approve all" key, it is auto-approved until the session ends.' },
         { step: '06', name: 'AGENTFILE_TOOL_PATTERNS', desc: 'Compares the call target against Agentfile TOOL directives. Substring matches approve specific file paths or command classes.' },
         { step: '07', name: 'USER_PROMPT', desc: 'Falls back to prompting the human operator. Keybindings: y=approve, n=deny, a=approve class, Enter=deny (safety default).' },
@@ -206,7 +220,7 @@ created: .ostk/pins/fix-bug/pin.boot
     <div class="section-label mb-4">05 // SECRETS_MANAGEMENT</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-6">Secrets Management & Masking</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      API keys never enter the LLM context. The kernel resolves credentials at execution time and injects them only into the environment of the active subprocess:
+      When a supported tool resolves credentials through ostk, the kernel avoids placing the value in the model prompt, resolves it at execution time, and injects it only into the active subprocess environment. Native shells and external services remain separate boundaries:
     </p>
 
     <div class="space-y-px max-w-3xl mb-8">
@@ -246,7 +260,7 @@ OPENROUTER_API_KEY   ✗ not found</pre>
     <h3 class="serif-text text-xl font-medium text-on-surface mb-4">Output Masking</h3>
     <div class="bg-surface-container-high p-6 border-l-2 border-primary max-w-2xl">
       <p class="font-body text-xs text-secondary leading-relaxed mb-2">
-        To prevent accidental credential leaks in conversation histories or transcripts, all tool outputs (stdin, stdout, stderr, file reads, and errors) are passed through <code class="text-primary">secrets::mask()</code>.
+        Kernel-mediated results on supported masking paths pass known values through <code class="text-primary">secrets::mask()</code> before they are returned to the model. This does not sanitize output produced through native client tools or unrelated external processes.
       </p>
       <p class="font-body text-xs text-secondary leading-relaxed">
         Any string matching a known API key structure with length &ge; 8 characters is automatically replaced with <code class="text-primary">●●●● (length)</code>.
@@ -355,7 +369,7 @@ GPG: no manifest.json.asc in bail
         { step: '01', action: 'Execute ostk trust revoke <fingerprint>, signed by a valid authority key (T0 or T1).' },
         { step: '02', action: 'The revocation event is written to the journal, binding the compromised fingerprint.' },
         { step: '03', action: 'The kernel reads the revocation list at boot. All actions signed by the key BEFORE the revocation timestamp remain valid; future actions are rejected.' },
-        { step: '04', action: 'The operator generates a fresh GPG key and initiates the cross-signing ceremony to re-establish a T1 identity.' },
+        { step: '04', action: 'The operator creates fresh supported identity evidence and re-establishes the required endorsement. Legacy deployments may use the GPG cross-signing path.' },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
           <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">

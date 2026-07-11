@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import Sidebar from '../components/Sidebar.astro';
 import Icon from '../components/Icon.astro';
-import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
 
 const sidebarGroups = {
   sections: [
@@ -40,19 +39,28 @@ const sidebarGroups = {
       <h1 class="serif-text text-6xl font-bold tracking-tighter text-on-surface mb-6">The ostk Stack</h1>
 
       <p class="font-headline text-xl text-on-surface-variant italic leading-relaxed max-w-2xl mb-4">
-        AI coding tools don't have to be monolithic opaque black boxes. ostk breaks down the agent runtime into four decoupled, cooperative layers.
+        ostk is a set of independently useful local components. Use the pieces that match your workflow; support and integration depth vary by model, harness, provider route, and platform.
       </p>
       <p class="font-body text-sm text-secondary leading-relaxed max-w-2xl mb-16">
-        Adopt only what you need. Link against the MIT-licensed client library to construct custom sandboxes, use the transparent prompt caching proxy to slice LLM API bills, connect the hybrid memory engine to Cursor or Claude Code, or boot the full daemon for enterprise GPG audit logging.
+        The kernel owns local project substrate and kernel-mediated operations. Recall indexes configured local sources. Cache is an optional context-efficiency route. libostk supports client integration. None of those components makes every harness expose the same guarantees.
       </p>
 
-      <!-- Interactive Stack Diagram -->
+      <!-- How to read the stack -->
       <section class="mb-16">
-        <h2 class="section-label mb-4">COORDINATION_FLOW // ARCHITECTURE_MAP</h2>
-        <ArchitectureDiagram />
-        <p class="font-body text-xs text-outline max-w-xl">
-          Diagram shows how components interact locally. Your agent tool (or custom pipeline) talks to <code>ostk-cache</code> for prompt interception/caching and to the <code>ostk-kernel</code> via the MCP bridge (System ABI). Filesystem watches populate <code>ostk-recall</code> dynamically, providing local vector search and context drift recovery.
-        </p>
+        <h2 class="section-label mb-4">HOW_TO_READ_THE_STACK</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant border border-surface-variant">
+          {[
+            { name: 'ostk kernel', text: 'Owns project state and the guarantees attached to kernel-mediated operations.' },
+            { name: 'ostk-recall', text: 'Indexes configured local sources so a new model or harness can recover relevant context.' },
+            { name: 'ostk-cache', text: 'Adds optional, route-specific context-efficiency behavior; it is not the continuity boundary.' },
+            { name: 'libostk', text: 'Supports client integrations. Available capabilities and depth vary by client and route.' },
+          ].map(item => (
+            <div class="bg-surface-container p-5">
+              <div class="font-body text-sm font-bold text-primary mb-2">{item.name}</div>
+              <p class="font-body text-xs text-secondary leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <!-- Technical Matrix Table -->
@@ -142,10 +150,10 @@ const sidebarGroups = {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
             <div class="md:col-span-2 space-y-4">
               <p>
-                The central coordinator. <code>ostk</code> is a single Rust binary daemon that manages process sandboxing boundaries using OS-native features like <strong>Landlock</strong> (Linux) and <strong>Seatbelt</strong> (macOS). It intercepts file accesses, reviews signature assertions, and restricts agents from reaching beyond designated directories.
+                The central local coordinator. <code>ostk</code> exposes the System ABI, owns project substrate, and can apply OS-native containment such as <strong>Landlock</strong> (Linux) or <strong>Seatbelt</strong> (macOS) on supported launch paths. Native client tools are not transparently intercepted.
               </p>
               <p>
-                Its journaling engine enforces strict Write-Ahead Logging (WAL) constraints. Every workspace modification is atomic and is cryptographically signed using GPG or Ed25519 keys, creating a transparent, verifiable audit trail that makes it safe to run untrusted AI agents on local systems.
+                Kernel-mediated dispatches append local audit rows. CAS file mutations are record-first and fail closed if their audit row cannot be written; shell audit is best-effort after execution. Rows are hash-chained and are Ed25519-signed when a signing key is available.
               </p>
             </div>
             <div class="bg-surface-container-low p-4 border border-surface-variant font-mono space-y-3">
@@ -154,7 +162,7 @@ const sidebarGroups = {
                 <li>Isolation: Landlock / Seatbelt</li>
                 <li>Journal: journal.jsonl (WAL)</li>
                 <li>Coordination: OCC gen_table</li>
-                <li>Security: GPG / Ed25519 signature</li>
+                <li>Identity: Ed25519 / DSSE, legacy GPG</li>
               </ul>
               <a href="/docs/ostk/" class="text-primary hover:underline text-[10px] block pt-2 border-t border-surface-variant">View kernel docs →</a>
             </div>
@@ -170,7 +178,7 @@ const sidebarGroups = {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
             <div class="md:col-span-2 space-y-4">
               <p>
-                When working in large codebases, agents lose focus and context drifts. <code>ostk-recall</code> is a dedicated memory engine. By running a local SQLite schema for relational events and LanceDB for vector search, it provides instant semantic querying across your workspace.
+                When a model or harness changes, relevant project context should not disappear with it. <code>ostk-recall</code> builds a local hybrid index over configured sources so supported clients can search the same owned corpus.
               </p>
               <p>
                 The database is updated in real-time by a socket file watcher listening on <code>recall.sock</code>. Changes are debounced in userspace to prevent performance degradation during batch file writes. Queries are routed through a <code>fastembed-rs</code> reranking model locally, delivering precise context matches to agent systems.
@@ -199,7 +207,7 @@ const sidebarGroups = {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-body text-xs leading-relaxed text-secondary">
             <div class="md:col-span-2 space-y-4">
               <p>
-                LLM tokens are expensive, and context drift forces repetitive prompt loads. <code>ostk-cache</code> acts as a local wire-compatible HTTP proxy between your client and providers (like Anthropic or OpenAI). It intercepts request payloads, computes content hashes, and serves cached responses instantly.
+                <code>ostk-cache</code> is an optional local proxy for compatible provider routes. It can preserve stable request regions and apply route-specific context-efficiency behavior; provider caching and measured savings remain dependent on the selected model, API, and harness.
               </p>
               <p>
                 The proxy operates across 4 dynamic reduction tiers (A to D) based on response lengths and confidence metrics. In <code>Rebuild</code> and <code>RebuildKernel</code> modes, the cache coordinates with the daemon via IPC to rebuild projections and invalidate outdated blocks whenever the codebase changes.
@@ -230,7 +238,7 @@ const sidebarGroups = {
                 <code>libostk</code> is the foundational client-side layer. Written in pure Rust with lightweight language wrappers, it provides a stable interface to negotiate capability scopes with the ostk daemon. By making <code>libostk</code> completely MIT licensed, developers can build custom integrations inside closed-source IDE overlays or proprietary automation scripts without licensing restrictions.
               </p>
               <p>
-                Its core driver <code>audit_tail</code> polls the project's audit logs. Instead of simple timestamp comparisons (which are susceptible to race conditions), <code>audit_tail</code> tracks filesystem <strong>inode values</strong>. If a log is rotated, truncated, or replaced, the tailer auto-reopens the target file, ensuring zero events are dropped.
+                Its <code>audit_tail</code> driver tracks inode changes so a client can reopen a journal after rotation, truncation, or replacement. That improves continuity for supported consumers without turning the client library into a universal delivery guarantee.
               </p>
             </div>
             <div class="bg-surface-container-low p-4 border border-surface-variant font-mono space-y-3">

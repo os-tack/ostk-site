@@ -21,13 +21,13 @@ const groups: SpecGroup[] = [
     entries: [
       {
         title: 'Kernel Specification',
-        description: 'Canonical ostk kernel architecture: six Unix syscalls, seven primitives, the LLM memory hierarchy, and the dual-CPU scheduler binding humans + LLMs.',
+        description: 'Operator-facing architecture: replaceable model and harness edges, owned local substrate, verb-specific controls, lifecycle boundaries, and the primitives that compose them.',
         href: '/docs/architecture/#the-unix-substrate',
         maturity: 'STABLE',
       },
       {
         title: 'Five Laws',
-        description: 'The five load-bearing constraints behind ostk: invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infra.',
+        description: 'Five operating principles: a familiar project surface, durable state beyond one process, inspectable filesystem coordination, scoped optimistic concurrency, and observable infrastructure.',
         href: '/docs/architecture/#the-five-foundational-laws',
         maturity: 'STABLE',
       },
@@ -44,8 +44,8 @@ const groups: SpecGroup[] = [
     entries: [
       {
         title: 'Trust Model',
-        description: 'How GPG identity tiers, capability pins, and Ed25519-signed audit compose into the trust model. Four problems an operator has — what can I do, how do I graduate, how do I verify a release, how do I revoke a compromised key — and the compositions that solve them.',
-        href: '/docs/security/#gpg-rooted-trust-tiers',
+        description: 'How verified identity evidence resolves a T0–T3 default posture, how capability pins compose, and how each kernel-mediated execution surface enforces and audits its part of the policy.',
+        href: '/docs/security/#identity-derived-trust-tiers',
         maturity: 'STABLE',
       },
       {
@@ -56,13 +56,13 @@ const groups: SpecGroup[] = [
       },
       {
         title: '.primefile',
-        description: 'The .primefile is ostk’s dual-signed root of trust — kernel + operator GPG keys anchor the identity chain. Auto-managed, never edit by hand.',
+        description: 'Project identity and lineage evidence created by ostk init. Boot verifies the supported Ed25519/DSSE path first while retaining legacy signature compatibility.',
         href: '/docs/configuration/#primefile',
         maturity: 'STABLE',
       },
       {
         title: 'ENTITYFILE',
-        description: 'The trust constitution of your OS instance. Identity chains, trust tiers, and governance ceremonies.',
+        description: 'Project governance declarations for identity, trust anchors, and structural policy; effective permissions still come from the active verifier, tier, pins, and execution surface.',
         href: '/docs/configuration/#entityfile',
         maturity: 'STABLE',
       },
@@ -73,7 +73,7 @@ const groups: SpecGroup[] = [
     entries: [
       {
         title: 'Coordination Primitives',
-        description: 'Four primitives that let multiple agents share a codebase without a message bus: optimistic concurrency, Hot PR conflict resolution, digest injection, and nudges.',
+        description: 'How tracked generations, kernel-mediated CAS edits, recorded-base recovery, digest signals, and durable nudges help agents share a codebase while surfacing conflicts.',
         href: '/docs/coordination-primitives/',
         maturity: 'STABLE',
       },
@@ -94,7 +94,7 @@ const groups: SpecGroup[] = [
     entries: [
       {
         title: 'Agentfile',
-        description: 'An Agentfile is a Dockerfile for agents — a declarative spec the kernel can audit, supervise, and verify. Four operator problems and the compositions that solve them.',
+        description: 'A local recipe for a repeatable worker: model, task, limits, tools, and optional isolation. Validation, signing, and supervision depend on the supported launch workflow.',
         href: '/docs/agentfile/',
         maturity: 'STABLE',
       },
@@ -106,7 +106,7 @@ const groups: SpecGroup[] = [
       },
       {
         title: 'Application v1',
-        description: 'A content-addressed, signed directory tree with a manifest, supervisor tree, and policy declaration that one operator can install on another and have it just run — the application unit above the kernel.',
+        description: 'Design trajectory for a content-addressed application directory with a manifest, supervisor tree, and policy declaration. Not yet a shipped, acceptance-tested cross-machine install workflow.',
         maturity: 'HORIZON',
       },
     ],

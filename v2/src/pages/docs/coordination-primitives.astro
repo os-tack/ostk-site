@@ -2,6 +2,8 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Terminal from '../../components/Terminal.astro';
+import TechnicalDiagram from '../../components/TechnicalDiagram.astro';
+import SystemReadingPath from '../../components/SystemReadingPath.astro';
 ---
 
 <DocsLayout
@@ -11,8 +13,9 @@ import Terminal from '../../components/Terminal.astro';
   sectionLabel="REFERENCE // COORDINATION"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Coordination operates without message buses, active servers, or RPC. ostk projects state directly into the filesystem, managing concurrency via per-file generation checks, resolving collisions with mechanical merges, and routing interrupts using durable queues.
+    Shared local state makes coordination inspectable: durable records live on disk, selected live state can be projected through the VFS, and kernel-mediated CAS edits either compose safely or surface the conflict. Native writes still use ordinary filesystem and Git coordination.
   </p>
+  <SystemReadingPath current="coordination" />
 
   <!-- Section 1: Virtual Filesystem (VFS) Overlay -->
   <section class="mb-16">
@@ -110,35 +113,43 @@ EPIC: Observation substrate over VFS namespace</pre>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Optimistic Concurrency Control (OCC)</h2>
     
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      Rather than locking files on open (which stalls parallel workflows), ostk uses monotonic generation counters and Compare-and-Swap (CAS) edits.
+      Kernel-mediated <code class="text-primary">fs_ops</code> edits use expected text as the direct CAS condition. A short-lived target-file lock serializes each mutation; generation history is consulted only when the expected text is no longer present.
     </p>
 
-    <img src="/diagrams/write-path.svg" alt="ostk CAS write path from agent request through generation check, merge, audit, and file update" width="620" height="440" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <TechnicalDiagram
+      src="/diagrams/write-path.svg"
+      alt="Kernel-mediated ostk CAS edit from policy check and target-file lock through a direct replacement, recorded-base comparison, safe auto-merge, or visible no-write conflict"
+      width={900}
+      height={680}
+      eyebrow="CAS_WRITE_PATH"
+      caption="Apply safely or surface the conflict."
+      scope="Kernel-mediated fs_ops CAS edits; native and raw-shell writes use ordinary filesystem and Git coordination."
+    />
 
     <div class="bg-surface-container-low p-6 border-l-2 border-primary max-w-3xl">
       <div class="space-y-4">
         <div>
           <div class="font-label text-[10px] text-primary mb-1 font-bold">MONOTONIC GENERATIONS</div>
           <p class="font-body text-xs text-secondary leading-relaxed">
-            Every file's generation is tracked in <code class="text-primary">.ostk/gen_table.jsonl</code>. Successful writes increment the generation counter, providing an instant state signature.
+            Files written through tracked kernel paths receive monotonic entries in <code class="text-primary">.ostk/gen_table.jsonl</code>. Successful writes bump the generation; native and raw-shell writes do not automatically join that history.
           </p>
         </div>
         <div>
           <div class="font-label text-[10px] text-primary mb-1 font-bold">SERIALIZATION LOCKS</div>
           <p class="font-body text-xs text-secondary leading-relaxed">
-            A system-level <code class="text-primary">flock(2)</code> on <code class="text-primary">.ostk/gen_table.lock</code> wraps the generation lookup and modification loop. Concurrent writes are queued, avoiding lost updates.
+            An exclusive <code class="text-primary">flock(2)</code> on the target stays held while current bytes are checked and any successful mutation commits. The generation table uses its own shorter lock for metadata updates; it does not wrap the entire file mutation.
           </p>
         </div>
         <div>
           <div class="font-label text-[10px] text-primary mb-1 font-bold">SHADOW BACKUPS</div>
           <p class="font-body text-xs text-secondary leading-relaxed">
-            On every generation bump, the pre-edit content is backed up to <code class="text-primary">.ostk/shadows/&lt;path_hash&gt;/gen_&lt;N&gt;</code>. This historic record is used to resolve conflicts if a subsequent write fails.
+            A successful tracked write records generation history and a shadow of the prior content. That recorded base is consulted on a later zero-match CAS request to distinguish a safe non-overlap from a nearby or structural conflict.
           </p>
         </div>
         <div>
           <div class="font-label text-[10px] text-primary mb-1 font-bold">CAS OPERATION</div>
           <p class="font-body text-xs text-secondary leading-relaxed">
-            Write tools (like <code class="text-primary">file:edit</code>) pass the old content string. If the workspace version has changed, the write is blocked, triggering Hot PR conflict resolution.
+            <code class="text-primary">fs_ops</code> passes the expected old text. Exactly one occurrence takes the direct path; more than one stops as ambiguous; zero occurrences alone trigger comparison against the recorded base.
           </p>
         </div>
       </div>
@@ -147,33 +158,33 @@ EPIC: Observation substrate over VFS namespace</pre>
 
   <!-- Section 3: Hot PR Conflict Resolution -->
   <section class="mb-16">
-    <div class="section-label mb-4">03 // HOT_PR_RESOLUTION</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Hot PR: Automated Merge Routing</h2>
+    <div class="section-label mb-4">03 // ZERO_MATCH_RECOVERY</div>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">When Expected Text Is Stale</h2>
     
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      When a write fails due to a mismatched generation signature, Hot PR attempts to merge the changes mechanically, without invoking expensive LLM rounds.
+      If the expected text occurs zero times, ostk compares the request with the recorded base. The recovery path either prepares a deterministic non-overlapping merge, returns a nearby mechanical suggestion without writing, or reports a visible conflict.
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-surface-variant max-w-3xl border border-surface-variant">
       <div class="bg-surface-container p-5">
-        <div class="font-label text-[10px] text-primary mb-1 font-bold">TIER 1 // AUTO_MERGE</div>
-        <div class="font-body text-[10px] text-outline mb-2">Distance &gt; 3 lines</div>
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">SAFE NON-OVERLAP</div>
+        <div class="font-body text-[10px] text-outline mb-2">Separate changed regions</div>
         <p class="font-body text-xs text-secondary leading-relaxed">
-          Edits occur in different, non-overlapping parts of the file. The kernel merges both changes automatically and silently.
+          The requested edit and intervening change do not overlap. The kernel can prepare and commit a deterministic merged result.
         </p>
       </div>
 
       <div class="bg-surface-container p-5">
-        <div class="font-label text-[10px] text-primary mb-1 font-bold">TIER 2 // ASSISTED_MERGE</div>
-        <div class="font-body text-[10px] text-outline mb-2">&lt; 30 lines / 2 regions</div>
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">NEARBY MECHANICAL</div>
+        <div class="font-body text-[10px] text-outline mb-2">Touching / within 3 lines; ≤30 changed lines</div>
         <p class="font-body text-xs text-secondary leading-relaxed">
-          Minor overlaps. The kernel computes a line rebase and returns a suggested edit call back to the agent for confirmation.
+          A deterministic rebase can be suggested to the agent for confirmation. The suggestion itself does not write.
         </p>
       </div>
 
       <div class="bg-surface-container p-5">
-        <div class="font-label text-[10px] text-primary mb-1 font-bold">TIER 3 // MANUAL_REBASE</div>
-        <div class="font-body text-[10px] text-outline mb-2">Over Tier 2 thresholds</div>
+        <div class="font-label text-[10px] text-primary mb-1 font-bold">VISIBLE CONFLICT</div>
+        <div class="font-body text-[10px] text-outline mb-2">Ambiguous or structurally unsafe</div>
         <p class="font-body text-xs text-secondary leading-relaxed">
           Large conflict. The write is rejected. The agent must re-read the file and manually re-apply its logic.
         </p>

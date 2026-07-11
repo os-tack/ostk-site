@@ -1,0 +1,45 @@
+---
+interface Props {
+  current: 'architecture' | 'lifecycle' | 'context' | 'coordination' | 'trust';
+}
+
+const { current } = Astro.props;
+
+const steps = [
+  { id: 'architecture', num: '01', title: 'Architecture', value: 'Switch the edge', href: '/docs/architecture/' },
+  { id: 'lifecycle', num: '02', title: 'Lifecycle', value: 'Hand off in time', href: '/docs/agent-lifecycle/' },
+  { id: 'context', num: '03', title: 'Context', value: 'Keep useful signal', href: '/docs/context-management/' },
+  { id: 'coordination', num: '04', title: 'Coordination', value: 'Apply or conflict', href: '/docs/coordination-primitives/' },
+  { id: 'trust', num: '05', title: 'Trust', value: 'Explain permission', href: '/docs/security/' },
+] as const;
+---
+
+<nav aria-label="System story reading path" class="max-w-4xl mb-12">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+    <div class="font-label text-[10px] uppercase tracking-widest text-primary">SYSTEM_STORY // READING_PATH</div>
+    <div class="font-body text-[10px] text-outline">model + harness → owned substrate → scoped guarantees</div>
+  </div>
+  <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-surface-variant border border-surface-variant">
+    {steps.map(step => {
+      const active = step.id === current;
+      return (
+        <li class:list={['min-w-0', active && 'lg:col-span-1']}>
+          <a
+            href={step.href}
+            aria-current={active ? 'page' : undefined}
+            class:list={[
+              'block h-full p-4 bg-surface-container hover:bg-surface-container-high transition-none',
+              active && 'bg-surface-container-high ring-1 ring-inset ring-primary',
+            ]}
+          >
+            <span class:list={['block font-label text-[9px] tracking-widest mb-2', active ? 'text-primary' : 'text-outline']}>
+              {step.num} / {active ? 'YOU_ARE_HERE' : 'NEXT_LAYER'}
+            </span>
+            <span class="block font-body text-xs font-bold text-on-surface mb-1">{step.title}</span>
+            <span class="block font-body text-[10px] leading-snug text-secondary">{step.value}</span>
+          </a>
+        </li>
+      );
+    })}
+  </ol>
+</nav>

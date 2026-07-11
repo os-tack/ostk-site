@@ -49,13 +49,13 @@ import Icon from '../../components/Icon.astro';
   <section class="mb-16">
     <h2 class="section-label mb-4">VFS NAMESPACES</h2>
     <p class="font-body text-xs text-secondary leading-relaxed mb-4">
-      The daemon virtualizes filesystem paths using a Virtual Filesystem (VFS) namespace overlay. Directory structures can be mounted with custom rules (read-only, write-ephemeral, or invisible) to isolate the agent:
+      The optional VFS projects selected kernel registries at stable, inspectable paths. It is an observation surface, not a transparent overlay that hides ordinary workspace writes:
     </p>
     <div class="bg-surface-container-low p-6 border-l-2 border-primary">
       <ul class="list-disc list-inside font-body text-xs text-secondary space-y-2">
-        <li><strong>Read-Only Mounts:</strong> Prevents standard system directories (like <code>/etc</code> or library frameworks) from being written to.</li>
-        <li><strong>Write-Ephemeral:</strong> Allows writing temporary test files or configurations that are discarded automatically on session shutdown.</li>
-        <li><strong>Invisible Writes:</strong> Intercepts file creations/mutations, writing them to a hidden local journal until they are approved by the operator.</li>
+        <li><strong>Stable namespaces:</strong> Selected tasks, decisions, fleet, process, journal, memory, and driver state can be queried with ordinary file tools.</li>
+        <li><strong>Projection-specific coverage:</strong> Each namespace documents which registry it reflects and how it rebuilds.</li>
+        <li><strong>Normal workspace:</strong> Source files and Git remain ordinary local files; VFS visibility does not grant audit or CAS guarantees to native writes.</li>
       </ul>
     </div>
   </section>
@@ -70,13 +70,13 @@ import Icon from '../../components/Icon.astro';
       <div class="bg-surface-container p-4">
         <h3 class="font-body text-xs font-bold text-primary">Optimistic Concurrency Control (OCC)</h3>
         <p class="font-body text-xs text-secondary mt-1">
-          Every file mutation records its last-modified timestamp. Before writing a replacement chunk, the daemon verifies that the file version has not been incremented by another thread, raising conflicts dynamically.
+          Kernel-mediated <code>fs_ops</code> CAS edits compare expected text under a target-file lock. One match can commit directly; zero matches can consult recorded generation history for a safe merge; ambiguous or overlapping intent returns without writing.
         </p>
       </div>
       <div class="bg-surface-container p-4">
         <h3 class="font-body text-xs font-bold text-primary">Write-Ahead Logging (WAL)</h3>
         <p class="font-body text-xs text-secondary mt-1">
-          All modifications are pre-committed to a structured Write-Ahead Log (<code>.ostk/audit.jsonl</code>) before touching disk blocks. If a subprocess crashed mid-write, the daemon recovers state on the next <code>ostk boot</code>.
+          Kernel-mediated CAS file mutations append their audit row before generation, shadow, and byte updates and fail closed if that record cannot be written. Other verbs have different audit timing; native and raw-shell workspace writes remain outside this guarantee.
         </p>
       </div>
     </div>

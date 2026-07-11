@@ -1,0 +1,62 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  eyebrow: string;
+  caption: string;
+  scope?: string;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  eyebrow,
+  caption,
+  scope,
+  class: className = '',
+} = Astro.props;
+---
+
+<figure class:list={['max-w-4xl border border-surface-variant bg-surface-container-lowest mb-8', className]}>
+  <div class="flex items-center justify-between gap-4 border-b border-surface-variant px-4 py-3">
+    <span class="font-label text-[10px] uppercase tracking-widest text-primary">{eyebrow}</span>
+    <a
+      href={src}
+      target="_blank"
+      rel="noreferrer"
+      class="shrink-0 font-label text-[10px] uppercase tracking-widest text-outline hover:text-primary"
+      aria-label={'Open ' + eyebrow.toLowerCase() + ' diagram at full size'}
+    >
+      OPEN_FULL_SIZE ↗
+    </a>
+  </div>
+
+  <div
+    class="overflow-x-auto overscroll-x-contain bg-[#100e0c]"
+    tabindex="0"
+    role="group"
+    aria-label={eyebrow + ' diagram. Scroll horizontally on a small screen to inspect every label.'}
+  >
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading="lazy"
+      decoding="async"
+      class="block h-auto max-w-none"
+      style={'width:' + width + 'px;min-width:' + width + 'px'}
+    />
+  </div>
+
+  <figcaption class="border-t border-surface-variant px-4 py-3 font-body text-[11px] leading-relaxed text-secondary">
+    <span class="text-on-surface">{caption}</span>
+    {scope && <span class="block mt-1 text-outline">Scope: {scope}</span>}
+    <span class="block mt-2 text-primary md:hidden">Scroll horizontally or open the full-size SVG to inspect every label.</span>
+  </figcaption>
+</figure>

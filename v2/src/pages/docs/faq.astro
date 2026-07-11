@@ -10,7 +10,7 @@ const faqs = [
   },
   {
     q: 'How do I install ostk?',
-    a: 'One command: curl -fsSL https://ostk.ai/install | sh. The script detects your platform (macOS arm64/x86_64, Linux arm64/x86_64), downloads the correct binary, verifies its GPG signature, and places it in your $PATH. Then run ostk init and ostk boot.',
+    a: 'One command: curl -fsSL https://ostk.ai/install | sh. The script detects your supported platform, downloads the matching release artifact, applies the release verification path, and places the binary in your $PATH. Then run ostk init and ostk boot.',
     link: '/start',
   },
   {
@@ -20,18 +20,18 @@ const faqs = [
   },
   {
     q: 'How do I keep API keys safe from AI agents?',
-    a: 'Secret values never enter the LLM context. The kernel resolves keys from your platform keychain (macOS Keychain, Linux secret-tool) at call time and injects them via subprocess environment variables. All tool output passes through a masking layer that replaces any secret values before the LLM sees them.',
+    a: 'On supported kernel-mediated paths, ostk resolves keys at call time, avoids placing the value in the prompt, and masks known values in returned output. Native shell tools, external services, and any process outside the ostk boundary still need their own secret-handling controls.',
     link: '/docs/security/#secrets-management-masking',
   },
     {
     q: 'What is my trust tier?',
-    a: 'Trust is determined by GPG cross-signatures. T0: your GPG key fingerprint is hardcoded in the kernel trust anchors (full governance — not reachable by ceremony). T1: your key is cross-signed by a T0 holder (write access). T2: GPG key present, not cross-signed (read + narrow write exceptions). T3: no GPG key (boots, reads everything, writes denied by pin caps). Run ostk boot to see your tier.',
-    link: '/docs/security/#gpg-rooted-trust-tiers',
+    a: 'Boot resolves HUMANFILE SIGN evidence and a verified primefile first, with legacy GPG identity as a fallback. That produces a T0–T3 default posture for kernel-mediated operations: full governance, endorsed source work with guardrails, read-oriented access, or anonymous write denial. Run ostk boot to see the resolved tier and evidence.',
+    link: '/docs/security/#identity-derived-trust-tiers',
   },
   {
-    q: 'Can AI agents work on the same repository without conflicts?',
-    a: 'Yes, when their writes go through ostk. Kernel-mediated CAS edits use generation history and expected text to detect stale or overlapping work. Non-overlapping changes can auto-merge; ambiguous conflicts fail visibly. Native client writes are still ordinary filesystem writes and require normal Git or workspace coordination.',
-    link: '/docs/coordination-primitives',
+    q: 'What does “own your own substrate” mean?',
+    a: 'Your project files, Git history, tasks, decisions, local audit records, and configured recall sources stay in inspectable storage you control. You can change the model, provider, router, or harness without migrating that continuity layer, while recognizing that each integration exposes a different set of ostk capabilities.',
+    link: '/why/',
   },
   {
     q: 'How do I track what changes AI agents made?',
@@ -40,7 +40,7 @@ const faqs = [
   },
   {
     q: 'Does ostk require a cloud connection?',
-    a: 'ostk is local-first by custody: canonical project state and page content stay on local disk, and no ostk account or hosted control plane is required. Configured model providers, web/download tools, updates, registrars, outbound drivers, and provider-backed context features can use the network. Anchored Anthropic sessions can automatically make best-effort Anthropic Files copies for context efficiency or cross-host recovery. Operational telemetry stays local.',
+    a: 'ostk is local-first by custody: canonical project state and local context pages stay on disk, with no required ostk account or hosted control plane. Configured model providers and network tools can still use the network. Anthropic file uploads are an optional context-efficiency upgrade on compatible routes, not a requirement or the continuity boundary; other routes can keep the same paging workflow local.',
     link: '/why',
   },
   {

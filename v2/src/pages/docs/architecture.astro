@@ -2,6 +2,7 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import ArchitectureDiagram from '../../components/ArchitectureDiagram.astro';
+import SystemReadingPath from '../../components/SystemReadingPath.astro';
 
 const laws = [
   {
@@ -19,8 +20,8 @@ const laws = [
   {
     num: '03',
     title: 'Coordinate through the filesystem',
-    body: 'No message buses. No inboxes. No pub/sub. No RPC between agents. If agent A needs agent B to know something, agent A writes a file. ls and cat are your debugging tools.',
-    practice: 'The filesystem IS the communication channel. Every coordination artifact is a file you can read.',
+    body: 'Durable tasks, decisions, nudges, and handoff records live in inspectable local files. The daemon and VFS can expose live coordination surfaces, but canonical project records do not depend on a hosted message bus.',
+    practice: 'Use durable files for continuity and explicit live channels only where the runtime requires them.',
   },
   {
     num: '04',
@@ -45,6 +46,7 @@ const laws = [
   activeTab="docs"
 >
   <ArchitectureDiagram />
+  <SystemReadingPath current="architecture" />
 
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
     Six problems show up the moment you put agents in front of a real codebase. ostk's architecture is the composition that solves them. Each section below names a problem, walks the composition that addresses it, and points at the primitives that compose.
@@ -233,7 +235,7 @@ const laws = [
     <div class="section-label mb-4">GOVERNANCE // FOUNDATIONAL_LAWS</div>
     <h2 class="serif-text text-4xl font-bold tracking-tighter text-on-surface mb-6">The Five Foundational Laws</h2>
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-8">
-      These are not guidelines. They are load-bearing constraints. Every design decision in ostk must satisfy all five. If a feature violates a law, the design is wrong.
+      These principles describe the architecture ostk is trying to preserve. They guide design review, while each implementation claim still needs a named execution scope, maturity level, and verification path.
     </p>
 
     <div class="space-y-0 mt-8 max-w-4xl">

@@ -2,6 +2,8 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Terminal from '../../components/Terminal.astro';
+import TechnicalDiagram from '../../components/TechnicalDiagram.astro';
+import SystemReadingPath from '../../components/SystemReadingPath.astro';
 ---
 
 <DocsLayout
@@ -11,8 +13,9 @@ import Terminal from '../../components/Terminal.astro';
   sectionLabel="REFERENCE // CONTEXT_MGMT"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    LLM context is a finite, expensive resource. The ostk kernel manages it through a multi-layered pipeline: compressing command outputs, caching stable prefixes, providing peripheral awareness via digest envelopes, injecting inline diagnostics, and declaring modular capabilities.
+    Keep useful project signal in context without making the provider cache—or one fixed compression ratio—the continuity boundary. Supported routes can combine output shaping, stable prefixes, digest envelopes, inline diagnostics, and local context pages.
   </p>
+  <SystemReadingPath current="context" />
 
   <!-- Table of Contents -->
   <div class="bg-surface-container-low p-6 mb-16 border-l-2 border-primary max-w-2xl">
@@ -34,7 +37,7 @@ import Terminal from '../../components/Terminal.astro';
     <div class="section-label mb-6">01 // CONTEXT_LIFECYCLE</div>
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Context Lifecycle Loop</h2>
     <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Every agent turn passes through six distinct stages. Removing any stage degrades cache performance and inflates context growth.
+      A supported ostk-managed turn can combine the following stages. Provider caching, output shaping, enrichment, and drain behavior remain route-specific rather than universal.
     </p>
     <div class="space-y-px max-w-3xl">
       {[
@@ -46,17 +49,17 @@ import Terminal from '../../components/Terminal.astro';
         {
           num: '02',
           name: 'TOOL_CALL',
-          desc: 'The model invokes a tool. Command output passes through the Squasher pipeline before entering context. File reads pass through elision logic, and the peripheral digest envelope is appended.',
+          desc: 'The model invokes a kernel-mediated tool. The selected route determines whether output is preserved, narrated, structured, treated as dangerous, or sent through the Condense path.',
         },
         {
           num: '03',
           name: 'OUTPUT_COMPRESSION',
-          desc: 'ANSI progress indicators are stripped, lines are classified by grammatical hazard/outcome/noise rules, and repetitive outputs are collapsed. Average output savings are around 30%.',
+          desc: 'On the Condense route, command grammars and output shapes help preserve hazards and outcomes before repetitive structure is collapsed. Actual savings are measured per result.',
         },
         {
           num: '04',
           name: 'DIGEST_INJECTION',
-          desc: 'A 5-line envelope is appended to the tool response containing [procs], [presence], [files] (stale only), [loadavg], and [meminfo]. This signals to the agent whether files need re-reading without re-sending file content.',
+          desc: 'The dispatcher can append a compact delta envelope for changed process, presence, file, load, and memory signals. Unchanged sections need not be repeated.',
         },
         {
           num: '05',
@@ -128,21 +131,29 @@ import Terminal from '../../components/Terminal.astro';
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Output Compression (The Squasher)</h2>
     
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      The Squasher pipeline intercepts shell and subprocess output. It strips progress indicators, classifies lines into priority buckets, collapses repeated sequences, and appends diagnostics.
+      Kernel-mediated command output is routed by category, matched to a command grammar or output shape, and reduced only after hazards and outcomes are identified. Elisions remain visible and telemetry records the actual result.
     </p>
 
-    <img src="/diagrams/compression-pipeline.svg" alt="ostk prompt compression pipeline from raw tool output to a compact coding-agent context" width="820" height="200" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <TechnicalDiagram
+      src="/diagrams/compression-pipeline.svg"
+      alt="Branching ostk output pipeline with a raw bypass, category-specific handlers, and a condense branch that preserves hazards and outcomes before visible deduplication"
+      width={900}
+      height={520}
+      eyebrow="OUTPUT_SHAPING"
+      caption="Keep tool output useful without claiming one fixed reduction ratio."
+      scope="Shell output routed through ostk; category, grammar, output shape, input size, and raw: true determine the path."
+    />
 
     <div class="space-y-4 max-w-3xl mb-8">
       <div class="bg-surface-container p-5">
-        <h3 class="font-body text-sm font-bold text-primary mb-3">Stdout vs. Stderr Stream Routing</h3>
+        <h3 class="font-body text-sm font-bold text-primary mb-3">Signal Before Reduction</h3>
         <p class="font-body text-xs text-secondary leading-relaxed mb-3">
-          The Squasher handles streams according to their content type. <strong>Stderr is preserved with high fidelity</strong>, bypassing aggressive collapsing to protect warnings and compiler panics. <strong>Stdout is condensed aggressively</strong> using Levenshtein distance matching. On non-zero exit codes, the compression threshold relaxes to provide sufficient surrounding lines for debugging.
+          Command grammars and output-shape detectors identify hazards, outcomes, and structured diagnostic blocks before deduplication. Unknown shapes fall back conservatively, tiny inputs avoid the full grammar path, and <code class="text-primary">raw: true</code> bypasses compression when exact output matters.
         </p>
       </div>
 
       <div class="bg-surface-container p-5">
-        <h3 class="font-body text-sm font-bold text-primary mb-3 font-mono">Three-Tier Classification</h3>
+        <h3 class="font-body text-sm font-bold text-primary mb-3 font-mono">Condense Signal Classification</h3>
         <p class="font-body text-xs text-secondary leading-relaxed mb-3">
           Lines are evaluated against rules and grouped into:
         </p>
@@ -154,9 +165,9 @@ import Terminal from '../../components/Terminal.astro';
       </div>
 
       <div class="bg-surface-container p-5">
-        <h3 class="font-body text-sm font-bold text-primary mb-3 font-mono">Levenshtein Line Merging (Similarity = 0.85)</h3>
+        <h3 class="font-body text-sm font-bold text-primary mb-3 font-mono">Consecutive Structural Deduplication</h3>
         <p class="font-body text-xs text-secondary leading-relaxed">
-          Adjacent lines with matching structural shape are merged using a sliding window Levenshtein algorithm. Dynamic tokens (versions, hashes, paths) are generalized into tags like <code class="text-primary">{"{hex}"}</code>, <code class="text-primary">{"{path}"}</code>, and <code class="text-primary">{"{ver}"}</code>. If similarity exceeds 0.85, they collapse into <code class="text-primary">[⋯ N similar lines]</code>.
+          Consecutive lines that begin with the same first token are compared using normalized edit distance. The current implicit path collapses a run when distance is below <code class="text-primary">0.4</code> (roughly similarity above 0.6), generalizing dynamic tokens with tags such as <code class="text-primary">{"{hash}"}</code>, <code class="text-primary">{"{path}"}</code>, and <code class="text-primary">{"{ver}"}</code>. Every collapsed run stays visible as <code class="text-primary">[⋯ N similar lines]</code>.
         </p>
       </div>
     </div>
@@ -167,8 +178,8 @@ import Terminal from '../../components/Terminal.astro';
       {[
         { cat: 'CONDENSE', desc: 'Verbose output → summary. cargo build, npm install.', handler: 'Implicit dedup + hazard/outcome filtering' },
         { cat: 'NARRATE', desc: 'Silent commands → execution narration. cp, mv, mkdir.', handler: '"→ cp: a.txt → b.txt (ok)"' },
-        { cat: 'PASSTHROUGH', desc: 'Verbatim preservation. cat, grep, ls, jq.', handler: 'Original output + metadata footer' },
-        { cat: 'STRUCTURED', desc: 'Machine-readable → formatted summary. git status, docker ps.', handler: 'Parse into branches, containers, etc.' },
+        { cat: 'PASSTHROUGH', desc: 'Verbatim-oriented preservation. cat, grep, jq.', handler: 'Original output + route metadata' },
+        { cat: 'STRUCTURED', desc: 'Known structure → formatted summary. ls, git status, docker ps.', handler: 'Parse the current command shape' },
         { cat: 'DANGEROUS', desc: 'Destructive ops. rm -rf, git push --force.', handler: 'CRITICAL/WARNING severity with context' },
       ].map(c => (
         <div class="flex gap-6 text-xs font-body py-3 border-b border-surface-variant/40">
@@ -183,7 +194,7 @@ import Terminal from '../../components/Terminal.astro';
     <div class="bg-surface-container p-6 max-w-3xl border border-surface-variant mb-8">
       <h3 class="font-body text-sm font-bold text-primary mb-2">Semantic Deduplication via Potion-Base</h3>
       <p class="font-body text-xs text-secondary leading-relaxed mb-3">
-        Optional GPU-accelerated semantic deduplication uses the <code class="text-primary">potion-base-8M</code> embeddings model (256-dimensions) to identify equivalent line semantics. Install via <code class="text-primary">ostk embeddings download</code>.
+        Optional semantic clustering can identify lines that mean the same thing even when their structure differs. Its current similarity threshold is <code class="text-primary">0.85</code>; this is separate from the lower-threshold consecutive structural deduplication above. Install the optional local model with <code class="text-primary">ostk embeddings download</code>.
       </p>
       <span class="font-body text-[10px] text-outline">Runs on Metal (Apple Silicon) with CPU fallbacks via Wgpu. Enabled with <code class="text-primary">--features embeddings</code>.</span>
     </div>

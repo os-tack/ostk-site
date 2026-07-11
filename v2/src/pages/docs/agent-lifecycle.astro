@@ -1,6 +1,8 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import Icon from '../../components/Icon.astro';
+import TechnicalDiagram from '../../components/TechnicalDiagram.astro';
+import SystemReadingPath from '../../components/SystemReadingPath.astro';
 ---
 
 <DocsLayout
@@ -10,8 +12,9 @@ import Icon from '../../components/Icon.astro';
   sectionLabel="REFERENCE // AGENT_LIFECYCLE"
 >
   <p class="font-headline text-lg text-on-surface-variant italic leading-relaxed max-w-xl mb-12">
-    Sessions outlive everything that drives them — clients disconnect, daemons crash, workers hang. State lives in the filesystem and the audit log. The daemon acts as an ephemeral cache of active execution; the journal on disk is the ultimate truth.
+    Clients and models are replaceable. Durable tasks, decisions, handoff records, and kernel-mediated audit live on disk; runtime state and external harness sessions keep explicit recovery boundaries.
   </p>
+  <SystemReadingPath current="lifecycle" />
 
   <!-- Section 1: Session Topology & Client Multiplexing -->
   <section class="mb-16">
@@ -44,12 +47,20 @@ import Icon from '../../components/Icon.astro';
   <!-- Section 2: Agent State Machine -->
   <section class="mb-16">
     <div class="section-label mb-6">02 // STATE_MACHINE</div>
-    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">The Five-State Execution Lifecycle</h2>
+    <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Context-Pressure Lifecycle</h2>
     <p class="font-body text-xs text-secondary mb-6 max-w-lg">
-      Once an agent advances state, it cannot regress. State transitions are monitored by the kernel loop on every turn.
+      When a supported execution route reports context use, the lifecycle can advance through five states. It never regresses, and it does not claim to govern every external harness turn.
     </p>
 
-    <img src="/diagrams/agent-lifecycle.svg" alt="Lifecycle of an ostk-managed AI coding agent from spawn through drain, exit, and recovery" width="600" height="280" loading="lazy" decoding="async" class="w-full max-w-2xl border border-surface-variant mb-8" />
+    <TechnicalDiagram
+      src="/diagrams/agent-lifecycle.svg"
+      alt="No-regress ostk context lifecycle from healthy work through aging, a handoff attempt, one finalization turn, and fenced tool calls"
+      width={900}
+      height={320}
+      eyebrow="CONTEXT_LIFECYCLE"
+      caption="Hand off before context runs out."
+      scope="Evaluated on supported CPU tool batches and served tool responses; it does not describe every external harness session."
+    />
     <div class="space-y-px max-w-3xl">
       {[
         {
@@ -60,22 +71,22 @@ import Icon from '../../components/Icon.astro';
         {
           state: 'AGING',
           trigger: 'Context usage ≥ 70% (AGING_THRESHOLD_PCT).',
-          behavior: 'The kernel prepares a handoff record for the successor. Context is not mutated mid-turn to preserve the prompt cache.',
+          behavior: 'No enforcement yet. Every tenth tool call can carry a continuity nudge so key decisions are recorded before pressure becomes critical.',
         },
         {
           state: 'DYING',
           trigger: 'Context usage ≥ 90% (DYING_THRESHOLD_PCT). Jumps (e.g. 60% → 92%) skip AGING directly to DYING.',
-          behavior: 'Fencing begins. No new tool calls are allowed except within the single finalization turn.',
+          behavior: 'The kernel attempts one structured handoff and warns that one finalization response remains. The next supported tool response advances to DRAINING.',
         },
         {
           state: 'DRAINING',
           trigger: 'Transitioned from DYING; last-turn execution.',
-          behavior: 'A single final tool call is allowed (typically writing the handoff document). Advances to DEAD once complete.',
+          behavior: 'One finalization turn is permitted. A subsequent evaluation advances to DEAD and fences further tool calls.',
         },
         {
           state: 'DEAD',
-          trigger: 'Finalization turn complete or context limit exceeded.',
-          behavior: 'All tool calls are fenced. The agent subprocess persists as a zombie until the daemon reaps it.',
+          trigger: 'The permitted finalization response has completed.',
+          behavior: 'All further kernel-mediated tool calls are fenced and return an explicit lifecycle message.',
         },
       ].map(s => (
         <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 border-b border-surface-variant/20">
@@ -95,7 +106,7 @@ import Icon from '../../components/Icon.astro';
     </div>
     <div class="bg-surface-container-low p-4 max-w-3xl mt-4">
       <p class="font-body text-xs text-secondary leading-relaxed">
-        Transitions are guarded by <code class="text-primary">LifecycleState::can_transition_to()</code> at <code class="text-primary">src/kernel/lifecycle.rs</code>. Evaluated during command dispatch via <code class="text-primary">lifecycle.evaluate(context_pct)</code> inside the CPU agent loop.
+        Transitions are guarded by <code class="text-primary">LifecycleState::can_transition_to()</code> in <code class="text-primary">src/kernel/lifecycle.rs</code>. Supported CPU-agent and served-response paths call <code class="text-primary">lifecycle.evaluate(context_pct)</code> when context telemetry is available.
       </p>
     </div>
   </section>
@@ -174,7 +185,7 @@ import Icon from '../../components/Icon.astro';
     <h2 class="serif-text text-3xl font-medium text-on-surface mb-4">Daemon Crash Recovery & Revival</h2>
     
     <p class="font-body text-sm text-secondary leading-relaxed max-w-xl mb-6">
-      When the daemon is killed or crashes, no state is lost. At every turn boundary, the daemon commits a snapshot of the execution state to disk. On reboot, the daemon identifies active lineages without corresponding processes, marks them <code class="text-primary">Orphaned</code>, and resolves them based on the revival policy.
+      When the daemon is killed or crashes, durable registries remain on disk. Anchored ostk-managed sessions write best-effort snapshots after completed turns; on reboot, eligible lineages without live processes can be marked <code class="text-primary">Orphaned</code> and handled by the configured revival policy. In-flight work after the last compatible snapshot is not covered.
     </p>
 
     <div class="bg-surface-container-low p-6 max-w-3xl mb-6 border border-surface-variant">

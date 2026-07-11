@@ -6,7 +6,7 @@ import { LATEST_TAG } from '../../site-version';
 
 const humanFileDirectives = [
   { name: 'IDENTITY', req: true, desc: 'Your username. Used in audit attribution and agent identity.' },
-  { name: 'SIGN', req: false, desc: 'GPG key fingerprint. Establishes T0 trust tier when verified.' },
+  { name: 'SIGN', req: false, desc: 'Ed25519 multikey or legacy GPG fingerprint used as operator identity evidence. Tier depends on verification and anchor admission.' },
   { name: 'MODEL', req: true, desc: 'Default model for agent sessions. Kernel auto-detects provider from model name.' },
   { name: 'FALLBACK', req: false, desc: 'Model when primary is unavailable or rate-limited.' },
   { name: 'AVAILABLE <<MODELS', req: false, desc: 'Heredoc listing all authorized models. Consumed by FROM auto in Agentfiles.' },
@@ -21,32 +21,17 @@ const humanFileDirectives = [
 ];
 
 const entityFileTiers = [
-  { tier: 'T0', who: 'Human operator', caps: 'Full governance — including modifying ENTITYFILE itself', proof: 'Fingerprint hardcoded in src/kernel/identity.rs trust anchors' },
-  { tier: 'T1', who: 'Verified agent or CI', caps: 'Write source, run agents, delegate needles. Denied: write-kernel, modify-governance', proof: 'GPG key cross-signed by a T0 holder' },
-  { tier: 'T2', who: 'GPG key, not cross-signed', caps: 'Read everything. Narrow write exceptions. Denied: write-kernel, modify-governance, write-src', proof: 'GPG key present, check_gpg_cross_signature returns None' },
-  { tier: 'T3', who: 'No GPG key', caps: 'Boots; reads everything; all writes denied by pin caps (policy.rs:248)', proof: 'host_identity::discover() returns no gpg_key' },
-];
-
-const entityFileSetup = [
-  { setup: 'Solo developer, one machine', need: false },
-  { setup: 'Solo developer, GPG identity needed', need: false },
-  { setup: 'Team with shared repo', need: true },
-  { setup: 'CI pipeline dispatching agents', need: true },
-  { setup: 'Multiple humans with different trust', need: true },
-];
-
-const entityFileCeremony = [
-  { step: '01', action: 'File an offer describing the change (.ostk/offers/)' },
-  { step: '02', action: 'Counter-party reviews and responds' },
-  { step: '03', action: 'Both parties sign with their keys' },
-  { step: '04', action: 'Merge with --no-ff to preserve ceremony in git history' },
+  { tier: 'T0', who: 'Verified project or operator root', caps: 'No tier-default restrictions; full governance', proof: 'Verified primefile or trusted Ed25519/DSSE evidence; legacy GPG anchor' },
+  { tier: 'T1', who: 'T0-endorsed identity', caps: 'Source writes with kernel-state and governance restrictions', proof: 'Verified delegated evidence or legacy T0 cross-signature' },
+  { tier: 'T2', who: 'Identity without T0 endorsement', caps: 'Governed src/, kernel state, and governance writes denied by default', proof: 'Recognized identity evidence without trusted endorsement' },
+  { tier: 'T3', who: 'Anonymous', caps: 'Kernel-mediated writes denied by default', proof: 'No verified primefile or other recognized identity evidence' },
 ];
 
 const primeFileFields = [
   { field: 'KERNEL', desc: 'Kernel identity name. Default: @project.prime.' },
   { field: 'VERSION', desc: 'Kernel declaration version.' },
   { field: 'AUTHORITY', desc: 'Who controls the kernel — primary (human), kernel, and co-signer requirements.' },
-  { field: 'KEYS', desc: 'GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.' },
+  { field: 'KEYS', desc: 'Trust-key registry, including Ed25519 multikeys and any legacy GPG anchors or cross-signature metadata.' },
   { field: 'LINEAGE', desc: 'Root of trust chain, co-signers, and chain continuity date.' },
 ];
 
@@ -67,7 +52,7 @@ const envVarGroups = [
     vars: [
       { name: 'OSTK_AGENT', desc: 'Agent alias. Set by kernel on spawn. Used for audit attribution, heartbeat, gen_table writer.', default_: '"unknown"' },
       { name: 'OSTK_PIN', desc: 'Active capability pin name. Loads .ostk/pins/<name>/pin.caps.', default_: 'Tier default' },
-      { name: 'OSTK_TRUST_TIER', desc: 'Override trust tier resolution. Bypasses GPG detection. Used by CI/tests.', default_: 'Auto-detected' },
+      { name: 'OSTK_TRUST_TIER', desc: 'Trusted test-harness override. It is intentionally ignored in normal untrusted agent processes and cannot grant production tier.', default_: 'Ignored unless the process explicitly enables the trusted test path' },
       { name: 'OSTK_AGENTFILE', desc: 'Path to Agentfile to load at boot.', default_: 'None' },
     ],
   },
@@ -149,7 +134,7 @@ const envVarGroups = [
     <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8">
       <div class="font-label text-[10px] text-outline mb-2">EXAMPLE_HUMANFILE</div>
       <pre class="font-body text-xs text-secondary leading-relaxed"><span class="text-primary">IDENTITY</span> yourname
-<span class="text-primary">SIGN</span> YOUR_GPG_FINGERPRINT
+<span class="text-primary">SIGN</span> &lt;verified-identity-evidence&gt;
 
 <span class="text-primary">MODEL</span> claude-opus-4-6
 <span class="text-primary">FALLBACK</span> mistral-large-latest
@@ -212,7 +197,7 @@ KEYS
     </div>
 
     <p class="font-body text-sm text-secondary max-w-xl mb-6">
-      The trust constitution of your OS instance. Written once, it governs permissions, trust anchors, and structural operations for multi-agent or collaborative repos.
+      A project governance document for identity declarations, trust anchors, and structural policy. Effective permissions still come from the identity verifier, tier defaults, active pins, and the execution surface.
     </p>
 
     <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12 mb-8">
@@ -234,75 +219,25 @@ KEYS
       ))}
     </div>
 
-    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8">
-      <div class="font-label text-[10px] text-outline mb-2">EXAMPLE_ENTITYFILE</div>
-      <pre class="font-body text-xs text-secondary leading-relaxed">ENTITYFILE: v1.0 (GPG chain signed — kernel@project.prime)
----
-<span class="text-primary">entity:</span>
-  <span class="text-primary">name:</span> @project.prime
-  <span class="text-primary">key:</span> AAAA1111BBBB2222CCCC3333DDDD4444EEEE5555
-  <span class="text-primary">domain:</span> project.prime
-  <span class="text-primary">version:</span> 3.0.0
-  <span class="text-primary">boot_signature:</span> FFFF0000AAAA1111BBBB2222CCCC3333DDDD4444
-  <span class="text-primary">laws:</span>
-    - invisible-write
-    - ephemeral
-    - filesystem
-    - OCC
-    - invisible-infra
-  <span class="text-primary">harness:</span> terminal
-  <span class="text-primary">tool_pattern:</span> native Bash
-  <span class="text-primary">dialect:</span>
-    - tack
-    - hay
-  <span class="text-primary">fleet:</span>
-    alive: 1
-    agents: 54
-<span class="text-primary">signing_key:</span> 3689831ac67b433093ef15e23431b539e7222961f7f976a14feb268c8058ce6a
-<span class="text-primary">signing_algo:</span> ed25519</pre>
+    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8 max-w-2xl">
+      <div class="font-label text-[10px] text-primary mb-2">CURRENT_IDENTITY_PATH</div>
+      <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+        Current verification prefers supported Ed25519 and DSSE/OAE identity evidence. Detached <code class="text-primary">.asc</code> and Sigstore-era artifacts remain compatibility paths for projects that already use them; they are not the only way to establish a local root.
+      </p>
+      <p class="font-body text-xs text-outline leading-relaxed">
+        Keep the document descriptive. Use <code class="text-primary">ostk boot</code> to see which evidence actually resolved and which default posture is active.
+      </p>
     </div>
 
-    <div class="font-label text-[10px] text-primary mb-3">WHEN_DO_I_NEED_AN_ENTITYFILE?</div>
-    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8 max-w-xl">
-      {entityFileSetup.map(s => (
-        <div class="flex justify-between text-xs font-body py-2.5 border-b border-surface-variant last:border-0">
-          <span class="text-on-surface">{s.setup}</span>
-          <span class={s.need ? 'text-primary font-bold' : 'text-outline'}>{s.need ? 'YES' : 'NO'}</span>
-        </div>
-      ))}
+    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">Changing Governance</h3>
+    <div class="bg-surface-container-low p-6 border-l-2 border-primary mb-8 max-w-2xl">
+      <p class="font-body text-xs text-secondary leading-relaxed mb-3">
+        Governance writes routed through ostk are evaluated against the active identity posture and capability policy. Lower tiers are denied by default; a T0 operator can make an authorized change, while repository review and signature requirements remain explicit project policy.
+      </p>
+      <p class="font-body text-xs text-outline leading-relaxed">
+        Identity evidence does not let an agent self-promote. Re-run <code class="text-primary">ostk boot</code> after a governance change to verify the evidence and resulting posture.
+      </p>
     </div>
-
-    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">The Negotiate Protocol</h3>
-    <p class="font-body text-xs text-secondary mb-4 max-w-lg">
-      Changes require ceremony. You cannot unilaterally modify `ENTITYFILE` — even as T0.
-    </p>
-    <div class="space-y-px mb-8">
-      {entityFileCeremony.map(s => (
-        <div class="bg-surface-container grid grid-cols-1 md:grid-cols-12">
-          <div class="md:col-span-1 bg-surface-container-low flex items-center justify-center py-3">
-            <span class="serif-text text-lg font-bold text-primary">{s.step}</span>
-          </div>
-          <div class="md:col-span-11 px-4 py-3 flex items-center">
-            <span class="font-body text-xs text-secondary">{s.action}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    <h3 class="serif-text text-xl font-medium text-on-surface mb-3">Authority Chain Flow</h3>
-    <div class="flex items-center gap-0 mb-4">
-      {['T0 (human)', 'kernel', 'agents'].map((level, i) => (
-        <>
-          <div class={`px-4 py-2 font-body text-xs font-bold ${i === 0 ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
-            {level}
-          </div>
-          {i < 2 && <div class="px-2 text-outline">→</div>}
-        </>
-      ))}
-    </div>
-    <p class="font-body text-xs text-secondary max-w-lg">
-      Trust flows downward. No agent can elevate its own trust tier. No agent can modify `ENTITYFILE`. The human remains the final authority.
-    </p>
   </section>
 
   <!-- Section 3: .primefile -->
@@ -313,48 +248,16 @@ KEYS
     </div>
 
     <p class="font-body text-sm text-secondary max-w-xl mb-6">
-      The kernel's identity document. Written automatically by the OS, it anchors the identity chain.
+      A project identity document created by <code class="text-primary">ostk init</code>. It records the local root and lineage evidence that boot can verify.
     </p>
 
-    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-8 max-w-xl">
+    <div class="bg-surface-container-high p-6 border-t-4 border-primary mb-8 max-w-2xl">
       <p class="font-body text-sm text-on-surface mb-3">
-        The <code class="text-primary">.primefile</code> is <span class="text-primary font-bold">dual-signed</span>: once by the kernel's GPG key (T1), and once by the operator's GPG key (T0).
+        Treat <code class="text-primary">.primefile</code> as verified project identity evidence, not as a universal dual-GPG ceremony. Current projects can use Ed25519/DSSE-compatible evidence; legacy detached GPG material remains a fallback where present.
       </p>
       <p class="font-body text-xs text-secondary">
-        Modifying it manually invalidates the signature and will cause the kernel to refuse to boot.
+        Manual changes can invalidate the evidence. Use the supported initialization and governance paths, then confirm the resolved tier with <code class="text-primary">ostk boot</code>.
       </p>
-    </div>
-
-    <div class="bg-surface-container-lowest p-6 border border-surface-variant mb-8">
-      <div class="font-label text-[10px] text-outline mb-2">EXAMPLE_PRIMEFILE</div>
-      <pre class="font-body text-xs text-secondary leading-relaxed">---BEGIN HAYSTACK.PRIME KERNEL DECLARATION---
-
-KERNEL: @project.prime
-VERSION: 3.0.0
-CREATED: 2026-03-10T00:00:00Z
-
-AUTHORITY:
-  Primary: @operator (Human operator, HUMANFILE authority)
-  Kernel: @project.prime (Persistent kernel, GOVERNANCE.md authority)
-  Co-signers: Both keys required for mutation
-
-KEYS:
-  T0 Human Root:
-    Name: Your Name &lt;you@example.com&gt;
-    Key: AAAA...1111
-    Algorithm: ed25519
-
-  T1 Kernel:
-    Name: @project.prime (v3.0) &lt;kernel@project.prime&gt;
-    Key: BBBB...2222
-    Algorithm: ed25519
-
-LINEAGE:
-  Root: @operator GPG signature
-  Co-sign: @project.prime GPG signature
-  Chain: Unbroken from 2026-03-10
-
----SIGNATURES BELOW---</pre>
     </div>
 
     <div class="font-label text-[10px] text-primary mb-3">PRIMEFILE_FIELDS</div>
@@ -367,13 +270,13 @@ LINEAGE:
       ))}
     </div>
 
-    <div class="font-label text-[10px] text-primary mb-3">SIGNATURE_VERIFICATION</div>
+    <div class="font-label text-[10px] text-primary mb-3">VERIFY_THE_RESOLVED_EVIDENCE</div>
     <Terminal>
-      <pre><span class="text-outline select-none">$ </span>gpg --verify .ostk/.primefile.asc .ostk/.primefile
-<span class="text-outline select-none">$ </span>gpg --verify .ostk/.primefile.t0.asc .ostk/.primefile</pre>
+      <pre><span class="text-outline select-none">$ </span>ostk boot
+<span class="text-outline"># Inspect the reported identity evidence, trust tier, and any degraded fallback.</span></pre>
     </Terminal>
     <p class="font-body text-xs text-secondary mt-3 max-w-lg">
-      Both verifications must pass. A single-signature primefile (T1 only) is not trusted.
+      Boot reports the evidence path it can verify. Missing legacy GPG material alone does not imply T3 when verified primefile or other supported identity evidence is present.
     </p>
   </section>
 
@@ -394,9 +297,8 @@ name = "ostk-site"
 bail = "os-tack/ostk.ai"
 kernel = ">=3.0.0, &lt;4.0.0"
 
-<span class="text-primary">[authorization]</span>
-github_gpg_required = true
-trust_tiers = ["T0:dual-signed", "T1:cross-signed", "T2:gpg-not-cross-signed", "T3:anonymous"]
+<span class="text-outline"># Identity resolution comes from HUMANFILE SIGN evidence</span>
+<span class="text-outline"># plus verified primefile evidence; see the trust reference.</span>
 
 <span class="text-primary">[distribution]</span>
 mirrors = [
@@ -409,7 +311,7 @@ tarball_pattern = "ostk-{"{"}version{"}"}-{"{"}target{"}"}.tar.gz"
 <span class="text-primary">[kernel]</span>
 boot_mode = "embedded-first"
 daemon_lifecycle = "tui-owned"
-laws = ["invisible-write", "ephemeral", "filesystem", "OCC", "invisible-infra"]
+laws = ["familiar-project", "durable-state", "filesystem", "OCC", "inspectable-infra"]
 
 <span class="text-primary">[onboarding]</span>
 steps = ["binary-install", "environment-detect", "humanfile-create", "os-init", "import-offer"]

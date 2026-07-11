@@ -1019,7 +1019,7 @@ READ_MORE → (/docs/coordination-primitives)
 
 02 How do I install ostk?
 
-One command: curl -fsSL https://ostk.ai/install | sh. The script detects your platform (macOS arm64/x86_64, Linux arm64/x86_64), downloads the correct binary, verifies its GPG signature, and places it in your $PATH. Then run ostk init and ostk boot.
+One command: curl -fsSL https://ostk.ai/install | sh. The script detects your supported platform, downloads the matching release artifact, applies the release verification path, and places the binary in your $PATH. Then run ostk init and ostk boot.
 
 READ_MORE → (/start)
 
@@ -1031,21 +1031,21 @@ READ_MORE → (/docs/coordination-primitives/#vfs-the-observation-substrate)
 
 04 How do I keep API keys safe from AI agents?
 
-Secret values never enter the LLM context. The kernel resolves keys from your platform keychain (macOS Keychain, Linux secret-tool) at call time and injects them via subprocess environment variables. All tool output passes through a masking layer that replaces any secret values before the LLM sees them.
+On supported kernel-mediated paths, ostk resolves keys at call time, avoids placing the value in the prompt, and masks known values in returned output. Native shell tools, external services, and any process outside the ostk boundary still need their own secret-handling controls.
 
 READ_MORE → (/docs/security/#secrets-management-masking)
 
 05 What is my trust tier?
 
-Trust is determined by GPG cross-signatures. T0: your GPG key fingerprint is hardcoded in the kernel trust anchors (full governance — not reachable by ceremony). T1: your key is cross-signed by a T0 holder (write access). T2: GPG key present, not cross-signed (read + narrow write exceptions). T3: no GPG key (boots, reads everything, writes denied by pin caps). Run ostk boot to see your tier.
+Boot resolves HUMANFILE SIGN evidence and a verified primefile first, with legacy GPG identity as a fallback. That produces a T0–T3 default posture for kernel-mediated operations: full governance, endorsed source work with guardrails, read-oriented access, or anonymous write denial. Run ostk boot to see the resolved tier and evidence.
 
-READ_MORE → (/docs/security/#gpg-rooted-trust-tiers)
+READ_MORE → (/docs/security/#identity-derived-trust-tiers)
 
-06 Can AI agents work on the same repository without conflicts?
+06 What does “own your own substrate” mean?
 
-Yes, when their writes go through ostk. Kernel-mediated CAS edits use generation history and expected text to detect stale or overlapping work. Non-overlapping changes can auto-merge; ambiguous conflicts fail visibly. Native client writes are still ordinary filesystem writes and require normal Git or workspace coordination.
+Your project files, Git history, tasks, decisions, local audit records, and configured recall sources stay in inspectable storage you control. You can change the model, provider, router, or harness without migrating that continuity layer, while recognizing that each integration exposes a different set of ostk capabilities.
 
-READ_MORE → (/docs/coordination-primitives)
+READ_MORE → (/why/)
 
 07 How do I track what changes AI agents made?
 
@@ -1055,7 +1055,7 @@ READ_MORE → (/docs/architecture/#the-unix-substrate)
 
 08 Does ostk require a cloud connection?
 
-ostk is local-first by custody: canonical project state and page content stay on local disk, and no ostk account or hosted control plane is required. Configured model providers, web/download tools, updates, registrars, outbound drivers, and provider-backed context features can use the network. Anchored Anthropic sessions can automatically make best-effort Anthropic Files copies for context efficiency or cross-host recovery. Operational telemetry stays local.
+ostk is local-first by custody: canonical project state and local context pages stay on disk, with no required ostk account or hosted control plane. Configured model providers and network tools can still use the network. Anthropic file uploads are an optional context-efficiency upgrade on compatible routes, not a requirement or the continuity boundary; other routes can keep the same paging workflow local.
 
 READ_MORE → (/why)
 
@@ -1147,11 +1147,11 @@ Applies thread-level kernel restrictions restricting filesystem traversal. Proce
 
 ## VFS NAMESPACES
 
-The daemon virtualizes filesystem paths using a Virtual Filesystem (VFS) namespace overlay. Directory structures can be mounted with custom rules (read-only, write-ephemeral, or invisible) to isolate the agent:
+The optional VFS projects selected kernel registries at stable, inspectable paths. It is an observation surface, not a transparent overlay that hides ordinary workspace writes:
 
-- Read-Only Mounts: Prevents standard system directories (like `/etc` or library frameworks) from being written to.
-- Write-Ephemeral: Allows writing temporary test files or configurations that are discarded automatically on session shutdown.
-- Invisible Writes: Intercepts file creations/mutations, writing them to a hidden local journal until they are approved by the operator.
+- Stable namespaces: Selected tasks, decisions, fleet, process, journal, memory, and driver state can be queried with ordinary file tools.
+- Projection-specific coverage: Each namespace documents which registry it reflects and how it rebuilds.
+- Normal workspace: Source files and Git remain ordinary local files; VFS visibility does not grant audit or CAS guarantees to native writes.
 
 ## OPTIMISTIC CONCURRENCY & WAL JOURNALING
 
@@ -1159,11 +1159,11 @@ When multiple agent instances or tools run simultaneously in the same workspace,
 
 ### Optimistic Concurrency Control (OCC)
 
-Every file mutation records its last-modified timestamp. Before writing a replacement chunk, the daemon verifies that the file version has not been incremented by another thread, raising conflicts dynamically.
+Kernel-mediated `fs_ops` CAS edits compare expected text under a target-file lock. One match can commit directly; zero matches can consult recorded generation history for a safe merge; ambiguous or overlapping intent returns without writing.
 
 ### Write-Ahead Logging (WAL)
 
-All modifications are pre-committed to a structured Write-Ahead Log (`.ostk/audit.jsonl`) before touching disk blocks. If a subprocess crashed mid-write, the daemon recovers state on the next `ostk boot`.
+Kernel-mediated CAS file mutations append their audit row before generation, shadow, and byte updates and fail closed if that record cannot be written. Other verbs have different audit timing; native and raw-shell workspace writes remain outside this guarantee.
 
 RELATED: LIBOSTK (/docs/libostk/) OSTK-CACHE (/docs/ostk-cache/) OSTK-RECALL (/docs/ostk-recall/)
 
@@ -6070,7 +6070,10 @@ SECTION_01 // ARCHITECTURE
 
 # System Architecture
 
-SYSTEM_COORDINATION_FLOW // LIVE_IPC_AND_INFERENCE_ROUTING
+SYSTEM_MAP // REPLACEABLE_EDGE_OWNED_CENTER scope: kernel-mediated operations
+
+Switching the model or harness does not move the project, Git history, or owned local substrate. Integration depth can vary by route, and policy, audit, output shaping, and optimistic-concurrency behavior apply according to the kernel-mediated verb being used.
+Scroll horizontally to inspect every label.
 
 Six problems show up the moment you put agents in front of a real codebase. ostk's architecture is the composition that solves them. Each section below names a problem, walks the composition that addresses it, and points at the primitives that compose.
 
@@ -6178,7 +6181,7 @@ GOVERNANCE // FOUNDATIONAL_LAWS
 
 ## The Five Foundational Laws
 
-These are not guidelines. They are load-bearing constraints. Every design decision in ostk must satisfy all five. If a feature violates a law, the design is wrong.
+These principles describe the architecture ostk is trying to preserve. They guide design review, while each implementation claim still needs a named execution scope, maturity level, and verification path.
 
 01
 
@@ -6200,9 +6203,9 @@ IN_PRACTICE A replacement agent can recover durable tasks and decisions; it shou
 
 ### Coordinate through the filesystem
 
-No message buses. No inboxes. No pub/sub. No RPC between agents. If agent A needs agent B to know something, agent A writes a file. ls and cat are your debugging tools.
+Durable tasks, decisions, nudges, and handoff records live in inspectable local files. The daemon and VFS can expose live coordination surfaces, but canonical project records do not depend on a hosted message bus.
 
-IN_PRACTICE The filesystem IS the communication channel. Every coordination artifact is a file you can read.
+IN_PRACTICE Use durable files for continuity and explicit live channels only where the runtime requires them.
 
 04
 
@@ -6362,7 +6365,7 @@ REFERENCE // BOOT_STAGES
 
 # Boot Sequence
 
-Boot is not a daemon start. It is a read-only scan that reads `.ostk/` state, resolves identity, and reports what is on disk. The kernel does not modify project files during boot — it observes, verifies, and tells you what it found.
+Boot reads `.ostk/` state, resolves identity, initializes the current kernel surface, and reports what it found. It can perform kernel-state housekeeping such as stale-process cleanup, but it does not rewrite ordinary project source as part of discovery.
 
 ## What Boot Does
 
@@ -6418,9 +6421,9 @@ KERNEL INIT
 
 The identity and capability layer. Boot determines who you are and what you can do:
 
-- Trust tier — GPG web-of-trust determines your tier (T0 through T3). Your GPG key is checked against the project's signing chain.
-- ENTITYFILE — governance document loaded and GPG-verified. Invalid signatures are fatal (fail-closed). Missing ENTITYFILE is non-fatal (fresh-install path).
-- Pin caps — capability pins loaded from `.ostk/pin.caps`. These constrain what tools agents can invoke.
+- Trust tier — HUMANFILE and verified primefile evidence resolve first; the local GPG keyring is the fallback path for T0 through T3.
+- ENTITYFILE — governance evidence is loaded through the supported verifier. Current Ed25519/DSSE paths are primary; detached GPG and Sigstore-era artifacts remain compatibility routes.
+- Pin caps — when `OSTK_PIN=` is active, capabilities load from `.ostk/pins//pin.caps` and compose with tier defaults.
 - Drivers — declared drivers probed via Unix sockets. Boot never spawns drivers — it only checks what is already running. Inactive drivers are registered for demand-spawn on first use.
 - .language — the verb registry is populated. Kernel services, MCP primitives, introspection tools, and HUMANFILE VERB directives are all registered into the `.language` file.
 
@@ -6437,7 +6440,7 @@ Builds the context injection that every agent instance receives at session start
 - `boot.md` swap — the compiled operator section replaces the template boot.md
 - Identity blocks from HUMANFILE (communication style, scheduling preferences, corrections log)
 
-The stable portion of this preload can be rendered once and uploaded as firmware — a deployment artifact that fleet members reference by ID rather than re-rendering independently.
+The stable portion can be rendered once and reused locally. Compatible Anthropic routes may optionally upload a file-backed copy for context efficiency, but upload is not required and other routes can keep the same artifact local.
 
 3
 
@@ -6458,11 +6461,11 @@ EXECUTION
 The agent loop begins. Boot transitions from observation to action:
 
 - Harness detection — environment is probed to determine tool routing (Claude Code, ostk-serve, CI, terminal). This controls whether the agent uses native tools or MCP primitives.
-- Checkpoint verification — the most recent checkpoint's GPG signature is verified. Invalid signatures are fatal for governed agents, advisory for interactive sessions.
+- Checkpoint verification — the most recent checkpoint is checked through its configured verifier. Current attestation and legacy detached-signature paths have separate compatibility rules.
 - Version pin — if `.ostk/version` exists, the running binary version is checked against the pin.
 - Continuation prompt — if enabled, a dynamic prompt is generated from current workspace state and written to `.ostk/prompts/continuation.md`.
 
-Tool calls from this point forward pass through the 7-step approval chain (/docs/security/#the-seven-step-approval-chain).
+The embedded CPU agent loop uses the 7-step approval chain (/docs/security/#the-seven-step-approval-chain). Other System ABI verbs use their own documented policy and audit paths.
 
 ## POST_CHECKS
 
@@ -6482,17 +6485,17 @@ TRUST_VERIFY
 
 CHECKS
 
-GPG signature on HUMANFILE validates against the signing chain. Trust tier (T0–T3) is determined.
+HUMANFILE SIGN evidence and verified primefile evidence resolve first, then the legacy GPG fallback. Trust tier (T0–T3) is determined.
 
 ON FAILURE
 
-Bad signature is fatal (fail-closed). Missing GPG degrades to T3 (read-only).
+Invalid required evidence fails closed. Missing GPG alone yields T3 only when no verified primefile or other recognized identity evidence resolves.
 
 ENTITYFILE_SIGN
 
 CHECKS
 
-ENTITYFILE governance document exists and its detached GPG signature (.asc or .sigstore) is valid.
+ENTITYFILE governance evidence is checked through the primary verifier, with detached .asc and Sigstore-era artifacts treated as legacy compatibility paths.
 
 ON FAILURE
 
@@ -6518,11 +6521,11 @@ ON FAILURE
 
 Unresolvable VERBs reduce boot confidence score but do not halt boot.
 
-CHECKPOINT_GPG
+CHECKPOINT_VERIFY
 
 CHECKS
 
-Most recent checkpoint's detached GPG signature is verified against accepted key set.
+The most recent checkpoint is checked through its configured attestation verifier, including legacy detached signatures where present.
 
 ON FAILURE
 
@@ -6584,7 +6587,7 @@ ostk boot
 
 ✓ HUMANFILE loaded (global only)
 
-trust: T1 (cross-signed, write access)
+trust: T1 (endorsed identity, guarded source writes)
 
 .language: 58 verbs | fleet: 0 alive
 
@@ -6596,9 +6599,9 @@ boot confidence: 0.00 (restricted mode)
 
 Stage 0b succeeded. Only ~/.HUMANFILE was found (no project-level HUMANFILE). Identity and preferences resolved from the global file.
 
-`trust: T1 (cross-signed, write access)`
+`trust: T1 (endorsed identity, guarded source writes)`
 
-Stage 1. Your GPG key is cross-signed by a T0 holder. Full write access granted.
+Stage 1. Verified evidence is endorsed by a T0 root. Source writes remain subject to kernel-state and governance restrictions.
 
 `.language: 58 verbs | fleet: 0 alive`
 
@@ -6614,47 +6617,47 @@ Stage 3. No audit history yet — the confidence score starts at zero on a fresh
 
 ## Harness Detection
 
-Boot detects the execution environment and sets tool routing policy accordingly. The agent knows how to talk to the kernel without being told.
+Boot can identify common execution environments, but the active integration still determines which operations enter the kernel boundary. Use the namespaced ostk tool surface when its audit, policy, context, or CAS behavior matters.
 
-claude-code
-
-DETECTION
-
-`OSTK_HARNESS=claude-code or TERM_PROGRAM=claude`
-
-TOOL ROUTING
-
-Native Bash / Read / Edit / Grep. Background via run_in_background.
-
-ostk-serve
+MCP client
 
 DETECTION
 
-`OSTK_SERVE=1`
+`Configured ostk MCP connection`
 
 TOOL ROUTING
 
-MCP shell / spawn / interact. File I/O via fs_read / edit / fs_write.
+Namespaced System ABI tools; coverage follows the called verb.
 
-ci
+embedded loop
 
 DETECTION
 
-`CI=true or GITHUB_ACTIONS=true`
+`ostk-managed CPU agent`
 
 TOOL ROUTING
 
-Native Bash. No background, no TTY.
+System ABI plus the embedded approval chain and lifecycle.
 
-terminal
+CI
 
 DETECTION
 
-`Default fallback`
+`CI=true or provider-specific signal`
 
 TOOL ROUTING
 
-Native Bash. Background optional.
+Explicit CLI/System ABI integration; no assumption of a TTY.
+
+native client
+
+DETECTION
+
+`No ostk route selected`
+
+TOOL ROUTING
+
+Client-native tools remain outside kernel audit, policy, and CAS OCC.
 
 The `OSTK_HARNESS` environment variable overrides all detection — it always wins.
 
@@ -6679,7 +6682,7 @@ REFERENCE // AGENT_LIFECYCLE
 
 # Agent Lifecycle & Topology
 
-Sessions outlive everything that drives them — clients disconnect, daemons crash, workers hang. State lives in the filesystem and the audit log. The daemon acts as an ephemeral cache of active execution; the journal on disk is the ultimate truth.
+Clients and models are replaceable. Durable tasks, decisions, handoff records, and kernel-mediated audit live on disk; runtime state and external harness sessions keep explicit recovery boundaries.
 
 01 // TOPOLOGY_AND_MULTIPLEXING
 
@@ -6701,9 +6704,13 @@ Source: `src/kernel/sub_stack.rs`, `src/kernel/sandbox.rs`
 
 02 // STATE_MACHINE
 
-## The Five-State Execution Lifecycle
+## Context-Pressure Lifecycle
 
-Once an agent advances state, it cannot regress. State transitions are monitored by the kernel loop on every turn.
+When a supported execution route reports context use, the lifecycle can advance through five states. It never regresses, and it does not claim to govern every external harness turn.
+
+CONTEXT_LIFECYCLE OPEN_FULL_SIZE ↗ (/diagrams/agent-lifecycle.svg)
+
+Hand off before context runs out. Scope: Evaluated on supported CPU tool batches and served tool responses; it does not describe every external harness session. Scroll horizontally or open the full-size SVG to inspect every label.
 
 HEALTHY
 
@@ -6723,7 +6730,7 @@ Context usage ≥ 70% (AGING_THRESHOLD_PCT).
 
 BEHAVIOR
 
-The kernel prepares a handoff record for the successor. Context is not mutated mid-turn to preserve the prompt cache.
+No enforcement yet. Every tenth tool call can carry a continuity nudge so key decisions are recorded before pressure becomes critical.
 
 DYING
 
@@ -6733,7 +6740,7 @@ Context usage ≥ 90% (DYING_THRESHOLD_PCT). Jumps (e.g. 60% → 92%) skip AGING
 
 BEHAVIOR
 
-Fencing begins. No new tool calls are allowed except within the single finalization turn.
+The kernel attempts one structured handoff and warns that one finalization response remains. The next supported tool response advances to DRAINING.
 
 DRAINING
 
@@ -6743,19 +6750,19 @@ Transitioned from DYING; last-turn execution.
 
 BEHAVIOR
 
-A single final tool call is allowed (typically writing the handoff document). Advances to DEAD once complete.
+One finalization turn is permitted. A subsequent evaluation advances to DEAD and fences further tool calls.
 
 DEAD
 
 TRIGGER
 
-Finalization turn complete or context limit exceeded.
+The permitted finalization response has completed.
 
 BEHAVIOR
 
-All tool calls are fenced. The agent subprocess persists as a zombie until the daemon reaps it.
+All further kernel-mediated tool calls are fenced and return an explicit lifecycle message.
 
-Transitions are guarded by `LifecycleState::can_transition_to()` at `src/kernel/lifecycle.rs`. Evaluated during command dispatch via `lifecycle.evaluate(context_pct)` inside the CPU agent loop.
+Transitions are guarded by `LifecycleState::can_transition_to()` in `src/kernel/lifecycle.rs`. Supported CPU-agent and served-response paths call `lifecycle.evaluate(context_pct)` when context telemetry is available.
 
 03 // PROCESS_MODEL
 
@@ -6819,7 +6826,7 @@ Source: `src/kernel/heartbeat.rs`, `src/kernel/scheduler.rs`
 
 ## Daemon Crash Recovery & Revival
 
-When the daemon is killed or crashes, no state is lost. At every turn boundary, the daemon commits a snapshot of the execution state to disk. On reboot, the daemon identifies active lineages without corresponding processes, marks them `Orphaned`, and resolves them based on the revival policy.
+When the daemon is killed or crashes, durable registries remain on disk. Anchored ostk-managed sessions write best-effort snapshots after completed turns; on reboot, eligible lineages without live processes can be marked `Orphaned` and handled by the configured revival policy. In-flight work after the last compatible snapshot is not covered.
 
 REVIVAL_POLICIES
 
@@ -6912,7 +6919,7 @@ REFERENCE // CONTEXT_MGMT
 
 # Context & State Management
 
-LLM context is a finite, expensive resource. The ostk kernel manages it through a multi-layered pipeline: compressing command outputs, caching stable prefixes, providing peripheral awareness via digest envelopes, injecting inline diagnostics, and declaring modular capabilities.
+Keep useful project signal in context without making the provider cache—or one fixed compression ratio—the continuity boundary. Supported routes can combine output shaping, stable prefixes, digest envelopes, inline diagnostics, and local context pages.
 
 CONTEXT_AND_STATE_REFERENCE
 
@@ -6929,7 +6936,7 @@ CONTEXT_AND_STATE_REFERENCE
 
 ## The Context Lifecycle Loop
 
-Every agent turn passes through six distinct stages. Removing any stage degrades cache performance and inflates context growth.
+A supported ostk-managed turn can combine the following stages. Provider caching, output shaping, enrichment, and drain behavior remain route-specific rather than universal.
 
 01
 
@@ -6941,19 +6948,19 @@ The kernel compiles the base prompt, identity (.language), registers, and Agentf
 
 `TOOL_CALL`
 
-The model invokes a tool. Command output passes through the Squasher pipeline before entering context. File reads pass through elision logic, and the peripheral digest envelope is appended.
+The model invokes a kernel-mediated tool. The selected route determines whether output is preserved, narrated, structured, treated as dangerous, or sent through the Condense path.
 
 03
 
 `OUTPUT_COMPRESSION`
 
-ANSI progress indicators are stripped, lines are classified by grammatical hazard/outcome/noise rules, and repetitive outputs are collapsed. Average output savings are around 30%.
+On the Condense route, command grammars and output shapes help preserve hazards and outcomes before repetitive structure is collapsed. Actual savings are measured per result.
 
 04
 
 `DIGEST_INJECTION`
 
-A 5-line envelope is appended to the tool response containing [procs], [presence], [files] (stale only), [loadavg], and [meminfo]. This signals to the agent whether files need re-reading without re-sending file content.
+The dispatcher can append a compact delta envelope for changed process, presence, file, load, and memory signals. Unchanged sections need not be repeated.
 
 05
 
@@ -6993,13 +7000,17 @@ On compatible routes, ostk positions cache-control boundaries around stable syst
 
 ## Output Compression (The Squasher)
 
-The Squasher pipeline intercepts shell and subprocess output. It strips progress indicators, classifies lines into priority buckets, collapses repeated sequences, and appends diagnostics.
+Kernel-mediated command output is routed by category, matched to a command grammar or output shape, and reduced only after hazards and outcomes are identified. Elisions remain visible and telemetry records the actual result.
 
-### Stdout vs. Stderr Stream Routing
+OUTPUT_SHAPING OPEN_FULL_SIZE ↗ (/diagrams/compression-pipeline.svg)
 
-The Squasher handles streams according to their content type. Stderr is preserved with high fidelity, bypassing aggressive collapsing to protect warnings and compiler panics. Stdout is condensed aggressively using Levenshtein distance matching. On non-zero exit codes, the compression threshold relaxes to provide sufficient surrounding lines for debugging.
+Keep tool output useful without claiming one fixed reduction ratio. Scope: Shell output routed through ostk; category, grammar, output shape, input size, and raw: true determine the path. Scroll horizontally or open the full-size SVG to inspect every label.
 
-### Three-Tier Classification
+### Signal Before Reduction
+
+Command grammars and output-shape detectors identify hazards, outcomes, and structured diagnostic blocks before deduplication. Unknown shapes fall back conservatively, tiny inputs avoid the full grammar path, and `raw: true` bypasses compression when exact output matters.
+
+### Condense Signal Classification
 
 Lines are evaluated against rules and grouped into:
 
@@ -7007,9 +7018,9 @@ Lines are evaluated against rules and grouped into:
 - OUTCOME (Medium Priority): Build metrics, test counts, and exit states. Preserved verbatim.
 - NOISE (Low Priority): Iterative logs, progress bars, and dividers. Subject to immediate Levenshtein collapsing.
 
-### Levenshtein Line Merging (Similarity = 0.85)
+### Consecutive Structural Deduplication
 
-Adjacent lines with matching structural shape are merged using a sliding window Levenshtein algorithm. Dynamic tokens (versions, hashes, paths) are generalized into tags like `{hex}`, `{path}`, and `{ver}`. If similarity exceeds 0.85, they collapse into `[⋯ N similar lines]`.
+Consecutive lines that begin with the same first token are compared using normalized edit distance. The current implicit path collapses a run when distance is below `0.4` (roughly similarity above 0.6), generalizing dynamic tokens with tags such as `{hash}`, `{path}`, and `{ver}`. Every collapsed run stays visible as `[⋯ N similar lines]`.
 
 ### ROUTE_CATEGORIES
 
@@ -7017,15 +7028,15 @@ CONDENSE Verbose output → summary. cargo build, npm install. Implicit dedup + 
 
 NARRATE Silent commands → execution narration. cp, mv, mkdir. "→ cp: a.txt → b.txt (ok)"
 
-PASSTHROUGH Verbatim preservation. cat, grep, ls, jq. Original output + metadata footer
+PASSTHROUGH Verbatim-oriented preservation. cat, grep, jq. Original output + route metadata
 
-STRUCTURED Machine-readable → formatted summary. git status, docker ps. Parse into branches, containers, etc.
+STRUCTURED Known structure → formatted summary. ls, git status, docker ps. Parse the current command shape
 
 DANGEROUS Destructive ops. rm -rf, git push --force. CRITICAL/WARNING severity with context
 
 ### Semantic Deduplication via Potion-Base
 
-Optional GPU-accelerated semantic deduplication uses the `potion-base-8M` embeddings model (256-dimensions) to identify equivalent line semantics. Install via `ostk embeddings download`.
+Optional semantic clustering can identify lines that mean the same thing even when their structure differs. Its current similarity threshold is `0.85`; this is separate from the lower-threshold consecutive structural deduplication above. Install the optional local model with `ostk embeddings download`.
 
 Runs on Metal (Apple Silicon) with CPU fallbacks via Wgpu. Enabled with `--features embeddings`.
 
@@ -7246,7 +7257,7 @@ REFERENCE // COORDINATION
 
 # Coordination Primitives
 
-Coordination operates without message buses, active servers, or RPC. ostk projects state directly into the filesystem, managing concurrency via per-file generation checks, resolving collisions with mechanical merges, and routing interrupts using durable queues.
+Shared local state makes coordination inspectable: durable records live on disk, selected live state can be projected through the VFS, and kernel-mediated CAS edits either compose safely or surface the conflict. Native writes still use ordinary filesystem and Git coordination.
 
 01 // VIRTUAL_FILESYSTEM
 
@@ -7340,45 +7351,49 @@ $ ls .ostk/vfs/needles/ | wc -l
 
 ## Optimistic Concurrency Control (OCC)
 
-Rather than locking files on open (which stalls parallel workflows), ostk uses monotonic generation counters and Compare-and-Swap (CAS) edits.
+Kernel-mediated `fs_ops` edits use expected text as the direct CAS condition. A short-lived target-file lock serializes each mutation; generation history is consulted only when the expected text is no longer present.
+
+CAS_WRITE_PATH OPEN_FULL_SIZE ↗ (/diagrams/write-path.svg)
+
+Apply safely or surface the conflict. Scope: Kernel-mediated fs_ops CAS edits; native and raw-shell writes use ordinary filesystem and Git coordination. Scroll horizontally or open the full-size SVG to inspect every label.
 
 MONOTONIC GENERATIONS
 
-Every file's generation is tracked in `.ostk/gen_table.jsonl`. Successful writes increment the generation counter, providing an instant state signature.
+Files written through tracked kernel paths receive monotonic entries in `.ostk/gen_table.jsonl`. Successful writes bump the generation; native and raw-shell writes do not automatically join that history.
 
 SERIALIZATION LOCKS
 
-A system-level `flock(2)` on `.ostk/gen_table.lock` wraps the generation lookup and modification loop. Concurrent writes are queued, avoiding lost updates.
+An exclusive `flock(2)` on the target stays held while current bytes are checked and any successful mutation commits. The generation table uses its own shorter lock for metadata updates; it does not wrap the entire file mutation.
 
 SHADOW BACKUPS
 
-On every generation bump, the pre-edit content is backed up to `.ostk/shadows//gen_`. This historic record is used to resolve conflicts if a subsequent write fails.
+A successful tracked write records generation history and a shadow of the prior content. That recorded base is consulted on a later zero-match CAS request to distinguish a safe non-overlap from a nearby or structural conflict.
 
 CAS OPERATION
 
-Write tools (like `file:edit`) pass the old content string. If the workspace version has changed, the write is blocked, triggering Hot PR conflict resolution.
+`fs_ops` passes the expected old text. Exactly one occurrence takes the direct path; more than one stops as ambiguous; zero occurrences alone trigger comparison against the recorded base.
 
-03 // HOT_PR_RESOLUTION
+03 // ZERO_MATCH_RECOVERY
 
-## Hot PR: Automated Merge Routing
+## When Expected Text Is Stale
 
-When a write fails due to a mismatched generation signature, Hot PR attempts to merge the changes mechanically, without invoking expensive LLM rounds.
+If the expected text occurs zero times, ostk compares the request with the recorded base. The recovery path either prepares a deterministic non-overlapping merge, returns a nearby mechanical suggestion without writing, or reports a visible conflict.
 
-TIER 1 // AUTO_MERGE
+SAFE NON-OVERLAP
 
-Distance > 3 lines
+Separate changed regions
 
-Edits occur in different, non-overlapping parts of the file. The kernel merges both changes automatically and silently.
+The requested edit and intervening change do not overlap. The kernel can prepare and commit a deterministic merged result.
 
-TIER 2 // ASSISTED_MERGE
+NEARBY MECHANICAL
 
-< 30 lines / 2 regions
+Touching / within 3 lines; ≤30 changed lines
 
-Minor overlaps. The kernel computes a line rebase and returns a suggested edit call back to the agent for confirmation.
+A deterministic rebase can be suggested to the agent for confirmation. The suggestion itself does not write.
 
-TIER 3 // MANUAL_REBASE
+VISIBLE CONFLICT
 
-Over Tier 2 thresholds
+Ambiguous or structurally unsafe
 
 Large conflict. The write is rejected. The agent must re-read the file and manually re-apply its logic.
 
@@ -7537,7 +7552,7 @@ Writes succeed but no audit row appears You're probably writing through the agen
 
 Two daemons fight for the socket `ostk daemon restart` (swaps a rebuilt binary cleanly) or `pkill -f "ostk daemon"` then re-invoke. The bridge auto-recovers from a clean socket.
 
-Permission errors on write Pin caps deny by default. Check `.ostk/pins/default/pin.caps`. T3 (no GPG identity) gets read-only by design — see /docs/security/#gpg-rooted-trust-tiers.
+Permission errors on write Inspect the matched tier or pin reason and the active `.ostk/pins/<name>/pin.caps`. T3 means no project or operator identity resolved — see /docs/security/#identity-derived-trust-tiers.
 
 ## DRIVING OSTK FROM CUSTOM TOOLS & SCRIPTS
 
@@ -8769,15 +8784,15 @@ STABLE shipped, normative, public DRAFT in flight, public, not frozen HORIZON di
 
 ## Kernel
 
-Kernel Specification /docs/architecture/#the-unix-substrate STABLE Canonical ostk kernel architecture: six Unix syscalls, seven primitives, the LLM memory hierarchy, and the dual-CPU scheduler binding humans + LLMs. (/docs/architecture/#the-unix-substrate)Five Laws /docs/architecture/#the-five-foundational-laws STABLE The five load-bearing constraints behind ostk: invisible writes, ephemeral agents, filesystem coordination, optimistic concurrency, invisible infra. (/docs/architecture/#the-five-foundational-laws)POSIX Kernel Spec /docs/spec/posix-kernel/ STABLE RFC-style specification of the POSIX-shaped invariants the ostk kernel enforces today: bounded waits, owned state, dead-owner reaping, namespace isolation, the signal table, anchor exclusivity, handle generations. (/docs/spec/posix-kernel/)
+Kernel Specification /docs/architecture/#the-unix-substrate STABLE Operator-facing architecture: replaceable model and harness edges, owned local substrate, verb-specific controls, lifecycle boundaries, and the primitives that compose them. (/docs/architecture/#the-unix-substrate)Five Laws /docs/architecture/#the-five-foundational-laws STABLE Five operating principles: a familiar project surface, durable state beyond one process, inspectable filesystem coordination, scoped optimistic concurrency, and observable infrastructure. (/docs/architecture/#the-five-foundational-laws)POSIX Kernel Spec /docs/spec/posix-kernel/ STABLE RFC-style specification of the POSIX-shaped invariants the ostk kernel enforces today: bounded waits, owned state, dead-owner reaping, namespace isolation, the signal table, anchor exclusivity, handle generations. (/docs/spec/posix-kernel/)
 
 ## Trust + Identity
 
-Trust Model /docs/security/#gpg-rooted-trust-tiers STABLE How GPG identity tiers, capability pins, and Ed25519-signed audit compose into the trust model. Four problems an operator has — what can I do, how do I graduate, how do I verify a release, how do I revoke a compromised key — and the compositions that solve them. (/docs/security/#gpg-rooted-trust-tiers)HUMANFILE /docs/configuration/#humanfile STABLE Operator identity document. Tells the OS who you are, what models to use, and how to calibrate. (/docs/configuration/#humanfile).primefile /docs/configuration/#primefile STABLE The .primefile is ostk’s dual-signed root of trust — kernel + operator GPG keys anchor the identity chain. Auto-managed, never edit by hand. (/docs/configuration/#primefile)ENTITYFILE /docs/configuration/#entityfile STABLE The trust constitution of your OS instance. Identity chains, trust tiers, and governance ceremonies. (/docs/configuration/#entityfile)
+Trust Model /docs/security/#identity-derived-trust-tiers STABLE How verified identity evidence resolves a T0–T3 default posture, how capability pins compose, and how each kernel-mediated execution surface enforces and audits its part of the policy. (/docs/security/#identity-derived-trust-tiers)HUMANFILE /docs/configuration/#humanfile STABLE Operator identity document. Tells the OS who you are, what models to use, and how to calibrate. (/docs/configuration/#humanfile).primefile /docs/configuration/#primefile STABLE Project identity and lineage evidence created by ostk init. Boot verifies the supported Ed25519/DSSE path first while retaining legacy signature compatibility. (/docs/configuration/#primefile)ENTITYFILE /docs/configuration/#entityfile STABLE Project governance declarations for identity, trust anchors, and structural policy; effective permissions still come from the active verifier, tier, pins, and execution surface. (/docs/configuration/#entityfile)
 
 ## Coordination + Audit
 
-Coordination Primitives /docs/coordination-primitives/ STABLE Four primitives that let multiple agents share a codebase without a message bus: optimistic concurrency, Hot PR conflict resolution, digest injection, and nudges. (/docs/coordination-primitives/)
+Coordination Primitives /docs/coordination-primitives/ STABLE How tracked generations, kernel-mediated CAS edits, recorded-base recovery, digest signals, and durable nudges help agents share a codebase while surfacing conflicts. (/docs/coordination-primitives/)
 
 Observation Substrate
 
@@ -8793,13 +8808,13 @@ The federation layer that lets builders, registrars, and operators verify each o
 
 ## Application Layer
 
-Agentfile /docs/agentfile/ STABLE An Agentfile is a Dockerfile for agents — a declarative spec the kernel can audit, supervise, and verify. Four operator problems and the compositions that solve them. (/docs/agentfile/)Tack Grammar /docs/tack-grammar/ STABLE The operator intent language for the TUI tack bar. Compressed input syntax that resolves through the kernel. What, not how. (/docs/tack-grammar/)
+Agentfile /docs/agentfile/ STABLE A local recipe for a repeatable worker: model, task, limits, tools, and optional isolation. Validation, signing, and supervision depend on the supported launch workflow. (/docs/agentfile/)Tack Grammar /docs/tack-grammar/ STABLE The operator intent language for the TUI tack bar. Compressed input syntax that resolves through the kernel. What, not how. (/docs/tack-grammar/)
 
 Application v1
 
 HORIZON
 
-A content-addressed, signed directory tree with a manifest, supervisor tree, and policy declaration that one operator can install on another and have it just run — the application unit above the kernel.
+Design trajectory for a content-addressed application directory with a manifest, supervisor tree, and policy declaration. Not yet a shipped, acceptance-tested cross-machine install workflow.
 
 Source of truth for kernel internals lives in the
 os-tack/ostk.ai (https://github.com/os-tack/ostk.ai)
@@ -9284,7 +9299,7 @@ The full POSIX process-identity quad `(pid, ppid, pgid, sid)` is not yet enforce
 - Kleppmann, M., "How to do distributed locking" (2016) — fencing tokens.
 - Plan 9 from Bell Labs — "everything is a file" namespace doctrine.
 - FreeBSD `capsicum(4)` — capability-mode filesystem access.
-- Companion ostk specifications: Kernel Specification (/docs/architecture/#the-llm-memory-hierarchy), Five Laws (/docs/architecture/#the-five-foundational-laws), Coordination Primitives (/docs/coordination-primitives/), Trust Model (/docs/security/#gpg-rooted-trust-tiers).
+- Companion ostk specifications: Kernel Specification (/docs/architecture/#the-llm-memory-hierarchy), Five Laws (/docs/architecture/#the-five-foundational-laws), Coordination Primitives (/docs/coordination-primitives/), Trust Model (/docs/security/#identity-derived-trust-tiers).
 
 ## 10. Revision Procedure
 
@@ -9316,7 +9331,7 @@ The working draft specifies a recovery protocol for operator-acknowledged audit-
 
 Phased rollout policy specifies hard cutover at the introducing phase plus an in-process migration walk performed as the first action of `ostk init start`. The implementation lives in `src/kernel/migrate_legacy.rs`; migration walker and reaper walker share a `SKIP_NAMES` contract. Operator-facing migration ergonomics continue to evolve and are not yet locked into this specification.
 
-RELATED: KERNEL_SPEC (/docs/architecture/#the-llm-memory-hierarchy) FIVE_LAWS (/docs/architecture/#the-five-foundational-laws) COORDINATION (/docs/coordination-primitives/) TRUST_MODEL (/docs/security/#gpg-rooted-trust-tiers)
+RELATED: KERNEL_SPEC (/docs/architecture/#the-llm-memory-hierarchy) FIVE_LAWS (/docs/architecture/#the-five-foundational-laws) COORDINATION (/docs/coordination-primitives/) TRUST_MODEL (/docs/security/#identity-derived-trust-tiers)
 
 ---
 
@@ -9348,14 +9363,14 @@ EXAMPLE_HUMANFILE
 
 ```
 IDENTITY yourname
-SIGN YOUR_GPG_FINGERPRINT
+SIGN
 
 MODEL claude-opus-4-6
 FALLBACK mistral-large-latest
 
 AVAILABLE REQ Your username. Used in audit attribution and agent identity.
 
-`SIGN` — GPG key fingerprint. Establishes T0 trust tier when verified.
+`SIGN` — Ed25519 multikey or legacy GPG fingerprint used as operator identity evidence. Tier depends on verification and anchor admission.
 
 `MODEL` REQ Default model for agent sessions. Kernel auto-detects provider from model name.
 
@@ -9403,157 +9418,61 @@ Fallback to $KEY in shell environment (least secure).
 
 Location: `.ostk/ENTITYFILE`
 
-The trust constitution of your OS instance. Written once, it governs permissions, trust anchors, and structural operations for multi-agent or collaborative repos.
+A project governance document for identity declarations, trust anchors, and structural policy. Effective permissions still come from the identity verifier, tier defaults, active pins, and the execution surface.
 
 T0
 
-Human operator
+Verified project or operator root
 
-Full governance — including modifying ENTITYFILE itself
+No tier-default restrictions; full governance
 
-Fingerprint hardcoded in src/kernel/identity.rs trust anchors
+Verified primefile or trusted Ed25519/DSSE evidence; legacy GPG anchor
 
 T1
 
-Verified agent or CI
+T0-endorsed identity
 
-Write source, run agents, delegate needles. Denied: write-kernel, modify-governance
+Source writes with kernel-state and governance restrictions
 
-GPG key cross-signed by a T0 holder
+Verified delegated evidence or legacy T0 cross-signature
 
 T2
 
-GPG key, not cross-signed
+Identity without T0 endorsement
 
-Read everything. Narrow write exceptions. Denied: write-kernel, modify-governance, write-src
+Governed src/, kernel state, and governance writes denied by default
 
-GPG key present, check_gpg_cross_signature returns None
+Recognized identity evidence without trusted endorsement
 
 T3
 
-No GPG key
+Anonymous
 
-Boots; reads everything; all writes denied by pin caps (policy.rs:248)
+Kernel-mediated writes denied by default
 
-host_identity::discover() returns no gpg_key
+No verified primefile or other recognized identity evidence
 
-EXAMPLE_ENTITYFILE
+CURRENT_IDENTITY_PATH
 
-```
-ENTITYFILE: v1.0 (GPG chain signed — kernel@project.prime)
----
-entity:
-name: @project.prime
-key: AAAA1111BBBB2222CCCC3333DDDD4444EEEE5555
-domain: project.prime
-version: 3.0.0
-boot_signature: FFFF0000AAAA1111BBBB2222CCCC3333DDDD4444
-laws:
-- invisible-write
-- ephemeral
-- filesystem
-- OCC
-- invisible-infra
-harness: terminal
-tool_pattern: native Bash
-dialect:
-- tack
-- hay
-fleet:
-alive: 1
-agents: 54
-signing_key: 3689831ac67b433093ef15e23431b539e7222961f7f976a14feb268c8058ce6a
-signing_algo: ed25519
-```
+Current verification prefers supported Ed25519 and DSSE/OAE identity evidence. Detached `.asc` and Sigstore-era artifacts remain compatibility paths for projects that already use them; they are not the only way to establish a local root.
 
-WHEN_DO_I_NEED_AN_ENTITYFILE?
+Keep the document descriptive. Use `ostk boot` to see which evidence actually resolved and which default posture is active.
 
-Solo developer, one machine NO
+### Changing Governance
 
-Solo developer, GPG identity needed NO
+Governance writes routed through ostk are evaluated against the active identity posture and capability policy. Lower tiers are denied by default; a T0 operator can make an authorized change, while repository review and signature requirements remain explicit project policy.
 
-Team with shared repo YES
-
-CI pipeline dispatching agents YES
-
-Multiple humans with different trust YES
-
-### The Negotiate Protocol
-
-Changes require ceremony. You cannot unilaterally modify `ENTITYFILE` — even as T0.
-
-01
-
-File an offer describing the change (.ostk/offers/)
-
-02
-
-Counter-party reviews and responds
-
-03
-
-Both parties sign with their keys
-
-04
-
-Merge with --no-ff to preserve ceremony in git history
-
-### Authority Chain Flow
-
-T0 (human)
-
-→
-
-kernel
-
-→
-
-agents
-
-Trust flows downward. No agent can elevate its own trust tier. No agent can modify `ENTITYFILE`. The human remains the final authority.
+Identity evidence does not let an agent self-promote. Re-run `ostk boot` after a governance change to verify the evidence and resulting posture.
 
 ## 3. .primefile
 
 Location: `.ostk/.primefile`
 
-The kernel's identity document. Written automatically by the OS, it anchors the identity chain.
+A project identity document created by `ostk init`. It records the local root and lineage evidence that boot can verify.
 
-The `.primefile` is dual-signed: once by the kernel's GPG key (T1), and once by the operator's GPG key (T0).
+Treat `.primefile` as verified project identity evidence, not as a universal dual-GPG ceremony. Current projects can use Ed25519/DSSE-compatible evidence; legacy detached GPG material remains a fallback where present.
 
-Modifying it manually invalidates the signature and will cause the kernel to refuse to boot.
-
-EXAMPLE_PRIMEFILE
-
-```
----BEGIN HAYSTACK.PRIME KERNEL DECLARATION---
-
-KERNEL: @project.prime
-VERSION: 3.0.0
-CREATED: 2026-03-10T00:00:00Z
-
-AUTHORITY:
-Primary: @operator (Human operator, HUMANFILE authority)
-Kernel: @project.prime (Persistent kernel, GOVERNANCE.md authority)
-Co-signers: Both keys required for mutation
-
-KEYS:
-T0 Human Root:
-Name: Your Name
-Key: AAAA...1111
-Algorithm: ed25519
-
-T1 Kernel:
-Name: @project.prime (v3.0)
-Key: BBBB...2222
-Algorithm: ed25519
-
-LINEAGE:
-Root: @operator GPG signature
-Co-sign: @project.prime GPG signature
-Chain: Unbroken from 2026-03-10
-
----SIGNATURES BELOW---
-```
+Manual changes can invalidate the evidence. Use the supported initialization and governance paths, then confirm the resolved tier with `ostk boot`.
 
 PRIMEFILE_FIELDS
 
@@ -9563,20 +9482,20 @@ PRIMEFILE_FIELDS
 
 `AUTHORITY` Who controls the kernel — primary (human), kernel, and co-signer requirements.
 
-`KEYS` GPG key registry: T0 human root, T1 kernel, T1 CI. Algorithm and cross-signature info.
+`KEYS` Trust-key registry, including Ed25519 multikeys and any legacy GPG anchors or cross-signature metadata.
 
 `LINEAGE` Root of trust chain, co-signers, and chain continuity date.
 
-SIGNATURE_VERIFICATION
+VERIFY_THE_RESOLVED_EVIDENCE
 
 TERMINAL
 
 ```
-$ gpg --verify .ostk/.primefile.asc .ostk/.primefile
-$ gpg --verify .ostk/.primefile.t0.asc .ostk/.primefile
+$ ostk boot
+# Inspect the reported identity evidence, trust tier, and any degraded fallback.
 ```
 
-Both verifications must pass. A single-signature primefile (T1 only) is not trusted.
+Boot reports the evidence path it can verify. Missing legacy GPG material alone does not imply T3 when verified primefile or other supported identity evidence is present.
 
 ## 4. ostk.toml
 
@@ -9634,7 +9553,7 @@ Ambient configuration options that live in the shell environment. Most are optio
 
 `OSTK_PIN` Active capability pin name. Loads .ostk/pins/<name>/pin.caps. Tier default
 
-`OSTK_TRUST_TIER` Override trust tier resolution. Bypasses GPG detection. Used by CI/tests. Auto-detected
+`OSTK_TRUST_TIER` Trusted test-harness override. It is intentionally ignored in normal untrusted agent processes and cannot grant production tier. Ignored unless the process explicitly enables the trusted test path
 
 `OSTK_AGENTFILE` Path to Agentfile to load at boot. None
 
@@ -9698,7 +9617,7 @@ URL: https://ostk.ai/docs/agentfile/
 
 # Agentfile
 
-An Agentfile is a Dockerfile for agents. Plain-text directives in a stable order; the kernel reads it once, signs it, and supervises everything that follows. Below: four problems an operator has when authoring one, and the compositions that answer them.
+An Agentfile is a local, plain-text recipe for a repeatable worker: model, task, resource limits, tools, and optional isolation policy. ostk parses and validates supported launch paths; signing and supervision depend on the selected workflow rather than happening universally.
 
 Agentfiles live at `.ostk/agents/.Agentfile` (per-project workers) or `.ostk/profiles/.Agentfile` (reusable templates). The lifecycle verbs are `ostk agentfile new / list / show / lint / validate`. Run with `ostk run `. Source: `src/commands/agentfile_cmd.rs`, `src/commands/run.rs`.
 
@@ -9727,7 +9646,7 @@ $ ostk run .ostk/agents/fix-bug-27.Agentfile
 
 COMPOSES_FROM
 
-`agentfile new` (scaffolder) · the FROM/LIMIT/TASK directives (the spec) · `run` (spawns the agent loop) · pin caps from `OSTK_PIN` or tier-default · drain snapshots at every turn.
+`agentfile new` (scaffolder) · the FROM/LIMIT/TASK directives (the spec) · `run` (spawns the supported agent loop) · pin caps from `OSTK_PIN` or tier defaults · best-effort drain snapshots after completed managed turns.
 
 Source: `src/commands/agentfile_cmd.rs` (`new` subcommand), `src/commands/run.rs`.
 
@@ -9821,7 +9740,7 @@ Where the analogy diverges: Agentfiles aren't built into immutable artifacts at 
 
 `application/v1` generalizes Agentfiles into supervisor trees — multi-worker setups with restart strategies and shared budgets. Spec ratified at `docs/spec/llmos-application.md` (https://github.com/os-tack/haystack/blob/main/docs/spec/llmos-application.md); the application/v1 lifecycle verbs (`ostk app *`) land in a future release.
 
-RELATED: TRUST_MODEL (/docs/security/#gpg-rooted-trust-tiers) PIN_CAPS (/docs/security/#capability-pins-profiles) CLI (/docs/commands/) ARCHITECTURE (/docs/architecture/)
+RELATED: TRUST_MODEL (/docs/security/#identity-derived-trust-tiers) PIN_CAPS (/docs/security/#capability-pins-profiles) CLI (/docs/commands/) ARCHITECTURE (/docs/architecture/)
 
 ---
 
@@ -9838,7 +9757,7 @@ ostk layers policy, process isolation, local audit, and identity evidence around
 SECURITY_AND_TRUST_REFERENCE
 
 - 1. Defense-in-Depth Model
-- 2. GPG-Rooted Trust Tiers
+- 2. Identity-Derived Trust Tiers
 - 3. Capability Pins & Profiles
 - 4. Seven-Step Approval Chain
 - 5. Secrets Management & Masking
@@ -9870,65 +9789,61 @@ The kernel secret resolver avoids injecting values into model context and masks 
 
 02 // TRUST_TIERS
 
-## GPG-Rooted Trust Tiers
+## Identity-Derived Trust Tiers
 
-The kernel determines your tier at boot based entirely on your GPG keyring and active signatures. Tier defaults set the safety floor for filesystem and command execution:
+At boot, ostk resolves `SIGN` evidence from the HUMANFILE together with verified primefile identity evidence, then uses legacy GPG resolution as a fallback. The resulting T0–T3 tier supplies the default posture for kernel-mediated operations:
+
+IDENTITY_DEFAULTS OPEN_FULL_SIZE ↗ (/diagrams/trust-tiers.svg)
+
+Identity selects a default posture; configured write: prefixes can declare explicit path exceptions. Scope: Boot-time T0–T3 resolution from HUMANFILE and verified primefile evidence, with GPG as a fallback. Scroll horizontally or open the full-size SVG to inspect every label.
 
 T0
 
-Kernel Trust Anchor
+Verified Trust Root
 
-Hardcoded in src/kernel/identity.rs (shipped with binary)
+A verified self-sovereign primefile or a trusted Ed25519/GPG anchor
 
-None — full governance authority
+No tier-default restrictions — full governance authority
 
 T1
 
-Cross-Signed Identity
+T0-Endorsed Identity
 
-Your GPG key signed by a T0 key
+Verified delegated evidence or a legacy T0 cross-signature
 
-Write access to source/needles. Denied: write-kernel, modify-governance
+Source writes with kernel-state and governance restrictions by default
 
 T2
 
-Unsigned GPG Identity
+Identity Without T0 Endorsement
 
-GPG key exists but lacks T0/T1 cross-signature
+Identity evidence resolves without trusted endorsement
 
-Read everything. Narrow write exceptions. Denied: write-src, write-kernel, modify-governance
+The governed src/ root, kernel state, and governance are denied by default
 
 T3
 
 Anonymous Mode
 
-host_identity discovers no local GPG keys
+No identity resolves from HUMANFILE, verified primefile, or keyring
 
-Boots read-only. All writes through the tool layer are denied by default
+Kernel-mediated writes denied by default
 
-### Graduating Tiers via Ceremony
+### How Identity Is Admitted
 
-To transition from anonymous (T3) to a write-capable identity, you generate a GPG key, which moves you to T2. To reach T1, an active T0 or T1 holder must cross-sign your key. The cross-signature is verified at boot:
+A new project can establish a verified local root through the self-sovereign primefile created by `ostk init`. Current identity evidence uses Ed25519/DSSE-compatible verification where available; existing environments can retain the legacy GPG fallback.
 
-TERMINAL
-
-```
-# T3 → T2: generate a GPG key
-$ gpg --full-generate-key
-$ ostk boot
-trust: T2 (read + narrow exceptions)
-
-# T2 → T1: have a T0 or T1 holder cross-sign your key
-$ ostk trust sign # run by the cross-signer
-$ ostk boot
-trust: T1 (cross-signed, write access)
-```
+On the legacy GPG fallback, a verified T0 cross-signature yields T1 and an unendorsed key yields T2. T3 applies only when no verified primefile or other recognized identity evidence resolves. Revocation remains a policy state for historical verification; the boot resolver itself reports T0–T3.
 
 03 // CAPABILITY_PINS
 
 ## Capability Pins & Profiles
 
-Pin caps bound what an agent can touch. While your trust tier sets the floor (you cannot write past it), custom pin profiles set a ceiling on top. The merge is a union of denies—pins can only attenuate capabilities; they can never relax tier defaults.
+Trust tiers provide the default posture, while an operator-authored pin profile can add deny tokens and verb rules or declare narrow `write:` prefixes as explicit path carve-outs. Enforcement depends on the execution surface; for `fs_ops`, an active pin that cannot be read makes writes fail closed.
+
+CAPABILITY_SURFACES OPEN_FULL_SIZE ↗ (/diagrams/pin-enforcement.svg)
+
+The effective policy is enforced differently by write, verb, and shell surfaces. Scope: Kernel-mediated operations only; native client tools remain outside this boundary. Scroll horizontally or open the full-size SVG to inspect every label.
 
 CAPABILITY_TOKEN
 
@@ -9940,31 +9855,31 @@ deny: write-kernel
 
 .ostk/ state
 
-Blocks all writes to internal kernel database and settings
+Blocks canonical kernel-state writes; derived index and round-table paths have explicit exceptions
 
 deny: modify-governance
 
 Governance files
 
-Blocks modifications to .primefile, GOVERNANCE.md, ENTITYFILE, and Agentfiles
+Blocks .primefile, HUMANFILE, GOVERNANCE.md, ENTITYFILE, Agentfiles, and agent definitions
 
 deny: write-src
 
 Project source
 
-Blocks all writes to main project directories and codebase source files
+Blocks writes under the governed project root's src/ tree
 
-deny-path: <path>
+write: <path>
 
-Path matching
+Path prefix
 
-Blocks write, creation, or deletion of files matching prefix or substring
+Declares an operator-authored allow override for the listed prefix
 
 deny-verb: <cmd>
 
-Tool commands
+Kernel verbs
 
-Blocks execution of exact or prefix-matched CLI or shell verbs
+Blocks an exact invocation or a prefix match at a word boundary
 
 ### Bounding a Worker Profile
 
@@ -9974,15 +9889,17 @@ TERMINAL
 
 ```
 $ ostk issue_pin fix-bug
-created: .ostk/pins/fix-bug/pin.caps
-created: .ostk/pins/fix-bug/pin.boot
+pin fix-bug issued
+.ostk/pins/fix-bug/pin.boot
+.ostk/pins/fix-bug/pin.caps
 
 $ cat .ostk/pins/fix-bug/pin.caps
+read: .ostk/ .language
+write: .ostk/store/fix-bug/
+execute: shell(readonly)
 deny: write-kernel modify-governance
-deny-path: infra/ secrets/ .env*
-deny-verb: :shutdown
 
-# Execute agent bound to this pin profile
+# Activate this profile for a supported launch path
 $ OSTK_PIN=fix-bug ostk run .ostk/agents/fix-bug.af
 ```
 
@@ -10006,7 +9923,7 @@ $ ostk learn .ostk/agents/fix-bug.af --apply
 
 ## The Seven-Step Approval Chain
 
-Tool calls routed through the kernel pass through ordered validation steps, from pin caps to any required operator approval. Native client tools do not enter this chain. First matching rule wins:
+The embedded CPU agent loop uses this ordered approval chain for its tool calls, from pin caps to any required operator approval. It is not the universal dispatch path for every System ABI verb, and native client tools do not enter it. First matching rule wins within that loop:
 
 01
 
@@ -10030,7 +9947,7 @@ If the command is exactly a read-only kernel inspect primitive (e.g. ostk ps, os
 
 #### PERMISSION_MODE_GATE
 
-Checks the active permission mode. Autonomous allows all; Auto allows standard reads; Governed and Plan deny all write classes by default.
+Checks the active permission mode. Autonomous allows all; Auto allows standard reads plus ordinary edit/write classes; Governed and Plan deny write classes by default.
 
 05
 
@@ -10054,7 +9971,7 @@ Falls back to prompting the human operator. Keybindings: y=approve, n=deny, a=ap
 
 ## Secrets Management & Masking
 
-API keys never enter the LLM context. The kernel resolves credentials at execution time and injects them only into the environment of the active subprocess:
+When a supported tool resolves credentials through ostk, the kernel avoids placing the value in the model prompt, resolves it at execution time, and injects it only into the active subprocess environment. Native shells and external services remain separate boundaries:
 
 01
 
@@ -10093,7 +10010,7 @@ OPENROUTER_API_KEY ✗ not found
 
 ### Output Masking
 
-To prevent accidental credential leaks in conversation histories or transcripts, all tool outputs (stdin, stdout, stderr, file reads, and errors) are passed through `secrets::mask()`.
+Kernel-mediated results on supported masking paths pass known values through `secrets::mask()` before they are returned to the model. This does not sanitize output produced through native client tools or unrelated external processes.
 
 Any string matching a known API key structure with length &ge; 8 characters is automatically replaced with `●●●● (length)`.
 
@@ -10186,7 +10103,7 @@ The kernel reads the revocation list at boot. All actions signed by the key BEFO
 
 04
 
-The operator generates a fresh GPG key and initiates the cross-signing ceremony to re-establish a T1 identity.
+The operator creates fresh supported identity evidence and re-establishes the required endorsement. Legacy deployments may use the GPG cross-signing path.
 
 TERMINAL
 

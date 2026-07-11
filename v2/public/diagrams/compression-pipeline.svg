@@ -1,52 +1,83 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 200" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-labelledby="title desc">
+  <title id="title">ostk route-aware output shaping</title>
+  <desc id="desc">A raw request bypasses reduction. Otherwise a category router sends Narrate, Structured, Passthrough, and Dangerous output to dedicated handlers, while only Condense uses grammar and output-shape detection before conservative classification, visible reduction, and measured telemetry.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#9e8e7d"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#7fb88a"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#ffc169"/>
+    </marker>
+  </defs>
   <style>
-    text { font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif; }
-    .stage-label { fill: #e8e8ec; font-size: 13px; font-weight: 600; }
-    .stage-sub { fill: #a0a0aa; font-size: 11px; font-weight: 400; }
-    .token-count { fill: #d4a054; font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', 'SF Mono', monospace; }
-    .arrow { fill: #606068; }
-    .savings { fill: #5a9a6a; font-size: 14px; font-weight: 600; }
-    .box { rx: 6; ry: 6; }
+    text{font-family:"Space Grotesk",ui-sans-serif,system-ui,sans-serif}
+    .label{font-size:11px;font-weight:700;letter-spacing:1.5px;fill:#ffc169}
+    .title{font-size:24px;font-weight:650;fill:#e7e1de}
+    .step{font-size:15px;font-weight:750;fill:#e7e1de}
+    .body{font-size:12px;fill:#c2c9b4}
+    .minor{font-size:11px;fill:#9e8e7d}
+    .number{font-size:10px;font-weight:750;letter-spacing:1px;fill:#ffc169}
+    .yes{font-size:10px;font-weight:750;letter-spacing:1px;fill:#9bd3a4}
   </style>
+  <rect width="900" height="520" fill="#100e0c"/>
+  <path d="M0 0H900V78H0Z" fill="#151311"/>
+  <text x="28" y="27" class="label">KERNEL-MEDIATED OUTPUT / ROUTE-AWARE</text>
+  <text x="28" y="58" class="title">Keep tool output useful</text>
 
-  <!-- Stage 1: Raw Output -->
-  <rect class="box" x="20" y="50" width="130" height="70" fill="#1a1a1e" stroke="#3a3a42" stroke-width="1"/>
-  <text class="stage-label" x="85" y="80" text-anchor="middle">Raw Output</text>
-  <text class="token-count" x="85" y="102" text-anchor="middle">10K tokens</text>
+  <g>
+    <rect x="28" y="134" width="164" height="88" fill="#1d1b19" stroke="#514536"/>
+    <text x="44" y="158" class="number">01 / REQUEST</text>
+    <text x="44" y="184" class="step">Tool result</text>
+    <text x="44" y="207" class="body">body + route metadata</text>
+  </g>
+  <path d="M192 178H236" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <!-- Arrow 1 -->
-  <polygon class="arrow" points="160,85 175,78 175,92"/>
+  <g>
+    <rect x="237" y="134" width="148" height="88" fill="#211f1d" stroke="#d4a457"/>
+    <text x="253" y="158" class="number">02 / BYPASS</text>
+    <text x="253" y="184" class="step">raw:true?</text>
+    <text x="253" y="207" class="minor">decide before shaping</text>
+  </g>
 
-  <!-- Stage 2: VTE Strip -->
-  <rect class="box" x="185" y="50" width="120" height="70" fill="#1a1a1e" stroke="#d4a054" stroke-width="1" stroke-opacity="0.4"/>
-  <text class="stage-label" x="245" y="80" text-anchor="middle">VTE Strip</text>
-  <text class="stage-sub" x="245" y="100" text-anchor="middle">escape codes</text>
+  <path d="M311 134V105H440" fill="none" stroke="#7fb88a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="326" y="99" class="yes">YES</text>
+  <g>
+    <rect x="441" y="88" width="431" height="66" fill="#122318" stroke="#7fb88a"/>
+    <text x="459" y="113" class="number" fill="#9bd3a4">EXACT OUTPUT PATH</text>
+    <text x="459" y="137" class="body">Return the unshaped body; reduction is bypassed.</text>
+  </g>
 
-  <!-- Arrow 2 -->
-  <polygon class="arrow" points="315,85 330,78 330,92"/>
+  <path d="M311 222V257H441" fill="none" stroke="#ffc169" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+  <text x="326" y="248" class="label">NO</text>
+  <g>
+    <rect x="441" y="226" width="431" height="74" fill="#211f1d" stroke="#ffc169"/>
+    <text x="459" y="251" class="number">03 / CATEGORY ROUTER</text>
+    <text x="459" y="276" class="step">Choose the route-specific handler</text>
+  </g>
 
-  <!-- Stage 3: Dedup -->
-  <rect class="box" x="340" y="50" width="120" height="70" fill="#1a1a1e" stroke="#d4a054" stroke-width="1" stroke-opacity="0.6"/>
-  <text class="stage-label" x="400" y="80" text-anchor="middle">Dedup</text>
-  <text class="stage-sub" x="400" y="100" text-anchor="middle">repeated lines</text>
+  <path d="M554 300V330H210V350" fill="none" stroke="#9e8e7d" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M758 300V350" stroke="#ffc169" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
 
-  <!-- Arrow 3 -->
-  <polygon class="arrow" points="470,85 485,78 485,92"/>
+  <g>
+    <rect x="28" y="351" width="364" height="112" fill="#1d1b19" stroke="#514536"/>
+    <text x="46" y="376" class="number">DEDICATED HANDLERS</text>
+    <text x="46" y="404" class="step">Narrate · Structured</text>
+    <text x="46" y="427" class="step">Passthrough · Dangerous</text>
+    <text x="46" y="449" class="minor">Each handler preserves or shapes output by its own contract.</text>
+  </g>
 
-  <!-- Stage 4: Semantic Cluster -->
-  <rect class="box" x="495" y="50" width="140" height="70" fill="#1a1a1e" stroke="#d4a054" stroke-width="1" stroke-opacity="0.8"/>
-  <text class="stage-label" x="565" y="80" text-anchor="middle">Cluster</text>
-  <text class="stage-sub" x="565" y="100" text-anchor="middle">semantic grouping</text>
+  <g>
+    <rect x="421" y="331" width="451" height="150" fill="#211f1d" stroke="#ffc169" stroke-width="1.5"/>
+    <text x="439" y="356" class="number">CONDENSE ONLY</text>
+    <text x="439" y="383" class="step">Grammar → output shape → conservative fallback</text>
+    <text x="439" y="409" class="body">Classify signal; preserve hazards and outcomes.</text>
+    <text x="439" y="432" class="body">Digest blocks; apply visible structural, template,</text>
+    <text x="439" y="451" class="body">and optional semantic deduplication.</text>
+    <text x="439" y="470" class="minor">Return compact output with actual byte/token metrics.</text>
+  </g>
 
-  <!-- Arrow 4 -->
-  <polygon class="arrow" points="645,85 660,78 660,92"/>
-
-  <!-- Stage 5: Compressed -->
-  <rect class="box" x="670" y="50" width="130" height="70" fill="#1a1a1e" stroke="#5a9a6a" stroke-width="1.5"/>
-  <text class="stage-label" x="735" y="80" text-anchor="middle">Compressed</text>
-  <text class="token-count" x="735" y="102" text-anchor="middle">2K tokens</text>
-
-  <!-- Savings badge -->
-  <rect x="340" y="148" width="140" height="32" rx="16" ry="16" fill="#5a9a6a" fill-opacity="0.12" stroke="#5a9a6a" stroke-width="1" stroke-opacity="0.3"/>
-  <text class="savings" x="410" y="170" text-anchor="middle">80% savings</text>
+  <text x="28" y="501" class="minor">Savings depend on the command and output. No route promises a fixed reduction ratio.</text>
 </svg>
